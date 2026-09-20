@@ -1,0 +1,56 @@
+# Sobe o ambiente completo da V0: PostgreSQL + API + frontend.
+#   docker compose up --build
+#   frontend: http://localhost:5173
+#   API/Swagger: http://localhost:5080/swagger
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: esf-db
+    environment:
+      POSTGRES_DB: esf_plataforma
+      POSTGRES_USER: esf
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - esf-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esf -d esf_plataforma"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: ./backend
+    container_name: esf-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=esf_plataforma;Username=esf;Password=${POSTGRES_PASSWORD}"
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: "esf-plataforma"
+      Jwt__Audience: "esf-plataforma-web"
+      Storage__UploadsPath: "/app/App_Data/uploads"
+      Seed__Enabled: "true"
+      Seed__DemoPassword: ${SEED_DEMO_PASSWORD}
+    ports:
+      - "5080:8080"
+    volumes:
+      - esf-uploads:/app/App_Data/uploads
+
+  web:
+    build:
+      context: ./frontend
+    container_name: esf-web
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  esf-db-data:
+  esf-uploads:

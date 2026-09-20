@@ -1,0 +1,17 @@
+# .NET
+bin/
+obj/
+*.user
+
+# uploads locais
+backend/Esf.Api/App_Data/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# ambiente
+.env
+.env.local
+.DS_Store
