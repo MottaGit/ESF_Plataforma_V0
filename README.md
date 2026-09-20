@@ -307,20 +307,65 @@ No frontend, `VITE_API_URL` só é necessário se a API não estiver atrás do p
 
 ---
 
-## Evolução prevista
+## Fluxo de desenvolvimento
 
-- **V0 (esta versão)** — produto funcional, em uso, para validar o conceito com a equipe.
-- **V1** — monólito modular com Clean Architecture e DDD, a partir das fronteiras já separadas aqui.
-- **V2** — infraestrutura, observabilidade e escala.
-- **V3** — processamento assíncrono/eventos, quando houver necessidade real.
-- **V4** — extração de serviços, se e quando houver justificativa.
+A `main` é a branch principal do projeto.
 
-### Limites conhecidos desta V0
+### Nova funcionalidade ou alteração maior
 
-Assumidos de propósito, para serem revistos com base no uso real:
+Crie uma branch a partir da `main`:
 
-- arquivos em disco local (troca por armazenamento externo isolada em `FileStorageService`);
-- sem paginação nas listagens (adequado à ordem de grandeza atual de projetos e voluntários);
-- progresso do projeto informado manualmente, com o percentual de atividades concluídas exibido ao lado;
-- permissões simples, sem granularidade por projeto;
-- sem recuperação de senha por e-mail — a redefinição é feita por um administrador.
+```bash
+git checkout main
+git pull
+git checkout -b feature/nome-da-funcionalidade
+```
+
+Exemplo:
+
+```bash
+git checkout -b feature/relatorios
+```
+
+Após desenvolver e testar:
+
+```bash
+git add .
+git commit -m "Add project reports"
+git push -u origin feature/relatorios
+```
+
+Depois, no GitHub:
+
+1. Acesse **Pull requests → New pull request**.
+2. Selecione `main` como **base** e sua branch como **compare**.
+3. Revise as alterações.
+4. Clique em **Create pull request**.
+5. Após a revisão, faça o **Merge**.
+
+Depois do merge:
+
+```bash
+git checkout main
+git pull
+```
+
+### Alterações pequenas
+
+Alterações simples podem ser feitas diretamente na `main`:
+
+```bash
+git checkout main
+git pull
+
+git add .
+git commit -m "Descrição da alteração"
+git push
+```
+
+### Padrão de branches
+
+- `feature/...` — nova funcionalidade
+- `fix/...` — correção
+- `refactor/...` — refatoração
+- `chore/...` — configuração ou infraestrutura
