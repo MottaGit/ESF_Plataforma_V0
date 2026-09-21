@@ -11,6 +11,7 @@ public class ReportRequest
     public bool IncludeActivities { get; set; } = true;
     public bool IncludeVolunteers { get; set; } = true;
     public bool IncludeIndicators { get; set; } = true;
+    public bool IncludeUpdates { get; set; } = true;
     public bool IncludePhotos { get; set; } = true;
 
     /// <summary>Observacao livre impressa no inicio do relatorio (ex.: finalidade, parceiro).</summary>

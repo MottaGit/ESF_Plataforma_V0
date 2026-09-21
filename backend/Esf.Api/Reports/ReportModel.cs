@@ -13,6 +13,7 @@ public class ReportModel
     public bool IncludeActivities { get; init; } = true;
     public bool IncludeVolunteers { get; init; } = true;
     public bool IncludeIndicators { get; init; } = true;
+    public bool IncludeUpdates { get; init; } = true;
     public bool IncludePhotos { get; init; } = true;
 
     /// <summary>Fotos ja lidas do disco, por projeto (limitadas pelo servico).</summary>

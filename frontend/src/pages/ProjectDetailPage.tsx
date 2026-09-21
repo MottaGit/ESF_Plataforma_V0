@@ -79,6 +79,7 @@ export function ProjectDetailPage() {
         includeActivities: true,
         includeVolunteers: true,
         includeIndicators: true,
+        includeUpdates: true,
         includePhotos: true,
         note: null
       });

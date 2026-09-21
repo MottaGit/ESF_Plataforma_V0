@@ -35,6 +35,7 @@ public class ReportService
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
             .Include(p => p.Files)
+            .Include(p => p.Updates)
             .Where(p => ids.Contains(p.Id))
             .ToListAsync();
 
@@ -81,6 +82,7 @@ public class ReportService
             IncludeActivities = request.IncludeActivities,
             IncludeVolunteers = request.IncludeVolunteers,
             IncludeIndicators = request.IncludeIndicators,
+            IncludeUpdates = request.IncludeUpdates,
             IncludePhotos = request.IncludePhotos,
             Photos = photos
         };
@@ -105,6 +107,7 @@ public class ReportService
                 IncludeActivities = model.IncludeActivities,
                 IncludeVolunteers = model.IncludeVolunteers,
                 IncludeIndicators = model.IncludeIndicators,
+                IncludeUpdates = model.IncludeUpdates,
                 IncludePhotos = false
             };
 

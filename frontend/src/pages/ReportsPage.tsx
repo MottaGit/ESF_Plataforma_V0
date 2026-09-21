@@ -59,6 +59,7 @@ export function ReportsPage() {
         includeActivities: true,
         includeVolunteers: true,
         includeIndicators: true,
+        includeUpdates: true,
         includePhotos,
         note: note.trim() || null
       });
@@ -179,7 +180,7 @@ export function ReportsPage() {
           </div>
           <div className="panel__body">
             <p className="field__hint" style={{ marginBottom: 10 }}>
-              Indicadores, atividades e voluntários sempre entram no PDF. Só as fotos são opcionais.
+              Indicadores, atividades, voluntários e atualizações sempre entram no PDF. Só as fotos são opcionais.
             </p>
             <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
               <label className="checkbox">

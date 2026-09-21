@@ -279,6 +279,7 @@ export interface ReportPayload {
   includeActivities: boolean;
   includeVolunteers: boolean;
   includeIndicators: boolean;
+  includeUpdates: boolean;
   includePhotos: boolean;
   note: string | null;
 }

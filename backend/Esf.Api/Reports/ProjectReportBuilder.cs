@@ -202,6 +202,9 @@ public static class ProjectReportBuilder
                 && photos.Count > 0)
                 col.Item().Element(c => ComposePhotos(c, photos));
 
+            if (model.IncludeUpdates && p.Updates.Count > 0)
+                col.Item().Element(c => ComposeUpdates(c, p));
+
             if (!string.IsNullOrWhiteSpace(p.Notes))
                 col.Item().Element(c => Paragraph(c, "Observacoes", p.Notes!));
         });
@@ -303,6 +306,29 @@ public static class ProjectReportBuilder
                     table.Cell().Element(BodyCell).Text(v.Volunteer?.Name ?? "-");
                     table.Cell().Element(BodyCell).Text(v.RoleInProject ?? "-");
                     table.Cell().Element(BodyCell).Text(v.Volunteer?.Email ?? v.Volunteer?.Phone ?? "-");
+                }
+            });
+        });
+    }
+
+    private static void ComposeUpdates(IContainer container, Project p)
+    {
+        container.Column(col =>
+        {
+            col.Item().Text("Atualizações").FontSize(10).SemiBold();
+
+            col.Item().PaddingTop(4).Column(inner =>
+            {
+                inner.Spacing(6);
+
+                foreach (var u in p.Updates.OrderByDescending(u => u.CreatedAt))
+                {
+                    inner.Item().Column(entry =>
+                    {
+                        entry.Item().Text(u.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                            .FontSize(8).SemiBold().FontColor(Muted);
+                        entry.Item().PaddingTop(1).Text(u.Text).FontSize(9);
+                    });
                 }
             });
         });
