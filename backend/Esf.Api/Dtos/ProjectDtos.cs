@@ -9,7 +9,7 @@ public record ProjectListItemDto(
     string Category,
     ProjectStatus Status,
     int Progress,
-    Guid? OwnerUserId,
+    Guid? OwnerVolunteerId,
     string? OwnerName,
     string? District,
     string? City,
@@ -29,7 +29,7 @@ public record ProjectDetailDto(
     string Category,
     ProjectStatus Status,
     int Progress,
-    Guid? OwnerUserId,
+    Guid? OwnerVolunteerId,
     string? OwnerName,
     string? Objective,
     string? Beneficiaries,
@@ -65,7 +65,7 @@ public class SaveProjectRequest
     [StringLength(80)]
     public string Category { get; set; } = string.Empty;
 
-    public Guid? OwnerUserId { get; set; }
+    public Guid? OwnerVolunteerId { get; set; }
 
     public string? Objective { get; set; }
 
@@ -125,7 +125,7 @@ public class ProjectQuery
     public string? Search { get; set; }
     public ProjectStatus? Status { get; set; }
     public string? Category { get; set; }
-    public Guid? OwnerUserId { get; set; }
+    public Guid? OwnerVolunteerId { get; set; }
     public bool OnlyLate { get; set; }
     public bool IncludeArchived { get; set; }
     /// <summary>recent | name | status | deadline | progress</summary>

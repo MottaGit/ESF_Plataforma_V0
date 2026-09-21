@@ -20,7 +20,7 @@ public class ActivityService
 
         var activities = await _db.Activities
             .AsNoTracking()
-            .Include(a => a.AssignedUser)
+            .Include(a => a.AssignedVolunteer)
             .Where(a => a.ProjectId == projectId)
             .OrderBy(a => a.Status)
             .ThenByDescending(a => a.Priority)
@@ -34,7 +34,7 @@ public class ActivityService
     {
         var activities = await _db.Activities
             .AsNoTracking()
-            .Include(a => a.AssignedUser)
+            .Include(a => a.AssignedVolunteer)
             .Include(a => a.Project)
             .Where(a => a.Status != ActivityStatus.Concluida && !a.Project!.IsArchived)
             .OrderBy(a => a.DueDate ?? DateOnly.MaxValue)
@@ -50,7 +50,7 @@ public class ActivityService
         if (!await _db.Projects.AnyAsync(p => p.Id == projectId))
             throw AppException.NotFound("Projeto");
 
-        await EnsureAssigneeExistsAsync(request.AssignedUserId);
+        await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
 
         var activity = new Activity { ProjectId = projectId };
         Apply(activity, request);
@@ -66,7 +66,7 @@ public class ActivityService
     public async Task<ActivityDto> UpdateAsync(Guid id, SaveActivityRequest request)
     {
         var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
-        await EnsureAssigneeExistsAsync(request.AssignedUserId);
+        await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
 
         Apply(activity, request);
         await TouchProjectAsync(activity.ProjectId);
@@ -101,15 +101,15 @@ public class ActivityService
     {
         var activity = await _db.Activities
             .AsNoTracking()
-            .Include(a => a.AssignedUser)
+            .Include(a => a.AssignedVolunteer)
             .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
 
         return Mapping.ToDto(activity);
     }
 
-    private async Task EnsureAssigneeExistsAsync(Guid? userId)
+    private async Task EnsureAssigneeExistsAsync(Guid? volunteerId)
     {
-        if (userId.HasValue && !await _db.Users.AnyAsync(u => u.Id == userId.Value))
+        if (volunteerId.HasValue && !await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
             throw new AppException("O responsavel informado nao existe.");
     }
 
@@ -123,7 +123,7 @@ public class ActivityService
     {
         activity.Title = r.Title.Trim();
         activity.Description = string.IsNullOrWhiteSpace(r.Description) ? null : r.Description.Trim();
-        activity.AssignedUserId = r.AssignedUserId;
+        activity.AssignedVolunteerId = r.AssignedVolunteerId;
         activity.Status = r.Status!.Value;
         activity.Priority = r.Priority!.Value;
         activity.DueDate = r.DueDate;

@@ -10,8 +10,8 @@ public class Activity
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    public Guid? AssignedUserId { get; set; }
-    public User? AssignedUser { get; set; }
+    public Guid? AssignedVolunteerId { get; set; }
+    public Volunteer? AssignedVolunteer { get; set; }
 
     public ActivityStatus Status { get; set; } = ActivityStatus.AFazer;
     public ActivityPriority Priority { get; set; } = ActivityPriority.Media;

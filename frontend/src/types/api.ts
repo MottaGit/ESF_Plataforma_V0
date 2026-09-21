@@ -31,7 +31,7 @@ export interface ProjectListItem {
   category: string;
   status: ProjectStatus;
   progress: number;
-  ownerUserId: string | null;
+  ownerVolunteerId: string | null;
   ownerName: string | null;
   district: string | null;
   city: string | null;
@@ -51,8 +51,8 @@ export interface Activity {
   projectName: string | null;
   title: string;
   description: string | null;
-  assignedUserId: string | null;
-  assignedUserName: string | null;
+  assignedVolunteerId: string | null;
+  assignedVolunteerName: string | null;
   status: ActivityStatus;
   priority: ActivityPriority;
   dueDate: string | null;
@@ -130,7 +130,7 @@ export interface ProjectDetail {
   category: string;
   status: ProjectStatus;
   progress: number;
-  ownerUserId: string | null;
+  ownerVolunteerId: string | null;
   ownerName: string | null;
   objective: string | null;
   beneficiaries: string | null;
@@ -211,7 +211,7 @@ export interface SaveProjectPayload {
   name: string;
   description: string | null;
   category: string;
-  ownerUserId: string | null;
+  ownerVolunteerId: string | null;
   objective: string | null;
   beneficiaries: string | null;
   targetAudience: string | null;
@@ -231,7 +231,7 @@ export interface SaveProjectPayload {
 export interface SaveActivityPayload {
   title: string;
   description: string | null;
-  assignedUserId: string | null;
+  assignedVolunteerId: string | null;
   status: ActivityStatus;
   priority: ActivityPriority;
   dueDate: string | null;
@@ -287,7 +287,7 @@ export interface ProjectFilters {
   search?: string;
   status?: ProjectStatus | '';
   category?: string;
-  ownerUserId?: string;
+  ownerVolunteerId?: string;
   onlyLate?: boolean;
   includeArchived?: boolean;
   sort?: string;

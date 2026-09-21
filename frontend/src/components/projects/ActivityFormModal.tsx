@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
-import type { Activity, ActivityPriority, ActivityStatus, SaveActivityPayload, User } from '../../types/api';
+import type { Activity, ActivityPriority, ActivityStatus, SaveActivityPayload, Volunteer } from '../../types/api';
 import {
   ACTIVITY_PRIORITIES,
   ACTIVITY_STATUSES,
@@ -17,15 +17,15 @@ import { Modal } from '../ui/Modal';
 interface ActivityFormModalProps {
   projectId: string;
   activity: Activity | null;
-  users: User[];
+  volunteers: Volunteer[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function ActivityFormModal({ projectId, activity, users, onClose, onSaved }: ActivityFormModalProps) {
+export function ActivityFormModal({ projectId, activity, volunteers, onClose, onSaved }: ActivityFormModalProps) {
   const [title, setTitle] = useState(activity?.title ?? '');
   const [description, setDescription] = useState(activity?.description ?? '');
-  const [assignedUserId, setAssignedUserId] = useState(activity?.assignedUserId ?? '');
+  const [assignedVolunteerId, setAssignedVolunteerId] = useState(activity?.assignedVolunteerId ?? '');
   const [status, setStatus] = useState<ActivityStatus>(activity?.status ?? 'AFazer');
   const [priority, setPriority] = useState<ActivityPriority>(activity?.priority ?? 'Media');
   const [dueDate, setDueDate] = useState(activity?.dueDate?.slice(0, 10) ?? '');
@@ -48,7 +48,7 @@ export function ActivityFormModal({ projectId, activity, users, onClose, onSaved
     const payload: SaveActivityPayload = {
       title: title.trim(),
       description: emptyToNull(description),
-      assignedUserId: assignedUserId || null,
+      assignedVolunteerId: assignedVolunteerId || null,
       status,
       priority,
       dueDate: dueDate || null,
@@ -110,13 +110,13 @@ export function ActivityFormModal({ projectId, activity, users, onClose, onSaved
           <Field label="Responsável" htmlFor="activity-owner">
             <Select
               id="activity-owner"
-              value={assignedUserId}
-              onChange={(event) => setAssignedUserId(event.target.value)}
+              value={assignedVolunteerId}
+              onChange={(event) => setAssignedVolunteerId(event.target.value)}
             >
               <option value="">Sem responsável</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
+              {volunteers.map((volunteer) => (
+                <option key={volunteer.id} value={volunteer.id}>
+                  {volunteer.name}
                 </option>
               ))}
             </Select>

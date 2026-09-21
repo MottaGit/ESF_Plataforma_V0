@@ -219,7 +219,7 @@ export function DashboardPage() {
                         <div style={{ fontSize: 13.5, fontWeight: 500 }}>{activity.title}</div>
                         <div className="table__secondary">
                           <Link to={`/projetos/${activity.projectId}`}>{activity.projectName}</Link>
-                          {activity.assignedUserName ? ` · ${activity.assignedUserName}` : ''}
+                          {activity.assignedVolunteerName ? ` · ${activity.assignedVolunteerName}` : ''}
                         </div>
                       </div>
                       <span className={`badge ${activity.isLate ? 'badge--late' : 'badge--neutral'}`}>

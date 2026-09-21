@@ -51,9 +51,9 @@ public class EsfDbContext : DbContext
             e.HasIndex(x => x.Status);
             e.HasIndex(x => x.Name);
 
-            e.HasOne(x => x.OwnerUser)
-                .WithMany(u => u.OwnedProjects)
-                .HasForeignKey(x => x.OwnerUserId)
+            e.HasOne(x => x.OwnerVolunteer)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerVolunteerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -66,9 +66,9 @@ public class EsfDbContext : DbContext
                 .HasForeignKey(x => x.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            e.HasOne(x => x.AssignedUser)
-                .WithMany(u => u.AssignedActivities)
-                .HasForeignKey(x => x.AssignedUserId)
+            e.HasOne(x => x.AssignedVolunteer)
+                .WithMany()
+                .HasForeignKey(x => x.AssignedVolunteerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 

@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { projectsApi } from '../../api/endpoints';
-import type { ProjectDetail, ProjectStatus, SaveProjectPayload, User } from '../../types/api';
+import type { ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
 import { PROJECT_STATUSES, emptyToNull, projectStatusLabel, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
@@ -10,7 +10,7 @@ import { Modal } from '../ui/Modal';
 
 interface ProjectFormModalProps {
   project: ProjectDetail | null;
-  users: User[];
+  volunteers: Volunteer[];
   categories: string[];
   onClose: () => void;
   onSaved: (project: ProjectDetail) => void;
@@ -20,7 +20,7 @@ interface FormState {
   name: string;
   description: string;
   category: string;
-  ownerUserId: string;
+  ownerVolunteerId: string;
   objective: string;
   beneficiaries: string;
   targetAudience: string;
@@ -42,7 +42,7 @@ function initialState(project: ProjectDetail | null, fallbackCategory: string): 
     name: project?.name ?? '',
     description: project?.description ?? '',
     category: project?.category ?? fallbackCategory,
-    ownerUserId: project?.ownerUserId ?? '',
+    ownerVolunteerId: project?.ownerVolunteerId ?? '',
     objective: project?.objective ?? '',
     beneficiaries: project?.beneficiaries ?? '',
     targetAudience: project?.targetAudience ?? '',
@@ -60,7 +60,7 @@ function initialState(project: ProjectDetail | null, fallbackCategory: string): 
   };
 }
 
-export function ProjectFormModal({ project, users, categories, onClose, onSaved }: ProjectFormModalProps) {
+export function ProjectFormModal({ project, volunteers, categories, onClose, onSaved }: ProjectFormModalProps) {
   const [form, setForm] = useState<FormState>(() => initialState(project, categories[0] ?? 'Outros'));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -110,7 +110,7 @@ export function ProjectFormModal({ project, users, categories, onClose, onSaved 
       name: form.name.trim(),
       description: emptyToNull(form.description),
       category: form.category.trim(),
-      ownerUserId: form.ownerUserId || null,
+      ownerVolunteerId: form.ownerVolunteerId || null,
       objective: emptyToNull(form.objective),
       beneficiaries: emptyToNull(form.beneficiaries),
       targetAudience: emptyToNull(form.targetAudience),
@@ -188,11 +188,15 @@ export function ProjectFormModal({ project, users, categories, onClose, onSaved 
           </Field>
 
           <Field label="Responsável" htmlFor="owner" hint="Quem responde pelo projeto na organização.">
-            <Select id="owner" value={form.ownerUserId} onChange={(event) => update('ownerUserId', event.target.value)}>
+            <Select
+              id="owner"
+              value={form.ownerVolunteerId}
+              onChange={(event) => update('ownerVolunteerId', event.target.value)}
+            >
               <option value="">Sem responsável definido</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
+              {volunteers.map((volunteer) => (
+                <option key={volunteer.id} value={volunteer.id}>
+                  {volunteer.name}
                 </option>
               ))}
             </Select>

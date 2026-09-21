@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { Activity, ActivityStatus, ProjectDetail, User } from '../../types/api';
+import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
 import { ACTIVITY_STATUSES, activityStatusLabel, dueLabel, formatDate } from '../../utils/format';
 import { ActivityStatusBadge, LateBadge, PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -14,11 +14,11 @@ import { UpdatesSection } from './UpdatesSection';
 
 interface ActivitiesTabProps {
   project: ProjectDetail;
-  users: User[];
+  volunteers: Volunteer[];
   onChanged: () => void;
 }
 
-export function ActivitiesTab({ project, users, onChanged }: ActivitiesTabProps) {
+export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabProps) {
   const { notify, notifyError } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
@@ -109,7 +109,7 @@ export function ActivitiesTab({ project, users, onChanged }: ActivitiesTabProps)
                       <div className="table__primary">{activity.title}</div>
                       {activity.description ? <div className="table__secondary">{activity.description}</div> : null}
                     </td>
-                    <td>{activity.assignedUserName ?? '—'}</td>
+                    <td>{activity.assignedVolunteerName ?? '—'}</td>
                     <td>
                       <PriorityBadge priority={activity.priority} />
                     </td>
@@ -165,7 +165,7 @@ export function ActivitiesTab({ project, users, onChanged }: ActivitiesTabProps)
         <ActivityFormModal
           projectId={project.id}
           activity={editing}
-          users={users}
+          volunteers={volunteers}
           onClose={() => setFormOpen(false)}
           onSaved={() => {
             setFormOpen(false);

@@ -46,7 +46,7 @@ export const projectsApi = {
         search: filters.search,
         status: filters.status || undefined,
         category: filters.category,
-        ownerUserId: filters.ownerUserId,
+        ownerVolunteerId: filters.ownerVolunteerId,
         onlyLate: filters.onlyLate,
         includeArchived: filters.includeArchived,
         sort: filters.sort

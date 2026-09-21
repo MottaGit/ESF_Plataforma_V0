@@ -9,8 +9,8 @@ public record ActivityDto(
     string? ProjectName,
     string Title,
     string? Description,
-    Guid? AssignedUserId,
-    string? AssignedUserName,
+    Guid? AssignedVolunteerId,
+    string? AssignedVolunteerName,
     ActivityStatus Status,
     ActivityPriority Priority,
     DateOnly? DueDate,
@@ -26,7 +26,7 @@ public class SaveActivityRequest
     public string Title { get; set; } = string.Empty;
 
     public string? Description { get; set; }
-    public Guid? AssignedUserId { get; set; }
+    public Guid? AssignedVolunteerId { get; set; }
 
     [Required(ErrorMessage = "Selecione o status.")]
     public ActivityStatus? Status { get; set; }

@@ -8,9 +8,9 @@ public class Project
     public string? Description { get; set; }
     public string Category { get; set; } = string.Empty;
 
-    /// <summary>Responsavel pelo projeto (usuario da plataforma).</summary>
-    public Guid? OwnerUserId { get; set; }
-    public User? OwnerUser { get; set; }
+    /// <summary>Responsavel pelo projeto (voluntario cadastrado).</summary>
+    public Guid? OwnerVolunteerId { get; set; }
+    public Volunteer? OwnerVolunteer { get; set; }
 
     public string? Objective { get; set; }
     /// <summary>Comunidade ou beneficiarios atendidos.</summary>

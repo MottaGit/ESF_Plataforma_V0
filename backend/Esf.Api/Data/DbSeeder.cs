@@ -73,10 +73,12 @@ public static class DbSeeder
         // Setor Qualidade
         var vAlisson = new Volunteer { Name = "Alisson", Sector = VolunteerSector.Qualidade };
         var vMariaAntonia = new Volunteer { Name = "Maria Antonia", Sector = VolunteerSector.Qualidade };
+        var vFausto = new Volunteer { Name = "Fausto da Silva", Sector = VolunteerSector.Projetos };
 
         db.Volunteers.AddRange(
             vLeonardo, vClivia, vSandra, vAna, vGiovani, vFelipe, vAdriano, vEdu, vLuca,
-            vGuilherme, vTanea, vCarol, vJulia, vMarcosHeitor, vAlice, vYasminM, vFrancielly, vAlisson, vMariaAntonia);
+            vGuilherme, vTanea, vCarol, vJulia, vMarcosHeitor, vAlice, vYasminM, vFrancielly, vAlisson, vMariaAntonia,
+            vFausto);
 
         const string categoriaBanheiro = "Banheiro Direito da Gente";
         const string categoriaHorta = "Horta comunitaria";
@@ -106,7 +108,7 @@ public static class DbSeeder
             EndDateForecast = Do(2025, 9, 6),
             Status = ProjectStatus.Concluido,
             Progress = 100,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Execucao pelo construtor local Sr. Gabriel. Fonte: registros INFOBAN 08 e 11."
         };
 
@@ -126,7 +128,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 1, 11),
             Status = ProjectStatus.Concluido,
             Progress = 100,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Gestora local: Casa de Nazare. Fonte: INFOBAN 23-27, 39."
         };
 
@@ -145,7 +147,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 8, 30),
             Status = ProjectStatus.EmAndamento,
             Progress = 30,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Casa em situacao de risco; demolicao e reconstrucao total. Construtor Solano. Fonte: INFOBAN 43-44."
         };
 
@@ -165,7 +167,7 @@ public static class DbSeeder
             EndDateForecast = Do(2025, 12, 14),
             Status = ProjectStatus.Concluido,
             Progress = 100,
-            OwnerUser = leonardo,
+            OwnerVolunteer = vLeonardo,
             Notes = "Parceria: Cozinha Solidaria Compartilhando Sabores + Levante. Construtores Paulo e Alexandre. Fonte: INFOBAN 12-26."
         };
 
@@ -184,7 +186,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 5, 20),
             Status = ProjectStatus.Concluido,
             Progress = 100,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Gestora local: ACONVI / Banco Comunitario Justa Troca. Construtor: equipe Josimar. Fonte: INFOBAN 37-43."
         };
 
@@ -203,7 +205,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 7, 31),
             Status = ProjectStatus.EmAndamento,
             Progress = 25,
-            OwnerUser = fausto,
+            OwnerVolunteer = vFausto,
             Notes = "Gestora local: ACONVI. Equipe Silvio e Igor. Fonte: INFOBAN 41-44."
         };
 
@@ -222,7 +224,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 1, 20),
             Status = ProjectStatus.Concluido,
             Progress = 100,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Gestora local: CPCA. Apoio de madeireira parceira. Fonte: INFOBAN 18-32."
         };
 
@@ -241,7 +243,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 9, 30),
             Status = ProjectStatus.EmAndamento,
             Progress = 45,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Projeto teve paralisacoes e troca de construtores; retomado em 15/05/2026 pela equipe de Flavio e Rita. Gestora local: CPCA. Fonte: INFOBAN 31, 42-44."
         };
 
@@ -260,7 +262,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 10, 15),
             Status = ProjectStatus.Planejamento,
             Progress = 5,
-            OwnerUser = fausto,
+            OwnerVolunteer = vFausto,
             Notes = "CPCA contratou construtor local Flavio para retomada. Fonte: INFOBAN 14, 30-31."
         };
 
@@ -279,7 +281,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 6, 20),
             Status = ProjectStatus.EmAndamento,
             Progress = 85,
-            OwnerUser = ana,
+            OwnerVolunteer = vAna,
             Notes = "Casa afetada por incendio. Construtor Ivo, da comunidade. Aguardando vistoria final desde 07/05/2026. Gestora local: CPCA. Fonte: INFOBAN 38-41."
         };
 
@@ -302,7 +304,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 8, 1),
             Status = ProjectStatus.EmAndamento,
             Progress = 40,
-            OwnerUser = ana
+            OwnerVolunteer = vAna
         };
 
         var h2 = new Project
@@ -320,7 +322,7 @@ public static class DbSeeder
             EndDateForecast = Do(2027, 1, 15),
             Status = ProjectStatus.Planejamento,
             Progress = 5,
-            OwnerUser = fausto
+            OwnerVolunteer = vFausto
         };
 
         var h3 = new Project
@@ -338,7 +340,7 @@ public static class DbSeeder
             EndDateForecast = Do(2025, 11, 15),
             Status = ProjectStatus.Concluido,
             Progress = 100,
-            OwnerUser = leonardo
+            OwnerVolunteer = vLeonardo
         };
 
         var h4 = new Project
@@ -356,7 +358,7 @@ public static class DbSeeder
             EndDateForecast = Do(2026, 9, 1),
             Status = ProjectStatus.EmAndamento,
             Progress = 30,
-            OwnerUser = ana
+            OwnerVolunteer = vAna
         };
 
         var h5 = new Project
@@ -374,77 +376,77 @@ public static class DbSeeder
             EndDateForecast = Do(2027, 2, 1),
             Status = ProjectStatus.Planejamento,
             Progress = 0,
-            OwnerUser = fausto
+            OwnerVolunteer = vFausto
         };
 
         db.Projects.AddRange(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, h1, h2, h3, h4, h5);
 
         db.Activities.AddRange(
-            new Activity { Project = b1, Title = "Visita tecnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2025, 8, 1), CompletedAt = Dt(2025, 8, 1) },
-            new Activity { Project = b1, Title = "Reconstrucao de paredes e revestimento ceramico", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = leonardo, DueDate = Do(2025, 8, 25), CompletedAt = Dt(2025, 8, 24) },
-            new Activity { Project = b1, Title = "Instalacao de loucas, metais e chuveiro", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = leonardo, DueDate = Do(2025, 9, 5), CompletedAt = Dt(2025, 9, 5) },
-            new Activity { Project = b1, Title = "Entrega e vistoria final", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2025, 9, 6), CompletedAt = Dt(2025, 9, 6) },
+            new Activity { Project = b1, Title = "Visita tecnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 8, 1), CompletedAt = Dt(2025, 8, 1) },
+            new Activity { Project = b1, Title = "Reconstrucao de paredes e revestimento ceramico", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 8, 25), CompletedAt = Dt(2025, 8, 24) },
+            new Activity { Project = b1, Title = "Instalacao de loucas, metais e chuveiro", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 9, 5), CompletedAt = Dt(2025, 9, 5) },
+            new Activity { Project = b1, Title = "Entrega e vistoria final", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2025, 9, 6), CompletedAt = Dt(2025, 9, 6) },
 
-            new Activity { Project = b2, Title = "Levantamento e projeto para duas familias", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2025, 11, 5), CompletedAt = Dt(2025, 11, 5) },
-            new Activity { Project = b2, Title = "Fundacao e alvenaria", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2025, 12, 5), CompletedAt = Dt(2025, 12, 5) },
-            new Activity { Project = b2, Title = "Rede de esgoto do beco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2025, 12, 20), CompletedAt = Dt(2025, 12, 20) },
-            new Activity { Project = b2, Title = "Acabamento, barras de apoio e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 1, 11), CompletedAt = Dt(2026, 1, 11) },
+            new Activity { Project = b2, Title = "Levantamento e projeto para duas familias", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 11, 5), CompletedAt = Dt(2025, 11, 5) },
+            new Activity { Project = b2, Title = "Fundacao e alvenaria", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 12, 5), CompletedAt = Dt(2025, 12, 5) },
+            new Activity { Project = b2, Title = "Rede de esgoto do beco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 12, 20), CompletedAt = Dt(2025, 12, 20) },
+            new Activity { Project = b2, Title = "Acabamento, barras de apoio e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 11), CompletedAt = Dt(2026, 1, 11) },
 
-            new Activity { Project = b3, Title = "Demolicao da casa em risco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
-            new Activity { Project = b3, Title = "Fundacao e alvenaria da nova casa", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 7, 1) },
-            new Activity { Project = b3, Title = "Redes hidrossanitarias e eletrica", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 8, 1) },
-            new Activity { Project = b3, Title = "Acabamento e entrega", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 8, 30) },
+            new Activity { Project = b3, Title = "Demolicao da casa em risco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
+            new Activity { Project = b3, Title = "Fundacao e alvenaria da nova casa", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 1) },
+            new Activity { Project = b3, Title = "Redes hidrossanitarias e eletrica", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 8, 1) },
+            new Activity { Project = b3, Title = "Acabamento e entrega", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 8, 30) },
 
-            new Activity { Project = b4, Title = "Levantamento e projeto de acessibilidade", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = leonardo, DueDate = Do(2025, 9, 20), CompletedAt = Dt(2025, 9, 20) },
-            new Activity { Project = b4, Title = "Ampliacao e fundacao", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = leonardo, DueDate = Do(2025, 10, 20), CompletedAt = Dt(2025, 10, 20) },
-            new Activity { Project = b4, Title = "Banheiro acessivel e instalacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = leonardo, DueDate = Do(2025, 11, 25), CompletedAt = Dt(2025, 11, 25) },
-            new Activity { Project = b4, Title = "Acabamento e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = leonardo, DueDate = Do(2025, 12, 14), CompletedAt = Dt(2025, 12, 14) },
+            new Activity { Project = b4, Title = "Levantamento e projeto de acessibilidade", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 9, 20), CompletedAt = Dt(2025, 9, 20) },
+            new Activity { Project = b4, Title = "Ampliacao e fundacao", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 10, 20), CompletedAt = Dt(2025, 10, 20) },
+            new Activity { Project = b4, Title = "Banheiro acessivel e instalacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 11, 25), CompletedAt = Dt(2025, 11, 25) },
+            new Activity { Project = b4, Title = "Acabamento e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 12, 14), CompletedAt = Dt(2025, 12, 14) },
 
-            new Activity { Project = b5, Title = "Projeto de acessibilidade NBR 9050", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 4, 5), CompletedAt = Dt(2026, 4, 5) },
-            new Activity { Project = b5, Title = "Fundacao e alvenaria ampliada", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 4, 25), CompletedAt = Dt(2026, 4, 25) },
-            new Activity { Project = b5, Title = "Instalacao de barras e adaptacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 5, 10), CompletedAt = Dt(2026, 5, 10) },
-            new Activity { Project = b5, Title = "Entrega e vistoria", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
+            new Activity { Project = b5, Title = "Projeto de acessibilidade NBR 9050", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 4, 5), CompletedAt = Dt(2026, 4, 5) },
+            new Activity { Project = b5, Title = "Fundacao e alvenaria ampliada", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 4, 25), CompletedAt = Dt(2026, 4, 25) },
+            new Activity { Project = b5, Title = "Instalacao de barras e adaptacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 10), CompletedAt = Dt(2026, 5, 10) },
+            new Activity { Project = b5, Title = "Entrega e vistoria", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
 
-            new Activity { Project = b6, Title = "Demolicao da cozinha em risco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = fausto, DueDate = Do(2026, 5, 10), CompletedAt = Dt(2026, 5, 10) },
-            new Activity { Project = b6, Title = "Fundacao do banheiro e area de servico", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedUser = fausto, DueDate = Do(2026, 6, 15) },
-            new Activity { Project = b6, Title = "Reforco de telhado e nova cozinha", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedUser = fausto, DueDate = Do(2026, 7, 15) },
-            new Activity { Project = b6, Title = "Instalacoes hidrossanitarias", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedUser = fausto, DueDate = Do(2026, 7, 31) },
+            new Activity { Project = b6, Title = "Demolicao da cozinha em risco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 5, 10), CompletedAt = Dt(2026, 5, 10) },
+            new Activity { Project = b6, Title = "Fundacao do banheiro e area de servico", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 6, 15) },
+            new Activity { Project = b6, Title = "Reforco de telhado e nova cozinha", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 7, 15) },
+            new Activity { Project = b6, Title = "Instalacoes hidrossanitarias", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 7, 31) },
 
-            new Activity { Project = b7, Title = "Demolicao da casa atingida", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2025, 11, 20), CompletedAt = Dt(2025, 11, 20) },
-            new Activity { Project = b7, Title = "Montagem da casa pre-fabricada", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2025, 12, 15), CompletedAt = Dt(2025, 12, 15) },
-            new Activity { Project = b7, Title = "Banheiro em alvenaria e instalacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 1, 10), CompletedAt = Dt(2026, 1, 10) },
-            new Activity { Project = b7, Title = "Entrega com mobiliario basico", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 1, 20), CompletedAt = Dt(2026, 1, 20) },
+            new Activity { Project = b7, Title = "Demolicao da casa atingida", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 11, 20), CompletedAt = Dt(2025, 11, 20) },
+            new Activity { Project = b7, Title = "Montagem da casa pre-fabricada", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 12, 15), CompletedAt = Dt(2025, 12, 15) },
+            new Activity { Project = b7, Title = "Banheiro em alvenaria e instalacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 10), CompletedAt = Dt(2026, 1, 10) },
+            new Activity { Project = b7, Title = "Entrega com mobiliario basico", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 20), CompletedAt = Dt(2026, 1, 20) },
 
-            new Activity { Project = b8, Title = "Levantamento e mudanca de escopo do projeto", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 1, 15), CompletedAt = Dt(2026, 1, 15) },
-            new Activity { Project = b8, Title = "Baldrame e alvenaria (1a fase, paralisada)", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 3, 1), CompletedAt = Dt(2026, 3, 1) },
-            new Activity { Project = b8, Title = "Retomada da obra com nova equipe", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 7, 1) },
-            new Activity { Project = b8, Title = "Instalacoes e lavanderia", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 9, 1) },
+            new Activity { Project = b8, Title = "Levantamento e mudanca de escopo do projeto", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 15), CompletedAt = Dt(2026, 1, 15) },
+            new Activity { Project = b8, Title = "Baldrame e alvenaria (1a fase, paralisada)", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 3, 1), CompletedAt = Dt(2026, 3, 1) },
+            new Activity { Project = b8, Title = "Retomada da obra com nova equipe", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 1) },
+            new Activity { Project = b8, Title = "Instalacoes e lavanderia", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 9, 1) },
 
-            new Activity { Project = b9, Title = "Levantamento tecnico sobre alicerce existente", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = fausto, DueDate = Do(2026, 1, 20), CompletedAt = Dt(2026, 1, 20) },
-            new Activity { Project = b9, Title = "Contratacao de construtor local para retomada", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedUser = fausto, DueDate = Do(2026, 6, 1) },
-            new Activity { Project = b9, Title = "Construcao do banheiro e caixa d'agua", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedUser = fausto, DueDate = Do(2026, 9, 15) },
+            new Activity { Project = b9, Title = "Levantamento tecnico sobre alicerce existente", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 1, 20), CompletedAt = Dt(2026, 1, 20) },
+            new Activity { Project = b9, Title = "Contratacao de construtor local para retomada", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 6, 1) },
+            new Activity { Project = b9, Title = "Construcao do banheiro e caixa d'agua", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 9, 15) },
 
-            new Activity { Project = b10, Title = "Levantamento pos-incendio", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 4, 20), CompletedAt = Dt(2026, 4, 20) },
-            new Activity { Project = b10, Title = "Construcao do modulo sanitario", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedUser = ana, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
-            new Activity { Project = b10, Title = "Pavimentacao do acesso e redes da cozinha", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 6, 1), CompletedAt = Dt(2026, 6, 1) },
-            new Activity { Project = b10, Title = "Vistoria final", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 6, 20) },
+            new Activity { Project = b10, Title = "Levantamento pos-incendio", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 4, 20), CompletedAt = Dt(2026, 4, 20) },
+            new Activity { Project = b10, Title = "Construcao do modulo sanitario", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
+            new Activity { Project = b10, Title = "Pavimentacao do acesso e redes da cozinha", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 6, 1), CompletedAt = Dt(2026, 6, 1) },
+            new Activity { Project = b10, Title = "Vistoria final", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 6, 20) },
 
-            new Activity { Project = h1, Title = "Cessao e preparacao do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 3, 15), CompletedAt = Dt(2026, 3, 15) },
-            new Activity { Project = h1, Title = "Implantacao dos canteiros", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 6, 1) },
-            new Activity { Project = h1, Title = "Oficina de manejo agroecologico", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa, AssignedUser = ana, DueDate = Do(2026, 7, 15) },
+            new Activity { Project = h1, Title = "Cessao e preparacao do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 3, 15), CompletedAt = Dt(2026, 3, 15) },
+            new Activity { Project = h1, Title = "Implantacao dos canteiros", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 6, 1) },
+            new Activity { Project = h1, Title = "Oficina de manejo agroecologico", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 15) },
 
-            new Activity { Project = h2, Title = "Articulacao com associacao de moradores", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedUser = fausto, DueDate = Do(2026, 8, 1) },
-            new Activity { Project = h2, Title = "Definicao do terreno", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedUser = fausto, DueDate = Do(2026, 9, 15) },
+            new Activity { Project = h2, Title = "Articulacao com associacao de moradores", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 8, 1) },
+            new Activity { Project = h2, Title = "Definicao do terreno", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 9, 15) },
 
-            new Activity { Project = h3, Title = "Preparacao do solo e canteiros", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = leonardo, DueDate = Do(2025, 6, 20), CompletedAt = Dt(2025, 6, 20) },
-            new Activity { Project = h3, Title = "Sistema de irrigacao por gotejamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = leonardo, DueDate = Do(2025, 8, 10), CompletedAt = Dt(2025, 8, 10) },
-            new Activity { Project = h3, Title = "Primeira oficina de manejo", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Baixa, AssignedUser = leonardo, DueDate = Do(2025, 11, 15), CompletedAt = Dt(2025, 11, 15) },
+            new Activity { Project = h3, Title = "Preparacao do solo e canteiros", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 6, 20), CompletedAt = Dt(2025, 6, 20) },
+            new Activity { Project = h3, Title = "Sistema de irrigacao por gotejamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 8, 10), CompletedAt = Dt(2025, 8, 10) },
+            new Activity { Project = h3, Title = "Primeira oficina de manejo", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Baixa, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 11, 15), CompletedAt = Dt(2025, 11, 15) },
 
-            new Activity { Project = h4, Title = "Preparacao dos canteiros", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 3, 1), CompletedAt = Dt(2026, 3, 1) },
-            new Activity { Project = h4, Title = "Capacitacao em cultivo de hortalicas", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedUser = ana, DueDate = Do(2026, 7, 1) },
-            new Activity { Project = h4, Title = "Colheita e avaliacao", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa, AssignedUser = ana, DueDate = Do(2026, 9, 1) },
+            new Activity { Project = h4, Title = "Preparacao dos canteiros", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 3, 1), CompletedAt = Dt(2026, 3, 1) },
+            new Activity { Project = h4, Title = "Capacitacao em cultivo de hortalicas", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 1) },
+            new Activity { Project = h4, Title = "Colheita e avaliacao", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa, AssignedVolunteer = vAna, DueDate = Do(2026, 9, 1) },
 
-            new Activity { Project = h5, Title = "Estudo de viabilidade", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedUser = fausto, DueDate = Do(2026, 10, 1) }
+            new Activity { Project = h5, Title = "Estudo de viabilidade", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 10, 1) }
         );
 
         db.Indicators.AddRange(
@@ -552,6 +554,6 @@ public static class DbSeeder
         );
 
         await db.SaveChangesAsync();
-        logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.", 3, 19, 15);
+        logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.", 3, 20, 15);
     }
 }

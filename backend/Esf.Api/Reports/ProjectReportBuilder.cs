@@ -166,7 +166,7 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Column(left =>
                 {
                     left.Spacing(2);
-                    left.Item().Element(c => Field(c, "Responsavel", p.OwnerUser?.Name ?? "Nao definido"));
+                    left.Item().Element(c => Field(c, "Responsavel", p.OwnerVolunteer?.Name ?? "Nao definido"));
                     left.Item().Element(c => Field(c, "Periodo", PeriodLine(p)));
                     left.Item().Element(c => Field(c, "Comunidade/beneficiarios", p.Beneficiaries ?? "-"));
                 });
@@ -268,7 +268,7 @@ public static class ProjectReportBuilder
                 foreach (var a in p.Activities.OrderBy(a => a.Status).ThenBy(a => a.DueDate ?? DateOnly.MaxValue))
                 {
                     table.Cell().Element(BodyCell).Text(a.Title);
-                    table.Cell().Element(BodyCell).Text(a.AssignedUser?.Name ?? "-");
+                    table.Cell().Element(BodyCell).Text(a.AssignedVolunteer?.Name ?? "-");
                     table.Cell().Element(BodyCell).Text(ActivityStatusLabel(a.Status));
                     table.Cell().Element(BodyCell).Text(a.Priority.ToString());
                     table.Cell().Element(BodyCell).AlignRight().Text(a.DueDate?.ToString("dd/MM/yyyy") ?? "-");

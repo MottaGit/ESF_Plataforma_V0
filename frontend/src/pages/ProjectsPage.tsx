@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { projectsApi, usersApi } from '../api/endpoints';
+import { projectsApi, volunteersApi } from '../api/endpoints';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -11,7 +11,7 @@ import { IconEdit, IconPlus, IconSearch, IconTrash } from '../components/ui/Icon
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { ProjectDetail, ProjectListItem, ProjectStatus, User } from '../types/api';
+import type { ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
 import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
 
 const sortOptions = [
@@ -30,7 +30,7 @@ export function ProjectsPage() {
 
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +80,7 @@ export function ProjectsPage() {
 
   useEffect(() => {
     projectsApi.categories().then(setCategories).catch(() => undefined);
-    usersApi.list(true).then(setUsers).catch(() => undefined);
+    volunteersApi.list(undefined, true).then(setVolunteers).catch(() => undefined);
   }, []);
 
   // Abre o formulario quando a rota recebe ?novo=1 (atalho vindo do dashboard).
@@ -420,7 +420,7 @@ export function ProjectsPage() {
       {formOpen ? (
         <ProjectFormModal
           project={formProject}
-          users={users}
+          volunteers={volunteers}
           categories={categories}
           onClose={() => setFormOpen(false)}
           onSaved={(saved) => {

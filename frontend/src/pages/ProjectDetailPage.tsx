@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { projectsApi, reportsApi, usersApi } from '../api/endpoints';
+import { projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
 import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { FilesTab } from '../components/projects/FilesTab';
 import { IndicatorsTab } from '../components/projects/IndicatorsTab';
@@ -15,7 +15,7 @@ import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { ProjectDetail, ProjectStatus, User } from '../types/api';
+import type { ProjectDetail, ProjectStatus, Volunteer } from '../types/api';
 import { PROJECT_STATUSES, formatDate, formatDateTime, projectStatusLabel } from '../utils/format';
 
 type TabKey = 'overview' | 'activities' | 'volunteers' | 'indicators' | 'files' | 'location';
@@ -27,7 +27,7 @@ export function ProjectDetailPage() {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<ProjectDetail | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export function ProjectDetailPage() {
   }, [load]);
 
   useEffect(() => {
-    usersApi.list(true).then(setUsers).catch(() => undefined);
+    volunteersApi.list(undefined, true).then(setVolunteers).catch(() => undefined);
     projectsApi.categories().then(setCategories).catch(() => undefined);
   }, []);
 
@@ -221,7 +221,9 @@ export function ProjectDetailPage() {
       </div>
 
       {tab === 'overview' ? <OverviewTab project={project} /> : null}
-      {tab === 'activities' ? <ActivitiesTab project={project} users={users} onChanged={() => void load()} /> : null}
+      {tab === 'activities' ? (
+        <ActivitiesTab project={project} volunteers={volunteers} onChanged={() => void load()} />
+      ) : null}
       {tab === 'volunteers' ? <VolunteersTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'indicators' ? (
         <IndicatorsTab project={project} canManage={canManage} onChanged={() => void load()} />
@@ -232,7 +234,7 @@ export function ProjectDetailPage() {
       {editing ? (
         <ProjectFormModal
           project={project}
-          users={users}
+          volunteers={volunteers}
           categories={categories}
           onClose={() => setEditing(false)}
           onSaved={(saved) => {

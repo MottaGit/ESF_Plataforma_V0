@@ -27,8 +27,8 @@ public class ProjectService
         if (!string.IsNullOrWhiteSpace(q.Category))
             query = query.Where(p => p.Category == q.Category);
 
-        if (q.OwnerUserId.HasValue)
-            query = query.Where(p => p.OwnerUserId == q.OwnerUserId.Value);
+        if (q.OwnerVolunteerId.HasValue)
+            query = query.Where(p => p.OwnerVolunteerId == q.OwnerVolunteerId.Value);
 
         if (q.OnlyLate)
             query = query.Where(p => p.EndDateForecast != null
@@ -64,8 +64,8 @@ public class ProjectService
                 p.Category,
                 p.Status,
                 p.Progress,
-                p.OwnerUserId,
-                p.OwnerUser != null ? p.OwnerUser.Name : null,
+                p.OwnerVolunteerId,
+                p.OwnerVolunteer != null ? p.OwnerVolunteer.Name : null,
                 p.District,
                 p.City,
                 p.StartDate,
@@ -114,8 +114,8 @@ public class ProjectService
     {
         return await _db.Projects
             .AsNoTracking()
-            .Include(p => p.OwnerUser)
-            .Include(p => p.Activities).ThenInclude(a => a.AssignedUser)
+            .Include(p => p.OwnerVolunteer)
+            .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
             .Include(p => p.Files).ThenInclude(f => f.UploadedByUser)
@@ -215,7 +215,7 @@ public class ProjectService
         project.Name = r.Name.Trim();
         project.Description = Clean(r.Description);
         project.Category = r.Category.Trim();
-        project.OwnerUserId = r.OwnerUserId;
+        project.OwnerVolunteerId = r.OwnerVolunteerId;
         project.Objective = Clean(r.Objective);
         project.Beneficiaries = Clean(r.Beneficiaries);
         project.TargetAudience = Clean(r.TargetAudience);
