@@ -24,10 +24,6 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<List<ProjectListItemDto>>> List([FromQuery] ProjectQuery query)
         => Ok(await _projects.ListAsync(query));
 
-    [HttpGet("categories")]
-    public async Task<ActionResult<List<string>>> Categories()
-        => Ok(await _projects.ListCategoriesAsync());
-
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProjectDetailDto>> Get(Guid id)
         => Ok(await _projects.GetDetailAsync(id));

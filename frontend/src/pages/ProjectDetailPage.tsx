@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { indicatorsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
+import { indicatorsApi, programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
 import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
@@ -14,7 +14,7 @@ import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '..
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { Indicator, ProjectDetail, ProjectStatus, SaveIndicatorPayload, Volunteer } from '../types/api';
+import type { Indicator, Program, ProjectDetail, ProjectStatus, SaveIndicatorPayload, Volunteer } from '../types/api';
 import { PROJECT_STATUSES, emptyToNull, formatDate, formatDateTime, formatNumber, projectStatusLabel } from '../utils/format';
 
 type TabKey = 'overview' | 'activities' | 'volunteers' | 'files';
@@ -27,7 +27,7 @@ export function ProjectDetailPage() {
 
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>('overview');
@@ -51,7 +51,7 @@ export function ProjectDetailPage() {
 
   useEffect(() => {
     volunteersApi.list(undefined, true).then(setVolunteers).catch(() => undefined);
-    projectsApi.categories().then(setCategories).catch(() => undefined);
+    programsApi.list().then(setPrograms).catch(() => undefined);
   }, []);
 
   async function changeStatus(status: ProjectStatus) {
@@ -124,7 +124,7 @@ export function ProjectDetailPage() {
         <div className="page-head__text">
           <h1>{project.name}</h1>
           <p className="page-head__desc">
-            {project.category}
+            {project.programName}
             {project.city ? ` · ${project.district ? `${project.district}, ` : ''}${project.city}` : ''}
             {project.ownerName ? ` · responsável: ${project.ownerName}` : ''}
           </p>
@@ -231,7 +231,7 @@ export function ProjectDetailPage() {
         <ProjectFormModal
           project={project}
           volunteers={volunteers}
-          categories={categories}
+          programs={programs}
           onClose={() => setEditing(false)}
           onSaved={(saved) => {
             setEditing(false);

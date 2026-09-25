@@ -30,6 +30,7 @@ public class ReportService
 
         var projects = await _db.Projects
             .AsNoTracking()
+            .Include(p => p.Program)
             .Include(p => p.OwnerVolunteer)
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)

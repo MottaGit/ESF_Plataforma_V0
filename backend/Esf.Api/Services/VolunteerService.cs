@@ -42,7 +42,12 @@ public class VolunteerService
                 v.Skills,
                 v.Notes,
                 v.Status,
-                v.Projects.Select(pv => new VolunteerProjectDto(pv.ProjectId, pv.Project!.Name, pv.Project!.Status, pv.RoleInProject)).ToList(),
+                v.Projects.Select(pv => new VolunteerProjectDto(
+                    pv.ProjectId,
+                    pv.Project!.Name,
+                    pv.Project!.Status,
+                    pv.Project!.Program!.Name,
+                    pv.RoleInProject)).ToList(),
                 v.CreatedAt))
             .ToListAsync();
     }
@@ -51,7 +56,7 @@ public class VolunteerService
     {
         var volunteer = await _db.Volunteers
             .AsNoTracking()
-            .Include(v => v.Projects).ThenInclude(pv => pv.Project)
+            .Include(v => v.Projects).ThenInclude(pv => pv.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
@@ -73,7 +78,7 @@ public class VolunteerService
     public async Task<VolunteerDto> UpdateAsync(Guid id, SaveVolunteerRequest request)
     {
         var volunteer = await _db.Volunteers
-            .Include(v => v.Projects).ThenInclude(pv => pv.Project)
+            .Include(v => v.Projects).ThenInclude(pv => pv.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
         Apply(volunteer, request);

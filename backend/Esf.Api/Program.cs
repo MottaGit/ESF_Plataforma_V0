@@ -40,6 +40,7 @@ builder.Services.AddSingleton<FileStorageService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<ProgramService>();
 builder.Services.AddScoped<ActivityService>();
 builder.Services.AddScoped<VolunteerService>();
 builder.Services.AddScoped<IndicatorService>();

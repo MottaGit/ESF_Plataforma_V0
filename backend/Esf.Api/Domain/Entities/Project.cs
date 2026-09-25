@@ -6,7 +6,9 @@ public class Project
 
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string Category { get; set; } = string.Empty;
+
+    public Guid ProgramId { get; set; }
+    public ProjectProgram? Program { get; set; }
 
     /// <summary>Responsavel pelo projeto (voluntario cadastrado).</summary>
     public Guid? OwnerVolunteerId { get; set; }

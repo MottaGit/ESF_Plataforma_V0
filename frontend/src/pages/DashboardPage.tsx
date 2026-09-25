@@ -151,7 +151,7 @@ export function DashboardPage() {
                           {project.name}
                         </Link>
                         <div className="table__secondary">
-                          {project.category}
+                          {project.programName}
                           {project.ownerName ? ` · ${project.ownerName}` : ''}
                         </div>
                       </td>

@@ -1,17 +1,19 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { projectsApi } from '../../api/endpoints';
-import type { ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
+import { programsApi, projectsApi } from '../../api/endpoints';
+import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
 import { PROJECT_STATUSES, emptyToNull, projectStatusLabel, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
 import { Modal } from '../ui/Modal';
 
+const NEW_PROGRAM_VALUE = '__new__';
+
 interface ProjectFormModalProps {
   project: ProjectDetail | null;
   volunteers: Volunteer[];
-  categories: string[];
+  programs: Program[];
   onClose: () => void;
   onSaved: (project: ProjectDetail) => void;
 }
@@ -19,7 +21,7 @@ interface ProjectFormModalProps {
 interface FormState {
   name: string;
   description: string;
-  category: string;
+  programId: string;
   ownerVolunteerId: string;
   objective: string;
   beneficiaries: string;
@@ -37,11 +39,11 @@ interface FormState {
   progress: string;
 }
 
-function initialState(project: ProjectDetail | null, fallbackCategory: string): FormState {
+function initialState(project: ProjectDetail | null, fallbackProgramId: string): FormState {
   return {
     name: project?.name ?? '',
     description: project?.description ?? '',
-    category: project?.category ?? fallbackCategory,
+    programId: project?.programId ?? fallbackProgramId,
     ownerVolunteerId: project?.ownerVolunteerId ?? '',
     objective: project?.objective ?? '',
     beneficiaries: project?.beneficiaries ?? '',
@@ -60,17 +62,37 @@ function initialState(project: ProjectDetail | null, fallbackCategory: string): 
   };
 }
 
-export function ProjectFormModal({ project, volunteers, categories, onClose, onSaved }: ProjectFormModalProps) {
-  const [form, setForm] = useState<FormState>(() => initialState(project, categories[0] ?? 'Outros'));
+export function ProjectFormModal({ project, volunteers, programs, onClose, onSaved }: ProjectFormModalProps) {
+  const [form, setForm] = useState<FormState>(() => initialState(project, programs[0]?.id ?? ''));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const categoryOptions = useMemo(() => {
-    const list = [...categories];
-    if (form.category && !list.includes(form.category)) list.unshift(form.category);
-    return list;
-  }, [categories, form.category]);
+  const [programOptions, setProgramOptions] = useState<Program[]>(programs);
+  const [creatingProgram, setCreatingProgram] = useState(false);
+  const [newProgramName, setNewProgramName] = useState('');
+  const [programError, setProgramError] = useState<string | null>(null);
+  const [creatingBusy, setCreatingBusy] = useState(false);
+
+  async function handleCreateProgram() {
+    if (newProgramName.trim().length < 3) {
+      setProgramError('Informe um nome com ao menos 3 caracteres.');
+      return;
+    }
+    setProgramError(null);
+    setCreatingBusy(true);
+    try {
+      const created = await programsApi.create({ name: newProgramName.trim() });
+      setProgramOptions((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+      update('programId', created.id);
+      setCreatingProgram(false);
+      setNewProgramName('');
+    } catch (err) {
+      setProgramError(err instanceof ApiError ? err.message : 'Não foi possível criar o programa.');
+    } finally {
+      setCreatingBusy(false);
+    }
+  }
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -86,7 +108,7 @@ export function ProjectFormModal({ project, volunteers, categories, onClose, onS
     const found: Record<string, string> = {};
 
     if (form.name.trim().length < 3) found.name = 'Informe um nome com ao menos 3 caracteres.';
-    if (!form.category.trim()) found.category = 'Selecione a categoria.';
+    if (!form.programId) found.programId = 'Selecione um programa.';
     if (!form.startDate) found.startDate = 'Informe a data de início.';
     if (form.endDateForecast && form.startDate && form.endDateForecast < form.startDate)
       found.endDateForecast = 'A previsão não pode ser anterior ao início.';
@@ -109,7 +131,7 @@ export function ProjectFormModal({ project, volunteers, categories, onClose, onS
     const payload: SaveProjectPayload = {
       name: form.name.trim(),
       description: emptyToNull(form.description),
-      category: form.category.trim(),
+      programId: form.programId,
       ownerVolunteerId: form.ownerVolunteerId || null,
       objective: emptyToNull(form.objective),
       beneficiaries: emptyToNull(form.beneficiaries),
@@ -172,19 +194,57 @@ export function ProjectFormModal({ project, volunteers, categories, onClose, onS
             />
           </Field>
 
-          <Field label="Categoria" htmlFor="category" required error={errors.category}>
+          <Field label="Programa" htmlFor="program" required error={errors.programId ?? programError}>
             <Select
-              id="category"
-              value={form.category}
-              invalid={Boolean(errors.category)}
-              onChange={(event) => update('category', event.target.value)}
+              id="program"
+              value={creatingProgram ? NEW_PROGRAM_VALUE : form.programId}
+              invalid={Boolean(errors.programId)}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === NEW_PROGRAM_VALUE) {
+                  setCreatingProgram(true);
+                } else {
+                  setCreatingProgram(false);
+                  update('programId', value);
+                }
+              }}
             >
-              {categoryOptions.map((category) => (
-                <option key={category} value={category}>
-                  {category}
+              <option value="" disabled>
+                Selecione um programa
+              </option>
+              {programOptions.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.name}
                 </option>
               ))}
+              <option value={NEW_PROGRAM_VALUE}>+ Novo programa…</option>
             </Select>
+
+            {creatingProgram ? (
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <TextInput
+                  autoFocus
+                  placeholder="Nome do novo programa"
+                  value={newProgramName}
+                  onChange={(event) => setNewProgramName(event.target.value)}
+                />
+                <Button type="button" small loading={creatingBusy} onClick={() => void handleCreateProgram()}>
+                  Criar
+                </Button>
+                <Button
+                  type="button"
+                  small
+                  variant="ghost"
+                  onClick={() => {
+                    setCreatingProgram(false);
+                    setNewProgramName('');
+                    setProgramError(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            ) : null}
           </Field>
 
           <Field label="Responsável" htmlFor="owner" hint="Quem responde pelo projeto na organização.">

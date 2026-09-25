@@ -112,7 +112,7 @@ O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados r
 **Visão geral (dashboard)** — total de projetos, em andamento, em planejamento, concluídos, atrasados, atividades
 pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos ativos e próximos prazos.
 
-**Projetos** — listagem com busca, filtros (status, categoria, só atrasados, incluir arquivados) e ordenação; criação,
+**Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, atualização de progresso, arquivamento e exclusão. Duas formas de visualizar: **lista**
 (tabela) ou **quadro Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
 
@@ -246,8 +246,8 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/auth/me` | usuário da sessão |
 | POST | `/api/auth/change-password` | troca a própria senha |
 | GET | `/api/dashboard` | números e listas da visão geral |
-| GET | `/api/projects` | lista com `search`, `status`, `category`, `onlyLate`, `includeArchived`, `sort` |
-| GET | `/api/projects/categories` | categorias disponíveis |
+| GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
+| GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos) |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
 | PATCH | `/api/projects/{id}/status` · `/progress` | mudança de status e progresso |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |

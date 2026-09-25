@@ -49,3 +49,10 @@ public enum VolunteerStatus
     ExMembro = 2,
     Afastado = 3
 }
+
+/// <summary>Situacao de um Programa (agrupamento de projetos, ex.: "Banheiro Direito da Gente").</summary>
+public enum ProgramStatus
+{
+    Ativo = 0,
+    Arquivado = 1
+}

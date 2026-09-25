@@ -7,6 +7,7 @@ public record VolunteerProjectDto(
     Guid ProjectId,
     string ProjectName,
     ProjectStatus ProjectStatus,
+    string ProgramName,
     string? RoleInProject);
 
 public record VolunteerDto(

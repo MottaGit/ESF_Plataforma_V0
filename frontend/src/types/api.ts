@@ -12,6 +12,8 @@ export type VolunteerSector = 'Projetos' | 'Juridico' | 'Pessoas' | 'Comunicacao
 
 export type VolunteerStatus = 'Ativo' | 'Inativo' | 'ExMembro' | 'Afastado';
 
+export type ProgramStatus = 'Ativo' | 'Arquivado';
+
 export interface User {
   id: string;
   name: string;
@@ -27,10 +29,18 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface Program {
+  id: string;
+  name: string;
+  status: ProgramStatus;
+  createdAt: string;
+}
+
 export interface ProjectListItem {
   id: string;
   name: string;
-  category: string;
+  programId: string;
+  programName: string;
   status: ProjectStatus;
   progress: number;
   ownerVolunteerId: string | null;
@@ -77,6 +87,7 @@ export interface VolunteerProject {
   projectId: string;
   projectName: string;
   projectStatus: ProjectStatus;
+  programName: string;
   roleInProject: string | null;
 }
 
@@ -131,7 +142,8 @@ export interface ProjectDetail {
   id: string;
   name: string;
   description: string | null;
-  category: string;
+  programId: string;
+  programName: string;
   status: ProjectStatus;
   progress: number;
   ownerVolunteerId: string | null;
@@ -174,11 +186,6 @@ export interface StatusCount {
   count: number;
 }
 
-export interface CategoryCount {
-  category: string;
-  count: number;
-}
-
 export interface IndicatorSummary {
   name: string;
   unit: string | null;
@@ -188,7 +195,6 @@ export interface IndicatorSummary {
 export interface Dashboard {
   totals: ProjectTotals;
   byStatus: StatusCount[];
-  byCategory: CategoryCount[];
   topIndicators: IndicatorSummary[];
   activeProjects: ProjectListItem[];
   upcomingActivities: Activity[];
@@ -214,7 +220,7 @@ export interface Organization {
 export interface SaveProjectPayload {
   name: string;
   description: string | null;
-  category: string;
+  programId: string;
   ownerVolunteerId: string | null;
   objective: string | null;
   beneficiaries: string | null;
@@ -250,6 +256,10 @@ export interface SaveVolunteerPayload {
   skills: string | null;
   notes: string | null;
   status: VolunteerStatus;
+}
+
+export interface SaveProgramPayload {
+  name: string;
 }
 
 export interface SaveIndicatorPayload {
@@ -292,7 +302,7 @@ export interface ReportPayload {
 export interface ProjectFilters {
   search?: string;
   status?: ProjectStatus | '';
-  category?: string;
+  programId?: string;
   ownerVolunteerId?: string;
   onlyLate?: boolean;
   includeArchived?: boolean;

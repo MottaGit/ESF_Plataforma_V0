@@ -122,7 +122,7 @@ public static class ProjectReportBuilder
                 table.Header(header =>
                 {
                     header.Cell().Element(HeadCell).Text("Projeto");
-                    header.Cell().Element(HeadCell).Text("Categoria");
+                    header.Cell().Element(HeadCell).Text("Programa");
                     header.Cell().Element(HeadCell).Text("Status");
                     header.Cell().Element(HeadCell).AlignRight().Text("Progresso");
                 });
@@ -130,7 +130,7 @@ public static class ProjectReportBuilder
                 foreach (var p in model.Projects)
                 {
                     table.Cell().Element(BodyCell).Text(p.Name);
-                    table.Cell().Element(BodyCell).Text(p.Category);
+                    table.Cell().Element(BodyCell).Text(p.Program!.Name);
                     table.Cell().Element(BodyCell).Text(StatusLabel(p.Status));
                     table.Cell().Element(BodyCell).AlignRight().Text($"{p.Progress}%");
                 }
@@ -150,7 +150,7 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Column(head =>
                 {
                     head.Item().Text(p.Name).FontSize(12.5f).SemiBold();
-                    head.Item().Text($"{p.Category} - {LocationLine(p)}").FontSize(8.5f).FontColor(Muted);
+                    head.Item().Text($"{p.Program!.Name} - {LocationLine(p)}").FontSize(8.5f).FontColor(Muted);
                 });
 
                 row.ConstantItem(120).AlignRight().Column(head =>

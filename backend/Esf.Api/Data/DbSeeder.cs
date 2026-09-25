@@ -80,8 +80,10 @@ public static class DbSeeder
             vGuilherme, vTanea, vCarol, vJulia, vMarcosHeitor, vAlice, vYasminM, vFrancielly, vAlisson, vMariaAntonia,
             vFausto);
 
-        const string categoriaBanheiro = "Banheiro Direito da Gente";
-        const string categoriaHorta = "Horta comunitaria";
+        var pBanheiro = new ProjectProgram { Name = "Banheiro Direito da Gente" };
+        var pHorta = new ProjectProgram { Name = "Horta comunitaria" };
+        db.Programs.AddRange(pBanheiro, pHorta);
+
         const string cidade = "Porto Alegre";
         const string estado = "RS";
 
@@ -95,7 +97,7 @@ public static class DbSeeder
         var b1 = new Project
         {
             Name = "Banheiro Direito da Gente - Dona Cinara",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Reforma completa do banheiro interno: reconstrucao de paredes, aberturas, forro, ceramica, loucas e metais, chuveiro e redes hidraulica e eletrica.",
             Objective = "Reformar o banheiro interno da residencia, comprometido pela enchente, garantindo instalacao segura e digna.",
             Beneficiaries = "Dona Cinara e filha adolescente",
@@ -115,7 +117,7 @@ public static class DbSeeder
         var b2 = new Project
         {
             Name = "Banheiro Direito da Gente - Dona Solange e Dona Michele",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao nova completa para duas familias: alicerce, paredes, telhado, aberturas, forro, ceramica, box, loucas e metais, hidraulica, esgoto completo, eletrica, chuveiro e pintura; obra comunitaria de rede de esgoto no beco.",
             Objective = "Construir banheiro novo para duas familias no mesmo terreno, com acessibilidade para moradora idosa com baixa visao.",
             Beneficiaries = "Solange, Michele e familia",
@@ -135,7 +137,7 @@ public static class DbSeeder
         var b3 = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Carla",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao totalmente nova de casa com banheiro, cozinha e quarto/sala; alicerces, colunas, alvenaria, telhado, ceramica, redes cloacal, pluvial, agua e eletrica, canal de drenagem.",
             Objective = "Reconstruir moradia em situacao de risco, incluindo banheiro completo, apos demolicao necessaria.",
             Beneficiaries = "Sra. Carla",
@@ -154,7 +156,7 @@ public static class DbSeeder
         var b4 = new Project
         {
             Name = "Banheiro Direito da Gente - Dona Patricia (Vila Jardim)",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao praticamente integral de nova moradia: ampliacao de area, dormitorio, sala/cozinha, banheiro amplo acessivel, piso, paredes, telhado, hidraulica, esgoto e eletrica.",
             Objective = "Reconstruir quase integralmente a moradia, incluindo banheiro amplo e acessivel.",
             Beneficiaries = "Dona Patricia e familiares",
@@ -174,7 +176,7 @@ public static class DbSeeder
         var b5 = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Julia",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao de banheiro em alvenaria com acessibilidade plena (area interna 4,94 m2 e externa 5,63 m2), dimensionado para cadeira de rodas, barras de apoio, ceramica, loucas, chuveiro, hidraulica, esgoto e eletrica.",
             Objective = "Construir banheiro com acessibilidade plena (NBR 9050) para moradora cadeirante.",
             Beneficiaries = "Julia, Michel e Maria",
@@ -193,7 +195,7 @@ public static class DbSeeder
         var b6 = new Project
         {
             Name = "Banheiro Direito da Gente - Yasmin",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao de banheiro acoplado a moradia e area de servico; projeto ampliado para reforco de telhado, construcao de cozinha e demolicao da cozinha atual em risco.",
             Objective = "Construir banheiro e area de servico, com reforco estrutural e nova cozinha apos risco de colapso.",
             Beneficiaries = "Yasmin, companheiro e quatro filhos",
@@ -212,7 +214,7 @@ public static class DbSeeder
         var b7 = new Project
         {
             Name = "Banheiro Direito da Gente - Elisa e Marcelo",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao de casa pre-fabricada de madeira com banheiro completo em alvenaria, apos demolicao da casa original; alicerces, banheiro, estrutura, piso e telhado.",
             Objective = "Construir casa pre-fabricada com banheiro completo apos demolicao da moradia anterior, atingida por queda de arvore.",
             Beneficiaries = "Elisa e Marcelo, casal de idosos",
@@ -231,7 +233,7 @@ public static class DbSeeder
         var b8 = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Beatriz",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Projeto originalmente de reforma, alterado para construcao de modulo sanitario em alvenaria acoplado a moradia; baldrame, paredes, telhado, ceramica, loucas, chuveiro, redes hidraulica/esgoto/eletrica e lavanderia.",
             Objective = "Construir modulo sanitario em alvenaria para familia extensa, apos mudanca de escopo de reforma para construcao nova.",
             Beneficiaries = "Sra. Beatriz e familia",
@@ -250,7 +252,7 @@ public static class DbSeeder
         var b9 = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Rosangela",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao de banheiro completo sobre alicerce ja existente da futura casa e parede sanitaria para iniciar cozinha; caixa d'agua prevista devido a desabastecimento frequente.",
             Objective = "Construir banheiro completo sobre alicerce ja existente, com caixa d'agua devido a desabastecimento frequente.",
             Beneficiaries = "Rosangela e cinco filhos",
@@ -269,7 +271,7 @@ public static class DbSeeder
         var b10 = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Marcelina",
-            Category = categoriaBanheiro,
+            Program = pBanheiro,
             Description = "Construcao de modulo sanitario acoplado a moradia, com padrao BDG; reconstrucao de redes de agua e esgoto da cozinha e pavimentacao do acesso.",
             Objective = "Construir modulo sanitario acoplado a moradia atingida por incendio, padrao BDG.",
             Beneficiaries = "Marcelina, irma Salete e filhos",
@@ -292,7 +294,7 @@ public static class DbSeeder
         var h1 = new Project
         {
             Name = "Horta Comunitaria Vila Farrapos",
-            Category = categoriaHorta,
+            Program = pHorta,
             Description = "Preparacao de canteiros, sistema de irrigacao simples e oficinas de manejo agroecologico em terreno cedido pela comunidade.",
             Objective = "Implantar horta comunitaria para seguranca alimentar e geracao de renda complementar.",
             Beneficiaries = "Moradores da Vila Farrapos",
@@ -310,7 +312,7 @@ public static class DbSeeder
         var h2 = new Project
         {
             Name = "Horta Comunitaria Sarandi",
-            Category = categoriaHorta,
+            Program = pHorta,
             Description = "Levantamento de terreno disponivel e articulacao com associacao de moradores para implantacao de horta comunitaria.",
             Objective = "Iniciar horta comunitaria junto a familias ja atendidas pelo programa de banheiros, ampliando seguranca alimentar.",
             Beneficiaries = "Familias do Sarandi",
@@ -328,7 +330,7 @@ public static class DbSeeder
         var h3 = new Project
         {
             Name = "Horta Comunitaria Cristal",
-            Category = categoriaHorta,
+            Program = pHorta,
             Description = "Canteiros implantados, sistema de irrigacao por gotejamento e oficinas mensais de compostagem e manejo.",
             Objective = "Entregar horta comunitaria funcional com oficinas periodicas de manejo.",
             Beneficiaries = "Comunidade do Cristal",
@@ -346,7 +348,7 @@ public static class DbSeeder
         var h4 = new Project
         {
             Name = "Horta Comunitaria Lomba do Pinheiro",
-            Category = categoriaHorta,
+            Program = pHorta,
             Description = "Preparacao de canteiros e capacitacao de familias em cultivo de hortalicas para consumo proprio.",
             Objective = "Implantar horta comunitaria integrada as familias ja atendidas pelo programa de banheiros na regiao.",
             Beneficiaries = "Familias da Lomba do Pinheiro",
@@ -364,7 +366,7 @@ public static class DbSeeder
         var h5 = new Project
         {
             Name = "Horta Comunitaria Vila Jardim",
-            Category = categoriaHorta,
+            Program = pHorta,
             Description = "Estudo de viabilidade e articulacao com parceiros locais para futura implantacao de horta comunitaria.",
             Objective = "Avaliar viabilidade de horta comunitaria junto a parceiros locais (Cozinha Solidaria).",
             Beneficiaries = "Comunidade da Vila Jardim",

@@ -6,7 +6,8 @@ namespace Esf.Api.Dtos;
 public record ProjectListItemDto(
     Guid Id,
     string Name,
-    string Category,
+    Guid ProgramId,
+    string ProgramName,
     ProjectStatus Status,
     int Progress,
     Guid? OwnerVolunteerId,
@@ -26,7 +27,8 @@ public record ProjectDetailDto(
     Guid Id,
     string Name,
     string? Description,
-    string Category,
+    Guid ProgramId,
+    string ProgramName,
     ProjectStatus Status,
     int Progress,
     Guid? OwnerVolunteerId,
@@ -61,9 +63,8 @@ public class SaveProjectRequest
 
     public string? Description { get; set; }
 
-    [Required(ErrorMessage = "Informe a categoria.")]
-    [StringLength(80)]
-    public string Category { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Selecione o programa.")]
+    public Guid? ProgramId { get; set; }
 
     public Guid? OwnerVolunteerId { get; set; }
 
@@ -124,7 +125,7 @@ public class ProjectQuery
 {
     public string? Search { get; set; }
     public ProjectStatus? Status { get; set; }
-    public string? Category { get; set; }
+    public Guid? ProgramId { get; set; }
     public Guid? OwnerVolunteerId { get; set; }
     public bool OnlyLate { get; set; }
     public bool IncludeArchived { get; set; }

@@ -10,6 +10,7 @@ public class EsfDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Volunteer> Volunteers => Set<Volunteer>();
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<ProjectProgram> Programs => Set<ProjectProgram>();
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<Indicator> Indicators => Set<Indicator>();
     public DbSet<ProjectVolunteer> ProjectVolunteers => Set<ProjectVolunteer>();
@@ -41,7 +42,6 @@ public class EsfDbContext : DbContext
         b.Entity<Project>(e =>
         {
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
-            e.Property(x => x.Category).HasMaxLength(80).IsRequired();
             e.Property(x => x.Beneficiaries).HasMaxLength(300);
             e.Property(x => x.TargetAudience).HasMaxLength(300);
             e.Property(x => x.Address).HasMaxLength(300);
@@ -55,6 +55,17 @@ public class EsfDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.OwnerVolunteerId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasOne(x => x.Program)
+                .WithMany(pr => pr.Projects)
+                .HasForeignKey(x => x.ProgramId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<ProjectProgram>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(120).IsRequired();
+            e.HasIndex(x => x.Name).IsUnique();
         });
 
         b.Entity<Activity>(e =>

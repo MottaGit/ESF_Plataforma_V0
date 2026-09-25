@@ -24,8 +24,8 @@ public class ProjectService
         if (q.Status.HasValue)
             query = query.Where(p => p.Status == q.Status.Value);
 
-        if (!string.IsNullOrWhiteSpace(q.Category))
-            query = query.Where(p => p.Category == q.Category);
+        if (q.ProgramId.HasValue)
+            query = query.Where(p => p.ProgramId == q.ProgramId.Value);
 
         if (q.OwnerVolunteerId.HasValue)
             query = query.Where(p => p.OwnerVolunteerId == q.OwnerVolunteerId.Value);
@@ -45,7 +45,7 @@ public class ProjectService
                 || (p.Beneficiaries != null && EF.Functions.ILike(p.Beneficiaries, pattern))
                 || (p.District != null && EF.Functions.ILike(p.District, pattern))
                 || (p.City != null && EF.Functions.ILike(p.City, pattern))
-                || EF.Functions.ILike(p.Category, pattern));
+                || EF.Functions.ILike(p.Program!.Name, pattern));
         }
 
         query = q.Sort switch
@@ -61,7 +61,8 @@ public class ProjectService
             .Select(p => new ProjectListItemDto(
                 p.Id,
                 p.Name,
-                p.Category,
+                p.ProgramId,
+                p.Program!.Name,
                 p.Status,
                 p.Progress,
                 p.OwnerVolunteerId,
@@ -82,27 +83,6 @@ public class ProjectService
             .ToListAsync();
     }
 
-    public async Task<List<string>> ListCategoriesAsync()
-    {
-        var used = await _db.Projects.AsNoTracking()
-            .Select(p => p.Category)
-            .Distinct()
-            .ToListAsync();
-
-        return used
-            .Concat(DefaultCategories)
-            .Where(c => !string.IsNullOrWhiteSpace(c))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(c => c)
-            .ToList();
-    }
-
-    public static readonly string[] DefaultCategories =
-    {
-        "Banheiro Direito da Gente",
-        "Horta comunitaria"
-    };
-
     public async Task<ProjectDetailDto> GetDetailAsync(Guid id)
     {
         var project = await LoadFullAsync(id) ?? throw AppException.NotFound("Projeto");
@@ -114,6 +94,7 @@ public class ProjectService
     {
         return await _db.Projects
             .AsNoTracking()
+            .Include(p => p.Program)
             .Include(p => p.OwnerVolunteer)
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
@@ -127,6 +108,7 @@ public class ProjectService
     public async Task<ProjectDetailDto> CreateAsync(SaveProjectRequest request)
     {
         Validate(request);
+        await EnsureProgramExistsAsync(request.ProgramId);
 
         var project = new Project();
         Apply(project, request);
@@ -142,6 +124,7 @@ public class ProjectService
     public async Task<ProjectDetailDto> UpdateAsync(Guid id, SaveProjectRequest request)
     {
         Validate(request);
+        await EnsureProgramExistsAsync(request.ProgramId);
 
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
         Apply(project, request);
@@ -210,11 +193,17 @@ public class ProjectService
             throw new AppException("A previsao de termino nao pode ser anterior a data de inicio.");
     }
 
+    private async Task EnsureProgramExistsAsync(Guid? programId)
+    {
+        if (!await _db.Programs.AnyAsync(p => p.Id == programId!.Value))
+            throw new AppException("O programa informado nao existe.");
+    }
+
     private static void Apply(Project project, SaveProjectRequest r)
     {
         project.Name = r.Name.Trim();
         project.Description = Clean(r.Description);
-        project.Category = r.Category.Trim();
+        project.ProgramId = r.ProgramId!.Value;
         project.OwnerVolunteerId = r.OwnerVolunteerId;
         project.Objective = Clean(r.Objective);
         project.Beneficiaries = Clean(r.Beneficiaries);

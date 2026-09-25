@@ -40,7 +40,7 @@ export function ReportsPage() {
       const matchesTerm =
         !term ||
         project.name.toLowerCase().includes(term) ||
-        project.category.toLowerCase().includes(term) ||
+        project.programName.toLowerCase().includes(term) ||
         (project.city ?? '').toLowerCase().includes(term);
       return matchesStatus && matchesTerm;
     });
@@ -155,7 +155,7 @@ export function ReportsPage() {
                       <td>
                         <div className="table__primary">{project.name}</div>
                         <div className="table__secondary">
-                          {project.category}
+                          {project.programName}
                           {project.isArchived ? ' · arquivado' : ''}
                         </div>
                       </td>

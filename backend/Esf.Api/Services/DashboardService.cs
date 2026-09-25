@@ -46,12 +46,6 @@ public class DashboardService
             .Select(g => new StatusCountDto(g.Key, g.Count()))
             .ToListAsync();
 
-        var byCategory = await active
-            .GroupBy(p => p.Category)
-            .OrderByDescending(g => g.Count())
-            .Select(g => new CategoryCountDto(g.Key, g.Count()))
-            .ToListAsync();
-
         var indicatorGroups = await _db.Indicators.AsNoTracking()
             .Where(i => !i.Project!.IsArchived)
             .GroupBy(i => new { i.Name, i.Unit })
@@ -82,6 +76,6 @@ public class DashboardService
         var totals = new ProjectTotalsDto(total, inProgress, planning, completed, late,
             pendingActivities, volunteersInProjects);
 
-        return new DashboardDto(totals, byStatus, byCategory, topIndicators, activeProjects, upcoming);
+        return new DashboardDto(totals, byStatus, topIndicators, activeProjects, upcoming);
     }
 }

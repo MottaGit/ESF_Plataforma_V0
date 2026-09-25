@@ -5,6 +5,7 @@ import type {
   Indicator,
   LoginResponse,
   Organization,
+  Program,
   ProjectDetail,
   ProjectFile,
   ProjectFilters,
@@ -15,6 +16,7 @@ import type {
   SaveActivityPayload,
   SaveIndicatorPayload,
   SaveOrganizationPayload,
+  SaveProgramPayload,
   SaveProjectPayload,
   SaveUserPayload,
   SaveVolunteerPayload,
@@ -45,14 +47,13 @@ export const projectsApi = {
       query: {
         search: filters.search,
         status: filters.status || undefined,
-        category: filters.category,
+        programId: filters.programId,
         ownerVolunteerId: filters.ownerVolunteerId,
         onlyLate: filters.onlyLate,
         includeArchived: filters.includeArchived,
         sort: filters.sort
       }
     }),
-  categories: () => http.request<string[]>('/api/projects/categories'),
   get: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}`),
   create: (payload: SaveProjectPayload) =>
     http.request<ProjectDetail>('/api/projects', { method: 'POST', body: payload }),
@@ -65,6 +66,12 @@ export const projectsApi = {
   archive: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}/archive`, { method: 'POST' }),
   unarchive: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}/unarchive`, { method: 'POST' }),
   remove: (id: string) => http.request<void>(`/api/projects/${id}`, { method: 'DELETE' })
+};
+
+export const programsApi = {
+  list: (onlyActive = true) => http.request<Program[]>('/api/programs', { query: { onlyActive } }),
+  create: (payload: SaveProgramPayload) =>
+    http.request<Program>('/api/programs', { method: 'POST', body: payload })
 };
 
 export const activitiesApi = {

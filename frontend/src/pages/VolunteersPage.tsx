@@ -158,14 +158,20 @@ export function VolunteersPage() {
                 <tr>
                   <th>Nome</th>
                   <th>Setor</th>
-                  <th>Projetos</th>
+                  <th>Programas</th>
                   <th>Situação</th>
                   {canManage ? <th className="right">Ações</th> : null}
                 </tr>
               </thead>
               <tbody>
                 {volunteers.map((volunteer) => {
-                  const currentProjects = volunteer.projects.filter((item) => !isPastProjectStatus(item.projectStatus));
+                  const currentPrograms = [
+                    ...new Set(
+                      volunteer.projects
+                        .filter((item) => !isPastProjectStatus(item.projectStatus))
+                        .map((item) => item.programName)
+                    )
+                  ];
                   return (
                     <tr key={volunteer.id}>
                       <td>
@@ -174,9 +180,7 @@ export function VolunteersPage() {
                         </Link>
                       </td>
                       <td>{sectorLabel(volunteer.sector)}</td>
-                      <td>
-                        {currentProjects.length} projeto{currentProjects.length === 1 ? '' : 's'}
-                      </td>
+                      <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
                       <td>
                         <VolunteerStatusBadge status={volunteer.status} />
                       </td>

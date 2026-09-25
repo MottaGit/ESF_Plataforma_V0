@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { projectsApi, volunteersApi } from '../api/endpoints';
+import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -11,7 +11,7 @@ import { IconEdit, IconPlus, IconSearch, IconTrash } from '../components/ui/Icon
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
+import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
 import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
 
 const sortOptions = [
@@ -29,7 +29,7 @@ export function ProjectsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState<ProjectStatus | ''>('');
-  const [category, setCategory] = useState('');
+  const [programId, setProgramId] = useState('');
   const [sort, setSort] = useState('recent');
   const [onlyLate, setOnlyLate] = useState(false);
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -61,7 +61,7 @@ export function ProjectsPage() {
       const list = await projectsApi.list({
         search: debouncedSearch,
         status,
-        category,
+        programId,
         sort,
         onlyLate,
         includeArchived
@@ -72,14 +72,14 @@ export function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, status, category, sort, onlyLate, includeArchived]);
+  }, [debouncedSearch, status, programId, sort, onlyLate, includeArchived]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   useEffect(() => {
-    projectsApi.categories().then(setCategories).catch(() => undefined);
+    programsApi.list().then(setPrograms).catch(() => undefined);
     volunteersApi.list(undefined, true).then(setVolunteers).catch(() => undefined);
   }, []);
 
@@ -212,11 +212,11 @@ export function ProjectsPage() {
           </Select>
         ) : null}
 
-        <Select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Categoria">
-          <option value="">Todas as categorias</option>
-          {categories.map((value) => (
-            <option key={value} value={value}>
-              {value}
+        <Select value={programId} onChange={(event) => setProgramId(event.target.value)} aria-label="Programa">
+          <option value="">Todos os programas</option>
+          {programs.map((program) => (
+            <option key={program.id} value={program.id}>
+              {program.name}
             </option>
           ))}
         </Select>
@@ -290,7 +290,7 @@ export function ProjectsPage() {
                         {project.name}
                       </Link>
                       <div className="table__secondary">
-                        {project.category}
+                        {project.programName}
                         {project.isArchived ? ' · arquivado' : ''}
                         {project.activitiesTotal > 0
                           ? ` · ${project.activitiesDone}/${project.activitiesTotal} atividades`
@@ -394,7 +394,7 @@ export function ProjectsPage() {
                       >
                         <div className="kanban__card-title">{project.name}</div>
                         <div className="kanban__card-meta">
-                          <span>{project.category}</span>
+                          <span>{project.programName}</span>
                           {project.isLate ? <LateBadge /> : null}
                           {project.ownerName ? <span>{project.ownerName}</span> : null}
                         </div>
@@ -421,7 +421,7 @@ export function ProjectsPage() {
         <ProjectFormModal
           project={formProject}
           volunteers={volunteers}
-          categories={categories}
+          programs={programs}
           onClose={() => setFormOpen(false)}
           onSaved={(saved) => {
             setFormOpen(false);
