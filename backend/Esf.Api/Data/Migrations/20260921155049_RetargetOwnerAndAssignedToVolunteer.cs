@@ -38,6 +38,20 @@ namespace Esf.Api.Data.Migrations
                 table: "Activities",
                 newName: "IX_Activities_AssignedVolunteerId");
 
+            // Os valores atuais de OwnerVolunteerId/AssignedVolunteerId ainda sao Ids de Users (da coluna
+            // renomeada), nao de Volunteers. Como as duas tabelas tem Ids independentes, nao ha mapeamento
+            // automatico possivel: zeramos apenas as referencias que nao correspondem a nenhum Volunteer,
+            // para nao violar a nova FK. O restante dos dados do projeto/atividade fica intacto.
+            migrationBuilder.Sql(
+                "UPDATE \"Activities\" SET \"AssignedVolunteerId\" = NULL " +
+                "WHERE \"AssignedVolunteerId\" IS NOT NULL " +
+                "AND NOT EXISTS (SELECT 1 FROM \"Volunteers\" v WHERE v.\"Id\" = \"Activities\".\"AssignedVolunteerId\");");
+
+            migrationBuilder.Sql(
+                "UPDATE \"Projects\" SET \"OwnerVolunteerId\" = NULL " +
+                "WHERE \"OwnerVolunteerId\" IS NOT NULL " +
+                "AND NOT EXISTS (SELECT 1 FROM \"Volunteers\" v WHERE v.\"Id\" = \"Projects\".\"OwnerVolunteerId\");");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_Activities_Volunteers_AssignedVolunteerId",
                 table: "Activities",

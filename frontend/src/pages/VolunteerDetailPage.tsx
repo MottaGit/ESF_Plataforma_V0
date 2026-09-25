@@ -19,7 +19,7 @@ const HISTORY_STATUSES = new Set(['Concluido', 'Cancelado']);
 export function VolunteerDetailPage() {
   const { id = '' } = useParams();
   const { canManage } = useAuth();
-  const { notify, notifyError } = useToast();
+  const { notify } = useToast();
   const navigate = useNavigate();
 
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
