@@ -11,7 +11,14 @@ import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { SaveVolunteerPayload, Volunteer, VolunteerSector, VolunteerStatus } from '../types/api';
-import { VOLUNTEER_SECTORS, VOLUNTEER_STATUSES, emptyToNull, sectorLabel, volunteerStatusLabel } from '../utils/format';
+import {
+  VOLUNTEER_SECTORS,
+  VOLUNTEER_STATUSES,
+  emptyToNull,
+  isPastProjectStatus,
+  sectorLabel,
+  volunteerStatusLabel
+} from '../utils/format';
 
 export function VolunteersPage() {
   const { canManage } = useAuth();
@@ -157,47 +164,50 @@ export function VolunteersPage() {
                 </tr>
               </thead>
               <tbody>
-                {volunteers.map((volunteer) => (
-                  <tr key={volunteer.id}>
-                    <td>
-                      <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
-                        {volunteer.name}
-                      </Link>
-                    </td>
-                    <td>{sectorLabel(volunteer.sector)}</td>
-                    <td>
-                      {volunteer.projects.length} projeto{volunteer.projects.length === 1 ? '' : 's'}
-                    </td>
-                    <td>
-                      <VolunteerStatusBadge status={volunteer.status} />
-                    </td>
-                    {canManage ? (
+                {volunteers.map((volunteer) => {
+                  const currentProjects = volunteer.projects.filter((item) => !isPastProjectStatus(item.projectStatus));
+                  return (
+                    <tr key={volunteer.id}>
                       <td>
-                        <div className="row-actions">
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconEdit size={15} />}
-                            title="Editar voluntário"
-                            aria-label="Editar voluntário"
-                            onClick={() => {
-                              setEditing(volunteer);
-                              setFormOpen(true);
-                            }}
-                          />
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconTrash size={15} />}
-                            title="Excluir voluntário"
-                            aria-label="Excluir voluntário"
-                            onClick={() => setRemoving(volunteer)}
-                          />
-                        </div>
+                        <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
+                          {volunteer.name}
+                        </Link>
                       </td>
-                    ) : null}
-                  </tr>
-                ))}
+                      <td>{sectorLabel(volunteer.sector)}</td>
+                      <td>
+                        {currentProjects.length} projeto{currentProjects.length === 1 ? '' : 's'}
+                      </td>
+                      <td>
+                        <VolunteerStatusBadge status={volunteer.status} />
+                      </td>
+                      {canManage ? (
+                        <td>
+                          <div className="row-actions">
+                            <Button
+                              small
+                              variant="ghost"
+                              icon={<IconEdit size={15} />}
+                              title="Editar voluntário"
+                              aria-label="Editar voluntário"
+                              onClick={() => {
+                                setEditing(volunteer);
+                                setFormOpen(true);
+                              }}
+                            />
+                            <Button
+                              small
+                              variant="ghost"
+                              icon={<IconTrash size={15} />}
+                              title="Excluir voluntário"
+                              aria-label="Excluir voluntário"
+                              onClick={() => setRemoving(volunteer)}
+                            />
+                          </div>
+                        </td>
+                      ) : null}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

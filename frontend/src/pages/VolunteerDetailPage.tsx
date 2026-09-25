@@ -11,10 +11,8 @@ import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { ProjectListItem, Volunteer, VolunteerProject } from '../types/api';
-import { sectorLabel } from '../utils/format';
+import { isPastProjectStatus, sectorLabel } from '../utils/format';
 import { VolunteerFormModal } from './VolunteersPage';
-
-const HISTORY_STATUSES = new Set(['Concluido', 'Cancelado']);
 
 export function VolunteerDetailPage() {
   const { id = '' } = useParams();
@@ -55,8 +53,8 @@ export function VolunteerDetailPage() {
     );
   }
 
-  const current = volunteer.projects.filter((item) => !HISTORY_STATUSES.has(item.projectStatus));
-  const history = volunteer.projects.filter((item) => HISTORY_STATUSES.has(item.projectStatus));
+  const current = volunteer.projects.filter((item) => !isPastProjectStatus(item.projectStatus));
+  const history = volunteer.projects.filter((item) => isPastProjectStatus(item.projectStatus));
 
   return (
     <>

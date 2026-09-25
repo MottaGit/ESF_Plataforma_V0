@@ -9,6 +9,10 @@ import type {
 
 export const PROJECT_STATUSES: ProjectStatus[] = ['Planejamento', 'EmAndamento', 'Pausado', 'Concluido', 'Cancelado'];
 
+/** Projetos com um desses status contam como historico (nao mais "atuais") para um voluntario. */
+const PAST_PROJECT_STATUSES = new Set<ProjectStatus>(['Concluido', 'Cancelado']);
+export const isPastProjectStatus = (status: ProjectStatus) => PAST_PROJECT_STATUSES.has(status);
+
 export const ACTIVITY_STATUSES: ActivityStatus[] = ['AFazer', 'EmAndamento', 'Concluida'];
 
 export const ACTIVITY_PRIORITIES: ActivityPriority[] = ['Baixa', 'Media', 'Alta'];
