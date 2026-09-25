@@ -10,6 +10,8 @@ export type ActivityPriority = 'Baixa' | 'Media' | 'Alta';
 
 export type VolunteerSector = 'Projetos' | 'Juridico' | 'Pessoas' | 'Comunicacao' | 'Qualidade' | 'Financeiro';
 
+export type VolunteerStatus = 'Ativo' | 'Inativo' | 'ExMembro' | 'Afastado';
+
 export interface User {
   id: string;
   name: string;
@@ -74,6 +76,7 @@ export interface Indicator {
 export interface VolunteerProject {
   projectId: string;
   projectName: string;
+  projectStatus: ProjectStatus;
   roleInProject: string | null;
 }
 
@@ -83,8 +86,9 @@ export interface Volunteer {
   email: string | null;
   phone: string | null;
   sector: VolunteerSector;
+  skills: string | null;
   notes: string | null;
-  isActive: boolean;
+  status: VolunteerStatus;
   projects: VolunteerProject[];
   createdAt: string;
 }
@@ -243,8 +247,9 @@ export interface SaveVolunteerPayload {
   email: string | null;
   phone: string | null;
   sector: VolunteerSector;
+  skills: string | null;
   notes: string | null;
-  isActive: boolean;
+  status: VolunteerStatus;
 }
 
 export interface SaveIndicatorPayload {

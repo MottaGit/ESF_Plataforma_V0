@@ -1,4 +1,11 @@
-import type { ActivityPriority, ActivityStatus, ProjectStatus, UserRole, VolunteerSector } from '../types/api';
+import type {
+  ActivityPriority,
+  ActivityStatus,
+  ProjectStatus,
+  UserRole,
+  VolunteerSector,
+  VolunteerStatus
+} from '../types/api';
 
 export const PROJECT_STATUSES: ProjectStatus[] = ['Planejamento', 'EmAndamento', 'Pausado', 'Concluido', 'Cancelado'];
 
@@ -16,6 +23,8 @@ export const VOLUNTEER_SECTORS: VolunteerSector[] = [
   'Qualidade',
   'Financeiro'
 ];
+
+export const VOLUNTEER_STATUSES: VolunteerStatus[] = ['Ativo', 'Inativo', 'ExMembro', 'Afastado'];
 
 const projectStatusLabels: Record<ProjectStatus, string> = {
   Planejamento: 'Planejamento',
@@ -52,11 +61,19 @@ const sectorLabels: Record<VolunteerSector, string> = {
   Financeiro: 'Financeiro'
 };
 
+const volunteerStatusLabels: Record<VolunteerStatus, string> = {
+  Ativo: 'Ativo',
+  Inativo: 'Inativo',
+  ExMembro: 'Ex-membro',
+  Afastado: 'Afastado'
+};
+
 export const projectStatusLabel = (status: ProjectStatus) => projectStatusLabels[status] ?? status;
 export const activityStatusLabel = (status: ActivityStatus) => activityStatusLabels[status] ?? status;
 export const priorityLabel = (priority: ActivityPriority) => priorityLabels[priority] ?? priority;
 export const roleLabel = (role: UserRole) => roleLabels[role] ?? role;
 export const sectorLabel = (sector: VolunteerSector) => sectorLabels[sector] ?? sector;
+export const volunteerStatusLabel = (status: VolunteerStatus) => volunteerStatusLabels[status] ?? status;
 
 export const roleDescription: Record<UserRole, string> = {
   Administrador: 'Acesso completo, incluindo usuários e dados da organização.',

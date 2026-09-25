@@ -23,6 +23,10 @@ public class VolunteersController : ControllerBase
         [FromQuery] VolunteerSector? sector = null)
         => Ok(await _volunteers.ListAsync(search, onlyActive, sector));
 
+    [HttpGet("volunteers/{id:guid}")]
+    public async Task<ActionResult<VolunteerDto>> Get(Guid id)
+        => Ok(await _volunteers.GetAsync(id));
+
     [HttpPost("volunteers")]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<VolunteerDto>> Create(SaveVolunteerRequest request)

@@ -9,6 +9,7 @@ import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { VolunteerDetailPage } from './pages/VolunteerDetailPage';
 import { VolunteersPage } from './pages/VolunteersPage';
 
 export function App() {
@@ -29,6 +30,7 @@ export function App() {
               <Route path="/projetos" element={<ProjectsPage />} />
               <Route path="/projetos/:id" element={<ProjectDetailPage />} />
               <Route path="/voluntarios" element={<VolunteersPage />} />
+              <Route path="/voluntarios/:id" element={<VolunteerDetailPage />} />
               <Route path="/relatorios" element={<ReportsPage />} />
               <Route path="/configuracoes" element={<SettingsPage />} />
             </Route>

@@ -18,7 +18,7 @@ public class VolunteerService
         var query = _db.Volunteers.AsNoTracking();
 
         if (onlyActive)
-            query = query.Where(v => v.IsActive);
+            query = query.Where(v => v.Status == VolunteerStatus.Ativo);
 
         if (sector.HasValue)
             query = query.Where(v => v.Sector == sector.Value);
@@ -39,11 +39,23 @@ public class VolunteerService
                 v.Email,
                 v.Phone,
                 v.Sector,
+                v.Skills,
                 v.Notes,
-                v.IsActive,
-                v.Projects.Select(pv => new VolunteerProjectDto(pv.ProjectId, pv.Project!.Name, pv.RoleInProject)).ToList(),
+                v.Status,
+                v.Projects.Select(pv => new VolunteerProjectDto(pv.ProjectId, pv.Project!.Name, pv.Project!.Status, pv.RoleInProject)).ToList(),
                 v.CreatedAt))
             .ToListAsync();
+    }
+
+    public async Task<VolunteerDto> GetAsync(Guid id)
+    {
+        var volunteer = await _db.Volunteers
+            .AsNoTracking()
+            .Include(v => v.Projects).ThenInclude(pv => pv.Project)
+            .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+
+        var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
+        return Mapping.ToDto(volunteer, projects);
     }
 
     public async Task<VolunteerDto> CreateAsync(SaveVolunteerRequest request)
@@ -137,7 +149,8 @@ public class VolunteerService
         volunteer.Email = string.IsNullOrWhiteSpace(r.Email) ? null : r.Email.Trim().ToLowerInvariant();
         volunteer.Phone = string.IsNullOrWhiteSpace(r.Phone) ? null : r.Phone.Trim();
         volunteer.Sector = r.Sector!.Value;
+        volunteer.Skills = string.IsNullOrWhiteSpace(r.Skills) ? null : r.Skills.Trim();
         volunteer.Notes = string.IsNullOrWhiteSpace(r.Notes) ? null : r.Notes.Trim();
-        volunteer.IsActive = r.IsActive;
+        volunteer.Status = r.Status!.Value;
     }
 }

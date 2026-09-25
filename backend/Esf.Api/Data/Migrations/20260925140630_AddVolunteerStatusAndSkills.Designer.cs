@@ -3,6 +3,7 @@ using System;
 using Esf.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Esf.Api.Data.Migrations
 {
     [DbContext(typeof(EsfDbContext))]
-    partial class EsfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925140630_AddVolunteerStatusAndSkills")]
+    partial class AddVolunteerStatusAndSkills
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -43,10 +43,10 @@ public static class Mapping
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);
 
     public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects) =>
-        new(v.Id, v.Name, v.Email, v.Phone, v.Sector, v.Notes, v.IsActive, projects, v.CreatedAt);
+        new(v.Id, v.Name, v.Email, v.Phone, v.Sector, v.Skills, v.Notes, v.Status, projects, v.CreatedAt);
 
     public static VolunteerProjectDto ToProjectDto(ProjectVolunteer pv) =>
-        new(pv.ProjectId, pv.Project?.Name ?? "Projeto removido", pv.RoleInProject);
+        new(pv.ProjectId, pv.Project?.Name ?? "Projeto removido", pv.Project?.Status ?? default, pv.RoleInProject);
 
     public static ProjectVolunteerDto ToDto(ProjectVolunteer pv) =>
         new(pv.VolunteerId,

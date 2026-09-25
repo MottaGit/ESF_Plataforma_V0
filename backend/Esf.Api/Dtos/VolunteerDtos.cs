@@ -6,6 +6,7 @@ namespace Esf.Api.Dtos;
 public record VolunteerProjectDto(
     Guid ProjectId,
     string ProjectName,
+    ProjectStatus ProjectStatus,
     string? RoleInProject);
 
 public record VolunteerDto(
@@ -14,8 +15,9 @@ public record VolunteerDto(
     string? Email,
     string? Phone,
     VolunteerSector Sector,
+    string? Skills,
     string? Notes,
-    bool IsActive,
+    VolunteerStatus Status,
     List<VolunteerProjectDto> Projects,
     DateTime CreatedAt);
 
@@ -44,8 +46,11 @@ public class SaveVolunteerRequest
     [Required(ErrorMessage = "Selecione o setor.")]
     public VolunteerSector? Sector { get; set; }
 
+    public string? Skills { get; set; }
     public string? Notes { get; set; }
-    public bool IsActive { get; set; } = true;
+
+    [Required(ErrorMessage = "Selecione a situacao.")]
+    public VolunteerStatus? Status { get; set; }
 }
 
 public class AddProjectVolunteerRequest

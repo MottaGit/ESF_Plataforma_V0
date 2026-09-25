@@ -1,20 +1,17 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { projectsApi, volunteersApi } from '../api/endpoints';
-import { NeutralBadge } from '../components/ui/Badge';
+import { volunteersApi } from '../api/endpoints';
+import { VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconClose, IconEdit, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { IconEdit, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { ProjectListItem, SaveVolunteerPayload, Volunteer, VolunteerProject, VolunteerSector } from '../types/api';
-import { emptyToNull, sectorLabel, VOLUNTEER_SECTORS } from '../utils/format';
-
-function truncate(text: string, max: number) {
-  return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
-}
+import type { SaveVolunteerPayload, Volunteer, VolunteerSector, VolunteerStatus } from '../types/api';
+import { VOLUNTEER_SECTORS, VOLUNTEER_STATUSES, emptyToNull, sectorLabel, volunteerStatusLabel } from '../utils/format';
 
 export function VolunteersPage() {
   const { canManage } = useAuth();
@@ -74,7 +71,7 @@ export function VolunteersPage() {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Voluntários</h1>
-          <p className="page-head__desc">Pessoas da organização: contato, setor, situação e em quais projetos atuam.</p>
+          <p className="page-head__desc">Pessoas da organização: setor, situação e em quantos projetos atuam.</p>
         </div>
         {canManage ? (
           <div className="page-head__actions">
@@ -154,72 +151,51 @@ export function VolunteersPage() {
                 <tr>
                   <th>Nome</th>
                   <th>Setor</th>
-                  <th>Contato</th>
                   <th>Projetos</th>
-                  <th>Observações</th>
                   <th>Situação</th>
-                  <th className="right">Ações</th>
+                  {canManage ? <th className="right">Ações</th> : null}
                 </tr>
               </thead>
               <tbody>
                 {volunteers.map((volunteer) => (
                   <tr key={volunteer.id}>
                     <td>
-                      <div className="table__primary">{volunteer.name}</div>
+                      <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
+                        {volunteer.name}
+                      </Link>
                     </td>
                     <td>{sectorLabel(volunteer.sector)}</td>
                     <td>
-                      {volunteer.email ?? '—'}
-                      {volunteer.phone ? <div className="table__secondary">{volunteer.phone}</div> : null}
+                      {volunteer.projects.length} projeto{volunteer.projects.length === 1 ? '' : 's'}
                     </td>
                     <td>
-                      {volunteer.projects.length === 0 ? (
-                        '—'
-                      ) : (
-                        <div className="tag-list">
-                          {volunteer.projects.map((project) => (
-                            <NeutralBadge key={project.projectId}>{project.projectName}</NeutralBadge>
-                          ))}
+                      <VolunteerStatusBadge status={volunteer.status} />
+                    </td>
+                    {canManage ? (
+                      <td>
+                        <div className="row-actions">
+                          <Button
+                            small
+                            variant="ghost"
+                            icon={<IconEdit size={15} />}
+                            title="Editar voluntário"
+                            aria-label="Editar voluntário"
+                            onClick={() => {
+                              setEditing(volunteer);
+                              setFormOpen(true);
+                            }}
+                          />
+                          <Button
+                            small
+                            variant="ghost"
+                            icon={<IconTrash size={15} />}
+                            title="Excluir voluntário"
+                            aria-label="Excluir voluntário"
+                            onClick={() => setRemoving(volunteer)}
+                          />
                         </div>
-                      )}
-                    </td>
-                    <td style={{ maxWidth: 220 }}>
-                      {volunteer.notes ? (
-                        <span title={volunteer.notes}>{truncate(volunteer.notes, 40)}</span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td>{volunteer.isActive ? <NeutralBadge>Ativo</NeutralBadge> : <NeutralBadge>Inativo</NeutralBadge>}</td>
-                    <td>
-                      <div className="row-actions">
-                        {canManage ? (
-                          <>
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconEdit size={15} />}
-                              title="Editar voluntário"
-                              aria-label="Editar voluntário"
-                              onClick={() => {
-                                setEditing(volunteer);
-                                setFormOpen(true);
-                              }}
-                            />
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconTrash size={15} />}
-                              title="Excluir voluntário"
-                              aria-label="Excluir voluntário"
-                              onClick={() => setRemoving(volunteer)}
-                            />
-                          </>
-                        ) : (
-                          <span className="field__hint">Somente leitura</span>
-                        )}
-                      </div>
-                    </td>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -232,7 +208,6 @@ export function VolunteersPage() {
         <VolunteerFormModal
           volunteer={editing}
           onClose={() => setFormOpen(false)}
-          onProjectsChanged={() => void load()}
           onSaved={() => {
             setFormOpen(false);
             notify(editing ? 'Voluntário atualizado.' : 'Voluntário cadastrado.');
@@ -260,16 +235,16 @@ interface VolunteerFormModalProps {
   volunteer: Volunteer | null;
   onClose: () => void;
   onSaved: () => void;
-  onProjectsChanged: () => void;
 }
 
-function VolunteerFormModal({ volunteer, onClose, onSaved, onProjectsChanged }: VolunteerFormModalProps) {
+export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFormModalProps) {
   const [name, setName] = useState(volunteer?.name ?? '');
   const [email, setEmail] = useState(volunteer?.email ?? '');
   const [phone, setPhone] = useState(volunteer?.phone ?? '');
   const [sector, setSector] = useState<VolunteerSector>(volunteer?.sector ?? 'Projetos');
+  const [skills, setSkills] = useState(volunteer?.skills ?? '');
   const [notes, setNotes] = useState(volunteer?.notes ?? '');
-  const [isActive, setIsActive] = useState(volunteer?.isActive ?? true);
+  const [status, setStatus] = useState<VolunteerStatus>(volunteer?.status ?? 'Ativo');
   const [nameError, setNameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -289,8 +264,9 @@ function VolunteerFormModal({ volunteer, onClose, onSaved, onProjectsChanged }: 
       email: emptyToNull(email),
       phone: emptyToNull(phone),
       sector,
+      skills: emptyToNull(skills),
       notes: emptyToNull(notes),
-      isActive
+      status
     };
 
     setSaving(true);
@@ -308,7 +284,7 @@ function VolunteerFormModal({ volunteer, onClose, onSaved, onProjectsChanged }: 
   return (
     <Modal
       title={volunteer ? 'Editar voluntário' : 'Novo voluntário'}
-      subtitle="Dados básicos de contato e setor na organização."
+      subtitle="Dados básicos de contato, setor e situação na organização."
       onClose={onClose}
       footer={
         <>
@@ -344,7 +320,7 @@ function VolunteerFormModal({ volunteer, onClose, onSaved, onProjectsChanged }: 
             <TextInput id="volunteer-phone" value={phone} onChange={(event) => setPhone(event.target.value)} />
           </Field>
 
-          <Field label="Setor" htmlFor="volunteer-sector" required span>
+          <Field label="Setor" htmlFor="volunteer-sector" required>
             <Select id="volunteer-sector" value={sector} onChange={(event) => setSector(event.target.value as VolunteerSector)}>
               {VOLUNTEER_SECTORS.map((value) => (
                 <option key={value} value={value}>
@@ -354,148 +330,27 @@ function VolunteerFormModal({ volunteer, onClose, onSaved, onProjectsChanged }: 
             </Select>
           </Field>
 
-          <Field label="Observações" htmlFor="volunteer-notes" span>
-            <TextArea id="volunteer-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
+          <Field label="Situação" htmlFor="volunteer-status" required>
+            <Select id="volunteer-status" value={status} onChange={(event) => setStatus(event.target.value as VolunteerStatus)}>
+              {VOLUNTEER_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {volunteerStatusLabel(value)}
+                </option>
+              ))}
+            </Select>
           </Field>
 
-          <div className="field span-2">
-            <label className="checkbox">
-              <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
-              Voluntário ativo
-            </label>
-          </div>
+          <Field label="Competências" htmlFor="volunteer-skills" span hint="Habilidades relevantes para os projetos.">
+            <TextArea id="volunteer-skills" value={skills} onChange={(event) => setSkills(event.target.value)} />
+          </Field>
+
+          <Field label="Outras informações relevantes" htmlFor="volunteer-notes" span>
+            <TextArea id="volunteer-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
+          </Field>
         </div>
 
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
       </form>
-
-      {volunteer ? (
-        <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-          <VolunteerProjectsSection volunteer={volunteer} onChanged={onProjectsChanged} />
-        </div>
-      ) : null}
     </Modal>
-  );
-}
-
-interface VolunteerProjectsSectionProps {
-  volunteer: Volunteer;
-  onChanged: () => void;
-}
-
-function VolunteerProjectsSection({ volunteer, onChanged }: VolunteerProjectsSectionProps) {
-  const { notifyError } = useToast();
-  const [allProjects, setAllProjects] = useState<ProjectListItem[]>([]);
-  const [linked, setLinked] = useState<VolunteerProject[]>(volunteer.projects);
-  const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [roleInProject, setRoleInProject] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    projectsApi.list({ sort: 'name' }).then(setAllProjects).catch(() => undefined);
-  }, []);
-
-  const available = useMemo(
-    () => allProjects.filter((project) => !linked.some((item) => item.projectId === project.id)),
-    [allProjects, linked]
-  );
-
-  useEffect(() => {
-    if (!selectedProjectId && available.length > 0) setSelectedProjectId(available[0].id);
-  }, [available, selectedProjectId]);
-
-  async function handleLink() {
-    if (!selectedProjectId) return;
-    setBusy(true);
-    try {
-      await volunteersApi.addToProject(selectedProjectId, volunteer.id, roleInProject.trim() || null);
-      const project = allProjects.find((item) => item.id === selectedProjectId);
-      setLinked((current) => [
-        ...current,
-        { projectId: selectedProjectId, projectName: project?.name ?? '', roleInProject: roleInProject.trim() || null }
-      ]);
-      setRoleInProject('');
-      setSelectedProjectId('');
-      onChanged();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível vincular o projeto.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleUnlink(projectId: string, projectName: string) {
-    setBusy(true);
-    try {
-      await volunteersApi.removeFromProject(projectId, volunteer.id);
-      setLinked((current) => current.filter((item) => item.projectId !== projectId));
-      onChanged();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : `Não foi possível desvincular de ${projectName}.`);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div>
-      <div className="field__label" style={{ marginBottom: 8 }}>
-        Projetos vinculados
-      </div>
-
-      {linked.length === 0 ? (
-        <p className="field__hint" style={{ marginBottom: 10 }}>
-          Ainda não vinculado a nenhum projeto.
-        </p>
-      ) : (
-        <div className="tag-list" style={{ marginBottom: 10 }}>
-          {linked.map((project) => (
-            <span key={project.projectId} className="badge badge--neutral" style={{ gap: 6 }}>
-              {project.projectName}
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void handleUnlink(project.projectId, project.projectName)}
-                aria-label={`Desvincular ${project.projectName}`}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'inherit',
-                  padding: 0,
-                  display: 'inline-flex'
-                }}
-              >
-                <IconClose size={11} />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {available.length > 0 ? (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 180px' }}>
-            <Select value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} aria-label="Projeto">
-              {available.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div style={{ flex: '1 1 160px' }}>
-            <TextInput
-              placeholder="Papel no projeto (opcional)"
-              value={roleInProject}
-              onChange={(event) => setRoleInProject(event.target.value)}
-            />
-          </div>
-          <Button type="button" small loading={busy} onClick={() => void handleLink()}>
-            Vincular
-          </Button>
-        </div>
-      ) : null}
-    </div>
   );
 }

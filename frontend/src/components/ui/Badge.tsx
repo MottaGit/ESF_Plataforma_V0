@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import type { ActivityPriority, ActivityStatus, ProjectStatus } from '../../types/api';
-import { activityStatusLabel, priorityLabel, projectStatusLabel } from '../../utils/format';
+import type { ActivityPriority, ActivityStatus, ProjectStatus, VolunteerStatus } from '../../types/api';
+import { activityStatusLabel, priorityLabel, projectStatusLabel, volunteerStatusLabel } from '../../utils/format';
 
 const projectStatusClass: Record<ProjectStatus, string> = {
   Planejamento: 'badge--plan',
@@ -22,6 +22,13 @@ const priorityClass: Record<ActivityPriority, string> = {
   Alta: 'badge--cancel'
 };
 
+const volunteerStatusClass: Record<VolunteerStatus, string> = {
+  Ativo: 'badge--run',
+  Afastado: 'badge--pause',
+  Inativo: 'badge--cancel',
+  ExMembro: 'badge--cancel'
+};
+
 export function StatusBadge({ status }: { status: ProjectStatus }) {
   return (
     <span className={`badge ${projectStatusClass[status]}`}>
@@ -37,6 +44,10 @@ export function ActivityStatusBadge({ status }: { status: ActivityStatus }) {
 
 export function PriorityBadge({ priority }: { priority: ActivityPriority }) {
   return <span className={`badge ${priorityClass[priority]}`}>{priorityLabel(priority)}</span>;
+}
+
+export function VolunteerStatusBadge({ status }: { status: VolunteerStatus }) {
+  return <span className={`badge ${volunteerStatusClass[status]}`}>{volunteerStatusLabel(status)}</span>;
 }
 
 export function LateBadge({ label = 'Atrasado' }: { label?: string }) {

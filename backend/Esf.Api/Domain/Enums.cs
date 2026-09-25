@@ -41,3 +41,11 @@ public enum VolunteerSector
     Qualidade = 4,
     Financeiro = 5
 }
+
+public enum VolunteerStatus
+{
+    Ativo = 0,
+    Inativo = 1,
+    ExMembro = 2,
+    Afastado = 3
+}

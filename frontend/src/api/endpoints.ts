@@ -82,6 +82,7 @@ export const activitiesApi = {
 export const volunteersApi = {
   list: (search?: string, onlyActive = false, sector?: VolunteerSector) =>
     http.request<Volunteer[]>('/api/volunteers', { query: { search, onlyActive, sector } }),
+  get: (id: string) => http.request<Volunteer>(`/api/volunteers/${id}`),
   create: (payload: SaveVolunteerPayload) =>
     http.request<Volunteer>('/api/volunteers', { method: 'POST', body: payload }),
   update: (id: string, payload: SaveVolunteerPayload) =>
