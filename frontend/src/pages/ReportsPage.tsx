@@ -56,7 +56,6 @@ export function ReportsPage() {
     try {
       const fileName = await reportsApi.generate({
         projectIds: selected,
-        includeActivities: true,
         includeVolunteers: true,
         includeIndicators: true,
         includeUpdates: true,
@@ -180,7 +179,8 @@ export function ReportsPage() {
           </div>
           <div className="panel__body">
             <p className="field__hint" style={{ marginBottom: 10 }}>
-              Indicadores, atividades, voluntários e atualizações sempre entram no PDF. Só as fotos são opcionais.
+              Indicadores, voluntários e linha do tempo sempre entram no PDF. Só as fotos anexadas às atualizações são
+              opcionais.
             </p>
             <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
               <label className="checkbox">

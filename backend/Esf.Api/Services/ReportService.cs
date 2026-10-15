@@ -9,7 +9,7 @@ namespace Esf.Api.Services;
 
 public class ReportService
 {
-    private const int MaxPhotosPerProject = 4;
+    private const int MaxPhotosPerUpdate = 4;
 
     private readonly EsfDbContext _db;
     private readonly FileStorageService _storage;
@@ -32,11 +32,9 @@ public class ReportService
             .AsNoTracking()
             .Include(p => p.Program)
             .Include(p => p.OwnerVolunteer)
-            .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
-            .Include(p => p.Files)
-            .Include(p => p.Updates)
+            .Include(p => p.Updates).ThenInclude(u => u.Attachments)
             .Where(p => ids.Contains(p.Id))
             .ToListAsync();
 
@@ -48,17 +46,19 @@ public class ReportService
         var organization = await _db.Organizations.AsNoTracking().FirstOrDefaultAsync()
                            ?? new Organization { Name = "Engenheiros Sem Fronteiras" };
 
+        // Fotos ficam atreladas a atualizacao (ProjectUpdate) que as recebeu, nao ao projeto todo -
+        // assim cada entrada da linha do tempo mostra exatamente as fotos daquele evento.
         var photos = new Dictionary<Guid, List<ReportPhoto>>();
         if (request.IncludePhotos)
         {
-            foreach (var project in projects)
+            foreach (var update in projects.SelectMany(p => p.Updates))
             {
-                var images = project.Files
+                var images = update.Attachments
                     .Where(f => f.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
                     .Where(f => f.SizeBytes < 8 * 1024 * 1024)
                     .Where(f => IsSupportedImage(f.StoredName))
                     .OrderBy(f => f.UploadedAt)
-                    .Take(MaxPhotosPerProject)
+                    .Take(MaxPhotosPerUpdate)
                     .ToList();
 
                 var loaded = new List<ReportPhoto>();
@@ -69,7 +69,7 @@ public class ReportService
                         loaded.Add(new ReportPhoto(image.Description ?? image.FileName, bytes));
                 }
 
-                if (loaded.Count > 0) photos[project.Id] = loaded;
+                if (loaded.Count > 0) photos[update.Id] = loaded;
             }
         }
 
@@ -80,7 +80,6 @@ public class ReportService
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             GeneratedBy = generatedBy,
             GeneratedAt = DateTime.UtcNow,
-            IncludeActivities = request.IncludeActivities,
             IncludeVolunteers = request.IncludeVolunteers,
             IncludeIndicators = request.IncludeIndicators,
             IncludeUpdates = request.IncludeUpdates,
@@ -105,7 +104,6 @@ public class ReportService
                 Note = model.Note,
                 GeneratedBy = model.GeneratedBy,
                 GeneratedAt = model.GeneratedAt,
-                IncludeActivities = model.IncludeActivities,
                 IncludeVolunteers = model.IncludeVolunteers,
                 IncludeIndicators = model.IncludeIndicators,
                 IncludeUpdates = model.IncludeUpdates,

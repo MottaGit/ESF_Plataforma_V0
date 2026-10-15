@@ -76,7 +76,6 @@ export function ProjectDetailPage() {
     try {
       await reportsApi.generate({
         projectIds: [id],
-        includeActivities: true,
         includeVolunteers: true,
         includeIndicators: true,
         includeUpdates: true,

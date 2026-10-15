@@ -10,13 +10,12 @@ public class ReportModel
     public string GeneratedBy { get; init; } = "";
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
 
-    public bool IncludeActivities { get; init; } = true;
     public bool IncludeVolunteers { get; init; } = true;
     public bool IncludeIndicators { get; init; } = true;
     public bool IncludeUpdates { get; init; } = true;
     public bool IncludePhotos { get; init; } = true;
 
-    /// <summary>Fotos ja lidas do disco, por projeto (limitadas pelo servico).</summary>
+    /// <summary>Fotos ja lidas do disco, por atualizacao (ProjectUpdate.Id) - limitadas pelo servico.</summary>
     public Dictionary<Guid, List<ReportPhoto>> Photos { get; init; } = new();
 }
 

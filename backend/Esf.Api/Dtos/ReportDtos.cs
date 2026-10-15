@@ -8,7 +8,6 @@ public class ReportRequest
     [MinLength(1, ErrorMessage = "Selecione ao menos um projeto.")]
     public List<Guid> ProjectIds { get; set; } = new();
 
-    public bool IncludeActivities { get; set; } = true;
     public bool IncludeVolunteers { get; set; } = true;
     public bool IncludeIndicators { get; set; } = true;
     public bool IncludeUpdates { get; set; } = true;

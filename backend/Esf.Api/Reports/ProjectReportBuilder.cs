@@ -8,8 +8,9 @@ using QuestPDF.Infrastructure;
 namespace Esf.Api.Reports;
 
 /// <summary>
-/// Relatorio consolidado de projetos em PDF, com aparencia adequada para
-/// apresentar a parceiros e para prestacao de contas.
+/// Relatorio de projeto em PDF: um resumo enxuto (identificacao, indicadores, equipe)
+/// seguido da linha do tempo de atualizacoes com as fotos de cada evento - pensado para
+/// prestacao de contas a parceiros, nao como export operacional do sistema.
 /// </summary>
 public static class ProjectReportBuilder
 {
@@ -18,6 +19,11 @@ public static class ProjectReportBuilder
     private const string Line = "#DDE1E6";
     private const string SoftBg = "#F4F6F8";
     private const string Accent = "#10564A";
+
+    private static readonly string[] MonthAbbreviations =
+    {
+        "JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
+    };
 
     public static byte[] Build(ReportModel model)
     {
@@ -68,8 +74,7 @@ public static class ProjectReportBuilder
             .PaddingTop(6)
             .Row(row =>
             {
-                row.RelativeItem().Text(model.Organization.Name + " - documento gerado pela plataforma de gestao de projetos")
-                    .FontSize(7.5f).FontColor(Muted);
+                row.RelativeItem().Text(FooterIdentity(model.Organization)).FontSize(7.5f).FontColor(Muted);
 
                 row.ConstantItem(70).AlignRight().Text(text =>
                 {
@@ -79,6 +84,20 @@ public static class ProjectReportBuilder
                     text.TotalPages().FontSize(7.5f).FontColor(Muted);
                 });
             });
+    }
+
+    private static string FooterIdentity(Organization o)
+    {
+        var parts = new List<string> { o.Name };
+
+        if (!string.IsNullOrWhiteSpace(o.LegalName) && !string.Equals(o.LegalName, o.Name, StringComparison.OrdinalIgnoreCase))
+            parts.Add(o.LegalName!);
+
+        var contact = o.Website ?? o.Email;
+        if (!string.IsNullOrWhiteSpace(contact))
+            parts.Add(contact!);
+
+        return string.Join(" · ", parts);
     }
 
     private static void ComposeContent(IContainer container, ReportModel model)
@@ -116,7 +135,6 @@ public static class ProjectReportBuilder
                     columns.RelativeColumn(4);
                     columns.RelativeColumn(2);
                     columns.ConstantColumn(72);
-                    columns.ConstantColumn(58);
                 });
 
                 table.Header(header =>
@@ -124,7 +142,6 @@ public static class ProjectReportBuilder
                     header.Cell().Element(HeadCell).Text("Projeto");
                     header.Cell().Element(HeadCell).Text("Programa");
                     header.Cell().Element(HeadCell).Text("Status");
-                    header.Cell().Element(HeadCell).AlignRight().Text("Progresso");
                 });
 
                 foreach (var p in model.Projects)
@@ -132,7 +149,6 @@ public static class ProjectReportBuilder
                     table.Cell().Element(BodyCell).Text(p.Name);
                     table.Cell().Element(BodyCell).Text(p.Program!.Name);
                     table.Cell().Element(BodyCell).Text(StatusLabel(p.Status));
-                    table.Cell().Element(BodyCell).AlignRight().Text($"{p.Progress}%");
                 }
             });
         });
@@ -156,7 +172,6 @@ public static class ProjectReportBuilder
                 row.ConstantItem(120).AlignRight().Column(head =>
                 {
                     head.Item().AlignRight().Text(StatusLabel(p.Status)).FontSize(9).SemiBold().FontColor(Accent);
-                    head.Item().AlignRight().Text($"Progresso {p.Progress}%").FontSize(8.5f).FontColor(Muted);
                 });
             });
 
@@ -178,32 +193,20 @@ public static class ProjectReportBuilder
                     right.Spacing(2);
                     right.Item().Element(c => Field(c, "Publico beneficiado", p.TargetAudience ?? "-"));
                     right.Item().Element(c => Field(c, "Localizacao", FullAddress(p)));
-                    right.Item().Element(c => Field(c, "Coordenadas", Coordinates(p)));
                 });
             });
 
             if (!string.IsNullOrWhiteSpace(p.Description))
                 col.Item().Element(c => Paragraph(c, "Descricao", p.Description!));
 
-            if (!string.IsNullOrWhiteSpace(p.Objective))
-                col.Item().Element(c => Paragraph(c, "Objetivo", p.Objective!));
-
             if (model.IncludeIndicators && p.Indicators.Count > 0)
                 col.Item().Element(c => ComposeIndicators(c, p));
-
-            if (model.IncludeActivities && p.Activities.Count > 0)
-                col.Item().Element(c => ComposeActivities(c, p));
 
             if (model.IncludeVolunteers && p.Volunteers.Count > 0)
                 col.Item().Element(c => ComposeVolunteers(c, p));
 
-            if (model.IncludePhotos
-                && model.Photos.TryGetValue(p.Id, out var photos)
-                && photos.Count > 0)
-                col.Item().Element(c => ComposePhotos(c, photos));
-
             if (model.IncludeUpdates && p.Updates.Count > 0)
-                col.Item().Element(c => ComposeUpdates(c, p));
+                col.Item().Element(c => ComposeUpdates(c, model, p));
 
             if (!string.IsNullOrWhiteSpace(p.Notes))
                 col.Item().Element(c => Paragraph(c, "Observacoes", p.Notes!));
@@ -215,69 +218,39 @@ public static class ProjectReportBuilder
         container.Column(col =>
         {
             col.Item().Text("Indicadores").FontSize(10).SemiBold();
-            col.Item().PaddingTop(4).Table(table =>
+
+            var indicators = p.Indicators.OrderBy(i => i.CreatedAt).ToList();
+            foreach (var chunk in indicators.Chunk(4))
             {
-                table.ColumnsDefinition(columns =>
+                col.Item().PaddingTop(6).Row(row =>
                 {
-                    columns.RelativeColumn(4);
-                    columns.ConstantColumn(70);
-                    columns.ConstantColumn(70);
-                });
+                    foreach (var indicator in chunk)
+                        row.RelativeItem().PaddingRight(6).Element(c => IndicatorCard(c, indicator));
 
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeadCell).Text("Indicador");
-                    header.Cell().Element(HeadCell).Text("Unidade");
-                    header.Cell().Element(HeadCell).AlignRight().Text("Valor");
+                    for (var pad = chunk.Length; pad < 4; pad++)
+                        row.RelativeItem();
                 });
-
-                foreach (var i in p.Indicators.OrderBy(i => i.CreatedAt))
-                {
-                    table.Cell().Element(BodyCell).Text(i.Name);
-                    table.Cell().Element(BodyCell).Text(i.Unit ?? "-");
-                    table.Cell().Element(BodyCell).AlignRight().Text(Number(i.Value));
-                }
-            });
+            }
         });
     }
 
-    private static void ComposeActivities(IContainer container, Project p)
+    private static void IndicatorCard(IContainer container, Indicator i)
     {
-        container.Column(col =>
-        {
-            var done = p.Activities.Count(a => a.Status == ActivityStatus.Concluida);
-
-            col.Item().Text($"Atividades ({done} de {p.Activities.Count} concluidas)").FontSize(10).SemiBold();
-            col.Item().PaddingTop(4).Table(table =>
+        container
+            .Background(SoftBg)
+            .BorderBottom(2)
+            .BorderColor(Accent)
+            .Padding(8)
+            .Column(card =>
             {
-                table.ColumnsDefinition(columns =>
+                card.Item().AlignCenter().Text(text =>
                 {
-                    columns.RelativeColumn(5);
-                    columns.RelativeColumn(2);
-                    columns.ConstantColumn(64);
-                    columns.ConstantColumn(52);
-                    columns.ConstantColumn(58);
+                    text.Span(Number(i.Value)).FontSize(16).SemiBold().FontColor(Accent);
+                    if (!string.IsNullOrWhiteSpace(i.Unit))
+                        text.Span($" {i.Unit}").FontSize(9).FontColor(Muted);
                 });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeadCell).Text("Atividade");
-                    header.Cell().Element(HeadCell).Text("Responsavel");
-                    header.Cell().Element(HeadCell).Text("Status");
-                    header.Cell().Element(HeadCell).Text("Prioridade");
-                    header.Cell().Element(HeadCell).AlignRight().Text("Prazo");
-                });
-
-                foreach (var a in p.Activities.OrderBy(a => a.Status).ThenBy(a => a.DueDate ?? DateOnly.MaxValue))
-                {
-                    table.Cell().Element(BodyCell).Text(a.Title);
-                    table.Cell().Element(BodyCell).Text(a.AssignedVolunteer?.Name ?? "-");
-                    table.Cell().Element(BodyCell).Text(ActivityStatusLabel(a.Status));
-                    table.Cell().Element(BodyCell).Text(a.Priority.ToString());
-                    table.Cell().Element(BodyCell).AlignRight().Text(a.DueDate?.ToString("dd/MM/yyyy") ?? "-");
-                }
+                card.Item().AlignCenter().Text(i.Name).FontSize(7.5f).FontColor(Muted);
             });
-        });
     }
 
     private static void ComposeVolunteers(IContainer container, Project p)
@@ -311,51 +284,41 @@ public static class ProjectReportBuilder
         });
     }
 
-    private static void ComposeUpdates(IContainer container, Project p)
+    /// <summary>Historico cronologico do projeto: cada atualizacao com seu texto e as fotos anexadas a ela.</summary>
+    private static void ComposeUpdates(IContainer container, ReportModel model, Project p)
     {
         container.Column(col =>
         {
-            col.Item().Text("Atualizações").FontSize(10).SemiBold();
+            col.Item().Text("Linha do tempo").FontSize(10).SemiBold();
 
-            col.Item().PaddingTop(4).Column(inner =>
+            var updates = p.Updates.OrderBy(u => u.CreatedAt).ToList();
+
+            col.Item().PaddingTop(6).Column(inner =>
             {
-                inner.Spacing(6);
+                inner.Spacing(12);
 
-                foreach (var u in p.Updates.OrderByDescending(u => u.CreatedAt))
+                foreach (var update in updates)
                 {
-                    inner.Item().Column(entry =>
+                    inner.Item().BorderLeft(2).BorderColor(Accent).PaddingLeft(8).Column(entry =>
                     {
-                        entry.Item().Text(u.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
-                            .FontSize(8).SemiBold().FontColor(Muted);
-                        entry.Item().PaddingTop(1).Text(u.Text).FontSize(9);
+                        entry.Spacing(3);
+
+                        entry.Item().Text(ShortDate(update.CreatedAt)).FontSize(8.5f).SemiBold().FontColor(Accent);
+                        entry.Item().Text(update.Text).FontSize(9);
+
+                        if (model.IncludePhotos
+                            && model.Photos.TryGetValue(update.Id, out var photos)
+                            && photos.Count > 0)
+                        {
+                            entry.Item().PaddingTop(2).Row(row =>
+                            {
+                                foreach (var photo in photos)
+                                    row.RelativeItem().PaddingRight(4).Height(3f, Unit.Centimetre).Image(photo.Data).FitArea();
+                            });
+                        }
                     });
                 }
             });
-        });
-    }
-
-    private static void ComposePhotos(IContainer container, List<ReportPhoto> photos)
-    {
-        container.Column(col =>
-        {
-            col.Item().Text("Registro fotografico").FontSize(10).SemiBold();
-
-            foreach (var pair in photos.Chunk(2))
-            {
-                col.Item().PaddingTop(6).Row(row =>
-                {
-                    foreach (var photo in pair)
-                    {
-                        row.RelativeItem().PaddingRight(6).Column(cell =>
-                        {
-                            cell.Item().Height(4.6f, Unit.Centimetre).Image(photo.Data);
-                            cell.Item().PaddingTop(2).Text(photo.Caption).FontSize(7.5f).FontColor(Muted);
-                        });
-                    }
-
-                    if (pair.Length == 1) row.RelativeItem();
-                });
-            }
         });
     }
 
@@ -401,16 +364,15 @@ public static class ProjectReportBuilder
         _ => status.ToString()
     };
 
-    private static string ActivityStatusLabel(ActivityStatus status) => status switch
-    {
-        ActivityStatus.AFazer => "A fazer",
-        ActivityStatus.EmAndamento => "Em andamento",
-        ActivityStatus.Concluida => "Concluida",
-        _ => status.ToString()
-    };
-
     private static string Number(decimal value) =>
         value == Math.Truncate(value) ? ((long)value).ToString("N0") : value.ToString("N2");
+
+    /// <summary>Data curta sem depender de dados de cultura (o host roda com InvariantGlobalization).</summary>
+    private static string ShortDate(DateTime value)
+    {
+        var local = value.ToLocalTime();
+        return $"{local.Day:00} {MonthAbbreviations[local.Month - 1]} {local.Year}";
+    }
 
     private static string PeriodLine(Project p)
     {
@@ -432,9 +394,4 @@ public static class ProjectReportBuilder
         var joined = string.Join(", ", parts);
         return string.IsNullOrWhiteSpace(joined) ? "-" : joined;
     }
-
-    private static string Coordinates(Project p) =>
-        p.Latitude.HasValue && p.Longitude.HasValue
-            ? $"{p.Latitude.Value:0.#####}, {p.Longitude.Value:0.#####}"
-            : "-";
 }

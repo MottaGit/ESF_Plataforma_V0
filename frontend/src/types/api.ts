@@ -291,7 +291,6 @@ export interface SaveOrganizationPayload {
 
 export interface ReportPayload {
   projectIds: string[];
-  includeActivities: boolean;
   includeVolunteers: boolean;
   includeIndicators: boolean;
   includeUpdates: boolean;
