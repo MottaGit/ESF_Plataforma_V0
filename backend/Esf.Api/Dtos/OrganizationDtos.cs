@@ -6,6 +6,7 @@ public record OrganizationDto(
     Guid Id,
     string Name,
     string? LegalName,
+    string? Cnpj,
     string? Mission,
     string? About,
     string? Email,
@@ -24,6 +25,9 @@ public class SaveOrganizationRequest
 
     [StringLength(200)]
     public string? LegalName { get; set; }
+
+    [StringLength(20)]
+    public string? Cnpj { get; set; }
 
     public string? Mission { get; set; }
     public string? About { get; set; }

@@ -204,6 +204,7 @@ export interface Organization {
   id: string;
   name: string;
   legalName: string | null;
+  cnpj: string | null;
   mission: string | null;
   about: string | null;
   email: string | null;
@@ -280,6 +281,7 @@ export interface SaveUserPayload {
 export interface SaveOrganizationPayload {
   name: string;
   legalName: string | null;
+  cnpj: string | null;
   mission: string | null;
   about: string | null;
   email: string | null;

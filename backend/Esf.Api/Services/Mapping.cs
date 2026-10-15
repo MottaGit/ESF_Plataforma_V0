@@ -84,7 +84,7 @@ public static class Mapping
             u.Attachments.OrderBy(f => f.UploadedAt).Select(ToDto).ToList());
 
     public static OrganizationDto ToDto(Organization o) =>
-        new(o.Id, o.Name, o.LegalName, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl, o.UpdatedAt);
+        new(o.Id, o.Name, o.LegalName, o.Cnpj, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl, o.UpdatedAt);
 
     /// <summary>Detalhe completo do projeto, com as colecoes ja carregadas.</summary>
     public static ProjectDetailDto ToDetailDto(Project p) =>

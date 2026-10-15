@@ -6,6 +6,7 @@ public class Organization
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public string? LegalName { get; set; }
+    public string? Cnpj { get; set; }
     public string? Mission { get; set; }
     public string? About { get; set; }
     public string? Email { get; set; }

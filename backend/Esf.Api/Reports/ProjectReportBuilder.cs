@@ -88,12 +88,15 @@ public static class ProjectReportBuilder
 
     private static string FooterIdentity(Organization o)
     {
-        var parts = new List<string> { o.Name };
+        var parts = new List<string>
+        {
+            !string.IsNullOrWhiteSpace(o.LegalName) ? o.LegalName! : o.Name
+        };
 
-        if (!string.IsNullOrWhiteSpace(o.LegalName) && !string.Equals(o.LegalName, o.Name, StringComparison.OrdinalIgnoreCase))
-            parts.Add(o.LegalName!);
+        if (!string.IsNullOrWhiteSpace(o.Cnpj))
+            parts.Add($"CNPJ {o.Cnpj}");
 
-        var contact = o.Website ?? o.Email;
+        var contact = o.Email ?? o.Website;
         if (!string.IsNullOrWhiteSpace(contact))
             parts.Add(contact!);
 
@@ -120,6 +123,28 @@ public static class ProjectReportBuilder
 
             foreach (var project in model.Projects)
                 col.Item().Element(c => ComposeProject(c, model, project));
+
+            col.Item().Element(c => ComposeClosing(c, model));
+        });
+    }
+
+    /// <summary>Convite de fechamento, uma unica vez ao final do documento (nao repete por pagina).
+    /// So aparece se houver algum contato cadastrado na organizacao.</summary>
+    private static void ComposeClosing(IContainer container, ReportModel model)
+    {
+        var o = model.Organization;
+
+        var contact = new List<string>();
+        if (!string.IsNullOrWhiteSpace(o.Email)) contact.Add(o.Email!);
+        if (!string.IsNullOrWhiteSpace(o.Phone)) contact.Add(o.Phone!);
+
+        if (contact.Count == 0) return;
+
+        container.Background(SoftBg).Padding(10).Column(col =>
+        {
+            col.Item().Text($"Quer apoiar ou saber mais sobre o trabalho de {o.Name}? Fale com a gente.")
+                .FontSize(9).SemiBold();
+            col.Item().PaddingTop(2).Text(string.Join(" · ", contact)).FontSize(9).FontColor(Muted);
         });
     }
 

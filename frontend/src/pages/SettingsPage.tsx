@@ -64,6 +64,7 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
   const [form, setForm] = useState<SaveOrganizationPayload>({
     name: '',
     legalName: null,
+    cnpj: null,
     mission: null,
     about: null,
     email: null,
@@ -81,6 +82,7 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         setForm({
           name: data.name,
           legalName: data.legalName,
+          cnpj: data.cnpj,
           mission: data.mission,
           about: data.about,
           email: data.email,
@@ -102,6 +104,7 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         ...form,
         name: form.name.trim(),
         legalName: emptyToNull(form.legalName),
+        cnpj: emptyToNull(form.cnpj),
         mission: emptyToNull(form.mission),
         about: emptyToNull(form.about),
         email: emptyToNull(form.email),
@@ -166,6 +169,16 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
                 value={form.legalName ?? ''}
                 disabled={!canEdit}
                 onChange={(event) => setForm({ ...form, legalName: event.target.value })}
+              />
+            </Field>
+
+            <Field label="CNPJ" htmlFor="org-cnpj" hint="Aparece no rodapé dos relatórios.">
+              <TextInput
+                id="org-cnpj"
+                value={form.cnpj ?? ''}
+                placeholder="00.000.000/0000-00"
+                disabled={!canEdit}
+                onChange={(event) => setForm({ ...form, cnpj: event.target.value })}
               />
             </Field>
 

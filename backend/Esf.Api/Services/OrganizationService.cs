@@ -29,6 +29,7 @@ public class OrganizationService
 
         org.Name = request.Name.Trim();
         org.LegalName = Clean(request.LegalName);
+        org.Cnpj = Clean(request.Cnpj);
         org.Mission = Clean(request.Mission);
         org.About = Clean(request.About);
         org.Email = Clean(request.Email);

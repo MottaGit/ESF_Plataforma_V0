@@ -154,6 +154,7 @@ public class EsfDbContext : DbContext
         {
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.Property(x => x.LegalName).HasMaxLength(200);
+            e.Property(x => x.Cnpj).HasMaxLength(20);
             e.Property(x => x.Email).HasMaxLength(200);
             e.Property(x => x.Phone).HasMaxLength(50);
             e.Property(x => x.Website).HasMaxLength(200);
