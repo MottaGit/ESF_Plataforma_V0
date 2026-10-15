@@ -124,11 +124,14 @@ public static class ProjectReportBuilder
             foreach (var project in model.Projects)
                 col.Item().Element(c => ComposeProject(c, model, project));
 
+            // Empurra o fechamento para o rodape da ultima pagina, em vez de deixar ele solto
+            // logo apos o conteudo do ultimo projeto.
+            col.Item().ExtendVertical();
             col.Item().Element(c => ComposeClosing(c, model));
         });
     }
 
-    /// <summary>Convite de fechamento, uma unica vez ao final do documento (nao repete por pagina).
+    /// <summary>Convite de fechamento, colado ao rodape da ultima pagina (nao repete por pagina).
     /// So aparece se houver algum contato cadastrado na organizacao.</summary>
     private static void ComposeClosing(IContainer container, ReportModel model)
     {
