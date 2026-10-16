@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconDownload, IconEdit, IconTrash, IconUpload } from '../ui/Icons';
+import { Lightbox } from '../ui/Lightbox';
 
 interface FilesTabProps {
   project: ProjectDetail;
@@ -23,6 +24,9 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
   const [dragging, setDragging] = useState(false);
   const [removing, setRemoving] = useState<ProjectFile | null>(null);
   const [busy, setBusy] = useState(false);
+  const [viewing, setViewing] = useState<number | null>(null);
+
+  const images = project.files.filter((file) => file.isImage);
 
   async function uploadAll(files: File[]) {
     if (files.length === 0) return;
@@ -113,12 +117,27 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
           <div className="panel__body">
             <div className="file-grid">
               {project.files.map((file) => (
-                <FileCard key={file.id} file={file} onChanged={onChanged} onRemove={() => setRemoving(file)} />
+                <FileCard
+                  key={file.id}
+                  file={file}
+                  onChanged={onChanged}
+                  onRemove={() => setRemoving(file)}
+                  onView={() => setViewing(images.findIndex((image) => image.id === file.id))}
+                />
               ))}
             </div>
           </div>
         )}
       </div>
+
+      {viewing !== null && viewing >= 0 ? (
+        <Lightbox
+          items={images.map((file) => ({ url: assetUrl(file.url), caption: file.description, fileName: file.fileName }))}
+          index={viewing}
+          onIndexChange={setViewing}
+          onClose={() => setViewing(null)}
+        />
+      ) : null}
 
       {removing ? (
         <ConfirmDialog
@@ -143,9 +162,11 @@ interface FileCardProps {
   file: ProjectFile;
   onChanged: () => void;
   onRemove: () => void;
+  /** Abre a foto no visualizador (so para imagens). */
+  onView: () => void;
 }
 
-function FileCard({ file, onChanged, onRemove }: FileCardProps) {
+function FileCard({ file, onChanged, onRemove, onView }: FileCardProps) {
   const { notifyError } = useToast();
   const [editing, setEditing] = useState(false);
   const [caption, setCaption] = useState(file.description ?? '');
@@ -166,13 +187,15 @@ function FileCard({ file, onChanged, onRemove }: FileCardProps) {
 
   return (
     <article className="file-card">
-      <a className="file-card__thumb" href={assetUrl(file.url)} target="_blank" rel="noreferrer" title="Abrir arquivo">
-        {file.isImage ? (
+      {file.isImage ? (
+        <button type="button" className="file-card__thumb file-card__thumb--button" title="Ver foto" onClick={onView}>
           <img src={assetUrl(file.url)} alt={file.description ?? file.fileName} loading="lazy" />
-        ) : (
+        </button>
+      ) : (
+        <a className="file-card__thumb" href={assetUrl(file.url)} target="_blank" rel="noreferrer" title="Abrir arquivo">
           <span className="file-card__ext">{fileExtension(file.fileName)}</span>
-        )}
-      </a>
+        </a>
+      )}
       <div className="file-card__body">
         {editing ? (
           <form

@@ -134,7 +134,9 @@ também faz parte dela e só pode ser desvinculado depois de trocado).
 **Andamento** — a tela inicial de cada projeto. No topo, o campo "O que aconteceu?" para publicar um relato (texto livre,
 com uma ou mais fotos anexadas); abaixo, o feed com data e autor, do mais recente para o mais antigo. Editável depois
 de publicado, e cada atualização pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
-largura confortável de leitura.
+largura confortável de leitura. Os anexos aparecem compactos (até 4 miniaturas, depois "+N"; documentos numa linha) e
+as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Editar, anexar e excluir ficam no menu
+"..." de cada atualização, e remover um anexo pede confirmação.
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está
@@ -147,7 +149,7 @@ consolidado por nome no dashboard geral.
 
 **Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
 a data da atualização). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
-arquivo (é ela que aparece embaixo da foto no relatório), pré-visualização de imagens, download e exclusão.
+arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
 
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 

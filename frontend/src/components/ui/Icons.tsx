@@ -166,6 +166,16 @@ export const IconChevronRight = (p: IconProps) => svg(<path d="m10 6 6 6-6 6" />
 
 export const IconChevronDown = (p: IconProps) => svg(<path d="m6 10 6 6 6-6" />, p);
 
+export const IconMore = (p: IconProps) =>
+  svg(
+    <>
+      <circle cx="5" cy="12" r="1.3" />
+      <circle cx="12" cy="12" r="1.3" />
+      <circle cx="19" cy="12" r="1.3" />
+    </>,
+    p
+  );
+
 export const IconAlert = (p: IconProps) =>
   svg(
     <>

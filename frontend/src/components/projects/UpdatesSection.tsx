@@ -1,13 +1,17 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { ApiError, assetUrl } from '../../api/client';
+import { ApiError } from '../../api/client';
 import { projectUpdatesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { ProjectDetail, ProjectUpdate } from '../../types/api';
-import { fileExtension, formatDateTime, formatFileSize } from '../../utils/format';
+import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
+import { formatDateTime } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { TextArea } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
-import { IconClose, IconDownload, IconEdit, IconTrash, IconUpload } from '../ui/Icons';
+import { IconEdit, IconTrash, IconUpload } from '../ui/Icons';
+import { Menu } from '../ui/Menu';
+import { StagedFiles, UpdateAttachments } from './UpdateAttachments';
+
+const ACCEPTED_FILES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.dwg,.zip';
 
 interface UpdatesSectionProps {
   project: ProjectDetail;
@@ -30,10 +34,6 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
     const chosen = Array.from(event.target.files ?? []);
     setStagedFiles((current) => [...current, ...chosen]);
     event.target.value = '';
-  }
-
-  function removeStaged(index: number) {
-    setStagedFiles((current) => current.filter((_, i) => i !== index));
   }
 
   async function handlePost(event: FormEvent) {
@@ -96,30 +96,10 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
               rows={3}
             />
 
-            {stagedFiles.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                {stagedFiles.map((file, index) => (
-                  <span key={`${file.name}-${index}`} className="badge badge--neutral" style={{ gap: 6 }}>
-                    {file.name}
-                    <button
-                      type="button"
-                      onClick={() => removeStaged(index)}
-                      aria-label={`Remover ${file.name}`}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: 'inherit',
-                        padding: 0,
-                        display: 'inline-flex'
-                      }}
-                    >
-                      <IconClose size={11} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            ) : null}
+            <StagedFiles
+              files={stagedFiles}
+              onRemove={(index) => setStagedFiles((current) => current.filter((_, i) => i !== index))}
+            />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
               <Button type="button" small icon={<IconUpload size={15} />} onClick={() => fileInputRef.current?.click()}>
@@ -131,7 +111,7 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
                 multiple
                 hidden
                 onChange={handleStageFiles}
-                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.dwg,.zip"
+                accept={ACCEPTED_FILES}
               />
               <Button type="submit" variant="primary" small loading={posting}>
                 Publicar
@@ -178,11 +158,13 @@ interface UpdateCardProps {
 }
 
 function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
-  const { notifyError } = useToast();
+  const { notify, notifyError } = useToast();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(update.text);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [removingFile, setRemovingFile] = useState<ProjectFile | null>(null);
+  const [busy, setBusy] = useState(false);
   const attachInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSaveEdit() {
@@ -199,66 +181,68 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
     }
   }
 
-  async function handleAddAttachment(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+  async function handleAddAttachments(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
     event.target.value = '';
-    if (!file) return;
+    if (files.length === 0) return;
 
     setUploading(true);
-    try {
-      await projectUpdatesApi.addAttachment(update.id, file);
-      onChanged();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível anexar o arquivo.');
-    } finally {
-      setUploading(false);
+    let sent = 0;
+    for (const file of files) {
+      try {
+        await projectUpdatesApi.addAttachment(update.id, file);
+        sent += 1;
+      } catch (err) {
+        notifyError(`${file.name}: ${err instanceof ApiError ? err.message : 'não foi possível anexar.'}`);
+      }
     }
+    setUploading(false);
+    if (sent > 0) notify(sent === 1 ? 'Arquivo anexado.' : `${sent} arquivos anexados.`);
+    onChanged();
   }
 
-  async function handleRemoveAttachment(fileId: string) {
+  async function handleRemoveAttachment() {
+    if (!removingFile) return;
+    setBusy(true);
     try {
-      await projectUpdatesApi.removeAttachment(update.id, fileId);
+      await projectUpdatesApi.removeAttachment(update.id, removingFile.id);
+      setRemovingFile(null);
       onChanged();
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível remover o anexo.');
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
     <article className="panel">
       <div className="panel__body">
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <div className="update-card__head">
           <div>
             <div className="table__primary">{update.authorName ?? 'Usuário removido'}</div>
             <div className="table__secondary">
               {formatDateTime(update.createdAt)}
               {update.editedAt ? ' · editado' : ''}
+              {uploading ? ' · enviando anexos…' : ''}
             </div>
           </div>
-          <div className="row-actions">
-            <Button
-              small
-              variant="ghost"
-              icon={<IconEdit size={15} />}
-              title="Editar atualização"
-              aria-label="Editar atualização"
-              onClick={() => setEditing(true)}
-            />
-            <Button
-              small
-              variant="ghost"
-              icon={<IconTrash size={15} />}
-              title="Excluir atualização"
-              aria-label="Excluir atualização"
-              onClick={onRemove}
-            />
-          </div>
+          <Menu
+            label="Ações da atualização"
+            items={[
+              { label: 'Editar', icon: <IconEdit size={14} />, onSelect: () => setEditing(true) },
+              { label: 'Anexar fotos', icon: <IconUpload size={14} />, onSelect: () => attachInputRef.current?.click() },
+              { label: 'Excluir', icon: <IconTrash size={14} />, danger: true, onSelect: onRemove }
+            ]}
+          />
+          <input ref={attachInputRef} type="file" multiple hidden accept={ACCEPTED_FILES} onChange={handleAddAttachments} />
         </div>
 
         {editing ? (
           <div style={{ marginTop: 10 }}>
             <TextArea value={draft} onChange={(event) => setDraft(event.target.value)} rows={3} />
-            <div className="row-actions" style={{ marginTop: 8, justifyContent: 'flex-end' }}>
+            <UpdateAttachments files={update.attachments} onRemove={setRemovingFile} />
+            <div className="row-actions" style={{ marginTop: 10, justifyContent: 'flex-end' }}>
               <Button
                 small
                 onClick={() => {
@@ -274,62 +258,24 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
             </div>
           </div>
         ) : (
-          <p style={{ marginTop: 10, whiteSpace: 'pre-wrap' }}>{update.text}</p>
+          <>
+            <p className="update-card__text">{update.text}</p>
+            <UpdateAttachments files={update.attachments} />
+          </>
         )}
-
-        {update.attachments.length > 0 ? (
-          <div className="file-grid" style={{ marginTop: 12 }}>
-            {update.attachments.map((file) => (
-              <article className="file-card" key={file.id}>
-                <div className="file-card__thumb">
-                  {file.isImage ? (
-                    <img src={assetUrl(file.url)} alt={file.fileName} loading="lazy" />
-                  ) : (
-                    <span className="file-card__ext">{fileExtension(file.fileName)}</span>
-                  )}
-                </div>
-                <div className="file-card__body">
-                  <span className="file-card__name">{file.description || file.fileName}</span>
-                  <span className="file-card__meta">{formatFileSize(file.sizeBytes)}</span>
-                </div>
-                <div className="file-card__actions">
-                  <a
-                    className="btn btn--sm"
-                    href={assetUrl(file.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    download={file.fileName}
-                  >
-                    <IconDownload size={14} />
-                  </a>
-                  <Button
-                    small
-                    variant="ghost"
-                    icon={<IconTrash size={14} />}
-                    title="Remover anexo"
-                    aria-label="Remover anexo"
-                    onClick={() => void handleRemoveAttachment(file.id)}
-                  />
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : null}
-
-        <div style={{ marginTop: 12 }}>
-          <Button
-            type="button"
-            small
-            variant="ghost"
-            icon={<IconUpload size={14} />}
-            loading={uploading}
-            onClick={() => attachInputRef.current?.click()}
-          >
-            Anexar mais fotos
-          </Button>
-          <input ref={attachInputRef} type="file" hidden onChange={(event) => void handleAddAttachment(event)} />
-        </div>
       </div>
+
+      {removingFile ? (
+        <ConfirmDialog
+          title="Remover anexo"
+          message={`"${removingFile.fileName}" será removido desta atualização e dos arquivos do projeto.`}
+          confirmLabel="Remover"
+          destructive
+          busy={busy}
+          onCancel={() => setRemovingFile(null)}
+          onConfirm={() => void handleRemoveAttachment()}
+        />
+      ) : null}
     </article>
   );
 }
