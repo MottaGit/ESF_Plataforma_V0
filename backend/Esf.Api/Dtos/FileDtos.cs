@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Esf.Api.Dtos;
 
 public record ProjectFileDto(
@@ -10,4 +12,14 @@ public record ProjectFileDto(
     string Url,
     bool IsImage,
     string? UploadedByName,
-    DateTime UploadedAt);
+    DateTime UploadedAt,
+    // Preenchidos quando o arquivo foi anexado a uma atualizacao de andamento.
+    Guid? ProjectUpdateId,
+    DateTime? UpdateCreatedAt);
+
+public class SaveFileDescriptionRequest
+{
+    /// <summary>Legenda do arquivo (vazia remove a legenda).</summary>
+    [StringLength(300, ErrorMessage = "A legenda deve ter no maximo 300 caracteres.")]
+    public string? Description { get; set; }
+}

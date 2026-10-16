@@ -120,6 +120,8 @@ export const filesApi = {
     if (description) formData.append('description', description);
     return http.request<ProjectFile>(`/api/projects/${projectId}/files`, { method: 'POST', formData });
   },
+  updateDescription: (id: string, description: string | null) =>
+    http.request<ProjectFile>(`/api/files/${id}`, { method: 'PUT', body: { description } }),
   remove: (id: string) => http.request<void>(`/api/files/${id}`, { method: 'DELETE' })
 };
 

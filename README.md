@@ -138,7 +138,9 @@ voluntário já cadastrados.
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.
 
-**Fotos e documentos** — envio por seleção ou arrastar e soltar, pré-visualização de imagens, download e exclusão.
+**Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
+a data da atualização). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
+arquivo (é ela que aparece embaixo da foto no relatório), pré-visualização de imagens, download e exclusão.
 
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
@@ -262,7 +264,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |
 | GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart) |
-| GET/DELETE | `/api/files/{id}[/download]` | download e exclusão |
+| GET/PUT/DELETE | `/api/files/{id}[/download]` | download, edição da legenda e exclusão |
 | GET/POST | `/api/projects/{id}/updates` | relatos de andamento (texto + fotos, multipart) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do relato |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do relato |

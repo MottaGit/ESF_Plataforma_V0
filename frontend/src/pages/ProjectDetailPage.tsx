@@ -101,7 +101,7 @@ export function ProjectDetailPage() {
     { key: 'activities', label: 'Atividades', count: project.activities.length },
     { key: 'team', label: 'Equipe', count: project.volunteers.length },
     { key: 'overview', label: 'Visão geral' },
-    { key: 'files', label: 'Fotos e documentos', count: project.files.length }
+    { key: 'files', label: 'Arquivos', count: project.files.length }
   ];
 
   return (

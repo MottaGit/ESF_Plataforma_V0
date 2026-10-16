@@ -82,7 +82,9 @@ public static class Mapping
             $"{UploadsUrlPrefix}/{f.StoredName}",
             f.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase),
             f.UploadedByUser?.Name,
-            f.UploadedAt);
+            f.UploadedAt,
+            f.ProjectUpdateId,
+            f.ProjectUpdate?.CreatedAt);
 
     public static ProjectUpdateDto ToDto(ProjectUpdate u) =>
         new(u.Id,
@@ -130,6 +132,7 @@ public static class Mapping
                 .Select(ToDto).ToList(),
             p.Volunteers.OrderBy(v => v.Volunteer!.Name).Select(ToDto).ToList(),
             p.Indicators.OrderBy(i => i.CreatedAt).Select(ToDto).ToList(),
-            p.Files.Where(f => f.ProjectUpdateId == null).OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
+            // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.
+            p.Files.OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
             p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList());
 }

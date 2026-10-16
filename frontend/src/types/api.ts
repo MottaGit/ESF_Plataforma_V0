@@ -140,6 +140,9 @@ export interface ProjectFile {
   isImage: boolean;
   uploadedByName: string | null;
   uploadedAt: string;
+  /** Preenchidos quando o arquivo foi anexado a uma atualizacao de andamento. */
+  projectUpdateId: string | null;
+  updateCreatedAt: string | null;
 }
 
 export interface ProjectDetail {

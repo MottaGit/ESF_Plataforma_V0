@@ -289,7 +289,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
                   )}
                 </div>
                 <div className="file-card__body">
-                  <span className="file-card__name">{file.fileName}</span>
+                  <span className="file-card__name">{file.description || file.fileName}</span>
                   <span className="file-card__meta">{formatFileSize(file.sizeBytes)}</span>
                 </div>
                 <div className="file-card__actions">

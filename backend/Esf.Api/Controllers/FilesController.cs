@@ -39,6 +39,10 @@ public class FilesController : ControllerBase
         return PhysicalFile(path, contentType, fileName);
     }
 
+    [HttpPut("files/{id:guid}")]
+    public async Task<ActionResult<ProjectFileDto>> UpdateDescription(Guid id, SaveFileDescriptionRequest request)
+        => Ok(await _files.UpdateDescriptionAsync(id, request.Description));
+
     [HttpDelete("files/{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {

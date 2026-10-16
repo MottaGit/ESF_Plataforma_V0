@@ -25,11 +25,26 @@ public class ProjectFileService
         var files = await _db.ProjectFiles
             .AsNoTracking()
             .Include(f => f.UploadedByUser)
-            .Where(f => f.ProjectId == projectId && f.ProjectUpdateId == null)
+            .Include(f => f.ProjectUpdate)
+            .Where(f => f.ProjectId == projectId)
             .OrderByDescending(f => f.UploadedAt)
             .ToListAsync();
 
         return files.Select(Mapping.ToDto).ToList();
+    }
+
+    /// <summary>Edita a legenda de qualquer arquivo do projeto, inclusive fotos de atualizacoes.</summary>
+    public async Task<ProjectFileDto> UpdateDescriptionAsync(Guid fileId, string? description)
+    {
+        var file = await _db.ProjectFiles
+            .Include(f => f.UploadedByUser)
+            .Include(f => f.ProjectUpdate)
+            .FirstOrDefaultAsync(f => f.Id == fileId) ?? throw AppException.NotFound("Arquivo");
+
+        file.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        await _db.SaveChangesAsync();
+
+        return Mapping.ToDto(file);
     }
 
     public async Task<ProjectFileDto> UploadAsync(Guid projectId, IFormFile file, string? description, Guid? userId)
