@@ -1,7 +1,6 @@
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Services;
-using QuestPDF.Elements;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -38,7 +37,7 @@ public static class ProjectReportBuilder
 
                 page.Header().Element(c => ComposeHeader(c, model));
                 page.Content().PaddingVertical(14).Element(c => ComposeContent(c, model));
-                page.Footer().Dynamic(new FooterComponent(model));
+                page.Footer().Element(c => ComposeFooter(c, model));
             });
         }).GeneratePdf();
     }
@@ -67,52 +66,24 @@ public static class ProjectReportBuilder
             });
     }
 
-    /// <summary>
-    /// Rodape do relatorio. Em todas as paginas mostra so a identificacao institucional;
-    /// na ultima pagina, soma um convite de contato acima da identificacao, sem repetir
-    /// em toda pagina e sem depender de truque de espaco no corpo do conteudo.
-    /// </summary>
-    private sealed class FooterComponent : IDynamicComponent<int>
+    private static void ComposeFooter(IContainer container, ReportModel model)
     {
-        private readonly ReportModel _model;
-
-        public FooterComponent(ReportModel model) => _model = model;
-
-        public int State { get; set; }
-
-        public DynamicComponentComposeResult Compose(DynamicContext context)
-        {
-            var isLastPage = context.PageNumber == context.TotalPages;
-            var model = _model;
-
-            var element = context.CreateElement(container =>
+        container
+            .BorderTop(1)
+            .BorderColor(Line)
+            .PaddingTop(6)
+            .Row(row =>
             {
-                container.Column(col =>
+                row.RelativeItem().Text(FooterIdentity(model.Organization)).FontSize(7.5f).FontColor(Muted);
+
+                row.ConstantItem(70).AlignRight().Text(text =>
                 {
-                    if (isLastPage)
-                        col.Item().Element(c => ComposeClosing(c, model));
-
-                    col.Item()
-                        .BorderTop(1)
-                        .BorderColor(Line)
-                        .PaddingTop(6)
-                        .Row(row =>
-                        {
-                            row.RelativeItem().Text(FooterIdentity(model.Organization)).FontSize(7.5f).FontColor(Muted);
-
-                            row.ConstantItem(70).AlignRight().Text(text =>
-                            {
-                                text.Span("Pagina ").FontSize(7.5f).FontColor(Muted);
-                                text.Span(context.PageNumber.ToString()).FontSize(7.5f).FontColor(Muted);
-                                text.Span(" de ").FontSize(7.5f).FontColor(Muted);
-                                text.Span(context.TotalPages.ToString()).FontSize(7.5f).FontColor(Muted);
-                            });
-                        });
+                    text.Span("Pagina ").FontSize(7.5f).FontColor(Muted);
+                    text.CurrentPageNumber().FontSize(7.5f).FontColor(Muted);
+                    text.Span(" de ").FontSize(7.5f).FontColor(Muted);
+                    text.TotalPages().FontSize(7.5f).FontColor(Muted);
                 });
             });
-
-            return new DynamicComponentComposeResult { Content = element, HasMoreContent = false };
-        }
     }
 
     private static string FooterIdentity(Organization o)
@@ -152,26 +123,6 @@ public static class ProjectReportBuilder
 
             foreach (var project in model.Projects)
                 col.Item().Element(c => ComposeProject(c, model, project));
-        });
-    }
-
-    /// <summary>Convite de contato, incluido no rodape apenas na ultima pagina (ver FooterComponent).
-    /// So aparece se houver algum contato cadastrado na organizacao.</summary>
-    private static void ComposeClosing(IContainer container, ReportModel model)
-    {
-        var o = model.Organization;
-
-        var contact = new List<string>();
-        if (!string.IsNullOrWhiteSpace(o.Email)) contact.Add(o.Email!);
-        if (!string.IsNullOrWhiteSpace(o.Phone)) contact.Add(o.Phone!);
-
-        if (contact.Count == 0) return;
-
-        container.Background(SoftBg).Padding(10).Column(col =>
-        {
-            col.Item().Text($"Quer apoiar ou saber mais sobre o trabalho de {o.Name}? Fale com a gente.")
-                .FontSize(9).SemiBold();
-            col.Item().PaddingTop(2).Text(string.Join(" · ", contact)).FontSize(9).FontColor(Muted);
         });
     }
 
