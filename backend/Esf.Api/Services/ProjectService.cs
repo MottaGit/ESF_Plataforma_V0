@@ -78,7 +78,8 @@ public class ProjectService
                 p.Activities.Count,
                 p.Activities.Count(a => a.Status == ActivityStatus.Concluida),
                 p.Volunteers.Count,
-                p.UpdatedAt))
+                p.UpdatedAt,
+                p.Updates.Max(u => (DateTime?)u.CreatedAt)))
             .ToListAsync();
 
         // O progresso e calculado em memoria, entao a ordenacao por ele tambem (a lista ja vem por nome).

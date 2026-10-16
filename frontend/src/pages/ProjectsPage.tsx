@@ -12,7 +12,15 @@ import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
-import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
+import {
+  PROJECT_STATUSES,
+  STALE_PROJECT_DAYS,
+  formatDate,
+  isProjectStale,
+  lastUpdateLabel,
+  projectStatusLabel
+} from '../utils/format';
+import { rememberProjectsQuery } from '../utils/listState';
 
 const sortOptions = [
   { value: 'recent', label: 'Atualizados recentemente' },
@@ -34,15 +42,38 @@ export function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState<ProjectStatus | ''>('');
-  const [programId, setProgramId] = useState('');
-  const [sort, setSort] = useState('recent');
-  const [onlyLate, setOnlyLate] = useState(false);
-  const [includeArchived, setIncludeArchived] = useState(false);
-  const [view, setView] = useState<'list' | 'board'>('list');
+  // Filtros vivem na URL: voltar de um projeto (ou recarregar) mantem a lista como estava.
+  const debouncedSearch = searchParams.get('busca') ?? '';
+  const status = (searchParams.get('status') ?? '') as ProjectStatus | '';
+  const programId = searchParams.get('programa') ?? '';
+  const sort = searchParams.get('ordem') ?? 'recent';
+  const onlyLate = searchParams.get('atrasados') === '1';
+  const includeArchived = searchParams.get('arquivados') === '1';
+  const view: 'list' | 'board' = searchParams.get('visao') === 'quadro' ? 'board' : 'list';
+
+  const [search, setSearch] = useState(debouncedSearch);
   const [dragOver, setDragOver] = useState<ProjectStatus | null>(null);
+
+  const updateParams = useCallback(
+    (changes: Record<string, string | null>) => {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          Object.entries(changes).forEach(([key, value]) => {
+            if (value) next.set(key, value);
+            else next.delete(key);
+          });
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  useEffect(() => {
+    rememberProjectsQuery(searchParams.toString());
+  }, [searchParams]);
 
   const [formProject, setFormProject] = useState<ProjectDetail | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -50,9 +81,9 @@ export function ProjectsPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = window.setTimeout(() => updateParams({ busca: search.trim() || null }), 300);
     return () => window.clearTimeout(timer);
-  }, [search]);
+  }, [search, updateParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -88,10 +119,9 @@ export function ProjectsPage() {
     if (searchParams.get('novo') === '1' && canManage) {
       setFormProject(null);
       setFormOpen(true);
-      searchParams.delete('novo');
-      setSearchParams(searchParams, { replace: true });
+      updateParams({ novo: null });
     }
-  }, [searchParams, setSearchParams, canManage]);
+  }, [searchParams, updateParams, canManage]);
 
   const summary = useMemo(() => {
     const late = projects.filter((project) => project.isLate).length;
@@ -176,16 +206,13 @@ export function ProjectsPage() {
 
       <div className="toolbar">
         <div className="btn-row">
-          <Button small variant={view === 'list' ? 'primary' : 'default'} onClick={() => setView('list')}>
+          <Button small variant={view === 'list' ? 'primary' : 'default'} onClick={() => updateParams({ visao: null })}>
             Lista
           </Button>
           <Button
             small
             variant={view === 'board' ? 'primary' : 'default'}
-            onClick={() => {
-              setView('board');
-              setStatus('');
-            }}
+            onClick={() => updateParams({ visao: 'quadro', status: null })}
           >
             Quadro
           </Button>
@@ -202,7 +229,7 @@ export function ProjectsPage() {
         </span>
 
         {view === 'list' ? (
-          <Select value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus | '')} aria-label="Status">
+          <Select value={status} onChange={(event) => updateParams({ status: event.target.value || null })} aria-label="Status">
             <option value="">Todos os status</option>
             {PROJECT_STATUSES.map((value) => (
               <option key={value} value={value}>
@@ -212,7 +239,11 @@ export function ProjectsPage() {
           </Select>
         ) : null}
 
-        <Select value={programId} onChange={(event) => setProgramId(event.target.value)} aria-label="Programa">
+        <Select
+          value={programId}
+          onChange={(event) => updateParams({ programa: event.target.value || null })}
+          aria-label="Programa"
+        >
           <option value="">Todos os programas</option>
           {programs.map((program) => (
             <option key={program.id} value={program.id}>
@@ -221,7 +252,11 @@ export function ProjectsPage() {
           ))}
         </Select>
 
-        <Select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Ordenação">
+        <Select
+          value={sort}
+          onChange={(event) => updateParams({ ordem: event.target.value === 'recent' ? null : event.target.value })}
+          aria-label="Ordenação"
+        >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -231,14 +266,18 @@ export function ProjectsPage() {
 
         <div className="toolbar__right">
           <label className="checkbox">
-            <input type="checkbox" checked={onlyLate} onChange={(event) => setOnlyLate(event.target.checked)} />
+            <input
+              type="checkbox"
+              checked={onlyLate}
+              onChange={(event) => updateParams({ atrasados: event.target.checked ? '1' : null })}
+            />
             Só atrasados
           </label>
           <label className="checkbox">
             <input
               type="checkbox"
               checked={includeArchived}
-              onChange={(event) => setIncludeArchived(event.target.checked)}
+              onChange={(event) => updateParams({ arquivados: event.target.checked ? '1' : null })}
             />
             Incluir arquivados
           </label>
@@ -278,6 +317,9 @@ export function ProjectsPage() {
                   <th>Responsável</th>
                   <th>Local</th>
                   <th>Progresso</th>
+                  <th className="tight" title="Último relato publicado no Andamento do projeto">
+                    Andamento
+                  </th>
                   <th className="tight">Período</th>
                   <th className="right">Ações</th>
                 </tr>
@@ -285,7 +327,7 @@ export function ProjectsPage() {
               <tbody>
                 {projects.map((project) => (
                   <tr key={project.id}>
-                    <td style={{ minWidth: 240 }}>
+                    <td style={{ minWidth: 210 }}>
                       <Link className="row-link" to={`/projetos/${project.id}`}>
                         {project.name}
                       </Link>
@@ -310,8 +352,22 @@ export function ProjectsPage() {
                       {project.district ?? '—'}
                       <div className="table__secondary">{project.city ?? ''}</div>
                     </td>
-                    <td style={{ minWidth: 140 }}>
+                    <td style={{ minWidth: 120 }}>
                       <Progress value={project.progress} />
+                    </td>
+                    <td>
+                      {isProjectStale(project.status, project.lastUpdateAt) ? (
+                        <span
+                          className="badge badge--pause"
+                          title={`Projeto ativo sem relato de andamento há mais de ${STALE_PROJECT_DAYS} dias`}
+                        >
+                          {lastUpdateLabel(project.lastUpdateAt)}
+                        </span>
+                      ) : (
+                        <span className={project.lastUpdateAt ? undefined : 'table__secondary'}>
+                          {lastUpdateLabel(project.lastUpdateAt)}
+                        </span>
+                      )}
                     </td>
                     <td className="tight">
                       {formatDate(project.startDate)}
@@ -319,9 +375,6 @@ export function ProjectsPage() {
                     </td>
                     <td>
                       <div className="row-actions">
-                        <Button small onClick={() => navigate(`/projetos/${project.id}`)}>
-                          Abrir
-                        </Button>
                         {canManage ? (
                           <>
                             <Button

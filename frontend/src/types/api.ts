@@ -59,6 +59,8 @@ export interface ProjectListItem {
   activitiesDone: number;
   volunteersCount: number;
   updatedAt: string;
+  /** Data da atualizacao de andamento mais recente (null se nunca houve). */
+  lastUpdateAt: string | null;
 }
 
 export interface Activity {

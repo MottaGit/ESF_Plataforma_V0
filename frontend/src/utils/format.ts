@@ -163,6 +163,24 @@ export function deadlineLabel(endDate: string | null, status: ProjectStatus) {
   return `Atrasado há ${Math.abs(diff)} dias (previsão era ${formatDate(endDate)})`;
 }
 
+/** Dias sem andamento a partir dos quais um projeto ativo e sinalizado como parado. */
+export const STALE_PROJECT_DAYS = 15;
+
+/** "hoje", "ontem", "há 18 dias" ou "nenhum" (sem relato publicado). */
+export function lastUpdateLabel(lastUpdateAt: string | null) {
+  if (!lastUpdateAt) return 'nenhum';
+  const days = daysSince(lastUpdateAt);
+  if (days <= 0) return 'hoje';
+  if (days === 1) return 'ontem';
+  return `há ${days} dias`;
+}
+
+/** Projeto em planejamento ou andamento sem nenhum relato recente. */
+export function isProjectStale(status: ProjectStatus, lastUpdateAt: string | null) {
+  if (status !== 'Planejamento' && status !== 'EmAndamento') return false;
+  return !lastUpdateAt || daysSince(lastUpdateAt) > STALE_PROJECT_DAYS;
+}
+
 /** Texto curto de prazo: "em 4 dias", "atrasado 2 dias", "hoje". */
 export function dueLabel(dueDate: string | null) {
   if (!dueDate) return 'sem prazo';

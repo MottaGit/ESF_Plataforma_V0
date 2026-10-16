@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectStatus, Volunteer } from '../types/api';
 import { deadlineLabel } from '../utils/format';
+import { projectsListPath } from '../utils/listState';
 
 type TabKey = 'updates' | 'activities' | 'team' | 'files' | 'about';
 
@@ -130,7 +131,7 @@ export function ProjectDetailPage() {
   return (
     <>
       <div style={{ marginBottom: 12 }}>
-        <Link to="/projetos" className="btn btn--sm btn--ghost">
+        <Link to={projectsListPath()} className="btn btn--sm btn--ghost">
           <IconChevronLeft size={15} />
           Projetos
         </Link>

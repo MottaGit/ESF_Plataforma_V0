@@ -114,8 +114,11 @@ pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos 
 recorte **Minhas** (atribuídas ao voluntário vinculado ao seu acesso) ou **Todas**.
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
-edição, mudança de status, arquivamento e exclusão. O **progresso** é calculado pelas atividades concluídas (projeto concluído conta como 100%). Duas formas de visualizar: **lista**
-(tabela) ou **quadro Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
+edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um
+projeto (ou recarregar) mantém a lista como estava. O **progresso** é calculado pelas atividades concluídas (projeto
+concluído conta como 100%). A coluna **Andamento** mostra há quanto tempo saiu o último relato e destaca projetos em
+planejamento ou em andamento parados há mais de 15 dias. Duas formas de visualizar: **lista** (tabela) ou **quadro
+Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**

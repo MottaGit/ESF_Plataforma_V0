@@ -21,7 +21,9 @@ public record ProjectListItemDto(
     int ActivitiesTotal,
     int ActivitiesDone,
     int VolunteersCount,
-    DateTime UpdatedAt)
+    DateTime UpdatedAt,
+    // Data da atualizacao de andamento mais recente (null se o projeto nunca teve uma).
+    DateTime? LastUpdateAt)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(Status, ActivitiesTotal, ActivitiesDone);
