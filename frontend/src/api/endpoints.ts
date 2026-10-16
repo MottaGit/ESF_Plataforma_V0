@@ -61,8 +61,6 @@ export const projectsApi = {
     http.request<ProjectDetail>(`/api/projects/${id}`, { method: 'PUT', body: payload }),
   updateStatus: (id: string, status: string) =>
     http.request<ProjectDetail>(`/api/projects/${id}/status`, { method: 'PATCH', body: { status } }),
-  updateProgress: (id: string, progress: number) =>
-    http.request<ProjectDetail>(`/api/projects/${id}/progress`, { method: 'PATCH', body: { progress } }),
   archive: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}/archive`, { method: 'POST' }),
   unarchive: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}/unarchive`, { method: 'POST' }),
   remove: (id: string) => http.request<void>(`/api/projects/${id}`, { method: 'DELETE' })

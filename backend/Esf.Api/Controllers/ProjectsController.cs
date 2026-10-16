@@ -41,14 +41,10 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<ProjectDetailDto>> Update(Guid id, SaveProjectRequest request)
         => Ok(await _projects.UpdateAsync(id, request));
 
-    /// <summary>Alterar status e progresso e permitido a qualquer usuario autenticado (execucao do projeto).</summary>
+    /// <summary>Alterar status e permitido a qualquer usuario autenticado (execucao do projeto).</summary>
     [HttpPatch("{id:guid}/status")]
     public async Task<ActionResult<ProjectDetailDto>> UpdateStatus(Guid id, UpdateProjectStatusRequest request)
         => Ok(await _projects.UpdateStatusAsync(id, request.Status!.Value));
-
-    [HttpPatch("{id:guid}/progress")]
-    public async Task<ActionResult<ProjectDetailDto>> UpdateProgress(Guid id, UpdateProjectProgressRequest request)
-        => Ok(await _projects.UpdateProgressAsync(id, request.Progress));
 
     [HttpPost("{id:guid}/archive")]
     [Authorize(Policy = Policies.ManageProjects)]

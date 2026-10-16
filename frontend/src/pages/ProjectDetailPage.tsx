@@ -12,6 +12,7 @@ import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
+import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Indicator, Program, ProjectDetail, ProjectStatus, SaveIndicatorPayload, Volunteer } from '../types/api';
@@ -60,14 +61,6 @@ export function ProjectDetailPage() {
       notify('Status atualizado.');
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível alterar o status.');
-    }
-  }
-
-  async function changeProgress(progress: number) {
-    try {
-      setProject(await projectsApi.updateProgress(id, progress));
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar o progresso.');
     }
   }
 
@@ -150,22 +143,11 @@ export function ProjectDetailPage() {
         <div className="panel__body" style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ minWidth: 220, flex: '1 1 260px' }}>
             <div className="meta__label">Progresso do projeto</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={project.progress}
-                style={{ flex: 1, accentColor: 'var(--accent)' }}
-                onChange={(event) => setProject({ ...project, progress: Number(event.target.value) })}
-                onMouseUp={(event) => void changeProgress(Number((event.target as HTMLInputElement).value))}
-                onTouchEnd={(event) => void changeProgress(Number((event.target as HTMLInputElement).value))}
-                aria-label="Progresso do projeto"
-              />
-              <span className="num" style={{ width: 44, textAlign: 'right', fontWeight: 600 }}>
-                {project.progress}%
-              </span>
+            <div style={{ marginTop: 6 }}>
+              <Progress value={project.progress} />
+            </div>
+            <div className="field__hint" style={{ marginTop: 4 }}>
+              Calculado pelas atividades concluídas.
             </div>
           </div>
 

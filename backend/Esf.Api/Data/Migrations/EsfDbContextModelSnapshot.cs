@@ -215,9 +215,6 @@ namespace Esf.Api.Data.Migrations
                     b.Property<Guid>("ProgramId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Progress")
-                        .HasColumnType("integer");
-
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
 

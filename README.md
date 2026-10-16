@@ -113,7 +113,7 @@ O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados r
 pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos ativos e próximos prazos.
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
-edição, mudança de status, atualização de progresso, arquivamento e exclusão. Duas formas de visualizar: **lista**
+edição, mudança de status, arquivamento e exclusão. O **progresso** é calculado pelas atividades concluídas (projeto concluído conta como 100%). Duas formas de visualizar: **lista**
 (tabela) ou **quadro Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
 
 **Detalhes do projeto** — abas de visão geral, atividades, voluntários, indicadores, fotos e documentos, e localização,
@@ -220,8 +220,8 @@ ESF_Plataforma_V0/
 
 | Tabela | Conteúdo |
 | --- | --- |
-| `Users` | acesso à plataforma (nome, e-mail, hash da senha, perfil, ativo) |
-| `Projects` | dados do projeto, localização, datas, status, progresso, arquivamento |
+| `Users` | acesso à plataforma (nome, e-mail, hash da senha, perfil, ativo, voluntário vinculado) |
+| `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
 | `Activities` | atividades do projeto (FK `ProjectId`, responsável opcional) |
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
@@ -249,7 +249,7 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos) |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
-| PATCH | `/api/projects/{id}/status` · `/progress` | mudança de status e progresso |
+| PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |
 | GET/POST | `/api/projects/{id}/activities` | atividades do projeto |
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
@@ -281,7 +281,7 @@ Erros seguem sempre o mesmo formato:
 | --- | --- |
 | **Administrador** | tudo, incluindo usuários, dados institucionais e exclusão de projetos |
 | **Coordenador** | criar e editar projetos, voluntários e indicadores; arquivar projetos |
-| **Usuário** | consultar tudo, criar e atualizar atividades, indicadores, arquivos, relatos de andamento, status e progresso |
+| **Usuário** | consultar tudo, criar e atualizar atividades, indicadores, arquivos, relatos de andamento e status |
 
 Autenticação por JWT (HS256), senha com BCrypt. As regras ficam em `Common/Policies.cs` e nos atributos
 `[Authorize(Policy = ...)]` dos controllers.

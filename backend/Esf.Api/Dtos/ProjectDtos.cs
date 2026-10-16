@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Esf.Api.Domain;
+using Esf.Api.Services;
 
 namespace Esf.Api.Dtos;
 
@@ -9,7 +10,6 @@ public record ProjectListItemDto(
     Guid ProgramId,
     string ProgramName,
     ProjectStatus Status,
-    int Progress,
     Guid? OwnerVolunteerId,
     string? OwnerName,
     string? District,
@@ -21,7 +21,11 @@ public record ProjectListItemDto(
     int ActivitiesTotal,
     int ActivitiesDone,
     int VolunteersCount,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt)
+{
+    /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
+    public int Progress => Mapping.ProjectProgress(Status, ActivitiesTotal, ActivitiesDone);
+}
 
 public record ProjectDetailDto(
     Guid Id,
@@ -30,7 +34,6 @@ public record ProjectDetailDto(
     Guid ProgramId,
     string ProgramName,
     ProjectStatus Status,
-    int Progress,
     Guid? OwnerVolunteerId,
     string? OwnerName,
     string? Objective,
@@ -53,7 +56,12 @@ public record ProjectDetailDto(
     IReadOnlyList<ProjectVolunteerDto> Volunteers,
     IReadOnlyList<IndicatorDto> Indicators,
     IReadOnlyList<ProjectFileDto> Files,
-    IReadOnlyList<ProjectUpdateDto> Updates);
+    IReadOnlyList<ProjectUpdateDto> Updates)
+{
+    /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
+    public int Progress => Mapping.ProjectProgress(
+        Status, Activities.Count, Activities.Count(a => a.Status == ActivityStatus.Concluida));
+}
 
 public class SaveProjectRequest
 {
@@ -103,21 +111,12 @@ public class SaveProjectRequest
 
     [Required(ErrorMessage = "Selecione o status.")]
     public ProjectStatus? Status { get; set; }
-
-    [Range(0, 100, ErrorMessage = "O progresso deve estar entre 0 e 100.")]
-    public int Progress { get; set; }
 }
 
 public class UpdateProjectStatusRequest
 {
     [Required(ErrorMessage = "Selecione o status.")]
     public ProjectStatus? Status { get; set; }
-}
-
-public class UpdateProjectProgressRequest
-{
-    [Range(0, 100, ErrorMessage = "O progresso deve estar entre 0 e 100.")]
-    public int Progress { get; set; }
 }
 
 /// <summary>Filtros da listagem de projetos.</summary>

@@ -52,19 +52,18 @@ public class ProjectService
         {
             "name" => query.OrderBy(p => p.Name),
             "status" => query.OrderBy(p => p.Status).ThenBy(p => p.Name),
-            "progress" => query.OrderByDescending(p => p.Progress).ThenBy(p => p.Name),
+            "progress" => query.OrderBy(p => p.Name),
             "deadline" => query.OrderBy(p => p.EndDateForecast ?? DateOnly.MaxValue).ThenBy(p => p.Name),
             _ => query.OrderByDescending(p => p.UpdatedAt)
         };
 
-        return await query
+        var items = await query
             .Select(p => new ProjectListItemDto(
                 p.Id,
                 p.Name,
                 p.ProgramId,
                 p.Program!.Name,
                 p.Status,
-                p.Progress,
                 p.OwnerVolunteerId,
                 p.OwnerVolunteer != null ? p.OwnerVolunteer.Name : null,
                 p.District,
@@ -81,6 +80,11 @@ public class ProjectService
                 p.Volunteers.Count,
                 p.UpdatedAt))
             .ToListAsync();
+
+        // O progresso e calculado em memoria, entao a ordenacao por ele tambem (a lista ja vem por nome).
+        return q.Sort == "progress"
+            ? items.OrderByDescending(p => p.Progress).ToList()
+            : items;
     }
 
     public async Task<ProjectDetailDto> GetDetailAsync(Guid id)
@@ -139,18 +143,6 @@ public class ProjectService
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
 
         project.Status = status;
-        if (status == ProjectStatus.Concluido) project.Progress = 100;
-        project.UpdatedAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync();
-        return await GetDetailAsync(id);
-    }
-
-    public async Task<ProjectDetailDto> UpdateProgressAsync(Guid id, int progress)
-    {
-        var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
-
-        project.Progress = Math.Clamp(progress, 0, 100);
         project.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -218,10 +210,6 @@ public class ProjectService
         project.StartDate = r.StartDate!.Value;
         project.EndDateForecast = r.EndDateForecast;
         project.Status = r.Status!.Value;
-        project.Progress = Math.Clamp(r.Progress, 0, 100);
-
-        if (project.Status == ProjectStatus.Concluido && project.Progress < 100)
-            project.Progress = 100;
     }
 
     private static string? Clean(string? value) =>

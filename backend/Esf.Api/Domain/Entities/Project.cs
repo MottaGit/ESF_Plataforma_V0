@@ -32,7 +32,6 @@ public class Project
     public DateOnly? EndDateForecast { get; set; }
 
     public ProjectStatus Status { get; set; } = ProjectStatus.Planejamento;
-    public int Progress { get; set; }
 
     public bool IsArchived { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

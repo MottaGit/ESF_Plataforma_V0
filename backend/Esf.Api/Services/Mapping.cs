@@ -17,6 +17,17 @@ public static class Mapping
         && status != ProjectStatus.Concluido
         && status != ProjectStatus.Cancelado;
 
+    /// <summary>
+    /// Progresso calculado: percentual de atividades concluidas. Projeto concluido conta como 100%
+    /// mesmo sem atividades cadastradas; projeto sem atividades fica em 0%.
+    /// </summary>
+    public static int ProjectProgress(ProjectStatus status, int activitiesTotal, int activitiesDone)
+    {
+        if (status == ProjectStatus.Concluido) return 100;
+        if (activitiesTotal == 0) return 0;
+        return (int)Math.Round(activitiesDone * 100.0 / activitiesTotal);
+    }
+
     public static bool IsActivityLate(ActivityStatus status, DateOnly? dueDate) =>
         dueDate.HasValue && dueDate.Value < Today && status != ActivityStatus.Concluida;
 
@@ -94,7 +105,6 @@ public static class Mapping
             p.ProgramId,
             p.Program!.Name,
             p.Status,
-            p.Progress,
             p.OwnerVolunteerId,
             p.OwnerVolunteer?.Name,
             p.Objective,

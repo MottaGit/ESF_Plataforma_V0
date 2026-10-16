@@ -45,6 +45,7 @@ export interface ProjectListItem {
   programId: string;
   programName: string;
   status: ProjectStatus;
+  /** Calculado pela API: % de atividades concluidas (100 quando o projeto esta concluido). */
   progress: number;
   ownerVolunteerId: string | null;
   ownerName: string | null;
@@ -148,6 +149,7 @@ export interface ProjectDetail {
   programId: string;
   programName: string;
   status: ProjectStatus;
+  /** Calculado pela API: % de atividades concluidas (100 quando o projeto esta concluido). */
   progress: number;
   ownerVolunteerId: string | null;
   ownerName: string | null;
@@ -239,7 +241,6 @@ export interface SaveProjectPayload {
   startDate: string;
   endDateForecast: string | null;
   status: ProjectStatus;
-  progress: number;
 }
 
 export interface SaveActivityPayload {

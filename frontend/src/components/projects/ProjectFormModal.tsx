@@ -36,7 +36,6 @@ interface FormState {
   startDate: string;
   endDateForecast: string;
   status: ProjectStatus;
-  progress: string;
 }
 
 function initialState(project: ProjectDetail | null, fallbackProgramId: string): FormState {
@@ -57,8 +56,7 @@ function initialState(project: ProjectDetail | null, fallbackProgramId: string):
     longitude: project?.longitude != null ? String(project.longitude) : '',
     startDate: project?.startDate?.slice(0, 10) ?? todayInputValue(),
     endDateForecast: project?.endDateForecast?.slice(0, 10) ?? '',
-    status: project?.status ?? 'Planejamento',
-    progress: String(project?.progress ?? 0)
+    status: project?.status ?? 'Planejamento'
   };
 }
 
@@ -113,9 +111,6 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
     if (form.endDateForecast && form.startDate && form.endDateForecast < form.startDate)
       found.endDateForecast = 'A previsão não pode ser anterior ao início.';
 
-    const progress = Number(form.progress);
-    if (Number.isNaN(progress) || progress < 0 || progress > 100) found.progress = 'Use um valor entre 0 e 100.';
-
     if (form.latitude && Number.isNaN(Number(form.latitude))) found.latitude = 'Latitude inválida.';
     if (form.longitude && Number.isNaN(Number(form.longitude))) found.longitude = 'Longitude inválida.';
 
@@ -145,8 +140,7 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
       longitude: form.longitude ? Number(form.longitude) : null,
       startDate: form.startDate,
       endDateForecast: form.endDateForecast || null,
-      status: form.status,
-      progress: Number(form.progress)
+      status: form.status
     };
 
     setSaving(true);
@@ -375,18 +369,6 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
                 </option>
               ))}
             </Select>
-          </Field>
-
-          <Field label="Progresso (%)" htmlFor="progress" error={errors.progress}>
-            <TextInput
-              id="progress"
-              type="number"
-              min={0}
-              max={100}
-              value={form.progress}
-              invalid={Boolean(errors.progress)}
-              onChange={(event) => update('progress', event.target.value)}
-            />
           </Field>
 
           <Field label="Observações" htmlFor="notes" span>

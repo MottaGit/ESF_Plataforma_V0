@@ -114,7 +114,6 @@ public static class DbSeeder
             StartDate = Do(2025, 8, 1),
             EndDateForecast = Do(2025, 9, 6),
             Status = ProjectStatus.Concluido,
-            Progress = 100,
             OwnerVolunteer = vAna,
             Notes = "Execucao pelo construtor local Sr. Gabriel. Fonte: registros INFOBAN 08 e 11."
         };
@@ -134,7 +133,6 @@ public static class DbSeeder
             StartDate = Do(2025, 11, 1),
             EndDateForecast = Do(2026, 1, 11),
             Status = ProjectStatus.Concluido,
-            Progress = 100,
             OwnerVolunteer = vAna,
             Notes = "Gestora local: Casa de Nazare. Fonte: INFOBAN 23-27, 39."
         };
@@ -153,7 +151,6 @@ public static class DbSeeder
             StartDate = Do(2026, 5, 19),
             EndDateForecast = Do(2026, 8, 30),
             Status = ProjectStatus.EmAndamento,
-            Progress = 30,
             OwnerVolunteer = vAna,
             Notes = "Casa em situacao de risco; demolicao e reconstrucao total. Construtor Solano. Fonte: INFOBAN 43-44."
         };
@@ -173,7 +170,6 @@ public static class DbSeeder
             StartDate = Do(2025, 9, 15),
             EndDateForecast = Do(2025, 12, 14),
             Status = ProjectStatus.Concluido,
-            Progress = 100,
             OwnerVolunteer = vLeonardo,
             Notes = "Parceria: Cozinha Solidaria Compartilhando Sabores + Levante. Construtores Paulo e Alexandre. Fonte: INFOBAN 12-26."
         };
@@ -192,7 +188,6 @@ public static class DbSeeder
             StartDate = Do(2026, 4, 1),
             EndDateForecast = Do(2026, 5, 20),
             Status = ProjectStatus.Concluido,
-            Progress = 100,
             OwnerVolunteer = vAna,
             Notes = "Gestora local: ACONVI / Banco Comunitario Justa Troca. Construtor: equipe Josimar. Fonte: INFOBAN 37-43."
         };
@@ -211,7 +206,6 @@ public static class DbSeeder
             StartDate = Do(2026, 5, 1),
             EndDateForecast = Do(2026, 7, 31),
             Status = ProjectStatus.EmAndamento,
-            Progress = 25,
             OwnerVolunteer = vFausto,
             Notes = "Gestora local: ACONVI. Equipe Silvio e Igor. Fonte: INFOBAN 41-44."
         };
@@ -230,7 +224,6 @@ public static class DbSeeder
             StartDate = Do(2025, 11, 17),
             EndDateForecast = Do(2026, 1, 20),
             Status = ProjectStatus.Concluido,
-            Progress = 100,
             OwnerVolunteer = vAna,
             Notes = "Gestora local: CPCA. Apoio de madeireira parceira. Fonte: INFOBAN 18-32."
         };
@@ -249,7 +242,6 @@ public static class DbSeeder
             StartDate = Do(2026, 1, 10),
             EndDateForecast = Do(2026, 9, 30),
             Status = ProjectStatus.EmAndamento,
-            Progress = 45,
             OwnerVolunteer = vAna,
             Notes = "Projeto teve paralisacoes e troca de construtores; retomado em 15/05/2026 pela equipe de Flavio e Rita. Gestora local: CPCA. Fonte: INFOBAN 31, 42-44."
         };
@@ -268,7 +260,6 @@ public static class DbSeeder
             StartDate = Do(2026, 1, 15),
             EndDateForecast = Do(2026, 10, 15),
             Status = ProjectStatus.Planejamento,
-            Progress = 5,
             OwnerVolunteer = vFausto,
             Notes = "CPCA contratou construtor local Flavio para retomada. Fonte: INFOBAN 14, 30-31."
         };
@@ -287,7 +278,6 @@ public static class DbSeeder
             StartDate = Do(2026, 4, 18),
             EndDateForecast = Do(2026, 6, 20),
             Status = ProjectStatus.EmAndamento,
-            Progress = 85,
             OwnerVolunteer = vAna,
             Notes = "Casa afetada por incendio. Construtor Ivo, da comunidade. Aguardando vistoria final desde 07/05/2026. Gestora local: CPCA. Fonte: INFOBAN 38-41."
         };
@@ -310,7 +300,6 @@ public static class DbSeeder
             StartDate = Do(2026, 3, 1),
             EndDateForecast = Do(2026, 8, 1),
             Status = ProjectStatus.EmAndamento,
-            Progress = 40,
             OwnerVolunteer = vAna
         };
 
@@ -328,7 +317,6 @@ public static class DbSeeder
             StartDate = Do(2026, 7, 1),
             EndDateForecast = Do(2027, 1, 15),
             Status = ProjectStatus.Planejamento,
-            Progress = 5,
             OwnerVolunteer = vFausto
         };
 
@@ -346,7 +334,6 @@ public static class DbSeeder
             StartDate = Do(2025, 6, 1),
             EndDateForecast = Do(2025, 11, 15),
             Status = ProjectStatus.Concluido,
-            Progress = 100,
             OwnerVolunteer = vLeonardo
         };
 
@@ -364,7 +351,6 @@ public static class DbSeeder
             StartDate = Do(2026, 2, 1),
             EndDateForecast = Do(2026, 9, 1),
             Status = ProjectStatus.EmAndamento,
-            Progress = 30,
             OwnerVolunteer = vAna
         };
 
@@ -382,7 +368,6 @@ public static class DbSeeder
             StartDate = Do(2026, 8, 1),
             EndDateForecast = Do(2027, 2, 1),
             Status = ProjectStatus.Planejamento,
-            Progress = 0,
             OwnerVolunteer = vFausto
         };
 
