@@ -65,8 +65,10 @@ public class ReportService
                 foreach (var image in images)
                 {
                     var bytes = _storage.TryRead(image.StoredName);
-                    if (bytes is { Length: > 0 })
-                        loaded.Add(new ReportPhoto(image.Description ?? image.FileName, bytes));
+                    if (bytes is not { Length: > 0 }) continue;
+
+                    var caption = string.IsNullOrWhiteSpace(image.Description) ? null : image.Description.Trim();
+                    loaded.Add(new ReportPhoto(caption, ReportImageProcessor.Compress(bytes)));
                 }
 
                 if (loaded.Count > 0) photos[update.Id] = loaded;

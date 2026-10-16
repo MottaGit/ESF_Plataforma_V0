@@ -325,7 +325,15 @@ public static class ProjectReportBuilder
                                     photoCol.Item().Row(row =>
                                     {
                                         foreach (var photo in chunk)
-                                            row.RelativeItem().PaddingRight(6).Height(3f, Unit.Centimetre).Image(photo.Data).FitArea();
+                                        {
+                                            row.RelativeItem().PaddingRight(6).Column(cell =>
+                                            {
+                                                cell.Item().Height(3f, Unit.Centimetre).Image(photo.Data).FitArea();
+
+                                                if (!string.IsNullOrWhiteSpace(photo.Caption))
+                                                    cell.Item().PaddingTop(1).Text(photo.Caption!).FontSize(7).FontColor(Muted);
+                                            });
+                                        }
 
                                         for (var pad = chunk.Length; pad < 3; pad++)
                                             row.RelativeItem();

@@ -19,4 +19,6 @@ public class ReportModel
     public Dictionary<Guid, List<ReportPhoto>> Photos { get; init; } = new();
 }
 
-public record ReportPhoto(string Caption, byte[] Data);
+/// <summary>Caption so vem preenchida quando o arquivo tem uma descricao de verdade cadastrada
+/// (nunca cai para o nome do arquivo) - o relatorio so exibe legenda quando ela existir.</summary>
+public record ReportPhoto(string? Caption, byte[] Data);
