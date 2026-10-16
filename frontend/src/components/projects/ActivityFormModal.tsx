@@ -1,7 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
-import type { Activity, ActivityPriority, ActivityStatus, SaveActivityPayload, Volunteer } from '../../types/api';
+import type {
+  Activity,
+  ActivityPriority,
+  ActivityStatus,
+  ProjectVolunteer,
+  SaveActivityPayload,
+  Volunteer
+} from '../../types/api';
 import {
   ACTIVITY_PRIORITIES,
   ACTIVITY_STATUSES,
@@ -17,12 +24,15 @@ import { Modal } from '../ui/Modal';
 interface ActivityFormModalProps {
   projectId: string;
   activity: Activity | null;
+  /** Equipe do projeto: primeira opcao para atribuir a atividade. */
+  team: ProjectVolunteer[];
+  /** Voluntarios ativos da organizacao. Quem estiver fora da equipe entra nela ao salvar. */
   volunteers: Volunteer[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function ActivityFormModal({ projectId, activity, volunteers, onClose, onSaved }: ActivityFormModalProps) {
+export function ActivityFormModal({ projectId, activity, team, volunteers, onClose, onSaved }: ActivityFormModalProps) {
   const [title, setTitle] = useState(activity?.title ?? '');
   const [description, setDescription] = useState(activity?.description ?? '');
   const [assignedVolunteerId, setAssignedVolunteerId] = useState(activity?.assignedVolunteerId ?? '');
@@ -30,6 +40,10 @@ export function ActivityFormModal({ projectId, activity, volunteers, onClose, on
   const [priority, setPriority] = useState<ActivityPriority>(activity?.priority ?? 'Media');
   const [dueDate, setDueDate] = useState(activity?.dueDate?.slice(0, 10) ?? '');
   const [notes, setNotes] = useState(activity?.notes ?? '');
+
+  const teamIds = new Set(team.map((member) => member.volunteerId));
+  const others = volunteers.filter((volunteer) => !teamIds.has(volunteer.id));
+  const outsiderSelected = Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
 
   const [titleError, setTitleError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -107,18 +121,33 @@ export function ActivityFormModal({ projectId, activity, volunteers, onClose, on
             />
           </Field>
 
-          <Field label="Responsável" htmlFor="activity-owner">
+          <Field
+            label="Responsável"
+            htmlFor="activity-owner"
+            hint={outsiderSelected ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.' : undefined}
+          >
             <Select
               id="activity-owner"
               value={assignedVolunteerId}
               onChange={(event) => setAssignedVolunteerId(event.target.value)}
             >
               <option value="">Sem responsável</option>
-              {volunteers.map((volunteer) => (
-                <option key={volunteer.id} value={volunteer.id}>
-                  {volunteer.name}
-                </option>
-              ))}
+              <optgroup label="Equipe do projeto">
+                {team.map((member) => (
+                  <option key={member.volunteerId} value={member.volunteerId}>
+                    {member.name}
+                  </option>
+                ))}
+              </optgroup>
+              {others.length > 0 ? (
+                <optgroup label="Outros voluntários (entram na equipe)">
+                  {others.map((volunteer) => (
+                    <option key={volunteer.id} value={volunteer.id}>
+                      {volunteer.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
             </Select>
           </Field>
 

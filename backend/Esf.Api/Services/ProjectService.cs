@@ -113,6 +113,7 @@ public class ProjectService
     {
         Validate(request);
         await EnsureProgramExistsAsync(request.ProgramId);
+        await EnsureOwnerExistsAsync(request.OwnerVolunteerId);
 
         var project = new Project();
         Apply(project, request);
@@ -120,6 +121,7 @@ public class ProjectService
         project.UpdatedAt = DateTime.UtcNow;
 
         _db.Projects.Add(project);
+        await ProjectTeam.EnsureMemberAsync(_db, project.Id, project.OwnerVolunteerId);
         await _db.SaveChangesAsync();
 
         return await GetDetailAsync(project.Id);
@@ -129,11 +131,13 @@ public class ProjectService
     {
         Validate(request);
         await EnsureProgramExistsAsync(request.ProgramId);
+        await EnsureOwnerExistsAsync(request.OwnerVolunteerId);
 
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
         Apply(project, request);
         project.UpdatedAt = DateTime.UtcNow;
 
+        await ProjectTeam.EnsureMemberAsync(_db, project.Id, project.OwnerVolunteerId);
         await _db.SaveChangesAsync();
         return await GetDetailAsync(id);
     }
@@ -189,6 +193,12 @@ public class ProjectService
     {
         if (!await _db.Programs.AnyAsync(p => p.Id == programId!.Value))
             throw new AppException("O programa informado nao existe.");
+    }
+
+    private async Task EnsureOwnerExistsAsync(Guid? volunteerId)
+    {
+        if (volunteerId.HasValue && !await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
+            throw new AppException("O responsavel informado nao existe.");
     }
 
     private static void Apply(Project project, SaveProjectRequest r)

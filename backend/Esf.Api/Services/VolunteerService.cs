@@ -144,6 +144,9 @@ public class VolunteerService
             .FirstOrDefaultAsync(pv => pv.ProjectId == projectId && pv.VolunteerId == volunteerId)
             ?? throw AppException.NotFound("Vinculo do voluntario");
 
+        if (await _db.Projects.AnyAsync(p => p.Id == projectId && p.OwnerVolunteerId == volunteerId))
+            throw new AppException("Este voluntario e o responsavel pelo projeto. Troque o responsavel antes de desvincula-lo.");
+
         _db.ProjectVolunteers.Remove(link);
         await _db.SaveChangesAsync();
     }

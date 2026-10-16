@@ -57,6 +57,7 @@ public class ActivityService
         activity.CreatedAt = DateTime.UtcNow;
 
         _db.Activities.Add(activity);
+        await ProjectTeam.EnsureMemberAsync(_db, projectId, activity.AssignedVolunteerId);
         await TouchProjectAsync(projectId);
         await _db.SaveChangesAsync();
 
@@ -69,6 +70,7 @@ public class ActivityService
         await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
 
         Apply(activity, request);
+        await ProjectTeam.EnsureMemberAsync(_db, activity.ProjectId, activity.AssignedVolunteerId);
         await TouchProjectAsync(activity.ProjectId);
         await _db.SaveChangesAsync();
 

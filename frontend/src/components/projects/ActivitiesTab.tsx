@@ -165,6 +165,7 @@ export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabP
         <ActivityFormModal
           projectId={project.id}
           activity={editing}
+          team={project.volunteers}
           volunteers={volunteers}
           onClose={() => setFormOpen(false)}
           onSaved={() => {

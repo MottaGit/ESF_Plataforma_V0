@@ -108,8 +108,13 @@ export function VolunteersTab({ project, onChanged }: VolunteersTabProps) {
                           small
                           variant="ghost"
                           icon={<IconTrash size={15} />}
-                          title="Desvincular"
+                          title={
+                            volunteer.volunteerId === project.ownerVolunteerId
+                              ? 'Responsável pelo projeto: troque o responsável antes de desvincular'
+                              : 'Desvincular'
+                          }
                           aria-label="Desvincular voluntário"
+                          disabled={volunteer.volunteerId === project.ownerVolunteerId}
                           onClick={() => setRemoving(volunteer)}
                         />
                       </div>

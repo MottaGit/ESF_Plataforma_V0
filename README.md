@@ -120,7 +120,9 @@ edição, mudança de status, arquivamento e exclusão. O **progresso** é calcu
 com geração de relatório do projeto em um clique.
 
 **Atividades** — título, descrição, responsável, status (a fazer / em andamento / concluída), prioridade
-(baixa / média / alta), prazo e observações, em lista com status editável inline.
+(baixa / média / alta), prazo e observações, em lista com status editável inline. O responsável é escolhido entre a
+equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
+também faz parte dela e só pode ser desvinculado depois de trocado).
 
 **Andamento** — dentro da própria aba de Atividades: um relato de atualização (texto livre, com uma ou mais fotos
 anexadas), com data e autor. Editável depois de publicado, e cada atualização pode ganhar novos anexos com o tempo.

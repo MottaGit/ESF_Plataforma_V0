@@ -241,7 +241,11 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
             ) : null}
           </Field>
 
-          <Field label="Responsável" htmlFor="owner" hint="Quem responde pelo projeto na organização.">
+          <Field
+            label="Responsável"
+            htmlFor="owner"
+            hint="Quem responde pelo projeto na organização. Entra automaticamente na equipe."
+          >
             <Select
               id="owner"
               value={form.ownerVolunteerId}

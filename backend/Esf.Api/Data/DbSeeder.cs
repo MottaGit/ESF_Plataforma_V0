@@ -1,5 +1,6 @@
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esf.Api.Data;
@@ -546,6 +547,7 @@ public static class DbSeeder
         );
 
         await db.SaveChangesAsync();
+        await ProjectTeam.SyncAllAsync(db);
         logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.", 3, 20, 15);
     }
 }
