@@ -116,8 +116,9 @@ pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos 
 edição, mudança de status, arquivamento e exclusão. O **progresso** é calculado pelas atividades concluídas (projeto concluído conta como 100%). Duas formas de visualizar: **lista**
 (tabela) ou **quadro Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
 
-**Detalhes do projeto** — abas de visão geral, atividades, voluntários, indicadores, fotos e documentos, e localização,
-com geração de relatório do projeto em um clique.
+**Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
+"atrasado há 5 dias"), e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
+(descrição, objetivo, dados cadastrais e indicadores). Relatório do projeto em um clique.
 
 **Atividades** — título, descrição, responsável, status (a fazer / em andamento / concluída), prioridade
 (baixa / média / alta), prazo e observações, em lista com status editável inline. O responsável é escolhido entre a

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { indicatorsApi, programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
+import { programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
+import { AboutTab } from '../components/projects/AboutTab';
 import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { AndamentoTab } from '../components/projects/AndamentoTab';
 import { FilesTab } from '../components/projects/FilesTab';
@@ -9,16 +10,14 @@ import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { TeamTab } from '../components/projects/TeamTab';
 import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Field, TextInput } from '../components/ui/Field';
-import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconCalendar, IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
-import { Modal } from '../components/ui/Modal';
+import { Alert, Loading } from '../components/ui/Feedback';
+import { IconCalendar, IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { Indicator, Program, ProjectDetail, ProjectStatus, SaveIndicatorPayload, Volunteer } from '../types/api';
-import { deadlineLabel, emptyToNull, formatDateTime, formatNumber } from '../utils/format';
+import type { Program, ProjectDetail, ProjectStatus, Volunteer } from '../types/api';
+import { deadlineLabel } from '../utils/format';
 
-type TabKey = 'updates' | 'activities' | 'team' | 'overview' | 'files';
+type TabKey = 'updates' | 'activities' | 'team' | 'files' | 'about';
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams();
@@ -100,8 +99,8 @@ export function ProjectDetailPage() {
     { key: 'updates', label: 'Andamento', count: project.updates.length },
     { key: 'activities', label: 'Atividades', count: project.activities.length },
     { key: 'team', label: 'Equipe', count: project.volunteers.length },
-    { key: 'overview', label: 'Visão geral' },
-    { key: 'files', label: 'Arquivos', count: project.files.length }
+    { key: 'files', label: 'Arquivos', count: project.files.length },
+    { key: 'about', label: 'Sobre' }
   ];
 
   return (
@@ -160,14 +159,12 @@ export function ProjectDetailPage() {
       {tab === 'updates' ? (
         <AndamentoTab project={project} onChanged={() => void load()} onOpenTab={setTab} />
       ) : null}
-      {tab === 'overview' ? (
-        <OverviewTab project={project} canManage={canManage} onChanged={() => void load()} />
-      ) : null}
       {tab === 'activities' ? (
         <ActivitiesTab project={project} volunteers={volunteers} onChanged={() => void load()} />
       ) : null}
       {tab === 'team' ? <TeamTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}
+      {tab === 'about' ? <AboutTab project={project} canManage={canManage} onChanged={() => void load()} /> : null}
 
       {editing ? (
         <ProjectFormModal
@@ -183,326 +180,5 @@ export function ProjectDetailPage() {
         />
       ) : null}
     </>
-  );
-}
-
-function OverviewTab({
-  project,
-  canManage,
-  onChanged
-}: {
-  project: ProjectDetail;
-  canManage: boolean;
-  onChanged: () => void;
-}) {
-  const { notify, notifyError } = useToast();
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Indicator | null>(null);
-  const [removing, setRemoving] = useState<Indicator | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function handleDelete() {
-    if (!removing) return;
-    setBusy(true);
-    try {
-      await indicatorsApi.remove(removing.id);
-      notify('Indicador excluído.');
-      setRemoving(null);
-      onChanged();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o indicador.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <>
-      <div className="grid-sidebar">
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Sobre o projeto</h2>
-            </div>
-            <div className="panel__body">
-              <div style={{ display: 'grid', gap: 16 }}>
-                <div>
-                  <div className="meta__label">Descrição</div>
-                  <p className="meta__value">{project.description ?? 'Sem descrição registrada.'}</p>
-                </div>
-                <div>
-                  <div className="meta__label">Objetivo</div>
-                  <p className="meta__value">{project.objective ?? 'Sem objetivo registrado.'}</p>
-                </div>
-                {project.notes ? (
-                  <div>
-                    <div className="meta__label">Observações</div>
-                    <p className="meta__value">{project.notes}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </section>
-
-          <section className="panel">
-            <div
-              className="panel__head"
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <h2>Indicadores do projeto</h2>
-              <Button
-                variant="primary"
-                small
-                icon={<IconPlus size={15} />}
-                onClick={() => {
-                  setEditing(null);
-                  setFormOpen(true);
-                }}
-              >
-                Novo indicador
-              </Button>
-            </div>
-            <div className="panel__body">
-              {project.indicators.length === 0 ? (
-                <EmptyState
-                  title="Sem indicadores"
-                  description="Registre indicadores para mostrar resultados em relatórios e prestação de contas."
-                  action={
-                    <Button
-                      variant="primary"
-                      onClick={() => {
-                        setEditing(null);
-                        setFormOpen(true);
-                      }}
-                    >
-                      Criar indicador
-                    </Button>
-                  }
-                />
-              ) : (
-                project.indicators.map((indicator) => (
-                  <div className="indicator" key={indicator.id}>
-                    <div className="indicator__top">
-                      <span className="indicator__name">{indicator.name}</span>
-                      <span className="indicator__values num">
-                        <strong>{formatNumber(indicator.value)}</strong>
-                        {indicator.unit ? ` ${indicator.unit}` : ''}
-                      </span>
-                      <div className="row-actions" style={{ marginLeft: 8 }}>
-                        <Button
-                          small
-                          variant="ghost"
-                          icon={<IconEdit size={15} />}
-                          title="Editar indicador"
-                          aria-label="Editar indicador"
-                          onClick={() => {
-                            setEditing(indicator);
-                            setFormOpen(true);
-                          }}
-                        />
-                        {canManage ? (
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconTrash size={15} />}
-                            title="Excluir indicador"
-                            aria-label="Excluir indicador"
-                            onClick={() => setRemoving(indicator)}
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
-
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Informações gerais</h2>
-            </div>
-            <div className="panel__body">
-              <div className="meta-list">
-                <div>
-                  <div className="meta__label">Responsável</div>
-                  <div className="meta__value">{project.ownerName ?? 'Não definido'}</div>
-                </div>
-                <div>
-                  <div className="meta__label">Comunidade ou beneficiários</div>
-                  <div className="meta__value">{project.beneficiaries ?? '—'}</div>
-                </div>
-                <div>
-                  <div className="meta__label">Público beneficiado</div>
-                  <div className="meta__value">{project.targetAudience ?? '—'}</div>
-                </div>
-                <div>
-                  <div className="meta__label">Localização</div>
-                  <div className="meta__value">
-                    {[project.address, project.district, project.city, project.state].filter(Boolean).join(', ') ||
-                      '—'}
-                  </div>
-                </div>
-                <div>
-                  <div className="meta__label">Criado em</div>
-                  <div className="meta__value">{formatDateTime(project.createdAt)}</div>
-                </div>
-                <div>
-                  <div className="meta__label">Última atualização</div>
-                  <div className="meta__value">{formatDateTime(project.updatedAt)}</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Resumo</h2>
-            </div>
-            <div className="panel__body">
-              <div className="meta-list">
-                <div>
-                  <div className="meta__label">Equipe vinculada</div>
-                  <div className="meta__value num">{project.volunteers.length} voluntário(s)</div>
-                </div>
-                <div>
-                  <div className="meta__label">Atividades</div>
-                  <div className="meta__value num">
-                    {project.activities.filter((activity) => activity.status === 'Concluida').length} concluídas ·{' '}
-                    {project.activities.filter((activity) => activity.status !== 'Concluida').length} pendentes
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      {formOpen ? (
-        <IndicatorFormModal
-          projectId={project.id}
-          indicator={editing}
-          onClose={() => setFormOpen(false)}
-          onSaved={() => {
-            setFormOpen(false);
-            notify(editing ? 'Indicador atualizado.' : 'Indicador criado.');
-            onChanged();
-          }}
-        />
-      ) : null}
-
-      {removing ? (
-        <ConfirmDialog
-          title="Excluir indicador"
-          message={`O indicador "${removing.name}" será removido do projeto.`}
-          confirmLabel="Excluir"
-          destructive
-          busy={busy}
-          onCancel={() => setRemoving(null)}
-          onConfirm={() => void handleDelete()}
-        />
-      ) : null}
-    </>
-  );
-}
-
-interface IndicatorFormModalProps {
-  projectId: string;
-  indicator: Indicator | null;
-  onClose: () => void;
-  onSaved: () => void;
-}
-
-function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: IndicatorFormModalProps) {
-  const [name, setName] = useState(indicator?.name ?? '');
-  const [unit, setUnit] = useState(indicator?.unit ?? '');
-  const [value, setValue] = useState(String(indicator?.value ?? ''));
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    setFormError(null);
-
-    const found: Record<string, string> = {};
-    if (name.trim().length < 2) found.name = 'Informe o nome do indicador.';
-    if (value === '' || Number.isNaN(Number(value)) || Number(value) < 0) found.value = 'Informe um valor válido.';
-
-    setErrors(found);
-    if (Object.keys(found).length > 0) return;
-
-    const payload: SaveIndicatorPayload = {
-      name: name.trim(),
-      unit: emptyToNull(unit),
-      value: Number(value)
-    };
-
-    setSaving(true);
-    try {
-      if (indicator) await indicatorsApi.update(indicator.id, payload);
-      else await indicatorsApi.create(projectId, payload);
-      onSaved();
-    } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o indicador.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Modal
-      title={indicator ? 'Editar indicador' : 'Novo indicador'}
-      subtitle="Um número simples de resultado."
-      onClose={onClose}
-      footer={
-        <>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
-            Salvar
-          </Button>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit}>
-        {formError ? (
-          <div style={{ marginBottom: 16 }}>
-            <Alert kind="error">{formError}</Alert>
-          </div>
-        ) : null}
-
-        <div className="form-grid">
-          <Field label="Nome" htmlFor="indicator-name" required error={errors.name} span>
-            <TextInput
-              id="indicator-name"
-              value={name}
-              invalid={Boolean(errors.name)}
-              placeholder="Ex.: Pessoas beneficiadas"
-              onChange={(event) => setName(event.target.value)}
-            />
-          </Field>
-
-          <Field label="Valor" htmlFor="indicator-value" required error={errors.value}>
-            <TextInput
-              id="indicator-value"
-              type="number"
-              min={0}
-              step="0.01"
-              value={value}
-              invalid={Boolean(errors.value)}
-              onChange={(event) => setValue(event.target.value)}
-            />
-          </Field>
-
-          <Field label="Unidade" htmlFor="indicator-unit" hint="Ex.: pessoas, famílias, horas, unidades.">
-            <TextInput id="indicator-unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
-          </Field>
-        </div>
-
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
-      </form>
-    </Modal>
   );
 }
