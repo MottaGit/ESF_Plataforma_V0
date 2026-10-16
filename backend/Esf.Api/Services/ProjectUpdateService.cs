@@ -50,7 +50,7 @@ public class ProjectUpdateService
         _db.ProjectUpdates.Add(update);
 
         foreach (var file in request.Files)
-            update.Attachments.Add(await SaveAttachmentAsync(file, authorUserId));
+            update.Attachments.Add(await SaveAttachmentAsync(projectId, file, authorUserId));
 
         await TouchProjectAsync(projectId);
         await _db.SaveChangesAsync();
@@ -91,7 +91,7 @@ public class ProjectUpdateService
         var update = await _db.ProjectUpdates.FirstOrDefaultAsync(u => u.Id == updateId)
                      ?? throw AppException.NotFound("Atualizacao");
 
-        var attachment = await SaveAttachmentAsync(file, uploadedByUserId);
+        var attachment = await SaveAttachmentAsync(update.ProjectId, file, uploadedByUserId);
         attachment.ProjectUpdateId = updateId;
 
         _db.ProjectFiles.Add(attachment);
@@ -116,12 +116,13 @@ public class ProjectUpdateService
         _storage.Delete(attachment.StoredName);
     }
 
-    private async Task<ProjectFile> SaveAttachmentAsync(IFormFile file, Guid? uploadedByUserId)
+    private async Task<ProjectFile> SaveAttachmentAsync(Guid projectId, IFormFile file, Guid? uploadedByUserId)
     {
         var saved = await _storage.SaveAsync(file);
 
         return new ProjectFile
         {
+            ProjectId = projectId,
             FileName = saved.OriginalName.Length > 260 ? saved.OriginalName[..260] : saved.OriginalName,
             StoredName = saved.StoredName,
             ContentType = saved.ContentType,
