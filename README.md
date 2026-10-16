@@ -124,9 +124,10 @@ com geração de relatório do projeto em um clique.
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado).
 
-**Andamento** — dentro da própria aba de Atividades: um relato de atualização (texto livre, com uma ou mais fotos
-anexadas), com data e autor. Editável depois de publicado, e cada atualização pode ganhar novos anexos com o tempo.
-É a linha do tempo de execução do projeto, separada das tarefas.
+**Andamento** — a tela inicial de cada projeto. No topo, o campo "O que aconteceu?" para publicar um relato (texto livre,
+com uma ou mais fotos anexadas); abaixo, o feed com data e autor, do mais recente para o mais antigo. Editável depois
+de publicado, e cada atualização pode ganhar novos anexos com o tempo. Ao lado (abaixo, no celular), um painel com o
+progresso, as atividades atrasadas, as que vencem nos próximos 7 dias e a equipe.
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está

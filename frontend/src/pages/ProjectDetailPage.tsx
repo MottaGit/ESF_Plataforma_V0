@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { indicatorsApi, programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
 import { ActivitiesTab } from '../components/projects/ActivitiesTab';
+import { AndamentoTab } from '../components/projects/AndamentoTab';
 import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { VolunteersTab } from '../components/projects/VolunteersTab';
@@ -12,13 +13,12 @@ import { Field, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconCalendar, IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
-import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Indicator, Program, ProjectDetail, ProjectStatus, SaveIndicatorPayload, Volunteer } from '../types/api';
 import { deadlineLabel, emptyToNull, formatDateTime, formatNumber } from '../utils/format';
 
-type TabKey = 'overview' | 'activities' | 'volunteers' | 'files';
+type TabKey = 'updates' | 'activities' | 'team' | 'overview' | 'files';
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams();
@@ -31,7 +31,7 @@ export function ProjectDetailPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<TabKey>('overview');
+  const [tab, setTab] = useState<TabKey>('updates');
   const [editing, setEditing] = useState(false);
   const [generating, setGenerating] = useState(false);
 
@@ -97,9 +97,10 @@ export function ProjectDetailPage() {
   }
 
   const tabs: Array<{ key: TabKey; label: string; count?: number }> = [
-    { key: 'overview', label: 'Visão geral' },
+    { key: 'updates', label: 'Andamento', count: project.updates.length },
     { key: 'activities', label: 'Atividades', count: project.activities.length },
-    { key: 'volunteers', label: 'Voluntários', count: project.volunteers.length },
+    { key: 'team', label: 'Voluntários', count: project.volunteers.length },
+    { key: 'overview', label: 'Visão geral' },
     { key: 'files', label: 'Fotos e documentos', count: project.files.length }
   ];
 
@@ -142,28 +143,6 @@ export function ProjectDetailPage() {
         </div>
       </div>
 
-      <div className="panel section">
-        <div className="panel__body" style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ minWidth: 220, flex: '1 1 260px' }}>
-            <div className="meta__label">Progresso do projeto</div>
-            <div style={{ marginTop: 6 }}>
-              <Progress value={project.progress} />
-            </div>
-            <div className="field__hint" style={{ marginTop: 4 }}>
-              Calculado pelas atividades concluídas.
-            </div>
-          </div>
-
-          <div>
-            <div className="meta__label">Atividades concluídas</div>
-            <div className="meta__value num">
-              {project.activities.filter((activity) => activity.status === 'Concluida').length} de{' '}
-              {project.activities.length}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="tabs">
         {tabs.map((item) => (
           <button
@@ -178,13 +157,16 @@ export function ProjectDetailPage() {
         ))}
       </div>
 
+      {tab === 'updates' ? (
+        <AndamentoTab project={project} onChanged={() => void load()} onOpenTab={setTab} />
+      ) : null}
       {tab === 'overview' ? (
         <OverviewTab project={project} canManage={canManage} onChanged={() => void load()} />
       ) : null}
       {tab === 'activities' ? (
         <ActivitiesTab project={project} volunteers={volunteers} onChanged={() => void load()} />
       ) : null}
-      {tab === 'volunteers' ? <VolunteersTab project={project} onChanged={() => void load()} /> : null}
+      {tab === 'team' ? <VolunteersTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}
 
       {editing ? (

@@ -75,9 +75,7 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
   }
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <h3 style={{ marginBottom: 10 }}>Andamento</h3>
-
+    <div>
       <div className="panel" style={{ marginBottom: 16 }}>
         <div className="panel__body">
           <form onSubmit={handlePost}>
@@ -87,8 +85,12 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
               </div>
             ) : null}
 
+            <label className="field__label" htmlFor="update-text" style={{ display: 'block', marginBottom: 6 }}>
+              O que aconteceu?
+            </label>
             <TextArea
-              placeholder="O que foi feito, decidido ou observado neste projeto…"
+              id="update-text"
+              placeholder="Conte o que foi feito, decidido ou observado neste projeto…"
               value={text}
               onChange={(event) => setText(event.target.value)}
               rows={3}
@@ -140,10 +142,12 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
       </div>
 
       {updates.length === 0 ? (
-        <EmptyState
-          title="Nenhuma atualização registrada"
-          description="Registre o que foi feito, decidido ou observado neste projeto."
-        />
+        <div className="panel">
+          <EmptyState
+            title="Nenhuma atualização registrada"
+            description="O andamento do projeto aparece aqui, do mais recente para o mais antigo."
+          />
+        </div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
           {updates.map((update) => (

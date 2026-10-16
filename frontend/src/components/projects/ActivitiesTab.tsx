@@ -10,7 +10,6 @@ import { Select } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { ActivityFormModal } from './ActivityFormModal';
-import { UpdatesSection } from './UpdatesSection';
 
 interface ActivitiesTabProps {
   project: ProjectDetail;
@@ -195,8 +194,6 @@ export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabP
           concluídas
         </div>
       ) : null}
-
-      <UpdatesSection project={project} onChanged={onChanged} />
     </>
   );
 }
