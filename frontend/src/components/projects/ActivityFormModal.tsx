@@ -24,6 +24,8 @@ import { Modal } from '../ui/Modal';
 interface ActivityFormModalProps {
   projectId: string;
   activity: Activity | null;
+  /** Titulo ja digitado (vindo da adicao rapida) para uma atividade nova. */
+  initialTitle?: string;
   /** Equipe do projeto: primeira opcao para atribuir a atividade. */
   team: ProjectVolunteer[];
   /** Voluntarios ativos da organizacao. Quem estiver fora da equipe entra nela ao salvar. */
@@ -32,8 +34,16 @@ interface ActivityFormModalProps {
   onSaved: () => void;
 }
 
-export function ActivityFormModal({ projectId, activity, team, volunteers, onClose, onSaved }: ActivityFormModalProps) {
-  const [title, setTitle] = useState(activity?.title ?? '');
+export function ActivityFormModal({
+  projectId,
+  activity,
+  initialTitle = '',
+  team,
+  volunteers,
+  onClose,
+  onSaved
+}: ActivityFormModalProps) {
+  const [title, setTitle] = useState(activity?.title ?? initialTitle);
   const [description, setDescription] = useState(activity?.description ?? '');
   const [assignedVolunteerId, setAssignedVolunteerId] = useState(activity?.assignedVolunteerId ?? '');
   const [status, setStatus] = useState<ActivityStatus>(activity?.status ?? 'AFazer');

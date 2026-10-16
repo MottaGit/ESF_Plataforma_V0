@@ -1,18 +1,33 @@
-import { Fragment, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
 import { ACTIVITY_STATUSES, activityStatusLabel, dueLabel, formatDate, formatDateTime } from '../../utils/format';
-import { ActivityStatusBadge, LateBadge, PriorityBadge } from '../ui/Badge';
+import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Select } from '../ui/Field';
+import { Select, TextInput } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconChevronDown, IconChevronRight, IconEdit, IconPlus, IconTrash } from '../ui/Icons';
+import { Menu } from '../ui/Menu';
 import { ActivityFormModal } from './ActivityFormModal';
 
 /** Valor do filtro de responsavel para atividades sem ninguem atribuido. */
 const UNASSIGNED = '__none__';
+
+/** Ordem dos grupos na tela: o que esta em execucao primeiro, concluidas por ultimo (recolhidas). */
+const GROUPS: Array<{ status: ActivityStatus; title: string }> = [
+  { status: 'EmAndamento', title: 'Em andamento' },
+  { status: 'AFazer', title: 'A fazer' },
+  { status: 'Concluida', title: 'Concluídas' }
+];
+
+/** Dentro de cada grupo: prazo mais proximo primeiro (sem prazo no fim), depois maior prioridade. */
+const PRIORITY_WEIGHT = { Alta: 0, Media: 1, Baixa: 2 } as const;
+function compareActivities(a: Activity, b: Activity) {
+  const due = (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31');
+  return due !== 0 ? due : PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority];
+}
 
 interface ActivitiesTabProps {
   project: ProjectDetail;
@@ -26,10 +41,12 @@ interface ActivitiesTabProps {
 export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange, onChanged }: ActivitiesTabProps) {
   const { notify, notifyError } = useToast();
   const [formOpen, setFormOpen] = useState(false);
+  const [formTitle, setFormTitle] = useState('');
   const [editing, setEditing] = useState<Activity | null>(null);
   const [removing, setRemoving] = useState<Activity | null>(null);
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [showDone, setShowDone] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
   const [assigneeFilter, setAssigneeFilter] = useState('');
@@ -61,7 +78,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     onOnlyLateChange(false);
   }
 
-  function toggle(id: string) {
+  function toggleExpanded(id: string) {
     setExpanded((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -70,18 +87,22 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     });
   }
 
-  function openNew() {
-    setEditing(null);
+  function openForm(activity: Activity | null, title = '') {
+    setEditing(activity);
+    setFormTitle(title);
     setFormOpen(true);
   }
 
   async function changeStatus(activity: Activity, status: ActivityStatus) {
-    if (activity.status === status) return;
+    if (activity.status === status) return true;
     try {
       await activitiesApi.updateStatus(activity.id, status);
+      if (status === 'Concluida') notify(`"${activity.title}" concluída.`);
       onChanged();
+      return true;
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a atividade.');
+      return false;
     }
   }
 
@@ -104,60 +125,54 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
 
   return (
     <>
-      <div className="toolbar">
-        {activities.length > 0 ? (
-          <>
-            <Select
-              value={statusFilter}
-              aria-label="Filtrar por status"
-              onChange={(event) => setStatusFilter(event.target.value as ActivityStatus | '')}
-            >
-              <option value="">Todos os status</option>
-              {ACTIVITY_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {activityStatusLabel(value)}
-                </option>
-              ))}
-            </Select>
+      <QuickAdd project={project} onAdded={onChanged} onOpenForm={(title) => openForm(null, title)} />
 
-            <Select
-              value={assigneeFilter}
-              aria-label="Filtrar por responsável"
-              onChange={(event) => setAssigneeFilter(event.target.value)}
-            >
-              <option value="">Todos os responsáveis</option>
-              {assignees.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-              <option value={UNASSIGNED}>Sem responsável</option>
-            </Select>
+      {activities.length > 0 ? (
+        <div className="toolbar">
+          <Select
+            value={statusFilter}
+            aria-label="Filtrar por status"
+            onChange={(event) => setStatusFilter(event.target.value as ActivityStatus | '')}
+          >
+            <option value="">Todos os status</option>
+            {ACTIVITY_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {activityStatusLabel(value)}
+              </option>
+            ))}
+          </Select>
 
-            <label className="checkbox">
-              <input type="checkbox" checked={onlyLate} onChange={(event) => onOnlyLateChange(event.target.checked)} />
-              Só atrasadas
-            </label>
-          </>
-        ) : null}
+          <Select
+            value={assigneeFilter}
+            aria-label="Filtrar por responsável"
+            onChange={(event) => setAssigneeFilter(event.target.value)}
+          >
+            <option value="">Todos os responsáveis</option>
+            {assignees.map(([id, name]) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+            <option value={UNASSIGNED}>Sem responsável</option>
+          </Select>
 
-        <div className="toolbar__right">
-          <Button variant="primary" small icon={<IconPlus size={15} />} onClick={openNew}>
-            Nova atividade
-          </Button>
+          <label className="checkbox">
+            <input type="checkbox" checked={onlyLate} onChange={(event) => onOnlyLateChange(event.target.checked)} />
+            Só atrasadas
+          </label>
+
+          <span className="toolbar__right activities__count num">
+            {doneCount} de {activities.length} concluídas
+            {hasFilters ? ` · mostrando ${visible.length}` : ''}
+          </span>
         </div>
-      </div>
+      ) : null}
 
       {activities.length === 0 ? (
         <div className="panel">
           <EmptyState
             title="Nenhuma atividade registrada"
-            description="Quebre o projeto em atividades para acompanhar a execução e distribuir responsáveis."
-            action={
-              <Button variant="primary" onClick={openNew}>
-                Criar primeira atividade
-              </Button>
-            }
+            description="Use o campo acima para quebrar o projeto em atividades e distribuir responsáveis."
           />
         </div>
       ) : visible.length === 0 ? (
@@ -169,112 +184,59 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
           />
         </div>
       ) : (
-        <div className="panel">
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Atividade</th>
-                  <th>Responsável</th>
-                  <th>Prioridade</th>
-                  <th className="tight">Prazo</th>
-                  <th style={{ width: 170 }}>Status</th>
-                  <th className="right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((activity) => {
-                  const open = expanded.has(activity.id);
-                  return (
-                    <Fragment key={activity.id}>
-                      <tr className={open ? 'table__row--open' : undefined}>
-                        <td style={{ minWidth: 240 }}>
-                          <button
-                            type="button"
-                            className="row-toggle"
-                            aria-expanded={open}
-                            onClick={() => toggle(activity.id)}
-                          >
-                            {open ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
-                            <span className="table__primary">{activity.title}</span>
-                          </button>
-                          {!open && activity.description ? (
-                            <div className="table__secondary table__secondary--clamp">{activity.description}</div>
-                          ) : null}
-                        </td>
-                        <td>{activity.assignedVolunteerName ?? '—'}</td>
-                        <td>
-                          <PriorityBadge priority={activity.priority} />
-                        </td>
-                        <td className="tight">
-                          {formatDate(activity.dueDate)}
-                          <div className="table__secondary">
-                            {activity.status === 'Concluida' ? (
-                              activity.completedAt ? `concluída em ${formatDate(activity.completedAt)}` : 'concluída'
-                            ) : activity.isLate ? (
-                              <LateBadge label="Atrasada" />
-                            ) : (
-                              dueLabel(activity.dueDate)
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <Select
-                            value={activity.status}
-                            aria-label={`Status de ${activity.title}`}
-                            onChange={(event) => void changeStatus(activity, event.target.value as ActivityStatus)}
-                          >
-                            {ACTIVITY_STATUSES.map((status) => (
-                              <option key={status} value={status}>
-                                {activityStatusLabel(status)}
-                              </option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td>
-                          <div className="row-actions">
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconEdit size={15} />}
-                              title="Editar atividade"
-                              aria-label="Editar atividade"
-                              onClick={() => {
-                                setEditing(activity);
-                                setFormOpen(true);
-                              }}
-                            />
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconTrash size={15} />}
-                              title="Excluir atividade"
-                              aria-label="Excluir atividade"
-                              onClick={() => setRemoving(activity)}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                      {open ? (
-                        <tr className="table__detail">
-                          <td colSpan={6}>
-                            <ActivityDetails activity={activity} />
-                          </td>
-                        </tr>
-                      ) : null}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        GROUPS.map((group) => {
+          const items = visible.filter((activity) => activity.status === group.status).sort(compareActivities);
+          if (items.length === 0) return null;
+
+          // Concluidas ficam recolhidas, a menos que o filtro peca exatamente por elas.
+          const collapsible = group.status === 'Concluida' && statusFilter !== 'Concluida';
+          const open = !collapsible || showDone;
+
+          return (
+            <section className="act-group" key={group.status}>
+              {collapsible ? (
+                <button
+                  type="button"
+                  className="act-group__title act-group__title--toggle"
+                  aria-expanded={open}
+                  onClick={() => setShowDone((current) => !current)}
+                >
+                  {open ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
+                  {group.title}
+                  <span className="tab__count num">{items.length}</span>
+                </button>
+              ) : (
+                <h3 className="act-group__title">
+                  {group.title}
+                  <span className="tab__count num">{items.length}</span>
+                </h3>
+              )}
+
+              {open ? (
+                <ul className="panel act-list">
+                  {items.map((activity) => (
+                    <ActivityRow
+                      key={activity.id}
+                      activity={activity}
+                      expanded={expanded.has(activity.id)}
+                      onToggleExpanded={() => toggleExpanded(activity.id)}
+                      onStatusChange={(status) => changeStatus(activity, status)}
+                      onEdit={() => openForm(activity)}
+                      onRemove={() => setRemoving(activity)}
+                    />
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          );
+        })
       )}
 
       {formOpen ? (
         <ActivityFormModal
           projectId={project.id}
           activity={editing}
+          initialTitle={formTitle}
           team={project.volunteers}
           volunteers={volunteers}
           onClose={() => setFormOpen(false)}
@@ -297,15 +259,80 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
           onConfirm={() => void handleDelete()}
         />
       ) : null}
-
-      {activities.length > 0 ? (
-        <div className="activities__footer">
-          <ActivityStatusBadge status="Concluida" />
-          {doneCount} de {activities.length} atividades concluídas
-          {hasFilters ? ` · mostrando ${visible.length}` : ''}
-        </div>
-      ) : null}
     </>
+  );
+}
+
+interface ActivityRowProps {
+  activity: Activity;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  /** Resolve com false quando a alteracao nao foi salva. */
+  onStatusChange: (status: ActivityStatus) => Promise<boolean>;
+  onEdit: () => void;
+  onRemove: () => void;
+}
+
+function ActivityRow({ activity, expanded, onToggleExpanded, onStatusChange, onEdit, onRemove }: ActivityRowProps) {
+  // A caixinha responde na hora; se o servidor recusar, volta ao estado salvo.
+  const [checkedNow, setCheckedNow] = useState<boolean | null>(null);
+  const done = activity.status === 'Concluida';
+  const checked = checkedNow ?? done;
+
+  useEffect(() => setCheckedNow(null), [activity.status]);
+
+  async function toggleDone(value: boolean) {
+    setCheckedNow(value);
+    const saved = await onStatusChange(value ? 'Concluida' : 'AFazer');
+    if (!saved) setCheckedNow(null);
+  }
+
+  return (
+    <li className={`act-row${checked ? ' act-row--done' : ''}`}>
+      <input
+        type="checkbox"
+        className="act-row__check"
+        checked={checked}
+        aria-label={checked ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
+        title={checked ? 'Reabrir atividade' : 'Marcar como concluída'}
+        onChange={(event) => void toggleDone(event.target.checked)}
+      />
+
+      <div className="act-row__main">
+        <button type="button" className="act-row__title" aria-expanded={expanded} onClick={onToggleExpanded}>
+          {activity.title}
+        </button>
+        <div className="act-row__meta">
+          <span>{activity.assignedVolunteerName ?? 'Sem responsável'}</span>
+          <span className={activity.isLate ? 'act-row__due--late' : undefined}>
+            {done
+              ? activity.completedAt
+                ? `concluída em ${formatDate(activity.completedAt)}`
+                : 'concluída'
+              : activity.dueDate
+                ? `prazo ${formatDate(activity.dueDate)} · ${dueLabel(activity.dueDate)}`
+                : 'sem prazo'}
+          </span>
+          {!done ? <PriorityBadge priority={activity.priority} /> : null}
+        </div>
+        {expanded ? <ActivityDetails activity={activity} /> : null}
+      </div>
+
+      <div className="act-row__side">
+        <ActivityStatusSelect
+          status={activity.status}
+          label={`Status de ${activity.title}`}
+          onChange={(status) => void onStatusChange(status)}
+        />
+        <Menu
+          label="Ações da atividade"
+          items={[
+            { label: 'Editar', icon: <IconEdit size={14} />, onSelect: onEdit },
+            { label: 'Excluir', icon: <IconTrash size={14} />, danger: true, onSelect: onRemove }
+          ]}
+        />
+      </div>
+    </li>
   );
 }
 
@@ -325,5 +352,85 @@ function ActivityDetails({ activity }: { activity: Activity }) {
         {activity.completedAt ? <span>Concluída em {formatDateTime(activity.completedAt)}</span> : null}
       </div>
     </div>
+  );
+}
+
+interface QuickAddProps {
+  project: ProjectDetail;
+  onAdded: () => void;
+  /** Abre o formulario completo, levando o titulo ja digitado. */
+  onOpenForm: (title: string) => void;
+}
+
+/** Adicao rapida: titulo, responsavel (da equipe) e prazo, direto na lista. */
+function QuickAdd({ project, onAdded, onOpenForm }: QuickAddProps) {
+  const { notify, notifyError } = useToast();
+  const [title, setTitle] = useState('');
+  const [assignee, setAssignee] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (title.trim().length < 3) {
+      notifyError('Escreva um título com ao menos 3 caracteres.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await activitiesApi.create(project.id, {
+        title: title.trim(),
+        description: null,
+        assignedVolunteerId: assignee || null,
+        status: 'AFazer',
+        priority: 'Media',
+        dueDate: dueDate || null,
+        notes: null
+      });
+      notify('Atividade adicionada.');
+      setTitle('');
+      setDueDate('');
+      onAdded();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível adicionar a atividade.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form className="panel quick-add" onSubmit={handleSubmit}>
+      <div className="quick-add__title">
+        <IconPlus size={16} />
+        <TextInput
+          value={title}
+          placeholder="Adicionar atividade…"
+          aria-label="Título da nova atividade"
+          onChange={(event) => setTitle(event.target.value)}
+        />
+      </div>
+      <Select value={assignee} aria-label="Responsável da nova atividade" onChange={(event) => setAssignee(event.target.value)}>
+        <option value="">Sem responsável</option>
+        {project.volunteers.map((member) => (
+          <option key={member.volunteerId} value={member.volunteerId}>
+            {member.name}
+          </option>
+        ))}
+      </Select>
+      <TextInput
+        type="date"
+        value={dueDate}
+        aria-label="Prazo da nova atividade"
+        title="Prazo"
+        onChange={(event) => setDueDate(event.target.value)}
+      />
+      <Button type="submit" variant="primary" small loading={saving}>
+        Adicionar
+      </Button>
+      <button type="button" className="quick-add__more" onClick={() => onOpenForm(title.trim())}>
+        Formulário completo
+      </button>
+    </form>
   );
 }

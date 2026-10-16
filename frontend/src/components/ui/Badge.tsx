@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ActivityPriority, ActivityStatus, ProjectStatus, VolunteerStatus } from '../../types/api';
 import {
+  ACTIVITY_STATUSES,
   PROJECT_STATUSES,
   activityStatusLabel,
   priorityLabel,
@@ -58,6 +59,30 @@ export function StatusSelect({ status, onChange }: { status: ProjectStatus; onCh
         {PROJECT_STATUSES.map((value) => (
           <option key={value} value={value}>
             {projectStatusLabel(value)}
+          </option>
+        ))}
+      </select>
+      <IconChevronDown size={13} />
+    </label>
+  );
+}
+
+/** Badge de status de atividade que tambem e o seletor para altera-lo. */
+export function ActivityStatusSelect({
+  status,
+  label,
+  onChange
+}: {
+  status: ActivityStatus;
+  label: string;
+  onChange: (status: ActivityStatus) => void;
+}) {
+  return (
+    <label className={`badge badge--select ${activityStatusClass[status]}`} title="Alterar status da atividade">
+      <select value={status} aria-label={label} onChange={(event) => onChange(event.target.value as ActivityStatus)}>
+        {ACTIVITY_STATUSES.map((value) => (
+          <option key={value} value={value}>
+            {activityStatusLabel(value)}
           </option>
         ))}
       </select>
