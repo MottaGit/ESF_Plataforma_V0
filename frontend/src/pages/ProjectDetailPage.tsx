@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
 import { AboutTab } from '../components/projects/AboutTab';
@@ -19,18 +19,42 @@ import { deadlineLabel } from '../utils/format';
 
 type TabKey = 'updates' | 'activities' | 'team' | 'files' | 'about';
 
+/** Nome de cada aba na URL (?aba=...), para links diretos e para recarregar sem perder a aba. */
+const TAB_PARAMS: Record<TabKey, string> = {
+  updates: 'andamento',
+  activities: 'atividades',
+  team: 'equipe',
+  files: 'arquivos',
+  about: 'sobre'
+};
+
+function tabFromParam(value: string | null): TabKey {
+  const found = (Object.keys(TAB_PARAMS) as TabKey[]).find((key) => TAB_PARAMS[key] === value);
+  return found ?? 'updates';
+}
+
 export function ProjectDetailPage() {
   const { id = '' } = useParams();
   const { canManage } = useAuth();
   const { notify, notifyError } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tab = tabFromParam(searchParams.get('aba'));
+  const onlyLateActivities = searchParams.get('filtro') === 'atrasadas';
+
+  function openTab(key: TabKey, filter?: 'atrasadas') {
+    const next = new URLSearchParams();
+    if (key !== 'updates') next.set('aba', TAB_PARAMS[key]);
+    if (filter) next.set('filtro', filter);
+    setSearchParams(next, { replace: true });
+  }
 
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<TabKey>('updates');
   const [editing, setEditing] = useState(false);
   const [generating, setGenerating] = useState(false);
 
@@ -148,7 +172,7 @@ export function ProjectDetailPage() {
             key={item.key}
             type="button"
             className={`tab${tab === item.key ? ' tab--active' : ''}`}
-            onClick={() => setTab(item.key)}
+            onClick={() => openTab(item.key)}
           >
             {item.label}
             {item.count !== undefined ? <span className="tab__count num">{item.count}</span> : null}
@@ -157,10 +181,16 @@ export function ProjectDetailPage() {
       </div>
 
       {tab === 'updates' ? (
-        <AndamentoTab project={project} onChanged={() => void load()} onOpenTab={setTab} />
+        <AndamentoTab project={project} onChanged={() => void load()} onOpenTab={openTab} />
       ) : null}
       {tab === 'activities' ? (
-        <ActivitiesTab project={project} volunteers={volunteers} onChanged={() => void load()} />
+        <ActivitiesTab
+          project={project}
+          volunteers={volunteers}
+          onlyLate={onlyLateActivities}
+          onOnlyLateChange={(value) => openTab('activities', value ? 'atrasadas' : undefined)}
+          onChanged={() => void load()}
+        />
       ) : null}
       {tab === 'team' ? <TeamTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}

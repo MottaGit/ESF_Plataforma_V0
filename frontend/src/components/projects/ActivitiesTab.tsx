@@ -17,10 +17,13 @@ const UNASSIGNED = '__none__';
 interface ActivitiesTabProps {
   project: ProjectDetail;
   volunteers: Volunteer[];
+  /** Filtro "so atrasadas" fica na URL para poder chegar aqui ja filtrado. */
+  onlyLate: boolean;
+  onOnlyLateChange: (value: boolean) => void;
   onChanged: () => void;
 }
 
-export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabProps) {
+export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange, onChanged }: ActivitiesTabProps) {
   const { notify, notifyError } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
@@ -30,7 +33,6 @@ export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabP
 
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
   const [assigneeFilter, setAssigneeFilter] = useState('');
-  const [onlyLate, setOnlyLate] = useState(false);
 
   const activities = project.activities;
   const hasFilters = Boolean(statusFilter || assigneeFilter || onlyLate);
@@ -56,7 +58,7 @@ export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabP
   function clearFilters() {
     setStatusFilter('');
     setAssigneeFilter('');
-    setOnlyLate(false);
+    onOnlyLateChange(false);
   }
 
   function toggle(id: string) {
@@ -133,7 +135,7 @@ export function ActivitiesTab({ project, volunteers, onChanged }: ActivitiesTabP
             </Select>
 
             <label className="checkbox">
-              <input type="checkbox" checked={onlyLate} onChange={(event) => setOnlyLate(event.target.checked)} />
+              <input type="checkbox" checked={onlyLate} onChange={(event) => onOnlyLateChange(event.target.checked)} />
               Só atrasadas
             </label>
           </>

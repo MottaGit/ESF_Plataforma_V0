@@ -118,7 +118,8 @@ edição, mudança de status, arquivamento e exclusão. O **progresso** é calcu
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
-(descrição, objetivo, dados cadastrais e indicadores). Relatório do projeto em um clique.
+(descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=atividades`, `?aba=equipe`…),
+então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 
 **Atividades** — título, descrição, responsável, status (a fazer / em andamento / concluída), prioridade
 (baixa / média / alta), prazo e observações, em lista com status editável inline. O responsável é escolhido entre a

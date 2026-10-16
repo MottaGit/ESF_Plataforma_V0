@@ -4,10 +4,12 @@ import { Progress } from '../ui/Progress';
 import { UpdatesSection } from './UpdatesSection';
 
 
+type OpenTab = (tab: 'activities' | 'team', filter?: 'atrasadas') => void;
+
 interface AndamentoTabProps {
   project: ProjectDetail;
   onChanged: () => void;
-  onOpenTab: (tab: 'activities' | 'team') => void;
+  onOpenTab: OpenTab;
 }
 
 const MAX_ITEMS = 5;
@@ -22,7 +24,7 @@ export function AndamentoTab({ project, onChanged, onOpenTab }: AndamentoTabProp
   );
 }
 
-function ProjectSummary({ project, onOpenTab }: { project: ProjectDetail; onOpenTab: (tab: 'activities' | 'team') => void }) {
+function ProjectSummary({ project, onOpenTab }: { project: ProjectDetail; onOpenTab: OpenTab }) {
   const done = project.activities.filter((activity) => activity.status === 'Concluida').length;
   const pending = project.activities.filter((activity) => activity.status !== 'Concluida');
 
@@ -57,6 +59,11 @@ function ProjectSummary({ project, onOpenTab }: { project: ProjectDetail; onOpen
           {late.length > 0 ? <span className="summary__count summary__count--danger num">{late.length}</span> : null}
         </div>
         <ActivityList activities={late} empty="Nenhuma atividade atrasada." />
+        {late.length > 0 ? (
+          <button type="button" className="summary__link" onClick={() => onOpenTab('activities', 'atrasadas')}>
+            Ver atrasadas →
+          </button>
+        ) : null}
       </section>
 
       <section className="summary__block">
