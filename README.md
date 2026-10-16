@@ -121,7 +121,8 @@ planejamento ou em andamento parados há mais de 15 dias. Duas formas de visuali
 Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
-"atrasado há 5 dias"), e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
+"atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,
+próximos 7 dias e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=atividades`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 
@@ -132,8 +133,8 @@ também faz parte dela e só pode ser desvinculado depois de trocado).
 
 **Andamento** — a tela inicial de cada projeto. No topo, o campo "O que aconteceu?" para publicar um relato (texto livre,
 com uma ou mais fotos anexadas); abaixo, o feed com data e autor, do mais recente para o mais antigo. Editável depois
-de publicado, e cada atualização pode ganhar novos anexos com o tempo. Ao lado (abaixo, no celular), um painel com o
-progresso, as atividades atrasadas, as que vencem nos próximos 7 dias e a equipe.
+de publicado, e cada atualização pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
+largura confortável de leitura.
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está

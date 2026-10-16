@@ -7,6 +7,7 @@ import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { AndamentoTab } from '../components/projects/AndamentoTab';
 import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
+import { ProjectStatusStrip } from '../components/projects/ProjectStatusStrip';
 import { TeamTab } from '../components/projects/TeamTab';
 import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -167,6 +168,8 @@ export function ProjectDetailPage() {
         </div>
       </div>
 
+      <ProjectStatusStrip project={project} onOpenTab={openTab} />
+
       <div className="tabs">
         {tabs.map((item) => (
           <button
@@ -182,7 +185,7 @@ export function ProjectDetailPage() {
       </div>
 
       {tab === 'updates' ? (
-        <AndamentoTab project={project} onChanged={() => void load()} onOpenTab={openTab} />
+        <AndamentoTab project={project} onChanged={() => void load()} />
       ) : null}
       {tab === 'activities' ? (
         <ActivitiesTab
