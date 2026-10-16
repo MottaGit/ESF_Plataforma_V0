@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 import type { ActivityPriority, ActivityStatus, ProjectStatus, VolunteerStatus } from '../../types/api';
-import { activityStatusLabel, priorityLabel, projectStatusLabel, volunteerStatusLabel } from '../../utils/format';
+import {
+  PROJECT_STATUSES,
+  activityStatusLabel,
+  priorityLabel,
+  projectStatusLabel,
+  volunteerStatusLabel
+} from '../../utils/format';
+import { IconChevronDown } from './Icons';
 
 const projectStatusClass: Record<ProjectStatus, string> = {
   Planejamento: 'badge--plan',
@@ -35,6 +42,27 @@ export function StatusBadge({ status }: { status: ProjectStatus }) {
       <span className="badge__dot" />
       {projectStatusLabel(status)}
     </span>
+  );
+}
+
+/** Badge de status que tambem e o seletor para alterar o status do projeto. */
+export function StatusSelect({ status, onChange }: { status: ProjectStatus; onChange: (status: ProjectStatus) => void }) {
+  return (
+    <label className={`badge badge--select ${projectStatusClass[status]}`} title="Alterar status do projeto">
+      <span className="badge__dot" />
+      <select
+        value={status}
+        aria-label="Status do projeto"
+        onChange={(event) => onChange(event.target.value as ProjectStatus)}
+      >
+        {PROJECT_STATUSES.map((value) => (
+          <option key={value} value={value}>
+            {projectStatusLabel(value)}
+          </option>
+        ))}
+      </select>
+      <IconChevronDown size={13} />
+    </label>
   );
 }
 

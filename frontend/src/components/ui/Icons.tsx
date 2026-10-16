@@ -162,6 +162,10 @@ export const IconCheck = (p: IconProps) => svg(<path d="m5 13 4.5 4.5L19 7" />, 
 
 export const IconChevronLeft = (p: IconProps) => svg(<path d="m14 6-6 6 6 6" />, p);
 
+export const IconChevronRight = (p: IconProps) => svg(<path d="m10 6 6 6-6 6" />, p);
+
+export const IconChevronDown = (p: IconProps) => svg(<path d="m6 10 6 6 6-6" />, p);
+
 export const IconAlert = (p: IconProps) =>
   svg(
     <>

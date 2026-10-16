@@ -133,13 +133,40 @@ export function fileExtension(fileName: string) {
   return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : 'ARQ';
 }
 
+/** Dias de hoje ate a data ("2026-03-14"): positivo no futuro, negativo no passado. */
+export function daysFromToday(date: string) {
+  const target = new Date(`${date.slice(0, 10)}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
+}
+
+/** Dias desde a data/hora (ISO) ate hoje, contando dias de calendario. */
+export function daysSince(value: string) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((today.getTime() - date.getTime()) / 86400000);
+}
+
+/** Prazo do projeto em texto: "Faltam 45 dias (até 30/11/2026)", "Atrasado há 5 dias". */
+export function deadlineLabel(endDate: string | null, status: ProjectStatus) {
+  if (!endDate) return 'Sem previsão de término';
+  if (isPastProjectStatus(status)) return `Previsão de término: ${formatDate(endDate)}`;
+
+  const diff = daysFromToday(endDate);
+  if (diff === 0) return `Termina hoje (${formatDate(endDate)})`;
+  if (diff === 1) return `Falta 1 dia (até ${formatDate(endDate)})`;
+  if (diff > 1) return `Faltam ${diff} dias (até ${formatDate(endDate)})`;
+  if (diff === -1) return `Atrasado há 1 dia (previsão era ${formatDate(endDate)})`;
+  return `Atrasado há ${Math.abs(diff)} dias (previsão era ${formatDate(endDate)})`;
+}
+
 /** Texto curto de prazo: "em 4 dias", "atrasado 2 dias", "hoje". */
 export function dueLabel(dueDate: string | null) {
   if (!dueDate) return 'sem prazo';
-  const due = new Date(`${dueDate.slice(0, 10)}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
+  const diff = daysFromToday(dueDate);
 
   if (diff === 0) return 'hoje';
   if (diff === 1) return 'amanhã';

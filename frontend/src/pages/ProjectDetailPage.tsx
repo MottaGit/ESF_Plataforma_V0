@@ -6,17 +6,17 @@ import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { VolunteersTab } from '../components/projects/VolunteersTab';
-import { LateBadge, NeutralBadge, StatusBadge } from '../components/ui/Badge';
+import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Field, Select, TextInput } from '../components/ui/Field';
+import { Field, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
+import { IconCalendar, IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Indicator, Program, ProjectDetail, ProjectStatus, SaveIndicatorPayload, Volunteer } from '../types/api';
-import { PROJECT_STATUSES, emptyToNull, formatDate, formatDateTime, formatNumber, projectStatusLabel } from '../utils/format';
+import { deadlineLabel, emptyToNull, formatDateTime, formatNumber } from '../utils/format';
 
 type TabKey = 'overview' | 'activities' | 'volunteers' | 'files';
 
@@ -120,10 +120,13 @@ export function ProjectDetailPage() {
             {project.city ? ` · ${project.district ? `${project.district}, ` : ''}${project.city}` : ''}
             {project.ownerName ? ` · responsável: ${project.ownerName}` : ''}
           </p>
-          <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-            <StatusBadge status={project.status} />
-            {project.isLate ? <LateBadge /> : null}
+          <div className="project-head__meta">
+            <StatusSelect status={project.status} onChange={(status) => void changeStatus(status)} />
             {project.isArchived ? <NeutralBadge>Arquivado</NeutralBadge> : null}
+            <span className={`project-head__deadline${project.isLate ? ' project-head__deadline--late' : ''}`}>
+              <IconCalendar size={14} />
+              {deadlineLabel(project.endDateForecast, project.status)}
+            </span>
           </div>
         </div>
 
@@ -148,30 +151,6 @@ export function ProjectDetailPage() {
             </div>
             <div className="field__hint" style={{ marginTop: 4 }}>
               Calculado pelas atividades concluídas.
-            </div>
-          </div>
-
-          <div style={{ minWidth: 190 }}>
-            <div className="meta__label">Status</div>
-            <div style={{ marginTop: 6 }}>
-              <Select
-                value={project.status}
-                aria-label="Status do projeto"
-                onChange={(event) => void changeStatus(event.target.value as ProjectStatus)}
-              >
-                {PROJECT_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {projectStatusLabel(status)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <div className="meta__label">Período</div>
-            <div className="meta__value">
-              {formatDate(project.startDate)} → {formatDate(project.endDateForecast)}
             </div>
           </div>
 
