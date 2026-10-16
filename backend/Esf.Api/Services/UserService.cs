@@ -19,7 +19,8 @@ public class UserService
 
         return await query
             .OrderBy(u => u.Name)
-            .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt))
+            .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt,
+                u.VolunteerId, u.Volunteer != null ? u.Volunteer.Name : null))
             .ToListAsync();
     }
 
@@ -29,18 +30,21 @@ public class UserService
         if (await _db.Users.AnyAsync(u => u.Email.ToLower() == email))
             throw AppException.Conflict("Ja existe um usuario com este e-mail.");
 
+        await EnsureVolunteerAvailableAsync(request.VolunteerId, null);
+
         var user = new User
         {
             Name = request.Name.Trim(),
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role = request.Role!.Value,
-            IsActive = true
+            IsActive = true,
+            VolunteerId = request.VolunteerId
         };
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
-        return Mapping.ToDto(user);
+        return await GetDtoAsync(user.Id);
     }
 
     public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request, Guid currentUserId)
@@ -54,16 +58,19 @@ public class UserService
         if (id == currentUserId && !request.IsActive)
             throw new AppException("Voce nao pode desativar o proprio acesso.");
 
+        await EnsureVolunteerAvailableAsync(request.VolunteerId, id);
+
         user.Name = request.Name.Trim();
         user.Email = email;
         user.Role = request.Role!.Value;
         user.IsActive = request.IsActive;
+        user.VolunteerId = request.VolunteerId;
 
         if (!string.IsNullOrWhiteSpace(request.NewPassword))
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
 
         await _db.SaveChangesAsync();
-        return Mapping.ToDto(user);
+        return await GetDtoAsync(id);
     }
 
     public async Task DeleteAsync(Guid id, Guid currentUserId)
@@ -75,5 +82,24 @@ public class UserService
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
+    }
+
+    private async Task<UserDto> GetDtoAsync(Guid id)
+    {
+        var user = await _db.Users.AsNoTracking().Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Id == id)
+                   ?? throw AppException.NotFound("Usuario");
+        return Mapping.ToDto(user);
+    }
+
+    /// <summary>O voluntario precisa existir e nao pode estar vinculado a outro acesso.</summary>
+    private async Task EnsureVolunteerAvailableAsync(Guid? volunteerId, Guid? userId)
+    {
+        if (!volunteerId.HasValue) return;
+
+        if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
+            throw AppException.NotFound("Voluntario");
+
+        if (await _db.Users.AnyAsync(u => u.VolunteerId == volunteerId.Value && u.Id != userId))
+            throw AppException.Conflict("Este voluntario ja esta vinculado a outro usuario.");
     }
 }

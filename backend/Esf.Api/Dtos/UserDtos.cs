@@ -9,7 +9,9 @@ public record UserDto(
     string Email,
     UserRole Role,
     bool IsActive,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    Guid? VolunteerId,
+    string? VolunteerName);
 
 public class CreateUserRequest
 {
@@ -28,6 +30,9 @@ public class CreateUserRequest
 
     [Required(ErrorMessage = "Selecione o perfil de acesso.")]
     public UserRole? Role { get; set; }
+
+    /// <summary>Voluntario que este acesso representa (opcional).</summary>
+    public Guid? VolunteerId { get; set; }
 }
 
 public class UpdateUserRequest
@@ -45,6 +50,9 @@ public class UpdateUserRequest
     public UserRole? Role { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Voluntario que este acesso representa (opcional).</summary>
+    public Guid? VolunteerId { get; set; }
 
     /// <summary>Opcional: quando informada, redefine a senha do usuario.</summary>
     [MinLength(6, ErrorMessage = "A senha deve ter ao menos 6 caracteres.")]

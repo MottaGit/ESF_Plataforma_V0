@@ -21,7 +21,7 @@ public static class Mapping
         dueDate.HasValue && dueDate.Value < Today && status != ActivityStatus.Concluida;
 
     public static UserDto ToDto(User u) =>
-        new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt);
+        new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name);
 
     public static ActivityDto ToDto(Activity a) =>
         new(a.Id,

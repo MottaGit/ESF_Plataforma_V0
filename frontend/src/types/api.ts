@@ -21,6 +21,9 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   createdAt: string;
+  /** Voluntario que este acesso representa. */
+  volunteerId: string | null;
+  volunteerName: string | null;
 }
 
 export interface LoginResponse {
@@ -274,6 +277,7 @@ export interface SaveUserPayload {
   email: string;
   role: UserRole;
   isActive: boolean;
+  volunteerId: string | null;
   password?: string;
   newPassword?: string;
 }

@@ -28,6 +28,12 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Email).HasMaxLength(200).IsRequired();
             e.Property(x => x.PasswordHash).HasMaxLength(300).IsRequired();
             e.HasIndex(x => x.Email).IsUnique();
+
+            // Cada voluntario tem no maximo um acesso (indice unico criado pelo 1:1).
+            e.HasOne(x => x.Volunteer)
+                .WithOne()
+                .HasForeignKey<User>(x => x.VolunteerId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<Volunteer>(e =>

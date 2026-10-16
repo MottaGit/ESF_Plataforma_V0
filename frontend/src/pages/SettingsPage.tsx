@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError, assetUrl } from '../api/client';
-import { authApi, organizationApi, usersApi } from '../api/endpoints';
+import { authApi, organizationApi, usersApi, volunteersApi } from '../api/endpoints';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
@@ -9,7 +9,7 @@ import { IconEdit, IconPlus, IconTrash, IconUpload } from '../components/ui/Icon
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { Organization, SaveOrganizationPayload, SaveUserPayload, User, UserRole } from '../types/api';
+import type { Organization, SaveOrganizationPayload, SaveUserPayload, User, UserRole, Volunteer } from '../types/api';
 import { USER_ROLES, emptyToNull, formatDate, roleDescription, roleLabel } from '../utils/format';
 
 type TabKey = 'organization' | 'users' | 'account';
@@ -383,6 +383,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                 <tr>
                   <th>Nome</th>
                   <th>E-mail</th>
+                  <th>Voluntário</th>
                   <th>Perfil</th>
                   <th>Situação</th>
                   <th className="tight">Desde</th>
@@ -397,6 +398,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                       {user.id === currentUser?.id ? <div className="table__secondary">você</div> : null}
                     </td>
                     <td>{user.email}</td>
+                    <td>{user.volunteerName ?? '—'}</td>
                     <td>
                       {roleLabel(user.role)}
                       <div className="table__secondary">{roleDescription[user.role]}</div>
@@ -441,6 +443,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
       {formOpen ? (
         <UserFormModal
           user={editing}
+          users={users}
           onClose={() => setFormOpen(false)}
           onSaved={() => {
             setFormOpen(false);
@@ -467,19 +470,32 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
 
 interface UserFormModalProps {
   user: User | null;
+  users: User[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-function UserFormModal({ user, onClose, onSaved }: UserFormModalProps) {
+function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
   const [name, setName] = useState(user?.name ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [role, setRole] = useState<UserRole>(user?.role ?? 'Usuario');
   const [isActive, setIsActive] = useState(user?.isActive ?? true);
+  const [volunteerId, setVolunteerId] = useState(user?.volunteerId ?? '');
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    volunteersApi.list().then(setVolunteers).catch(() => undefined);
+  }, []);
+
+  // Cada voluntario so pode estar ligado a um acesso.
+  const takenVolunteerIds = new Set(
+    users.filter((item) => item.id !== user?.id && item.volunteerId).map((item) => item.volunteerId)
+  );
+  const availableVolunteers = volunteers.filter((volunteer) => !takenVolunteerIds.has(volunteer.id));
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -499,6 +515,7 @@ function UserFormModal({ user, onClose, onSaved }: UserFormModalProps) {
       email: email.trim(),
       role,
       isActive,
+      volunteerId: volunteerId || null,
       password,
       newPassword: password
     };
@@ -561,6 +578,22 @@ function UserFormModal({ user, onClose, onSaved }: UserFormModalProps) {
               {USER_ROLES.map((value) => (
                 <option key={value} value={value}>
                   {roleLabel(value)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field
+            label="Voluntário vinculado"
+            htmlFor="user-volunteer"
+            hint="Quem é esta pessoa no cadastro de voluntários. Assim a plataforma sabe quais atividades são dela."
+            span
+          >
+            <Select id="user-volunteer" value={volunteerId} onChange={(event) => setVolunteerId(event.target.value)}>
+              <option value="">Nenhum</option>
+              {availableVolunteers.map((volunteer) => (
+                <option key={volunteer.id} value={volunteer.id}>
+                  {volunteer.name}
                 </option>
               ))}
             </Select>
@@ -710,6 +743,13 @@ function AccountSection() {
               <div className="meta__label">Perfil</div>
               <div className="meta__value">{user ? roleLabel(user.role) : ''}</div>
               <div className="field__hint">{user ? roleDescription[user.role] : ''}</div>
+            </div>
+            <div>
+              <div className="meta__label">Voluntário vinculado</div>
+              <div className="meta__value">{user?.volunteerName ?? 'Nenhum'}</div>
+              {!user?.volunteerName ? (
+                <div className="field__hint">Peça a um administrador para vincular seu acesso ao seu cadastro.</div>
+              ) : null}
             </div>
           </div>
         </div>

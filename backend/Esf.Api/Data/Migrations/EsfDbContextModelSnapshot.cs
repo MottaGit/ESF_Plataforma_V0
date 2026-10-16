@@ -407,9 +407,15 @@ namespace Esf.Api.Data.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("VolunteerId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("VolunteerId")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -563,6 +569,16 @@ namespace Esf.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
+
+                    b.Navigation("Volunteer");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.User", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Volunteer", "Volunteer")
+                        .WithOne()
+                        .HasForeignKey("Esf.Api.Domain.Entities.User", "VolunteerId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Volunteer");
                 });

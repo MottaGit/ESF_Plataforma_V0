@@ -9,4 +9,8 @@ public class User
     public UserRole Role { get; set; } = UserRole.Usuario;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Voluntario que este acesso representa. Permite saber quais atividades sao "minhas".</summary>
+    public Guid? VolunteerId { get; set; }
+    public Volunteer? Volunteer { get; set; }
 }

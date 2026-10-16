@@ -80,6 +80,11 @@ public static class DbSeeder
             vGuilherme, vTanea, vCarol, vJulia, vMarcosHeitor, vAlice, vYasminM, vFrancielly, vAlisson, vMariaAntonia,
             vFausto);
 
+        // Acessos de demonstracao representam voluntarios ja cadastrados.
+        leonardo.Volunteer = vLeonardo;
+        ana.Volunteer = vAna;
+        fausto.Volunteer = vFausto;
+
         var pBanheiro = new ProjectProgram { Name = "Banheiro Direito da Gente" };
         var pHorta = new ProjectProgram { Name = "Horta comunitaria" };
         db.Programs.AddRange(pBanheiro, pHorta);

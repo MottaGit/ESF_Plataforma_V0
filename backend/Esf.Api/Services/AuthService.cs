@@ -19,7 +19,7 @@ public class AuthService
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+        var user = await _db.Users.Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new AppException("E-mail ou senha incorretos.", StatusCodes.Status401Unauthorized);
@@ -33,7 +33,7 @@ public class AuthService
 
     public async Task<UserDto> MeAsync(Guid userId)
     {
-        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId)
+        var user = await _db.Users.AsNoTracking().Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Id == userId)
                    ?? throw AppException.NotFound("Usuario");
         return Mapping.ToDto(user);
     }
