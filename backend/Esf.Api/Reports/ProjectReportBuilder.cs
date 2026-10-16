@@ -313,10 +313,24 @@ public static class ProjectReportBuilder
                             && model.Photos.TryGetValue(update.Id, out var photos)
                             && photos.Count > 0)
                         {
-                            entry.Item().PaddingTop(2).Row(row =>
+                            // Grade de ate 3 por linha, celula sempre do mesmo tamanho (mesmo quando sobra
+                            // so 1 foto na linha) - evita tanto foto perdida num espaco enorme quanto
+                            // fotos espremidas quando ha muitas.
+                            entry.Item().PaddingTop(2).Column(photoCol =>
                             {
-                                foreach (var photo in photos)
-                                    row.RelativeItem().PaddingRight(4).Height(3f, Unit.Centimetre).Image(photo.Data).FitArea();
+                                photoCol.Spacing(4);
+
+                                foreach (var chunk in photos.Chunk(3))
+                                {
+                                    photoCol.Item().Row(row =>
+                                    {
+                                        foreach (var photo in chunk)
+                                            row.RelativeItem().PaddingRight(6).Height(3f, Unit.Centimetre).Image(photo.Data).FitArea();
+
+                                        for (var pad = chunk.Length; pad < 3; pad++)
+                                            row.RelativeItem();
+                                    });
+                                }
                             });
                         }
                     });
