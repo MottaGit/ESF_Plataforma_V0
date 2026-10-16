@@ -74,7 +74,9 @@ export const programsApi = {
 
 export const activitiesApi = {
   listByProject: (projectId: string) => http.request<Activity[]>(`/api/projects/${projectId}/activities`),
-  upcoming: (take = 8) => http.request<Activity[]>('/api/activities/upcoming', { query: { take } }),
+  /** mine=true: so as atividades do voluntario vinculado ao usuario logado. */
+  upcoming: (take = 8, mine = false) =>
+    http.request<Activity[]>('/api/activities/upcoming', { query: { take, mine } }),
   create: (projectId: string, payload: SaveActivityPayload) =>
     http.request<Activity>(`/api/projects/${projectId}/activities`, { method: 'POST', body: payload }),
   update: (id: string, payload: SaveActivityPayload) =>

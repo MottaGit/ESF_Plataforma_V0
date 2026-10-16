@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { dashboardApi } from '../api/endpoints';
+import { activitiesApi, dashboardApi } from '../api/endpoints';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconPlus } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
-import type { Dashboard } from '../types/api';
+import type { Activity, Dashboard } from '../types/api';
 import { dueLabel, formatDate, formatNumber, projectStatusLabel } from '../utils/format';
 
 export function DashboardPage() {
@@ -204,33 +204,7 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Próximas atividades</h2>
-            </div>
-            <div className="panel__body">
-              {upcomingActivities.length === 0 ? (
-                <EmptyState title="Nada pendente" description="Todas as atividades registradas estão concluídas." />
-              ) : (
-                <div style={{ display: 'grid', gap: 12 }}>
-                  {upcomingActivities.map((activity) => (
-                    <div key={activity.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 500 }}>{activity.title}</div>
-                        <div className="table__secondary">
-                          <Link to={`/projetos/${activity.projectId}`}>{activity.projectName}</Link>
-                          {activity.assignedVolunteerName ? ` · ${activity.assignedVolunteerName}` : ''}
-                        </div>
-                      </div>
-                      <span className={`badge ${activity.isLate ? 'badge--late' : 'badge--neutral'}`}>
-                        {dueLabel(activity.dueDate)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
+          <UpcomingActivitiesPanel all={upcomingActivities} />
 
           <section className="panel">
             <div className="panel__head">
@@ -262,5 +236,82 @@ export function DashboardPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Proximas atividades com o recorte "Minhas" (atribuidas ao voluntario vinculado ao usuario logado)
+ * ou "Todas" (da organizacao). Abre em "Minhas" quando o usuario tem voluntario vinculado.
+ */
+function UpcomingActivitiesPanel({ all }: { all: Activity[] }) {
+  const { user } = useAuth();
+  const linked = Boolean(user?.volunteerId);
+
+  const [scope, setScope] = useState<'mine' | 'all'>(linked ? 'mine' : 'all');
+  const [mine, setMine] = useState<Activity[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (scope !== 'mine' || !linked || mine) return;
+    activitiesApi
+      .upcoming(6, true)
+      .then(setMine)
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar suas atividades.'));
+  }, [scope, linked, mine]);
+
+  const activities = scope === 'mine' ? mine : all;
+
+  return (
+    <section className="panel">
+      <div className="panel__head">
+        <h2>Próximas atividades</h2>
+        <div className="panel__actions btn-row">
+          <Button small variant={scope === 'mine' ? 'primary' : 'default'} onClick={() => setScope('mine')}>
+            Minhas
+          </Button>
+          <Button small variant={scope === 'all' ? 'primary' : 'default'} onClick={() => setScope('all')}>
+            Todas
+          </Button>
+        </div>
+      </div>
+      <div className="panel__body">
+        {scope === 'mine' && !linked ? (
+          <Alert kind="info">
+            Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais atividades são suas. Peça
+            a um administrador para fazer o vínculo em Configurações › Usuários.
+          </Alert>
+        ) : error && scope === 'mine' ? (
+          <Alert kind="error">{error}</Alert>
+        ) : activities === null ? (
+          <Loading label="Carregando suas atividades…" />
+        ) : activities.length === 0 ? (
+          <EmptyState
+            title="Nada pendente"
+            description={
+              scope === 'mine'
+                ? 'Você não tem atividades em aberto.'
+                : 'Todas as atividades registradas estão concluídas.'
+            }
+          />
+        ) : (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {activities.map((activity) => (
+              <div key={activity.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 500 }}>{activity.title}</div>
+                  <div className="table__secondary">
+                    <Link to={`/projetos/${activity.projectId}?aba=atividades`}>{activity.projectName}</Link>
+                    {scope === 'all' && activity.assignedVolunteerName ? ` · ${activity.assignedVolunteerName}` : ''}
+                  </div>
+                </div>
+                <span className={`badge ${activity.isLate ? 'badge--late' : 'badge--neutral'}`}>
+                  {dueLabel(activity.dueDate)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

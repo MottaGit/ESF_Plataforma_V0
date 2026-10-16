@@ -30,19 +30,36 @@ public class ActivityService
     }
 
     /// <summary>Atividades pendentes com prazo proximo, usadas no dashboard.</summary>
-    public async Task<List<ActivityDto>> ListUpcomingAsync(int take = 8)
+    public async Task<List<ActivityDto>> ListUpcomingAsync(int take = 8, Guid? assignedVolunteerId = null)
     {
-        var activities = await _db.Activities
+        var query = _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
             .Include(a => a.Project)
-            .Where(a => a.Status != ActivityStatus.Concluida && !a.Project!.IsArchived)
+            .Where(a => a.Status != ActivityStatus.Concluida && !a.Project!.IsArchived);
+
+        if (assignedVolunteerId.HasValue)
+            query = query.Where(a => a.AssignedVolunteerId == assignedVolunteerId.Value);
+
+        var activities = await query
             .OrderBy(a => a.DueDate ?? DateOnly.MaxValue)
             .ThenByDescending(a => a.Priority)
             .Take(take)
             .ToListAsync();
 
         return activities.Select(Mapping.ToDto).ToList();
+    }
+
+    /// <summary>"Minhas atividades": pendentes atribuidas ao voluntario vinculado ao usuario.</summary>
+    public async Task<List<ActivityDto>> ListUpcomingForUserAsync(Guid userId, int take = 8)
+    {
+        var volunteerId = await _db.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.VolunteerId)
+            .FirstOrDefaultAsync();
+
+        // Sem voluntario vinculado nao ha como saber quais atividades sao da pessoa.
+        return volunteerId.HasValue ? await ListUpcomingAsync(take, volunteerId.Value) : new List<ActivityDto>();
     }
 
     public async Task<ActivityDto> CreateAsync(Guid projectId, SaveActivityRequest request)

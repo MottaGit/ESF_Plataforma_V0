@@ -110,7 +110,8 @@ O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados r
 ## O que a aplicação faz
 
 **Visão geral (dashboard)** — total de projetos, em andamento, em planejamento, concluídos, atrasados, atividades
-pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos ativos e próximos prazos.
+pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos ativos e próximas atividades, com o
+recorte **Minhas** (atribuídas ao voluntário vinculado ao seu acesso) ou **Todas**.
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. O **progresso** é calculado pelas atividades concluídas (projeto concluído conta como 100%). Duas formas de visualizar: **lista**
@@ -260,7 +261,7 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |
 | GET/POST | `/api/projects/{id}/activities` | atividades do projeto |
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
-| GET | `/api/activities/upcoming` | próximos prazos pendentes |
+| GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
 | GET/POST/PUT/DELETE | `/api/volunteers[/{id}]` | cadastro de voluntários |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |

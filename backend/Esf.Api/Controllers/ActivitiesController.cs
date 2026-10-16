@@ -1,3 +1,4 @@
+using Esf.Api.Common;
 using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,16 +12,27 @@ namespace Esf.Api.Controllers;
 public class ActivitiesController : ControllerBase
 {
     private readonly ActivityService _activities;
+    private readonly ICurrentUser _currentUser;
 
-    public ActivitiesController(ActivityService activities) => _activities = activities;
+    public ActivitiesController(ActivityService activities, ICurrentUser currentUser)
+    {
+        _activities = activities;
+        _currentUser = currentUser;
+    }
 
     [HttpGet("projects/{projectId:guid}/activities")]
     public async Task<ActionResult<List<ActivityDto>>> ListByProject(Guid projectId)
         => Ok(await _activities.ListByProjectAsync(projectId));
 
+    /// <summary>Proximos prazos pendentes. Com mine=true, so os do voluntario vinculado ao usuario logado.</summary>
     [HttpGet("activities/upcoming")]
-    public async Task<ActionResult<List<ActivityDto>>> Upcoming([FromQuery] int take = 8)
-        => Ok(await _activities.ListUpcomingAsync(Math.Clamp(take, 1, 50)));
+    public async Task<ActionResult<List<ActivityDto>>> Upcoming([FromQuery] int take = 8, [FromQuery] bool mine = false)
+    {
+        take = Math.Clamp(take, 1, 50);
+        return Ok(mine
+            ? await _activities.ListUpcomingForUserAsync(_currentUser.RequireId(), take)
+            : await _activities.ListUpcomingAsync(take));
+    }
 
     [HttpPost("projects/{projectId:guid}/activities")]
     public async Task<ActionResult<ActivityDto>> Create(Guid projectId, SaveActivityRequest request)
