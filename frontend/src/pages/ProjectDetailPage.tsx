@@ -6,7 +6,7 @@ import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { AndamentoTab } from '../components/projects/AndamentoTab';
 import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
-import { VolunteersTab } from '../components/projects/VolunteersTab';
+import { TeamTab } from '../components/projects/TeamTab';
 import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, TextInput } from '../components/ui/Field';
@@ -99,7 +99,7 @@ export function ProjectDetailPage() {
   const tabs: Array<{ key: TabKey; label: string; count?: number }> = [
     { key: 'updates', label: 'Andamento', count: project.updates.length },
     { key: 'activities', label: 'Atividades', count: project.activities.length },
-    { key: 'team', label: 'Voluntários', count: project.volunteers.length },
+    { key: 'team', label: 'Equipe', count: project.volunteers.length },
     { key: 'overview', label: 'Visão geral' },
     { key: 'files', label: 'Fotos e documentos', count: project.files.length }
   ];
@@ -166,7 +166,7 @@ export function ProjectDetailPage() {
       {tab === 'activities' ? (
         <ActivitiesTab project={project} volunteers={volunteers} onChanged={() => void load()} />
       ) : null}
-      {tab === 'team' ? <VolunteersTab project={project} onChanged={() => void load()} /> : null}
+      {tab === 'team' ? <TeamTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}
 
       {editing ? (

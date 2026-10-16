@@ -5,18 +5,20 @@ import { volunteersApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectVolunteer, Volunteer } from '../../types/api';
 import { formatDate, sectorLabel } from '../../utils/format';
+import { LateBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconPlus, IconTrash } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 
-interface VolunteersTabProps {
+interface TeamTabProps {
   project: ProjectDetail;
   onChanged: () => void;
 }
 
-export function VolunteersTab({ project, onChanged }: VolunteersTabProps) {
+/** Equipe do projeto: quem participa, o papel de cada um e quanto trabalho tem em aberto. */
+export function TeamTab({ project, onChanged }: TeamTabProps) {
   const { notify, notifyError } = useToast();
   const [allVolunteers, setAllVolunteers] = useState<Volunteer[]>([]);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -34,6 +36,22 @@ export function VolunteersTab({ project, onChanged }: VolunteersTabProps) {
     const linked = new Set(project.volunteers.map((item) => item.volunteerId));
     return allVolunteers.filter((volunteer) => !linked.has(volunteer.id));
   }, [allVolunteers, project.volunteers]);
+
+  // Responsavel pelo projeto primeiro; o restante ja vem em ordem alfabetica.
+  const members = useMemo(
+    () =>
+      [...project.volunteers].sort((a, b) =>
+        a.volunteerId === project.ownerVolunteerId ? -1 : b.volunteerId === project.ownerVolunteerId ? 1 : 0
+      ),
+    [project.volunteers, project.ownerVolunteerId]
+  );
+
+  function workload(volunteerId: string) {
+    const open = project.activities.filter(
+      (activity) => activity.assignedVolunteerId === volunteerId && activity.status !== 'Concluida'
+    );
+    return { open: open.length, late: open.filter((activity) => activity.isLate).length };
+  }
 
   async function handleRemove() {
     if (!removing) return;
@@ -53,8 +71,9 @@ export function VolunteersTab({ project, onChanged }: VolunteersTabProps) {
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 520 }}>
-          Voluntários cadastrados na organização podem ser vinculados a este projeto com o papel que exercem nele.
+        <p className="field__hint" style={{ maxWidth: 560 }}>
+          Quem participa do projeto e o papel de cada um. O responsável pelo projeto e quem recebe uma atividade entram
+          aqui automaticamente.
         </p>
         <div className="toolbar__right">
           <Link className="btn btn--sm" to="/voluntarios">
@@ -84,43 +103,68 @@ export function VolunteersTab({ project, onChanged }: VolunteersTabProps) {
                 <tr>
                   <th>Voluntário</th>
                   <th>Papel no projeto</th>
+                  <th>Atividades</th>
                   <th>Contato</th>
                   <th className="tight">Desde</th>
                   <th className="right">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {project.volunteers.map((volunteer) => (
-                  <tr key={volunteer.volunteerId}>
-                    <td>
-                      <div className="table__primary">{volunteer.name}</div>
-                      <div className="table__secondary">{sectorLabel(volunteer.sector)}</div>
-                    </td>
-                    <td>{volunteer.roleInProject ?? '—'}</td>
-                    <td>
-                      {volunteer.email ?? '—'}
-                      {volunteer.phone ? <div className="table__secondary">{volunteer.phone}</div> : null}
-                    </td>
-                    <td className="tight">{formatDate(volunteer.joinedAt)}</td>
-                    <td>
-                      <div className="row-actions">
-                        <Button
-                          small
-                          variant="ghost"
-                          icon={<IconTrash size={15} />}
-                          title={
-                            volunteer.volunteerId === project.ownerVolunteerId
-                              ? 'Responsável pelo projeto: troque o responsável antes de desvincular'
-                              : 'Desvincular'
-                          }
-                          aria-label="Desvincular voluntário"
-                          disabled={volunteer.volunteerId === project.ownerVolunteerId}
-                          onClick={() => setRemoving(volunteer)}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {members.map((volunteer) => {
+                  const load = workload(volunteer.volunteerId);
+                  return (
+                    <tr key={volunteer.volunteerId}>
+                      <td>
+                        <div className="table__primary">{volunteer.name}</div>
+                        <div className="table__secondary">{sectorLabel(volunteer.sector)}</div>
+                      </td>
+                      <td>
+                        {volunteer.volunteerId === project.ownerVolunteerId ? (
+                          <div style={{ marginBottom: 4 }}>
+                            <span className="badge badge--run">Responsável</span>
+                          </div>
+                        ) : null}
+                        {volunteer.roleInProject ?? (volunteer.volunteerId === project.ownerVolunteerId ? null : '—')}
+                      </td>
+                      <td className="tight">
+                        {load.open === 0 ? (
+                          <span className="table__secondary">nenhuma em aberto</span>
+                        ) : (
+                          <>
+                            <span className="num">{load.open}</span> em aberto
+                            {load.late > 0 ? (
+                              <div style={{ marginTop: 4 }}>
+                                <LateBadge label={load.late === 1 ? '1 atrasada' : `${load.late} atrasadas`} />
+                              </div>
+                            ) : null}
+                          </>
+                        )}
+                      </td>
+                      <td>
+                        {volunteer.email ?? '—'}
+                        {volunteer.phone ? <div className="table__secondary">{volunteer.phone}</div> : null}
+                      </td>
+                      <td className="tight">{formatDate(volunteer.joinedAt)}</td>
+                      <td>
+                        <div className="row-actions">
+                          <Button
+                            small
+                            variant="ghost"
+                            icon={<IconTrash size={15} />}
+                            title={
+                              volunteer.volunteerId === project.ownerVolunteerId
+                                ? 'Responsável pelo projeto: troque o responsável antes de desvincular'
+                                : 'Desvincular'
+                            }
+                            aria-label="Desvincular voluntário"
+                            disabled={volunteer.volunteerId === project.ownerVolunteerId}
+                            onClick={() => setRemoving(volunteer)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
