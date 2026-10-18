@@ -166,7 +166,13 @@ export const usersApi = {
   create: (payload: SaveUserPayload) =>
     http.request<User>('/api/users', {
       method: 'POST',
-      body: { name: payload.name, email: payload.email, role: payload.role, password: payload.password }
+      body: {
+        name: payload.name,
+        email: payload.email,
+        role: payload.role,
+        password: payload.password,
+        volunteerId: payload.volunteerId
+      }
     }),
   update: (id: string, payload: SaveUserPayload) =>
     http.request<User>(`/api/users/${id}`, {
@@ -176,6 +182,8 @@ export const usersApi = {
         email: payload.email,
         role: payload.role,
         isActive: payload.isActive,
+        // Sem este campo a API entendia "sem voluntario" e desfazia o vinculo a cada edicao.
+        volunteerId: payload.volunteerId,
         newPassword: payload.newPassword || null
       }
     }),

@@ -303,7 +303,7 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
 }
 
 function UsersSection({ canEdit }: { canEdit: boolean }) {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
   const { notify, notifyError } = useToast();
 
   const [users, setUsers] = useState<User[]>([]);
@@ -449,6 +449,8 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
             setFormOpen(false);
             notify(editing ? 'Usuário atualizado.' : 'Usuário criado.');
             void load();
+            // O proprio acesso: nome, foto e "Minhas atividades" mudam junto com o vinculo.
+            if (editing?.id === currentUser?.id) void refreshUser();
           }}
         />
       ) : null}
