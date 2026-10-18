@@ -5,10 +5,10 @@ import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
 import { formatDateTime } from '../../utils/format';
 import { Button } from '../ui/Button';
-import { TextArea } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconTrash, IconUpload } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
+import { RichTextField, RichTextView, htmlToPlainText } from '../ui/RichText';
 import { StagedFiles, UpdateAttachments } from './UpdateAttachments';
 
 const ACCEPTED_FILES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.dwg,.zip';
@@ -21,6 +21,7 @@ interface UpdatesSectionProps {
 export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
   const { notify, notifyError } = useToast();
   const [text, setText] = useState('');
+  const [plainText, setPlainText] = useState('');
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [posting, setPosting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -39,7 +40,7 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
   async function handlePost(event: FormEvent) {
     event.preventDefault();
 
-    if (text.trim().length < 3) {
+    if (plainText.trim().length < 3) {
       setFormError('Escreva um relato com pelo menos 3 caracteres.');
       return;
     }
@@ -47,8 +48,9 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
 
     setPosting(true);
     try {
-      await projectUpdatesApi.create(project.id, text.trim(), stagedFiles);
+      await projectUpdatesApi.create(project.id, text, stagedFiles);
       setText('');
+      setPlainText('');
       setStagedFiles([]);
       notify('Atualização publicada.');
       onChanged();
@@ -85,15 +87,17 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
               </div>
             ) : null}
 
-            <label className="field__label" htmlFor="update-text" style={{ display: 'block', marginBottom: 6 }}>
+            <div className="field__label" style={{ marginBottom: 6 }}>
               O que aconteceu?
-            </label>
-            <TextArea
-              id="update-text"
-              placeholder="Conte o que foi feito, decidido ou observado neste projeto…"
+            </div>
+            <RichTextField
               value={text}
-              onChange={(event) => setText(event.target.value)}
-              rows={3}
+              ariaLabel="O que aconteceu?"
+              placeholder="Conte o que foi feito, decidido ou observado neste projeto…"
+              onChange={(html, plain) => {
+                setText(html);
+                setPlainText(plain);
+              }}
             />
 
             <StagedFiles
@@ -161,6 +165,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
   const { notify, notifyError } = useToast();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(update.text);
+  const [draftPlain, setDraftPlain] = useState(() => htmlToPlainText(update.text));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [removingFile, setRemovingFile] = useState<ProjectFile | null>(null);
@@ -168,10 +173,13 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
   const attachInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSaveEdit() {
-    if (draft.trim().length < 3) return;
+    if (draftPlain.trim().length < 3) {
+      notifyError('Escreva um relato com pelo menos 3 caracteres.');
+      return;
+    }
     setSaving(true);
     try {
-      await projectUpdatesApi.update(update.id, draft.trim());
+      await projectUpdatesApi.update(update.id, draft);
       setEditing(false);
       onChanged();
     } catch (err) {
@@ -240,7 +248,15 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
 
         {editing ? (
           <div style={{ marginTop: 10 }}>
-            <TextArea value={draft} onChange={(event) => setDraft(event.target.value)} rows={3} />
+            <RichTextField
+              value={draft}
+              ariaLabel="Editar relato"
+              autoFocus
+              onChange={(html, plain) => {
+                setDraft(html);
+                setDraftPlain(plain);
+              }}
+            />
             <UpdateAttachments files={update.attachments} onRemove={setRemovingFile} />
             <div className="row-actions" style={{ marginTop: 10, justifyContent: 'flex-end' }}>
               <Button
@@ -248,6 +264,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
                 onClick={() => {
                   setEditing(false);
                   setDraft(update.text);
+                  setDraftPlain(htmlToPlainText(update.text));
                 }}
               >
                 Cancelar
@@ -259,7 +276,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
           </div>
         ) : (
           <>
-            <p className="update-card__text">{update.text}</p>
+            <RichTextView className="update-card__text" html={update.text} />
             <UpdateAttachments files={update.attachments} />
           </>
         )}

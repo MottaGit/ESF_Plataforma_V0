@@ -166,6 +166,35 @@ export const IconChevronRight = (p: IconProps) => svg(<path d="m10 6 6 6-6 6" />
 
 export const IconChevronDown = (p: IconProps) => svg(<path d="m6 10 6 6 6-6" />, p);
 
+export const IconListBullet = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <circle cx="4.5" cy="6" r="1" />
+      <circle cx="4.5" cy="12" r="1" />
+      <circle cx="4.5" cy="18" r="1" />
+    </>,
+    p
+  );
+
+export const IconListOrdered = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M10 6h10M10 12h10M10 18h10" />
+      <path d="M4 5h1.5v4M4 9h3M4 15.5c.5-.7 2.5-.9 2.5.4 0 1-2.5 1.6-2.5 3.1h2.7" />
+    </>,
+    p
+  );
+
+export const IconLink = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+      <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+    </>,
+    p
+  );
+
 export const IconMore = (p: IconProps) =>
   svg(
     <>

@@ -133,8 +133,10 @@ recolhidas), com caixinha para concluir em um clique, status alterável no próp
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado).
 
-**Andamento** — a tela inicial de cada projeto. No topo, o campo "O que aconteceu?" para publicar um relato (texto livre,
-com uma ou mais fotos anexadas); abaixo, o feed com data e autor, do mais recente para o mais antigo. Editável depois
+**Andamento** — a tela inicial de cada projeto. No topo, o campo "O que aconteceu?" para publicar um relato com
+formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
+servidor, só essas formatações são aceitas, e elas também aparecem no relatório PDF. Abaixo,
+o feed com data e autor, do mais recente para o mais antigo. Editável depois
 de publicado, e cada atualização pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
 largura confortável de leitura. Os anexos aparecem compactos (até 4 miniaturas, depois "+N"; documentos numa linha) e
 as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Editar, anexar e excluir ficam no menu

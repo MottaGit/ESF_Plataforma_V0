@@ -42,7 +42,7 @@ public class ProjectUpdateService
         var update = new ProjectUpdate
         {
             ProjectId = projectId,
-            Text = request.Text.Trim(),
+            Text = CleanText(request.Text),
             AuthorUserId = authorUserId,
             CreatedAt = DateTime.UtcNow
         };
@@ -62,7 +62,7 @@ public class ProjectUpdateService
     {
         var update = await _db.ProjectUpdates.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Atualizacao");
 
-        update.Text = request.Text.Trim();
+        update.Text = CleanText(request.Text);
         update.EditedAt = DateTime.UtcNow;
 
         await TouchProjectAsync(update.ProjectId);
@@ -141,6 +141,15 @@ public class ProjectUpdateService
             .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Atualizacao");
 
         return Mapping.ToDto(update);
+    }
+
+    /// <summary>Relato formatado (HTML limpo) com ao menos 3 caracteres de texto de verdade.</summary>
+    private static string CleanText(string text)
+    {
+        var html = RichText.Sanitize(text);
+        if (RichText.ToPlainText(html).Length < 3)
+            throw new AppException("Escreva um relato com pelo menos 3 caracteres.");
+        return html;
     }
 
     private async Task TouchProjectAsync(Guid projectId)

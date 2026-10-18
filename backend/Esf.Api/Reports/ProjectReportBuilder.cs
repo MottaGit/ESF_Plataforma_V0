@@ -307,7 +307,7 @@ public static class ProjectReportBuilder
                         entry.Spacing(3);
 
                         entry.Item().Text(ShortDate(update.CreatedAt)).FontSize(8.5f).SemiBold().FontColor(Accent);
-                        entry.Item().Text(update.Text).FontSize(9);
+                        entry.Item().Element(c => RichTextPdf.Compose(c, update.Text, 9));
 
                         if (model.IncludePhotos
                             && model.Photos.TryGetValue(update.Id, out var photos)
