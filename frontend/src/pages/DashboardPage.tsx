@@ -3,11 +3,18 @@ import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { dashboardApi, volunteersApi } from '../api/endpoints';
 import { Avatar } from '../components/ui/Avatar';
-import { BirthdayBadge, LateBadge, NeutralBadge } from '../components/ui/Badge';
+import { BirthdayBadge, NeutralBadge } from '../components/ui/Badge';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { useAuth } from '../context/AuthContext';
 import type { Activity, Dashboard, Volunteer, VolunteerWorkload } from '../types/api';
-import { MONTH_NAMES, UNLINKED_MESSAGE, displayName, dueLabel, isBirthdayToday } from '../utils/format';
+import {
+  MONTH_NAMES,
+  UNLINKED_MESSAGE,
+  displayName,
+  dueDateLabel,
+  dueDateTitle,
+  isBirthdayToday
+} from '../utils/format';
 
 /** Recortes do bloco "Precisa de atencao". */
 type AttentionFilter = 'all' | 'late' | 'blocked' | 'unassigned';
@@ -250,7 +257,11 @@ function AttentionPanel({ activities, filter, onFilterChange, panelRef }: Attent
                 ) : null}
               </div>
               <div className="attention__reasons">
-                {activity.isLate ? <LateBadge label={dueLabel(activity.dueDate)} /> : null}
+                {activity.isLate ? (
+                  <span className="due-text due-text--late" title={dueDateTitle(activity.dueDate)}>
+                    {dueDateLabel(activity.dueDate)}
+                  </span>
+                ) : null}
                 {activity.status === 'Bloqueada' ? <span className="badge badge--blocked">bloqueada</span> : null}
                 {!activity.assignedVolunteerId ? <NeutralBadge>sem responsável</NeutralBadge> : null}
               </div>
@@ -356,8 +367,11 @@ function MyActivitiesPanel({ activities }: { activities: Activity[] }) {
                 {activity.status === 'Bloqueada' ? (
                   <span className="badge badge--blocked">bloqueada</span>
                 ) : (
-                  <span className={`badge ${activity.isLate ? 'badge--late' : 'badge--neutral'}`}>
-                    {dueLabel(activity.dueDate)}
+                  <span
+                    className={`due-text${activity.isLate ? ' due-text--late' : ''}`}
+                    title={dueDateTitle(activity.dueDate)}
+                  >
+                    {dueDateLabel(activity.dueDate)}
                   </span>
                 )}
               </div>

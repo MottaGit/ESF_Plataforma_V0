@@ -21,7 +21,14 @@ import { activitiesApi, projectsApi, volunteersApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityPriority, ActivityStatus, Volunteer } from '../../types/api';
-import { ACTIVITY_PRIORITIES, daysFromToday, dueLabel, formatDate, priorityLabel } from '../../utils/format';
+import {
+  ACTIVITY_PRIORITIES,
+  daysFromToday,
+  dueDateLabel,
+  dueDateTitle,
+  formatDate,
+  priorityLabel
+} from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -33,8 +40,6 @@ import { BlockActivityDialog } from './BlockActivityDialog';
 
 /** Por quantos dias uma concluida continua no quadro (mesmo valor de ActivityService.BoardDoneDays). */
 const DONE_DAYS = 30;
-/** Prazo dentro desse numero de dias deixa o card com a faixa de "vence em breve". */
-const DUE_SOON_DAYS = 7;
 /** Valor do filtro de responsavel para atividades sem ninguem atribuido. */
 const UNASSIGNED = 'nenhum';
 
@@ -58,14 +63,9 @@ function compareDone(a: Activity, b: Activity) {
   return (b.completedAt ?? '').localeCompare(a.completedAt ?? '');
 }
 
-type Urgency = 'late' | 'soon' | null;
-
-/** Atrasada, vencendo nos proximos dias ou sem urgencia (concluidas e sem prazo nunca sao urgentes). */
-function urgencyOf(activity: Activity): Urgency {
-  if (activity.status === 'Concluida' || !activity.dueDate) return null;
-  const days = daysFromToday(activity.dueDate);
-  if (days < 0) return 'late';
-  return days <= DUE_SOON_DAYS ? 'soon' : null;
+/** Prazo vencido (concluidas e atividades sem prazo nunca estao atrasadas). */
+function isOverdue(activity: Activity) {
+  return activity.status !== 'Concluida' && Boolean(activity.dueDate) && daysFromToday(activity.dueDate!) < 0;
 }
 
 /** Copia local com o novo status, para o card mudar de coluna antes da resposta do servidor. */
@@ -197,7 +197,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
     if (assigneeFilter === UNASSIGNED && activity.assignedVolunteerId) return false;
     if (assigneeFilter && assigneeFilter !== UNASSIGNED && activity.assignedVolunteerId !== assigneeFilter) return false;
     if (priorityFilter && activity.priority !== priorityFilter) return false;
-    if (onlyLate && urgencyOf(activity) !== 'late') return false;
+    if (onlyLate && !isOverdue(activity)) return false;
     if (term && !normalize(`${activity.title} ${activity.projectName ?? ''}`).includes(term)) return false;
     return true;
   });
@@ -206,7 +206,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
 
   const summary = useMemo(() => {
     const open = activities.filter((activity) => activity.status !== 'Concluida');
-    const late = open.filter((activity) => urgencyOf(activity) === 'late').length;
+    const late = open.filter((activity) => isOverdue(activity)).length;
     return { open: open.length, late };
   }, [activities]);
 
@@ -517,10 +517,8 @@ function DraggableCard(props: BoardCardProps) {
 
 /** Card da atividade: clicar abre a edicao; o nome do projeto leva para a aba Atividades dele. */
 function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listeners, dragging }: BoardCardProps) {
-  const urgency = urgencyOf(activity);
   const done = activity.status === 'Concluida';
   const modifiers = [
-    urgency ? ` board-card--${urgency}` : '',
     done ? ' board-card--done' : '',
     overlay ? ' board-card--overlay' : '',
     dragging ? ' board-card--dragging' : ''
@@ -562,14 +560,14 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
         )}
 
         <span
-          className={`board-card__due${urgency ? ` board-card__due--${urgency}` : ''}`}
-          title={!done && activity.dueDate ? `Prazo: ${formatDate(activity.dueDate)}` : undefined}
+          className={`board-card__due${!done && isOverdue(activity) ? ' board-card__due--late' : ''}`}
+          title={done ? undefined : dueDateTitle(activity.dueDate)}
         >
           {done
             ? activity.completedAt
               ? `concluída em ${formatDate(activity.completedAt)}`
               : 'concluída'
-            : dueLabel(activity.dueDate)}
+            : dueDateLabel(activity.dueDate)}
         </span>
       </div>
 

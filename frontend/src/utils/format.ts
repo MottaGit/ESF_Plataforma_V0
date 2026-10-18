@@ -224,6 +224,22 @@ export function isProjectStale(status: ProjectStatus, lastUpdateAt: string | nul
   return !lastUpdateAt || daysSince(lastUpdateAt) > STALE_PROJECT_DAYS;
 }
 
+/**
+ * Prazo de atividade como data curta: "até 14/07" (com o ano quando nao e o ano corrente) ou "sem prazo".
+ * E o que aparece nas listas e no quadro; quando venceu, so a cor do texto muda.
+ */
+export function dueDateLabel(dueDate: string | null) {
+  if (!dueDate) return 'sem prazo';
+  const [year, month, day] = dueDate.slice(0, 10).split('-');
+  const sameYear = Number(year) === new Date().getFullYear();
+  return `até ${day}/${month}${sameYear ? '' : `/${year}`}`;
+}
+
+/** Detalhe do prazo para a dica do mouse: "Prazo: 14/07/2026 (atrasada 3 dias)". */
+export function dueDateTitle(dueDate: string | null) {
+  return dueDate ? `Prazo: ${formatDate(dueDate)} (${dueLabel(dueDate)})` : undefined;
+}
+
 /** Texto curto de prazo de atividade: "em 4 dias", "atrasada 2 dias", "hoje". */
 export function dueLabel(dueDate: string | null) {
   if (!dueDate) return 'sem prazo';

@@ -130,8 +130,9 @@ arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloquead
 dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
 colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais
 recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Atividades dele),
-responsável com foto (ou "Sem responsável" em destaque) e prazo, com uma faixa à esquerda vermelha quando atrasada e
-âmbar quando vence em até 7 dias. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
+responsável com foto (ou "Sem responsável" em destaque) e prazo como data curta ("até 14/07"); quando o prazo venceu,
+só o texto fica vermelho, e o detalhe ("atrasada 3 dias") fica na dica do mouse. O mesmo vale para a lista da aba
+Atividades e para a Visão geral. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
 segure o card um instante e arraste, e o quadro rola sozinho ao chegar na borda) ou, no celular, use o selo de status
 do card. Clicar no card abre a atividade para editar, e o botão "Nova atividade" cria uma pelo próprio quadro,
 escolhendo o projeto no formulário (já vem preenchido quando o quadro está filtrado por um projeto); o responsável é
@@ -142,7 +143,7 @@ horizontal, uma coluna por vez. O status do projeto em si é alterado na página
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,
-próximos 7 dias e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
+bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=atividades`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 

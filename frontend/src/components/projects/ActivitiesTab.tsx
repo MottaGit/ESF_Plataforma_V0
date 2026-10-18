@@ -3,7 +3,14 @@ import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
-import { ACTIVITY_STATUSES, activityStatusLabel, dueLabel, formatDate, formatDateTime } from '../../utils/format';
+import {
+  ACTIVITY_STATUSES,
+  activityStatusLabel,
+  dueDateLabel,
+  dueDateTitle,
+  formatDate,
+  formatDateTime
+} from '../../utils/format';
 import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Field';
@@ -378,14 +385,15 @@ function ActivityRow({
         </button>
         <div className="act-row__meta">
           <span>{activity.assignedVolunteerName ?? 'Sem responsável'}</span>
-          <span className={activity.isLate ? 'act-row__due--late' : undefined}>
+          <span
+            className={activity.isLate ? 'act-row__due--late' : undefined}
+            title={done ? undefined : dueDateTitle(activity.dueDate)}
+          >
             {done
               ? activity.completedAt
                 ? `concluída em ${formatDate(activity.completedAt)}`
                 : 'concluída'
-              : activity.dueDate
-                ? `prazo ${formatDate(activity.dueDate)} · ${dueLabel(activity.dueDate)}`
-                : 'sem prazo'}
+              : dueDateLabel(activity.dueDate)}
           </span>
           {!done ? <PriorityBadge priority={activity.priority} /> : null}
           {canUndo ? (

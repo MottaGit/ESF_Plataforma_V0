@@ -40,7 +40,6 @@
   --danger: #b42318;
   --danger-bg: #fdecea;
   --warning: #b54708;
-  --due-soon: #f79009;
 
   /* forma */
   --radius: 8px;
@@ -532,7 +531,7 @@ button { font: inherit; }
   font-size: 12px;
   color: var(--text-muted);
 }
-.act-row__due--late { color: var(--danger); font-weight: 500; }
+.act-row__due--late { color: var(--danger); }
 .act-row__side { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .activity-detail {
   display: grid;
@@ -644,6 +643,9 @@ button { font: inherit; }
 .attention__blocked { margin: 4px 0 0; font-size: 12px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
 .attention__blocked::before { content: "Travada: "; font-weight: 500; }
 .attention__reasons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; flex: 0 0 auto; }
+/* Prazo como data curta; vencido, so o texto fica vermelho. */
+.due-text { font-size: 12px; color: var(--text-soft); white-space: nowrap; }
+.due-text--late { color: var(--danger); }
 .attention__more { padding: 4px 16px 14px; }
 .link-button {
   padding: 0;
@@ -1200,7 +1202,7 @@ button { font: inherit; }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 11px 10px 14px;
+  padding: 10px 11px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1216,16 +1218,6 @@ button { font: inherit; }
 .board-card:hover { border-color: var(--border-strong); }
 .board-card--dragging { opacity: 0.35; }
 .board-card--overlay { box-shadow: var(--shadow-pop); border-color: var(--border-strong); cursor: grabbing; transform: rotate(1.5deg); }
-/* Faixa a esquerda pelo prazo: vermelha quando atrasada, ambar quando vence nos proximos 7 dias. */
-.board-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: transparent;
-}
-.board-card--late::before { background: var(--danger); }
-.board-card--soon::before { background: var(--due-soon); }
 
 .board-card__top { display: flex; align-items: flex-start; gap: 8px; }
 .board-card__title {
@@ -1271,8 +1263,8 @@ button { font: inherit; }
 .board-card__person--none { color: var(--warning); font-weight: 500; }
 .board-card__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .board-card__due { flex-shrink: 0; color: var(--text-soft); }
-.board-card__due--late { color: var(--danger); font-weight: 500; }
-.board-card__due--soon { color: var(--warning); font-weight: 500; }
+/* Prazo vencido: so a cor do texto muda, sem faixa nem destaque. */
+.board-card__due--late { color: var(--danger); }
 /* Selo de status no card: so em telas de toque ou estreitas; no desktop, arrasta-se o card. */
 .board-card__status { display: none; }
 @media (hover: none) {

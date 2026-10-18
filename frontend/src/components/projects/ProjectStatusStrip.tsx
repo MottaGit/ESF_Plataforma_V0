@@ -1,5 +1,4 @@
 import type { ProjectDetail } from '../../types/api';
-import { daysFromToday, dueLabel } from '../../utils/format';
 import { Progress } from '../ui/Progress';
 
 interface ProjectStatusStripProps {
@@ -9,7 +8,7 @@ interface ProjectStatusStripProps {
 
 /**
  * Faixa de situacao do projeto, logo abaixo do cabecalho e visivel em todas as abas:
- * progresso, atividades atrasadas, proximos prazos e equipe. Cada bloco leva a aba correspondente.
+ * progresso, atividades atrasadas, bloqueadas e equipe. Cada bloco leva a aba correspondente.
  */
 export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripProps) {
   const total = project.activities.length;
@@ -19,9 +18,8 @@ export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripPro
   const late = pending
     .filter((activity) => activity.isLate)
     .sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? ''));
-  const upcoming = pending
-    .filter((activity) => activity.dueDate && !activity.isLate && daysFromToday(activity.dueDate) <= 7)
-    .sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? ''));
+  const blocked = pending.filter((activity) => activity.status === 'Bloqueada');
+  const firstBlocked = blocked[0];
 
   // Responsavel pelo projeto primeiro, depois o restante da equipe.
   const team = [...project.volunteers].sort((a, b) =>
@@ -54,12 +52,12 @@ export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripPro
       </button>
 
       <button type="button" className="status-tile" onClick={() => onOpenTab('activities')}>
-        <span className="status-tile__label">Próximos 7 dias</span>
-        <span className="status-tile__value num">{upcoming.length}</span>
+        <span className="status-tile__label">Bloqueadas</span>
+        <span className="status-tile__value num">{blocked.length}</span>
         <span className="status-tile__hint">
-          {upcoming.length === 0
-            ? 'Nada vencendo nos próximos dias'
-            : `${upcoming[0].title} · ${dueLabel(upcoming[0].dueDate)}`}
+          {!firstBlocked
+            ? 'Nenhuma atividade travada'
+            : `${firstBlocked.title}${firstBlocked.blockedReason ? `: ${firstBlocked.blockedReason}` : ''}${blocked.length > 1 ? ` e mais ${blocked.length - 1}` : ''}`}
         </span>
       </button>
 
