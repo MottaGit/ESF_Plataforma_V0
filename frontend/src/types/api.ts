@@ -133,10 +133,12 @@ export interface ProjectUpdate {
   projectId: string;
   text: string;
   authorUserId: string | null;
+  /** Nome do voluntario vinculado ao autor (ou do usuario, sem vinculo). */
   authorName: string | null;
   createdAt: string;
   editedAt: string | null;
   attachments: ProjectFile[];
+  authorPhotoUrl: string | null;
 }
 
 export interface ProjectFile {

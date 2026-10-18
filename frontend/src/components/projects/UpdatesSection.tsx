@@ -4,6 +4,7 @@ import { projectUpdatesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
 import { formatDateTime } from '../../utils/format';
+import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconTrash, IconUpload } from '../ui/Icons';
@@ -227,12 +228,15 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
     <article className="panel">
       <div className="panel__body">
         <div className="update-card__head">
-          <div>
-            <div className="table__primary">{update.authorName ?? 'Usuário removido'}</div>
-            <div className="table__secondary">
-              {formatDateTime(update.createdAt)}
-              {update.editedAt ? ' · editado' : ''}
-              {uploading ? ' · enviando anexos…' : ''}
+          <div className="person-cell">
+            <Avatar name={update.authorName ?? '?'} photoUrl={update.authorPhotoUrl} size={34} />
+            <div>
+              <div className="table__primary">{update.authorName ?? 'Usuário removido'}</div>
+              <div className="table__secondary">
+                {formatDateTime(update.createdAt)}
+                {update.editedAt ? ' · editado' : ''}
+                {uploading ? ' · enviando anexos…' : ''}
+              </div>
             </div>
           </div>
           <Menu

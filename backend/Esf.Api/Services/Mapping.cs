@@ -88,7 +88,7 @@ public static class Mapping
             f.Description,
             $"{UploadsUrlPrefix}/{f.StoredName}",
             f.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase),
-            f.UploadedByUser?.Name,
+            PersonName(f.UploadedByUser),
             f.UploadedAt,
             f.ProjectUpdateId,
             f.ProjectUpdate?.CreatedAt);
@@ -98,10 +98,17 @@ public static class Mapping
             u.ProjectId,
             u.Text,
             u.AuthorUserId,
-            u.AuthorUser?.Name,
+            PersonName(u.AuthorUser),
             u.CreatedAt,
             u.EditedAt,
-            u.Attachments.OrderBy(f => f.UploadedAt).Select(ToDto).ToList());
+            u.Attachments.OrderBy(f => f.UploadedAt).Select(ToDto).ToList(),
+            PhotoUrl(u.AuthorUser?.Volunteer?.PhotoStoredName));
+
+    /// <summary>
+    /// Nome exibido de quem fez algo na plataforma: o do voluntario vinculado ao acesso; sem vinculo, o do
+    /// proprio usuario. Requer a navegacao User.Volunteer carregada.
+    /// </summary>
+    public static string? PersonName(User? user) => user?.Volunteer?.Name ?? user?.Name;
 
     public static OrganizationDto ToDto(Organization o) =>
         new(o.Id, o.Name, o.LegalName, o.Cnpj, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl, o.UpdatedAt);

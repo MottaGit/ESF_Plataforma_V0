@@ -24,7 +24,7 @@ public class ProjectFileService
 
         var files = await _db.ProjectFiles
             .AsNoTracking()
-            .Include(f => f.UploadedByUser)
+            .Include(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
             .Include(f => f.ProjectUpdate)
             .Where(f => f.ProjectId == projectId)
             .OrderByDescending(f => f.UploadedAt)
@@ -37,7 +37,7 @@ public class ProjectFileService
     public async Task<ProjectFileDto> UpdateDescriptionAsync(Guid fileId, string? description)
     {
         var file = await _db.ProjectFiles
-            .Include(f => f.UploadedByUser)
+            .Include(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
             .Include(f => f.ProjectUpdate)
             .FirstOrDefaultAsync(f => f.Id == fileId) ?? throw AppException.NotFound("Arquivo");
 
@@ -74,7 +74,7 @@ public class ProjectFileService
         await _db.SaveChangesAsync();
 
         if (entity.UploadedByUserId.HasValue)
-            await _db.Entry(entity).Reference(f => f.UploadedByUser).LoadAsync();
+            await _db.Entry(entity).Reference(f => f.UploadedByUser).Query().Include(u => u.Volunteer).LoadAsync();
 
         return Mapping.ToDto(entity);
     }

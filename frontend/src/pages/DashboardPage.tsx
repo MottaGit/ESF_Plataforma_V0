@@ -9,7 +9,7 @@ import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconPlus } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import type { Activity, Dashboard, Volunteer, VolunteerWorkload } from '../types/api';
-import { MONTH_NAMES, daysFromToday, dueLabel, isBirthdayToday } from '../utils/format';
+import { MONTH_NAMES, daysFromToday, displayName, dueLabel, isBirthdayToday } from '../utils/format';
 
 /** Recortes do bloco "Precisa de atencao". */
 type AttentionFilter = 'all' | 'late' | 'soon' | 'unassigned';
@@ -75,7 +75,7 @@ export function DashboardPage() {
   if (!data) return null;
 
   const { totals, attention, workload, upcomingActivities } = data;
-  const firstName = (user?.name ?? '').split(' ')[0];
+  const firstName = displayName(user).split(' ')[0];
 
   /** Os numeros do topo levam ao recorte correspondente em "Precisa de atencao". */
   function showAttention(filter: AttentionFilter) {

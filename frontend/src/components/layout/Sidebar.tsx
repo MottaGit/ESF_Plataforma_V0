@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { displayName } from '../../utils/format';
 import {
   IconDashboard,
   IconProjects,
@@ -51,7 +52,7 @@ export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
       </nav>
 
       <div className="sidebar__footer">
-        Conectado como {user?.name}
+        Conectado como {displayName(user)}
         <br />
         Versão 0 — produto em validação
       </div>

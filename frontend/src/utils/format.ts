@@ -148,6 +148,14 @@ export const MONTH_NAMES = [
   'dezembro'
 ];
 
+/**
+ * Nome exibido da pessoa logada: o do voluntario vinculado ao acesso; sem vinculo, o do proprio usuario.
+ * (Os dados da conta em Configuracoes continuam mostrando o nome do usuario.)
+ */
+export function displayName(user: { name: string; volunteerName: string | null } | null | undefined) {
+  return user?.volunteerName ?? user?.name ?? '';
+}
+
 /** "Ana", "Ana e João", "Ana, João e Maria". */
 export function joinNames(names: string[]) {
   if (names.length <= 1) return names[0] ?? '';

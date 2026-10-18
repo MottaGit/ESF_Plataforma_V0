@@ -156,7 +156,9 @@ hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversarian
 item do formulário: escolhida do computador e enquadrada num círculo (arrastar e zoom) antes de ser usada; o navegador
 envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário. A foto aparece como uma bolinha na
 lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superior direito (para o voluntário vinculado
-à conta logada); sem foto, aparecem as iniciais.
+à conta logada); sem foto, aparecem as iniciais. Quando o acesso está vinculado a um voluntário, a plataforma mostra o
+nome e a foto desse voluntário no topo, na barra lateral, no "Olá" da visão geral, como autor dos relatos de andamento
+e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.

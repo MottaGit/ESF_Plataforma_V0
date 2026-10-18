@@ -104,9 +104,9 @@ public class ProjectService
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
-            .Include(p => p.Files).ThenInclude(f => f.UploadedByUser)
+            .Include(p => p.Files).ThenInclude(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
             .Include(p => p.Files).ThenInclude(f => f.ProjectUpdate)
-            .Include(p => p.Updates).ThenInclude(u => u.AuthorUser)
+            .Include(p => p.Updates).ThenInclude(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(p => p.Updates).ThenInclude(u => u.Attachments)
             .FirstOrDefaultAsync(p => p.Id == id);
     }

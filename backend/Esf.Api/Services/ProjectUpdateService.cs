@@ -25,7 +25,7 @@ public class ProjectUpdateService
 
         var updates = await _db.ProjectUpdates
             .AsNoTracking()
-            .Include(u => u.AuthorUser)
+            .Include(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(u => u.Attachments)
             .Where(u => u.ProjectId == projectId)
             .OrderByDescending(u => u.CreatedAt)
@@ -99,7 +99,7 @@ public class ProjectUpdateService
         await _db.SaveChangesAsync();
 
         if (attachment.UploadedByUserId.HasValue)
-            await _db.Entry(attachment).Reference(f => f.UploadedByUser).LoadAsync();
+            await _db.Entry(attachment).Reference(f => f.UploadedByUser).Query().Include(u => u.Volunteer).LoadAsync();
 
         return Mapping.ToDto(attachment);
     }
@@ -136,7 +136,7 @@ public class ProjectUpdateService
     {
         var update = await _db.ProjectUpdates
             .AsNoTracking()
-            .Include(u => u.AuthorUser)
+            .Include(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(u => u.Attachments)
             .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Atualizacao");
 

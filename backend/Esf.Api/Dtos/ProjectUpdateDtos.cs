@@ -11,7 +11,9 @@ public record ProjectUpdateDto(
     string? AuthorName,
     DateTime CreatedAt,
     DateTime? EditedAt,
-    List<ProjectFileDto> Attachments);
+    List<ProjectFileDto> Attachments,
+    // Foto do voluntario vinculado ao autor (null sem vinculo ou sem foto).
+    string? AuthorPhotoUrl);
 
 public class SaveProjectUpdateRequest
 {
