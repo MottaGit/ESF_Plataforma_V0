@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { activitiesApi, dashboardApi } from '../api/endpoints';
-import { LateBadge, StatusBadge } from '../components/ui/Badge';
+import { activitiesApi, dashboardApi, volunteersApi } from '../api/endpoints';
+import { Avatar } from '../components/ui/Avatar';
+import { BirthdayBadge, LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconPlus } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
-import type { Activity, Dashboard } from '../types/api';
-import { dueLabel, formatDate, formatNumber, projectStatusLabel } from '../utils/format';
+import type { Activity, Dashboard, Volunteer } from '../types/api';
+import { MONTH_NAMES, dueLabel, formatDate, formatNumber, isBirthdayToday, projectStatusLabel } from '../utils/format';
 
 export function DashboardPage() {
   const { canManage, user } = useAuth();
@@ -206,6 +207,8 @@ export function DashboardPage() {
 
           <UpcomingActivitiesPanel all={upcomingActivities} />
 
+          <BirthdaysPanel />
+
           <section className="panel">
             <div className="panel__head">
               <h2>Distribuição por status</h2>
@@ -310,6 +313,69 @@ function UpcomingActivitiesPanel({ all }: { all: Activity[] }) {
               </div>
             ))}
           </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Aniversariantes do mes (pela data local de quem esta usando), so de quem ainda faz parte da
+ * organizacao (ativos e afastados). O aniversariante do dia fica destacado.
+ */
+function BirthdaysPanel() {
+  const [volunteers, setVolunteers] = useState<Volunteer[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    volunteersApi
+      .list()
+      .then(setVolunteers)
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os aniversários.'));
+  }, []);
+
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const people = (volunteers ?? [])
+    .filter((volunteer) => volunteer.birthMonth === month && volunteer.birthDay)
+    .filter((volunteer) => volunteer.status === 'Ativo' || volunteer.status === 'Afastado')
+    .sort((a, b) => (a.birthDay ?? 0) - (b.birthDay ?? 0) || a.name.localeCompare(b.name));
+
+  return (
+    <section className="panel">
+      <div className="panel__head">
+        <h2>Aniversariantes de {MONTH_NAMES[month - 1]}</h2>
+      </div>
+      <div className="panel__body">
+        {error ? (
+          <Alert kind="error">{error}</Alert>
+        ) : volunteers === null ? (
+          <Loading label="Carregando aniversários…" />
+        ) : people.length === 0 ? (
+          <p className="field__hint">Ninguém faz aniversário em {MONTH_NAMES[month - 1]}.</p>
+        ) : (
+          <ul className="birthday-list">
+            {people.map((volunteer) => {
+              const isToday = isBirthdayToday(volunteer.birthDay, volunteer.birthMonth);
+              const passed = !isToday && (volunteer.birthDay ?? 0) < today.getDate();
+              return (
+                <li
+                  key={volunteer.id}
+                  className={`birthday-list__item${isToday ? ' birthday-list__item--today' : ''}${passed ? ' birthday-list__item--passed' : ''}`}
+                >
+                  <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
+                  <Link className="row-link birthday-list__name" to={`/voluntarios/${volunteer.id}`}>
+                    {volunteer.name}
+                  </Link>
+                  {isToday ? (
+                    <BirthdayBadge />
+                  ) : (
+                    <span className="birthday-list__day num">dia {volunteer.birthDay}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </section>

@@ -111,7 +111,8 @@ O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados r
 
 **Visão geral (dashboard)** — total de projetos, em andamento, em planejamento, concluídos, atrasados, atividades
 pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos ativos e próximas atividades, com o
-recorte **Minhas** (atribuídas ao voluntário vinculado ao seu acesso) ou **Todas**.
+recorte **Minhas** (atribuídas ao voluntário vinculado ao seu acesso) ou **Todas**, e os **aniversariantes do mês**
+(voluntários ativos e afastados), com o do dia destacado.
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um

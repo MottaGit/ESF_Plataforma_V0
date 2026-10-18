@@ -595,6 +595,14 @@ button { font: inherit; }
 }
 .birthday-notice__icon { font-size: 18px; line-height: 1; }
 
+/* Aniversariantes do mes (Dashboard). */
+.birthday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.birthday-list__item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); }
+.birthday-list__item--today { background: #fdf2fa; }
+.birthday-list__item--passed { opacity: 0.6; }
+.birthday-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.birthday-list__day { font-size: 12.5px; color: var(--text-muted); }
+
 /* Pessoa com a bolinha da foto ao lado do nome (listas e cabecalhos). */
 .person-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .person-head { display: flex; align-items: center; gap: 14px; }
