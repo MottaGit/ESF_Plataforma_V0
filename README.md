@@ -128,9 +128,12 @@ arquivados), em três colunas: **Não iniciadas**, **Em andamento** e **Concluí
 colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais
 recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Atividades dele),
 responsável com foto (ou "Sem responsável" em destaque) e prazo, com uma faixa à esquerda vermelha quando atrasada e
-âmbar quando vence em até 7 dias. Clicar no card abre a atividade para editar. Filtros: busca por atividade ou projeto,
-Todas/Minhas, projeto, responsável, prioridade e só atrasadas, todos na URL. No celular as colunas ficam lado a lado
-e o quadro rola na horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto.
+âmbar quando vence em até 7 dias. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
+segure o card um instante e arraste, e o quadro rola sozinho ao chegar na borda) ou, no celular, use o selo de status
+do card. Clicar no card abre a atividade para editar. Filtros: busca por atividade ou projeto, Todas/Minhas, projeto,
+responsável, prioridade e só atrasadas, todos na URL. No celular as colunas ficam lado a lado e o quadro rola na
+horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
+[dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,

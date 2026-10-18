@@ -1202,8 +1202,16 @@ button { font: inherit; }
   border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: pointer;
+  /* Segurar para arrastar no celular: sem menu de contexto nem selecao de texto. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
+.board-card img { -webkit-user-drag: none; }
 .board-card:hover { border-color: var(--border-strong); }
+.board-card--dragging { opacity: 0.35; }
+.board-card--overlay { box-shadow: var(--shadow-pop); border-color: var(--border-strong); cursor: grabbing; transform: rotate(1.5deg); }
 /* Faixa a esquerda pelo prazo: vermelha quando atrasada, ambar quando vence nos proximos 7 dias. */
 .board-card::before {
   content: "";
@@ -1248,7 +1256,12 @@ button { font: inherit; }
 .board-card__due { flex-shrink: 0; color: var(--text-soft); }
 .board-card__due--late { color: var(--danger); font-weight: 500; }
 .board-card__due--soon { color: var(--warning); font-weight: 500; }
-.board-card__status { display: flex; }
+/* Selo de status no card: so em telas de toque ou estreitas; no desktop, arrasta-se o card. */
+.board-card__status { display: none; }
+@media (hover: none) {
+  .board-card__status { display: flex; }
+}
+.board__tip { margin-top: 10px; }
 
 /* ---------------------------------------------------------
    Arquivos e mapa
@@ -1410,6 +1423,7 @@ button { font: inherit; }
     padding: 0 14px 8px;
   }
   .board__col { scroll-snap-align: start; }
+  .board-card__status { display: flex; }
   .login { grid-template-columns: minmax(0, 1fr); }
   .login__aside { display: none; }
   .meta-list--cols { grid-template-columns: minmax(0, 1fr); }

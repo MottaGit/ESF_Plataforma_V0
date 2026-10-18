@@ -1,3 +1,19 @@
+import {
+  DndContext,
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  pointerWithin,
+  rectIntersection,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type CollisionDetection,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DraggableSyntheticListeners
+} from '@dnd-kit/core';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
@@ -59,6 +75,12 @@ function withStatus(activity: Activity, status: ActivityStatus): Activity {
   };
 }
 
+/** Coluna sob o ponteiro (ou o dedo); fora de todas, a que mais cobre o card arrastado. */
+const detectColumn: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  return hits.length > 0 ? hits : rectIntersection(args);
+};
+
 /** Busca sem diferenciar maiusculas nem acentos. */
 function normalize(value: string) {
   return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -89,6 +111,14 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Activity | null>(null);
+  const [dragging, setDragging] = useState<Activity | null>(null);
+
+  const sensors = useSensors(
+    // Mouse: o arraste so comeca depois de mover alguns pixels, entao um clique simples abre o card.
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    // Toque: segurar o card um instante antes de arrastar; deslizar o dedo direto continua rolando a tela.
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } })
+  );
 
   const myVolunteerId = user?.volunteerId ?? null;
   const query = searchParams.get('busca') ?? '';
@@ -178,6 +208,18 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
       replace(activity);
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a atividade.');
     }
+  }
+
+  function handleDragStart(event: DragStartEvent) {
+    setDragging(activities.find((activity) => activity.id === event.active.id) ?? null);
+  }
+
+  /** Soltar numa coluna muda o status (na mesma coluna, nada acontece). */
+  function handleDragEnd(event: DragEndEvent) {
+    setDragging(null);
+    const activity = activities.find((item) => item.id === event.active.id);
+    const status = event.over?.id as ActivityStatus | undefined;
+    if (activity && status) void changeStatus(activity, status);
   }
 
   return (
@@ -306,38 +348,52 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
           />
         </section>
       ) : (
-        <div className="board">
-          {COLUMNS.map((column) => {
-            const cards = visible
-              .filter((activity) => activity.status === column.status)
-              .sort(column.status === 'Concluida' ? compareDone : compareOpen);
+        <>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={detectColumn}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setDragging(null)}
+          >
+            <div className="board">
+              {COLUMNS.map((column) => {
+                const cards = visible
+                  .filter((activity) => activity.status === column.status)
+                  .sort(column.status === 'Concluida' ? compareDone : compareOpen);
 
-            return (
-              <section key={column.status} className="board__col" aria-label={column.title}>
-                <header className="board__head">
-                  <span>{column.title}</span>
-                  {column.hint ? <span className="board__hint">{column.hint}</span> : null}
-                  <span className="board__count num">{cards.length}</span>
-                </header>
+                return (
+                  <BoardColumn key={column.status} {...column} count={cards.length}>
+                    {cards.length === 0 ? (
+                      <p className="board__empty">
+                        {hasFilters ? 'Nenhuma atividade com esses filtros.' : 'Nenhuma atividade.'}
+                      </p>
+                    ) : (
+                      <div className="board__cards">
+                        {cards.map((activity) => (
+                          <DraggableCard
+                            key={activity.id}
+                            activity={activity}
+                            onOpen={() => setEditing(activity)}
+                            onStatusChange={(status) => void changeStatus(activity, status)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </BoardColumn>
+                );
+              })}
+            </div>
 
-                {cards.length === 0 ? (
-                  <p className="board__empty">{hasFilters ? 'Nenhuma atividade com esses filtros.' : 'Nenhuma atividade.'}</p>
-                ) : (
-                  <div className="board__cards">
-                    {cards.map((activity) => (
-                      <BoardCard
-                        key={activity.id}
-                        activity={activity}
-                        onOpen={() => setEditing(activity)}
-                        onStatusChange={(status) => void changeStatus(activity, status)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-            );
-          })}
-        </div>
+            {/* O card muda de coluna assim que e solto, entao nao ha animacao de volta. */}
+            <DragOverlay dropAnimation={null}>{dragging ? <BoardCard activity={dragging} overlay /> : null}</DragOverlay>
+          </DndContext>
+
+          <p className="field__hint board__tip">
+            Arraste um card para outra coluna para mudar o status (no celular, segure o card antes de arrastar ou use
+            o selo de status). Clique no card para editar a atividade.
+          </p>
+        </>
       )}
 
       {editing ? (
@@ -357,22 +413,64 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
   );
 }
 
+interface BoardColumnProps {
+  status: ActivityStatus;
+  title: string;
+  hint?: string;
+  count: number;
+  children: ReactNode;
+}
+
+/** Coluna que recebe os cards soltos; fica destacada enquanto um card de outra coluna passa por cima. */
+function BoardColumn({ status, title, hint, count, children }: BoardColumnProps) {
+  const { setNodeRef, isOver, active } = useDroppable({ id: status });
+  const highlighted = isOver && active?.data.current?.status !== status;
+
+  return (
+    <section ref={setNodeRef} className={`board__col${highlighted ? ' board__col--over' : ''}`} aria-label={title}>
+      <header className="board__head">
+        <span>{title}</span>
+        {hint ? <span className="board__hint">{hint}</span> : null}
+        <span className="board__count num">{count}</span>
+      </header>
+      {children}
+    </section>
+  );
+}
+
 interface BoardCardProps {
   activity: Activity;
-  onOpen: () => void;
-  onStatusChange: (status: ActivityStatus) => void;
+  onOpen?: () => void;
+  onStatusChange?: (status: ActivityStatus) => void;
+  /** Copia que acompanha o ponteiro durante o arraste. */
+  overlay?: boolean;
+  cardRef?: (element: HTMLElement | null) => void;
+  listeners?: DraggableSyntheticListeners;
+  /** O card original, enquanto a copia esta sendo arrastada. */
+  dragging?: boolean;
+}
+
+function DraggableCard(props: BoardCardProps) {
+  const { setNodeRef, listeners, isDragging } = useDraggable({
+    id: props.activity.id,
+    data: { status: props.activity.status }
+  });
+  return <BoardCard {...props} cardRef={setNodeRef} listeners={listeners} dragging={isDragging} />;
 }
 
 /** Card da atividade: clicar abre a edicao; o nome do projeto leva para a aba Atividades dele. */
-function BoardCard({ activity, onOpen, onStatusChange }: BoardCardProps) {
+function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listeners, dragging }: BoardCardProps) {
   const urgency = urgencyOf(activity);
   const done = activity.status === 'Concluida';
+  const modifiers = [
+    urgency ? ` board-card--${urgency}` : '',
+    done ? ' board-card--done' : '',
+    overlay ? ' board-card--overlay' : '',
+    dragging ? ' board-card--dragging' : ''
+  ].join('');
 
   return (
-    <article
-      className={`board-card${urgency ? ` board-card--${urgency}` : ''}${done ? ' board-card--done' : ''}`}
-      onClick={onOpen}
-    >
+    <article ref={cardRef} className={`board-card${modifiers}`} onClick={onOpen} {...listeners}>
       <div className="board-card__top">
         {/* O clique sobe ate o card; o botao existe para abrir pelo teclado. */}
         <button type="button" className="board-card__title">
@@ -385,6 +483,7 @@ function BoardCard({ activity, onOpen, onStatusChange }: BoardCardProps) {
         <Link
           className="board-card__project"
           to={`/projetos/${activity.projectId}?aba=atividades`}
+          draggable={false}
           onClick={(event) => event.stopPropagation()}
         >
           {activity.projectName}
@@ -413,9 +512,19 @@ function BoardCard({ activity, onOpen, onStatusChange }: BoardCardProps) {
         </span>
       </div>
 
-      {/* No celular (ou em telas de toque) o status tambem muda pelo selo, alem de arrastar. */}
-      <div className="board-card__status" onClick={(event) => event.stopPropagation()}>
-        <ActivityStatusSelect status={activity.status} label={`Status de ${activity.title}`} onChange={onStatusChange} />
+      {/* No celular (e em telas de toque) o status tambem muda pelo selo, alem de arrastar. Tocar nele
+          nao abre o card nem comeca um arraste. */}
+      <div
+        className="board-card__status"
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        onTouchStart={(event) => event.stopPropagation()}
+      >
+        <ActivityStatusSelect
+          status={activity.status}
+          label={`Status de ${activity.title}`}
+          onChange={(status) => onStatusChange?.(status)}
+        />
       </div>
     </article>
   );
