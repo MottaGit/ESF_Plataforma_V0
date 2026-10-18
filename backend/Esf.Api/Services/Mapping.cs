@@ -49,7 +49,8 @@ public static class Mapping
             a.Notes,
             IsActivityLate(a.Status, a.DueDate),
             a.CreatedAt,
-            a.CompletedAt);
+            a.CompletedAt,
+            PhotoUrl(a.AssignedVolunteer?.PhotoStoredName));
 
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);

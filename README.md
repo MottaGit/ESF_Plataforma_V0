@@ -284,6 +284,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST | `/api/projects/{id}/activities` | atividades do projeto |
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
+| GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
 | GET/POST/PUT/DELETE | `/api/volunteers[/{id}]` | cadastro de voluntários |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |

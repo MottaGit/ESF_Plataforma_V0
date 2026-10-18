@@ -80,6 +80,7 @@ export interface Activity {
   isLate: boolean;
   createdAt: string;
   completedAt: string | null;
+  assignedVolunteerPhotoUrl: string | null;
 }
 
 export interface Indicator {

@@ -34,6 +34,11 @@ public class ActivitiesController : ControllerBase
             : await _activities.ListUpcomingAsync(take));
     }
 
+    /// <summary>Quadro de atividades da tela de Projetos (projetos ativos; concluidas dos ultimos 30 dias).</summary>
+    [HttpGet("activities/board")]
+    public async Task<ActionResult<List<ActivityDto>>> Board()
+        => Ok(await _activities.ListBoardAsync());
+
     [HttpPost("projects/{projectId:guid}/activities")]
     public async Task<ActionResult<ActivityDto>> Create(Guid projectId, SaveActivityRequest request)
         => Ok(await _activities.CreateAsync(projectId, request));

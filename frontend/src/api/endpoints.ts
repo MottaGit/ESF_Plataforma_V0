@@ -77,6 +77,8 @@ export const activitiesApi = {
   /** mine=true: so as atividades do voluntario vinculado ao usuario logado. */
   upcoming: (take = 8, mine = false) =>
     http.request<Activity[]>('/api/activities/upcoming', { query: { take, mine } }),
+  /** Quadro de atividades: projetos em planejamento ou em andamento; concluidas dos ultimos 30 dias. */
+  board: () => http.request<Activity[]>('/api/activities/board'),
   create: (projectId: string, payload: SaveActivityPayload) =>
     http.request<Activity>(`/api/projects/${projectId}/activities`, { method: 'POST', body: payload }),
   update: (id: string, payload: SaveActivityPayload) =>

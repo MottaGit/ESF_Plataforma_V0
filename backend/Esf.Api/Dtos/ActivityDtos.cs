@@ -17,7 +17,9 @@ public record ActivityDto(
     string? Notes,
     bool IsLate,
     DateTime CreatedAt,
-    DateTime? CompletedAt);
+    DateTime? CompletedAt,
+    // Foto do responsavel (null sem responsavel ou sem foto).
+    string? AssignedVolunteerPhotoUrl);
 
 public class SaveActivityRequest
 {

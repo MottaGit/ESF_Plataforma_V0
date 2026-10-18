@@ -29,6 +29,30 @@ public class ActivityService
         return activities.Select(Mapping.ToDto).ToList();
     }
 
+    /// <summary>Concluidas que continuam aparecendo no quadro de atividades.</summary>
+    public const int BoardDoneDays = 30;
+
+    /// <summary>
+    /// Quadro de atividades: as atividades de todos os projetos em planejamento ou em andamento (nao
+    /// arquivados). Das concluidas, so as dos ultimos <see cref="BoardDoneDays"/> dias. Filtros e ordem
+    /// ficam no navegador.
+    /// </summary>
+    public async Task<List<ActivityDto>> ListBoardAsync()
+    {
+        var doneSince = DateTime.UtcNow.AddDays(-BoardDoneDays);
+
+        var activities = await _db.Activities
+            .AsNoTracking()
+            .Include(a => a.AssignedVolunteer)
+            .Include(a => a.Project)
+            .Where(a => !a.Project!.IsArchived
+                && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento)
+                && (a.Status != ActivityStatus.Concluida || a.CompletedAt >= doneSince))
+            .ToListAsync();
+
+        return activities.Select(Mapping.ToDto).ToList();
+    }
+
     /// <summary>Atividades pendentes com prazo proximo, usadas no dashboard.</summary>
     public async Task<List<ActivityDto>> ListUpcomingAsync(int take = 8, Guid? assignedVolunteerId = null)
     {
@@ -121,6 +145,7 @@ public class ActivityService
         var activity = await _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
+            .Include(a => a.Project)
             .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
 
         return Mapping.ToDto(activity);
