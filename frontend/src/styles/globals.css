@@ -572,6 +572,24 @@ button { font: inherit; }
 .badge--cancel { background: var(--st-cancel-bg); color: var(--st-cancel-fg); }
 .badge--late { background: var(--danger-bg); color: var(--danger); }
 .badge--neutral { background: var(--surface-soft); color: var(--text-muted); }
+.badge--birthday { background: #fdf2fa; color: #a3216d; }
+
+/* Aniversariante do dia: linha da lista e aviso no topo da pagina de voluntarios. */
+.table tbody tr.table__row--birthday { background: #fef8fc; }
+.table tbody tr.table__row--birthday:hover { background: #fcf0f8; }
+.birthday-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid #f6d5ea;
+  border-radius: var(--radius);
+  background: #fdf2fa;
+  color: #7d1a54;
+  font-size: 13.5px;
+}
+.birthday-notice__icon { font-size: 18px; line-height: 1; }
 
 /* Badge de status clicavel: o select ocupa o badge e herda a cor do status. */
 .badge--select { position: relative; cursor: pointer; padding-right: 6px; }

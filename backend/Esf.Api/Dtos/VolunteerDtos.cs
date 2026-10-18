@@ -20,7 +20,9 @@ public record VolunteerDto(
     string? Notes,
     VolunteerStatus Status,
     List<VolunteerProjectDto> Projects,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    int? BirthDay,
+    int? BirthMonth);
 
 public record ProjectVolunteerDto(
     Guid VolunteerId,
@@ -52,6 +54,13 @@ public class SaveVolunteerRequest
 
     [Required(ErrorMessage = "Selecione a situacao.")]
     public VolunteerStatus? Status { get; set; }
+
+    /// <summary>Aniversario (opcional): dia e mes, sem ano.</summary>
+    [Range(1, 31, ErrorMessage = "Dia de aniversario invalido.")]
+    public int? BirthDay { get; set; }
+
+    [Range(1, 12, ErrorMessage = "Mes de aniversario invalido.")]
+    public int? BirthMonth { get; set; }
 }
 
 public class AddProjectVolunteerRequest

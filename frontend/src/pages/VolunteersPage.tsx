@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { volunteersApi } from '../api/endpoints';
-import { VolunteerStatusBadge } from '../components/ui/Badge';
+import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
@@ -12,10 +12,13 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { SaveVolunteerPayload, Volunteer, VolunteerSector, VolunteerStatus } from '../types/api';
 import {
+  MONTH_NAMES,
   VOLUNTEER_SECTORS,
   VOLUNTEER_STATUSES,
   emptyToNull,
+  isBirthdayToday,
   isPastProjectStatus,
+  joinNames,
   sectorLabel,
   volunteerStatusLabel
 } from '../utils/format';
@@ -57,6 +60,8 @@ export function VolunteersPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
 
   async function handleDelete() {
     if (!removing) return;
@@ -130,6 +135,17 @@ export function VolunteersPage() {
 
       {error ? <Alert kind="error">{error}</Alert> : null}
 
+      {birthdayPeople.length > 0 ? (
+        <div className="birthday-notice" role="status">
+          <span className="birthday-notice__icon" aria-hidden="true">
+            🎂
+          </span>
+          <span>
+            Hoje é aniversário de <strong>{joinNames(birthdayPeople.map((volunteer) => volunteer.name))}</strong>.
+          </span>
+        </div>
+      ) : null}
+
       <section className="panel">
         {loading ? (
           <Loading label="Carregando voluntários…" />
@@ -172,12 +188,18 @@ export function VolunteersPage() {
                         .map((item) => item.programName)
                     )
                   ];
+                  const birthday = isBirthdayToday(volunteer.birthDay, volunteer.birthMonth);
                   return (
-                    <tr key={volunteer.id}>
+                    <tr key={volunteer.id} className={birthday ? 'table__row--birthday' : undefined}>
                       <td>
                         <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
                           {volunteer.name}
                         </Link>
+                        {birthday ? (
+                          <div style={{ marginTop: 4 }}>
+                            <BirthdayBadge />
+                          </div>
+                        ) : null}
                       </td>
                       <td>{sectorLabel(volunteer.sector)}</td>
                       <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
@@ -259,6 +281,9 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
   const [skills, setSkills] = useState(volunteer?.skills ?? '');
   const [notes, setNotes] = useState(volunteer?.notes ?? '');
   const [status, setStatus] = useState<VolunteerStatus>(volunteer?.status ?? 'Ativo');
+  const [birthDay, setBirthDay] = useState(volunteer?.birthDay ? String(volunteer.birthDay) : '');
+  const [birthMonth, setBirthMonth] = useState(volunteer?.birthMonth ? String(volunteer.birthMonth) : '');
+  const [birthdayError, setBirthdayError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -273,6 +298,17 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
     }
     setNameError(null);
 
+    // Aniversario e opcional, mas dia e mes andam juntos e precisam formar uma data valida.
+    if (Boolean(birthDay) !== Boolean(birthMonth)) {
+      setBirthdayError('Escolha o dia e o mês, ou deixe os dois em branco.');
+      return;
+    }
+    if (birthDay && Number(birthDay) > new Date(2000, Number(birthMonth), 0).getDate()) {
+      setBirthdayError('Esse dia não existe no mês escolhido.');
+      return;
+    }
+    setBirthdayError(null);
+
     const payload: SaveVolunteerPayload = {
       name: name.trim(),
       email: emptyToNull(email),
@@ -280,7 +316,9 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
       sector,
       skills: emptyToNull(skills),
       notes: emptyToNull(notes),
-      status
+      status,
+      birthDay: birthDay ? Number(birthDay) : null,
+      birthMonth: birthMonth ? Number(birthMonth) : null
     };
 
     setSaving(true);
@@ -332,6 +370,42 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
 
           <Field label="Telefone" htmlFor="volunteer-phone">
             <TextInput id="volunteer-phone" value={phone} onChange={(event) => setPhone(event.target.value)} />
+          </Field>
+
+          <Field
+            label="Aniversário"
+            htmlFor="volunteer-birth-day"
+            hint="Só dia e mês. Usado para lembrar a data na plataforma."
+            error={birthdayError ?? undefined}
+          >
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Select
+                id="volunteer-birth-day"
+                aria-label="Dia do aniversário"
+                value={birthDay}
+                style={{ flex: '0 0 92px' }}
+                onChange={(event) => setBirthDay(event.target.value)}
+              >
+                <option value="">Dia</option>
+                {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                aria-label="Mês do aniversário"
+                value={birthMonth}
+                onChange={(event) => setBirthMonth(event.target.value)}
+              >
+                <option value="">Mês</option>
+                {MONTH_NAMES.map((month, index) => (
+                  <option key={month} value={index + 1}>
+                    {month}
+                  </option>
+                ))}
+              </Select>
+            </div>
           </Field>
 
           <Field label="Setor" htmlFor="volunteer-sector" required>

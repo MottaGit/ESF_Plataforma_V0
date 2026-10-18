@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { projectsApi, volunteersApi } from '../api/endpoints';
-import { VolunteerStatusBadge } from '../components/ui/Badge';
+import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
@@ -11,7 +11,7 @@ import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { ProjectListItem, Volunteer, VolunteerProject } from '../types/api';
-import { isPastProjectStatus, sectorLabel } from '../utils/format';
+import { birthdayLabel, isBirthdayToday, isPastProjectStatus, sectorLabel } from '../utils/format';
 import { VolunteerFormModal } from './VolunteersPage';
 
 export function VolunteerDetailPage() {
@@ -71,6 +71,7 @@ export function VolunteerDetailPage() {
           <p className="page-head__desc">{sectorLabel(volunteer.sector)}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
             <VolunteerStatusBadge status={volunteer.status} />
+            {isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? <BirthdayBadge /> : null}
           </div>
         </div>
 
@@ -102,6 +103,10 @@ export function VolunteerDetailPage() {
                 <div>
                   <div className="meta__label">Telefone</div>
                   <div className="meta__value">{volunteer.phone ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="meta__label">Aniversário</div>
+                  <div className="meta__value">{birthdayLabel(volunteer.birthDay, volunteer.birthMonth) ?? '—'}</div>
                 </div>
                 <div>
                   <div className="meta__label">Setor</div>

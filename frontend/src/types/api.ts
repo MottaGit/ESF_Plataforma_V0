@@ -108,6 +108,9 @@ export interface Volunteer {
   status: VolunteerStatus;
   projects: VolunteerProject[];
   createdAt: string;
+  /** Aniversario: so dia e mes (sem ano). */
+  birthDay: number | null;
+  birthMonth: number | null;
 }
 
 export interface ProjectVolunteer {
@@ -266,6 +269,8 @@ export interface SaveVolunteerPayload {
   skills: string | null;
   notes: string | null;
   status: VolunteerStatus;
+  birthDay: number | null;
+  birthMonth: number | null;
 }
 
 export interface SaveProgramPayload {

@@ -133,6 +133,40 @@ export function fileExtension(fileName: string) {
   return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : 'ARQ';
 }
 
+export const MONTH_NAMES = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro'
+];
+
+/** "Ana", "Ana e João", "Ana, João e Maria". */
+export function joinNames(names: string[]) {
+  if (names.length <= 1) return names[0] ?? '';
+  return `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
+}
+
+/** "12 de março" (aniversario guarda so dia e mes). */
+export function birthdayLabel(day: number | null, month: number | null) {
+  if (!day || !month) return null;
+  return `${day} de ${MONTH_NAMES[month - 1]}`;
+}
+
+/** Aniversario hoje, pela data local de quem esta usando. */
+export function isBirthdayToday(day: number | null, month: number | null) {
+  if (!day || !month) return false;
+  const today = new Date();
+  return today.getDate() === day && today.getMonth() + 1 === month;
+}
+
 /** Dias de hoje ate a data ("2026-03-14"): positivo no futuro, negativo no passado. */
 export function daysFromToday(date: string) {
   const target = new Date(`${date.slice(0, 10)}T00:00:00`);

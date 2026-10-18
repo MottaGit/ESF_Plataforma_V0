@@ -12,6 +12,10 @@ public class Volunteer
     public string? Skills { get; set; }
     public string? Notes { get; set; }
     public VolunteerStatus Status { get; set; } = VolunteerStatus.Ativo;
+
+    /// <summary>Aniversario: so dia e mes (o ano nao e guardado). Ambos preenchidos ou ambos vazios.</summary>
+    public int? BirthDay { get; set; }
+    public int? BirthMonth { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<ProjectVolunteer> Projects { get; set; } = new List<ProjectVolunteer>();

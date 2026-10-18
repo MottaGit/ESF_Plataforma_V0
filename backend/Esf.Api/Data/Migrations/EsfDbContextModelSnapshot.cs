@@ -424,6 +424,12 @@ namespace Esf.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("BirthDay")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("BirthMonth")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 

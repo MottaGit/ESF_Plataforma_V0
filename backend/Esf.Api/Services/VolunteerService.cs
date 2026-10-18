@@ -48,7 +48,9 @@ public class VolunteerService
                     pv.Project!.Status,
                     pv.Project!.Program!.Name,
                     pv.RoleInProject)).ToList(),
-                v.CreatedAt))
+                v.CreatedAt,
+                v.BirthDay,
+                v.BirthMonth))
             .ToListAsync();
     }
 
@@ -65,6 +67,7 @@ public class VolunteerService
 
     public async Task<VolunteerDto> CreateAsync(SaveVolunteerRequest request)
     {
+        ValidateBirthday(request);
         var volunteer = new Volunteer();
         Apply(volunteer, request);
         volunteer.CreatedAt = DateTime.UtcNow;
@@ -77,6 +80,7 @@ public class VolunteerService
 
     public async Task<VolunteerDto> UpdateAsync(Guid id, SaveVolunteerRequest request)
     {
+        ValidateBirthday(request);
         var volunteer = await _db.Volunteers
             .Include(v => v.Projects).ThenInclude(pv => pv.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
@@ -160,5 +164,17 @@ public class VolunteerService
         volunteer.Skills = string.IsNullOrWhiteSpace(r.Skills) ? null : r.Skills.Trim();
         volunteer.Notes = string.IsNullOrWhiteSpace(r.Notes) ? null : r.Notes.Trim();
         volunteer.Status = r.Status!.Value;
+        volunteer.BirthDay = r.BirthDay;
+        volunteer.BirthMonth = r.BirthMonth;
+    }
+
+    /// <summary>Aniversario: dia e mes juntos (ou nenhum), formando uma data que existe (29/02 vale).</summary>
+    private static void ValidateBirthday(SaveVolunteerRequest r)
+    {
+        if (r.BirthDay.HasValue != r.BirthMonth.HasValue)
+            throw new AppException("Informe o dia e o mes do aniversario.");
+
+        if (r.BirthDay.HasValue && r.BirthDay.Value > DateTime.DaysInMonth(2000, r.BirthMonth!.Value))
+            throw new AppException("Esse dia nao existe no mes escolhido.");
     }
 }

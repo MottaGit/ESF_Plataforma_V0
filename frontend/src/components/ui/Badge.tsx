@@ -107,6 +107,15 @@ export function LateBadge({ label = 'Atrasado' }: { label?: string }) {
   return <span className="badge badge--late">{label}</span>;
 }
 
+export function BirthdayBadge() {
+  return (
+    <span className="badge badge--birthday" title="Aniversário hoje">
+      <span aria-hidden="true">🎂</span>
+      Aniversário hoje
+    </span>
+  );
+}
+
 export function NeutralBadge({ children }: { children: ReactNode }) {
   return <span className="badge badge--neutral">{children}</span>;
 }
