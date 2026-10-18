@@ -17,6 +17,7 @@ public class EsfDbContext : DbContext
     public DbSet<ProjectFile> ProjectFiles => Set<ProjectFile>();
     public DbSet<ProjectUpdate> ProjectUpdates => Set<ProjectUpdate>();
     public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -116,6 +117,14 @@ public class EsfDbContext : DbContext
                 .WithMany(v => v.Projects)
                 .HasForeignKey(x => x.VolunteerId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<StoredFile>(e =>
+        {
+            e.HasKey(x => x.StoredName);
+            e.Property(x => x.StoredName).HasMaxLength(160);
+            e.Property(x => x.ContentType).HasMaxLength(160).IsRequired();
+            e.Property(x => x.Content).IsRequired();
         });
 
         b.Entity<ProjectFile>(e =>

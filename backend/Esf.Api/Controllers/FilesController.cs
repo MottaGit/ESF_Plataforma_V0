@@ -35,8 +35,8 @@ public class FilesController : ControllerBase
     [HttpGet("files/{id:guid}/download")]
     public async Task<IActionResult> Download(Guid id)
     {
-        var (path, contentType, fileName) = await _files.GetDownloadAsync(id);
-        return PhysicalFile(path, contentType, fileName);
+        var (content, contentType, fileName) = await _files.GetDownloadAsync(id);
+        return File(content, contentType, fileName);
     }
 
     [HttpPut("files/{id:guid}")]

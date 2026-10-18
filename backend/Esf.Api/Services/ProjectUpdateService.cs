@@ -83,7 +83,7 @@ public class ProjectUpdateService
         await TouchProjectAsync(update.ProjectId);
         await _db.SaveChangesAsync();
 
-        _storage.DeleteMany(storedNames);
+        await _storage.DeleteManyAsync(storedNames);
     }
 
     public async Task<ProjectFileDto> AddAttachmentAsync(Guid updateId, IFormFile file, Guid? uploadedByUserId)
@@ -113,7 +113,7 @@ public class ProjectUpdateService
         _db.ProjectFiles.Remove(attachment);
         await _db.SaveChangesAsync();
 
-        _storage.Delete(attachment.StoredName);
+        await _storage.DeleteAsync(attachment.StoredName);
     }
 
     private async Task<ProjectFile> SaveAttachmentAsync(Guid projectId, IFormFile file, Guid? uploadedByUserId)

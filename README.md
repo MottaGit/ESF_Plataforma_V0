@@ -180,6 +180,8 @@ consolidado por nome no dashboard geral.
 **Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
 a data da atualização). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
 arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
+Os arquivos ficam guardados no próprio banco (tabela `StoredFiles`), então não se perdem quando o servidor é recriado
+a cada deploy. Fotos grandes são reduzidas no navegador antes do envio (JPEG com o maior lado em 2048 px).
 
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
@@ -270,9 +272,10 @@ ESF_Plataforma_V0/
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com papel no projeto |
-| `ProjectFiles` | metadados dos arquivos enviados (o binário fica em disco); pode pertencer direto ao projeto ou a uma atualização |
+| `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a uma atualização |
 | `ProjectUpdates` | relatos de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | dados institucionais (registro único) |
+| `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}` |
 
 Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
 e `SET NULL` para referências a usuários (excluir um usuário não apaga o projeto dele).
@@ -343,7 +346,7 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | `ConnectionStrings:Default` | Postgres local | conexão com o banco |
 | `Jwt:Key` | valor de desenvolvimento | assinatura do token — **troque em produção** (mín. 32 caracteres) |
 | `Jwt:ExpiresMinutes` | 720 | validade do token |
-| `Storage:UploadsPath` | `App_Data/uploads` | onde os arquivos são gravados |
+| `Storage:UploadsPath` | `App_Data/uploads` | pasta onde versões anteriores gravavam os arquivos; os que ainda existirem são copiados para o banco ao iniciar |
 | `Storage:MaxFileSizeMb` | 15 | tamanho máximo por arquivo |
 | `Cors:AllowedOrigins` | localhost 5173/4173 | origens liberadas |
 | `Seed:Enabled` | `true` | criar dados de demonstração em banco vazio |

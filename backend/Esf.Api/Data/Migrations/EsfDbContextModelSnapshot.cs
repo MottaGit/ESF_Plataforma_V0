@@ -374,6 +374,32 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("ProjectVolunteers");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.StoredFile", b =>
+                {
+                    b.Property<string>("StoredName")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("StoredName");
+
+                    b.ToTable("StoredFiles");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")

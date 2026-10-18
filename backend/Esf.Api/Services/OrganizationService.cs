@@ -51,17 +51,15 @@ public class OrganizationService
 
         var org = await GetEntityAsync();
         var saved = await _storage.SaveAsync(file);
-
-        if (!string.IsNullOrWhiteSpace(org.LogoUrl))
-        {
-            var previous = org.LogoUrl.Split('/').Last();
-            _storage.Delete(previous);
-        }
+        var previous = org.LogoUrl?.Split('/').Last();
 
         org.LogoUrl = $"{Mapping.UploadsUrlPrefix}/{saved.StoredName}";
         org.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+
+        // O logo antigo so sai depois que o novo foi gravado.
+        await _storage.DeleteAsync(previous);
         return Mapping.ToDto(org);
     }
 

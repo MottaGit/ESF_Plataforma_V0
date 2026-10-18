@@ -61,7 +61,7 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> Delete(Guid id)
     {
         var storedFiles = await _projects.DeleteAsync(id);
-        _storage.DeleteMany(storedFiles);
+        await _storage.DeleteManyAsync(storedFiles);
         return NoContent();
     }
 }

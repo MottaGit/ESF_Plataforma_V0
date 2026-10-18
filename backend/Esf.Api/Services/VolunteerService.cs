@@ -110,7 +110,7 @@ public class VolunteerService
         _db.Volunteers.Remove(volunteer);
         await _db.SaveChangesAsync();
 
-        if (volunteer.PhotoStoredName is not null) _storage.Delete(volunteer.PhotoStoredName);
+        if (volunteer.PhotoStoredName is not null) await _storage.DeleteAsync(volunteer.PhotoStoredName);
     }
 
     /// <summary>Troca a foto do voluntario (a imagem ja chega recortada pelo navegador).</summary>
@@ -128,7 +128,7 @@ public class VolunteerService
         volunteer.PhotoStoredName = saved.StoredName;
         await _db.SaveChangesAsync();
 
-        if (previous is not null) _storage.Delete(previous);
+        if (previous is not null) await _storage.DeleteAsync(previous);
         return await GetAsync(id);
     }
 
@@ -140,7 +140,7 @@ public class VolunteerService
         volunteer.PhotoStoredName = null;
         await _db.SaveChangesAsync();
 
-        if (previous is not null) _storage.Delete(previous);
+        if (previous is not null) await _storage.DeleteAsync(previous);
         return await GetAsync(id);
     }
 

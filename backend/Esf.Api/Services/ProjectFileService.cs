@@ -79,15 +79,15 @@ public class ProjectFileService
         return Mapping.ToDto(entity);
     }
 
-    public async Task<(string Path, string ContentType, string FileName)> GetDownloadAsync(Guid fileId)
+    public async Task<(byte[] Content, string ContentType, string FileName)> GetDownloadAsync(Guid fileId)
     {
         var file = await _db.ProjectFiles.AsNoTracking().FirstOrDefaultAsync(f => f.Id == fileId)
                    ?? throw AppException.NotFound("Arquivo");
 
-        var path = _storage.FullPathOrNull(file.StoredName)
-                   ?? throw AppException.NotFound("Arquivo fisico");
+        var content = await _storage.TryReadAsync(file.StoredName)
+                      ?? throw AppException.NotFound("Conteudo do arquivo");
 
-        return (path, file.ContentType, file.FileName);
+        return (content, FileStorageService.ContentTypeFor(file.StoredName), file.FileName);
     }
 
     public async Task DeleteAsync(Guid fileId)
@@ -97,6 +97,6 @@ public class ProjectFileService
         _db.ProjectFiles.Remove(file);
         await _db.SaveChangesAsync();
 
-        _storage.Delete(file.StoredName);
+        await _storage.DeleteAsync(file.StoredName);
     }
 }

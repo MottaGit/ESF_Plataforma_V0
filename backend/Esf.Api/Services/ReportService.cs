@@ -64,7 +64,7 @@ public class ReportService
                 var loaded = new List<ReportPhoto>();
                 foreach (var image in images)
                 {
-                    var bytes = _storage.TryRead(image.StoredName);
+                    var bytes = await _storage.TryReadAsync(image.StoredName);
                     if (bytes is not { Length: > 0 }) continue;
 
                     var caption = string.IsNullOrWhiteSpace(image.Description) ? null : image.Description.Trim();

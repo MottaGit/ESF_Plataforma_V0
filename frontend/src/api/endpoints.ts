@@ -1,3 +1,4 @@
+import { shrinkImage } from '../utils/images';
 import { http } from './client';
 import type {
   Activity,
@@ -125,9 +126,9 @@ export const indicatorsApi = {
 
 export const filesApi = {
   listByProject: (projectId: string) => http.request<ProjectFile[]>(`/api/projects/${projectId}/files`),
-  upload: (projectId: string, file: File, description: string) => {
+  upload: async (projectId: string, file: File, description: string) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', await shrinkImage(file));
     if (description) formData.append('description', description);
     return http.request<ProjectFile>(`/api/projects/${projectId}/files`, { method: 'POST', formData });
   },
@@ -138,18 +139,18 @@ export const filesApi = {
 
 export const projectUpdatesApi = {
   listByProject: (projectId: string) => http.request<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
-  create: (projectId: string, text: string, files: File[]) => {
+  create: async (projectId: string, text: string, files: File[]) => {
     const formData = new FormData();
     formData.append('text', text);
-    files.forEach((file) => formData.append('files', file));
+    (await Promise.all(files.map(shrinkImage))).forEach((file) => formData.append('files', file));
     return http.request<ProjectUpdate>(`/api/projects/${projectId}/updates`, { method: 'POST', formData });
   },
   update: (id: string, text: string) =>
     http.request<ProjectUpdate>(`/api/updates/${id}`, { method: 'PUT', body: { text } }),
   remove: (id: string) => http.request<void>(`/api/updates/${id}`, { method: 'DELETE' }),
-  addAttachment: (id: string, file: File) => {
+  addAttachment: async (id: string, file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', await shrinkImage(file));
     return http.request<ProjectFile>(`/api/updates/${id}/attachments`, { method: 'POST', formData });
   },
   removeAttachment: (id: string, fileId: string) =>

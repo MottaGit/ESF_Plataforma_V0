@@ -7,7 +7,6 @@ using Esf.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -36,7 +35,7 @@ builder.Services.AddDbContext<EsfDbContext>(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddSingleton<JwtTokenService>();
-builder.Services.AddSingleton<FileStorageService>();
+builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
@@ -160,20 +159,24 @@ app.UseSwaggerUI(options =>
 
 app.UseCors();
 
-// Arquivos enviados (fotos e documentos) servidos a partir do diretorio de uploads.
-var storage = app.Services.GetRequiredService<FileStorageService>();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(storage.Root),
-    RequestPath = Mapping.UploadsUrlPrefix,
-    ServeUnknownFileTypes = true,
-    DefaultContentType = "application/octet-stream"
-});
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Arquivos enviados (fotos e documentos), guardados no banco. Publicos como antes (as tags <img> nao mandam
+// token) e com nome unico e imutavel, entao o navegador pode guardar em cache por muito tempo.
+app.MapGet($"{Mapping.UploadsUrlPrefix}/{{name}}", async (string name, FileStorageService storage, HttpContext http) =>
+    {
+        var file = await storage.FindAsync(name);
+        if (file is null) return Results.NotFound();
+
+        http.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        http.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        return Results.File(file.Value.Content, file.Value.ContentType);
+    })
+    .AllowAnonymous()
+    .ExcludeFromDescription();
 
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", at = DateTime.UtcNow }))
@@ -216,4 +219,16 @@ static async Task PrepareDatabaseAsync(WebApplication app)
     var seed = provider.GetRequiredService<IOptions<SeedOptions>>().Value;
     if (seed.Enabled)
         await DbSeeder.SeedAsync(db, seed.DemoPassword, logger);
+
+    // Arquivos de versoes anteriores (gravados em disco) que ainda existirem passam para o banco.
+    try
+    {
+        var imported = await provider.GetRequiredService<FileStorageService>()
+            .ImportLegacyFilesAsync(app.Environment.ContentRootPath);
+        if (imported > 0) logger.LogInformation("{Count} arquivo(s) da pasta de uploads copiado(s) para o banco.", imported);
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Nao foi possivel copiar os arquivos antigos da pasta de uploads para o banco.");
+    }
 }
