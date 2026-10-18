@@ -449,6 +449,10 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<string>("PhotoStoredName")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
                     b.Property<int>("Sector")
                         .HasColumnType("integer");
 

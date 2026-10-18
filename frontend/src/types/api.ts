@@ -111,6 +111,8 @@ export interface Volunteer {
   /** Aniversario: so dia e mes (sem ano). */
   birthDay: number | null;
   birthMonth: number | null;
+  /** Foto (quadrada, exibida em circulo); null quando nao ha. */
+  photoUrl: string | null;
 }
 
 export interface ProjectVolunteer {

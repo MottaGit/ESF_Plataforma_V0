@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { volunteersApi } from '../api/endpoints';
+import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { IconEdit, IconPlus, IconSearch, IconTrash, IconUpload } from '../components/ui/Icons';
+import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -284,6 +286,16 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
   const [birthDay, setBirthDay] = useState(volunteer?.birthDay ? String(volunteer.birthDay) : '');
   const [birthMonth, setBirthMonth] = useState(volunteer?.birthMonth ? String(volunteer.birthMonth) : '');
   const [birthdayError, setBirthdayError] = useState<string | null>(null);
+
+  // Foto: escolhida -> enquadrada -> enviada so ao salvar o voluntario.
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
+  const [newPhoto, setNewPhoto] = useState<{ blob: Blob; preview: string } | null>(null);
+  const [photoRemoved, setPhotoRemoved] = useState(false);
+  const currentPhoto = newPhoto?.preview ?? (photoRemoved ? null : volunteer?.photoUrl ?? null);
+
+  useEffect(() => () => (newPhoto ? URL.revokeObjectURL(newPhoto.preview) : undefined), [newPhoto]);
+
   const [nameError, setNameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -323,8 +335,9 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
 
     setSaving(true);
     try {
-      if (volunteer) await volunteersApi.update(volunteer.id, payload);
-      else await volunteersApi.create(payload);
+      const saved = volunteer ? await volunteersApi.update(volunteer.id, payload) : await volunteersApi.create(payload);
+      if (newPhoto) await volunteersApi.uploadPhoto(saved.id, newPhoto.blob);
+      else if (photoRemoved && volunteer?.photoUrl) await volunteersApi.removePhoto(saved.id);
       onSaved();
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o voluntário.');
@@ -353,6 +366,55 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
             <Alert kind="error">{formError}</Alert>
           </div>
         ) : null}
+
+        <div className="photo-field">
+          {photoToCrop ? (
+            <PhotoCropper
+              file={photoToCrop}
+              onCancel={() => setPhotoToCrop(null)}
+              onConfirm={(blob, preview) => {
+                setNewPhoto({ blob, preview });
+                setPhotoRemoved(false);
+                setPhotoToCrop(null);
+              }}
+            />
+          ) : (
+            <>
+              <Avatar name={name || '?'} photoUrl={currentPhoto} size={96} />
+              <div className="photo-field__actions">
+                <Button small icon={<IconUpload size={14} />} onClick={() => photoInputRef.current?.click()}>
+                  {currentPhoto ? 'Trocar foto' : 'Adicionar foto'}
+                </Button>
+                {currentPhoto ? (
+                  <Button
+                    small
+                    variant="ghost"
+                    onClick={() => {
+                      setNewPhoto(null);
+                      setPhotoRemoved(true);
+                    }}
+                  >
+                    Remover
+                  </Button>
+                ) : null}
+              </div>
+              {newPhoto || photoRemoved ? (
+                <span className="field__hint">A foto será atualizada ao salvar.</span>
+              ) : null}
+            </>
+          )}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (file) setPhotoToCrop(file);
+            }}
+          />
+        </div>
 
         <div className="form-grid">
           <Field label="Nome" htmlFor="volunteer-name" required error={nameError ?? undefined} span>

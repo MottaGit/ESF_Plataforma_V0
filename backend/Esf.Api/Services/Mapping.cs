@@ -55,7 +55,11 @@ public static class Mapping
 
     public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects) =>
         new(v.Id, v.Name, v.Email, v.Phone, v.Sector, v.Skills, v.Notes, v.Status, projects, v.CreatedAt,
-            v.BirthDay, v.BirthMonth);
+            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName));
+
+    /// <summary>Endereco publico da foto de um voluntario (null quando nao ha foto).</summary>
+    public static string? PhotoUrl(string? storedName) =>
+        string.IsNullOrEmpty(storedName) ? null : $"{UploadsUrlPrefix}/{storedName}";
 
     public static VolunteerProjectDto ToProjectDto(ProjectVolunteer pv) =>
         new(pv.ProjectId,

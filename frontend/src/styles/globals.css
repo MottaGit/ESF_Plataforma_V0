@@ -217,6 +217,10 @@ button { font: inherit; }
   font-size: 12px;
   font-weight: 600;
   flex: 0 0 auto;
+  overflow: hidden;
+  line-height: 1;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block;
 }
 
 .header__user-name { font-size: 13px; font-weight: 500; line-height: 1.2; }
@@ -590,6 +594,42 @@ button { font: inherit; }
   font-size: 13.5px;
 }
 .birthday-notice__icon { font-size: 18px; line-height: 1; }
+
+/* Foto do voluntario: area no topo do formulario e o enquadramento circular. */
+.photo-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.photo-field__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.cropper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cropper__viewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #1b2028;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.cropper__viewport:active { cursor: grabbing; }
+.cropper__viewport:focus-visible { box-shadow: var(--focus); outline: none; }
+.cropper__viewport img { position: absolute; max-width: none; pointer-events: none; }
+.cropper__mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 200px rgba(16, 24, 40, 0.6);
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+.cropper__loading { position: absolute; inset: 0; display: grid; place-items: center; color: #c3cad4; font-size: 13px; }
+.cropper__zoom { display: flex; align-items: center; gap: 10px; width: 260px; font-size: 12.5px; color: var(--text-muted); }
+.cropper__zoom input { flex: 1; accent-color: var(--accent); }
 
 /* Badge de status clicavel: o select ocupa o badge e herda a cor do status. */
 .badge--select { position: relative; cursor: pointer; padding-right: 6px; }

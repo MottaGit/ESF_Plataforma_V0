@@ -45,6 +45,17 @@ public class VolunteersController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("volunteers/{id:guid}/photo")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<ActionResult<VolunteerDto>> SetPhoto(Guid id, [FromForm] IFormFile file)
+        => Ok(await _volunteers.SetPhotoAsync(id, file));
+
+    [HttpDelete("volunteers/{id:guid}/photo")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<VolunteerDto>> RemovePhoto(Guid id)
+        => Ok(await _volunteers.RemovePhotoAsync(id));
+
     [HttpGet("projects/{projectId:guid}/volunteers")]
     public async Task<ActionResult<List<ProjectVolunteerDto>>> ListByProject(Guid projectId)
         => Ok(await _volunteers.ListByProjectAsync(projectId));

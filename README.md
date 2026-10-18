@@ -148,7 +148,9 @@ Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem
 vinculado, com filtro por setor e por situação. O vínculo com projetos (e o papel exercido em cada um) pode ser feito
 tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o voluntário, sempre entre projeto e
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
-hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes.
+hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
+item do formulário: escolhida do computador e enquadrada num círculo (arrastar e zoom) antes de ser usada; o navegador
+envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário.
 
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.
@@ -275,6 +277,7 @@ A documentação interativa fica em `/swagger`.
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
 | GET/POST/PUT/DELETE | `/api/volunteers[/{id}]` | cadastro de voluntários |
+| POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |

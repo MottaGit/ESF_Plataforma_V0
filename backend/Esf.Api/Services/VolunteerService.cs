@@ -9,9 +9,19 @@ namespace Esf.Api.Services;
 
 public class VolunteerService
 {
-    private readonly EsfDbContext _db;
+    private static readonly HashSet<string> PhotoExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg", ".jpeg", ".png", ".webp"
+    };
 
-    public VolunteerService(EsfDbContext db) => _db = db;
+    private readonly EsfDbContext _db;
+    private readonly FileStorageService _storage;
+
+    public VolunteerService(EsfDbContext db, FileStorageService storage)
+    {
+        _db = db;
+        _storage = storage;
+    }
 
     public async Task<List<VolunteerDto>> ListAsync(string? search, bool onlyActive, VolunteerSector? sector)
     {
@@ -50,7 +60,8 @@ public class VolunteerService
                     pv.RoleInProject)).ToList(),
                 v.CreatedAt,
                 v.BirthDay,
-                v.BirthMonth))
+                v.BirthMonth,
+                v.PhotoStoredName != null ? Mapping.UploadsUrlPrefix + "/" + v.PhotoStoredName : null))
             .ToListAsync();
     }
 
@@ -98,6 +109,39 @@ public class VolunteerService
 
         _db.Volunteers.Remove(volunteer);
         await _db.SaveChangesAsync();
+
+        if (volunteer.PhotoStoredName is not null) _storage.Delete(volunteer.PhotoStoredName);
+    }
+
+    /// <summary>Troca a foto do voluntario (a imagem ja chega recortada pelo navegador).</summary>
+    public async Task<VolunteerDto> SetPhotoAsync(Guid id, IFormFile file)
+    {
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+
+        if (file is null || !PhotoExtensions.Contains(Path.GetExtension(file.FileName))
+            || !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            throw new AppException("Envie uma imagem JPG, PNG ou WEBP.");
+
+        var saved = await _storage.SaveAsync(file);
+        var previous = volunteer.PhotoStoredName;
+
+        volunteer.PhotoStoredName = saved.StoredName;
+        await _db.SaveChangesAsync();
+
+        if (previous is not null) _storage.Delete(previous);
+        return await GetAsync(id);
+    }
+
+    public async Task<VolunteerDto> RemovePhotoAsync(Guid id)
+    {
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+
+        var previous = volunteer.PhotoStoredName;
+        volunteer.PhotoStoredName = null;
+        await _db.SaveChangesAsync();
+
+        if (previous is not null) _storage.Delete(previous);
+        return await GetAsync(id);
     }
 
     public async Task<List<ProjectVolunteerDto>> ListByProjectAsync(Guid projectId)

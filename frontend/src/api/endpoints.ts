@@ -95,6 +95,13 @@ export const volunteersApi = {
   update: (id: string, payload: SaveVolunteerPayload) =>
     http.request<Volunteer>(`/api/volunteers/${id}`, { method: 'PUT', body: payload }),
   remove: (id: string) => http.request<void>(`/api/volunteers/${id}`, { method: 'DELETE' }),
+  /** Foto ja recortada (quadrada) pelo navegador. */
+  uploadPhoto: (id: string, photo: Blob) => {
+    const formData = new FormData();
+    formData.append('file', photo, 'foto.jpg');
+    return http.request<Volunteer>(`/api/volunteers/${id}/photo`, { method: 'POST', formData });
+  },
+  removePhoto: (id: string) => http.request<Volunteer>(`/api/volunteers/${id}/photo`, { method: 'DELETE' }),
   listByProject: (projectId: string) => http.request<ProjectVolunteer[]>(`/api/projects/${projectId}/volunteers`),
   addToProject: (projectId: string, volunteerId: string, roleInProject: string | null) =>
     http.request<ProjectVolunteer>(`/api/projects/${projectId}/volunteers`, {

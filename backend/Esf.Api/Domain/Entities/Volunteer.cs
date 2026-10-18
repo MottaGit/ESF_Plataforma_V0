@@ -16,6 +16,9 @@ public class Volunteer
     /// <summary>Aniversario: so dia e mes (o ano nao e guardado). Ambos preenchidos ou ambos vazios.</summary>
     public int? BirthDay { get; set; }
     public int? BirthMonth { get; set; }
+
+    /// <summary>Foto (ja recortada em quadrado pelo navegador), gravada no armazenamento de arquivos.</summary>
+    public string? PhotoStoredName { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<ProjectVolunteer> Projects { get; set; } = new List<ProjectVolunteer>();

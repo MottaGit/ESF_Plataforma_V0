@@ -41,6 +41,7 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Name).HasMaxLength(160).IsRequired();
             e.Property(x => x.Email).HasMaxLength(200);
             e.Property(x => x.Phone).HasMaxLength(40);
+            e.Property(x => x.PhotoStoredName).HasMaxLength(160);
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.Sector);
         });

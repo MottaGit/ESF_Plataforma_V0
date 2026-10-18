@@ -22,7 +22,8 @@ public record VolunteerDto(
     List<VolunteerProjectDto> Projects,
     DateTime CreatedAt,
     int? BirthDay,
-    int? BirthMonth);
+    int? BirthMonth,
+    string? PhotoUrl);
 
 public record ProjectVolunteerDto(
     Guid VolunteerId,
