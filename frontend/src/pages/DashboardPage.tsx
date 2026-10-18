@@ -1,16 +1,40 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Ref } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { activitiesApi, dashboardApi, volunteersApi } from '../api/endpoints';
 import { Avatar } from '../components/ui/Avatar';
-import { BirthdayBadge, LateBadge, StatusBadge } from '../components/ui/Badge';
+import { BirthdayBadge, LateBadge, NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconPlus } from '../components/ui/Icons';
-import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
-import type { Activity, Dashboard, Volunteer } from '../types/api';
-import { MONTH_NAMES, dueLabel, formatDate, formatNumber, isBirthdayToday, projectStatusLabel } from '../utils/format';
+import type { Activity, Dashboard, Volunteer, VolunteerWorkload } from '../types/api';
+import { MONTH_NAMES, daysFromToday, dueLabel, isBirthdayToday } from '../utils/format';
+
+/** Recortes do bloco "Precisa de atencao". */
+type AttentionFilter = 'all' | 'late' | 'soon' | 'unassigned';
+
+const ATTENTION_FILTERS: Array<{ key: AttentionFilter; label: string }> = [
+  { key: 'all', label: 'Todas' },
+  { key: 'late', label: 'Atrasadas' },
+  { key: 'soon', label: 'Próximos 7 dias' },
+  { key: 'unassigned', label: 'Sem responsável' }
+];
+
+/** Quantas atividades aparecem antes do "Mostrar todas". */
+const ATTENTION_VISIBLE = 8;
+
+function isDueSoon(activity: Activity) {
+  if (!activity.dueDate || activity.isLate) return false;
+  return daysFromToday(activity.dueDate) <= 7;
+}
+
+function matchesFilter(activity: Activity, filter: AttentionFilter) {
+  if (filter === 'late') return activity.isLate;
+  if (filter === 'soon') return isDueSoon(activity);
+  if (filter === 'unassigned') return !activity.assignedVolunteerId;
+  return true;
+}
 
 export function DashboardPage() {
   const { canManage, user } = useAuth();
@@ -19,6 +43,8 @@ export function DashboardPage() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attentionFilter, setAttentionFilter] = useState<AttentionFilter>('all');
+  const attentionRef = useRef<HTMLElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -26,7 +52,7 @@ export function DashboardPage() {
     try {
       setData(await dashboardApi.get());
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o resumo.');
+      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar a visão geral.');
     } finally {
       setLoading(false);
     }
@@ -36,7 +62,7 @@ export function DashboardPage() {
     void load();
   }, [load]);
 
-  if (loading) return <Loading label="Carregando o resumo da organização…" />;
+  if (loading) return <Loading label="Carregando a visão geral…" />;
 
   if (error) {
     return (
@@ -48,15 +74,21 @@ export function DashboardPage() {
 
   if (!data) return null;
 
-  const { totals, byStatus, topIndicators, activeProjects, upcomingActivities } = data;
+  const { totals, attention, workload, upcomingActivities } = data;
   const firstName = (user?.name ?? '').split(' ')[0];
+
+  /** Os numeros do topo levam ao recorte correspondente em "Precisa de atencao". */
+  function showAttention(filter: AttentionFilter) {
+    setAttentionFilter(filter);
+    attentionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   return (
     <>
       <div className="page-head">
         <div className="page-head__text">
           <h1>Olá, {firstName}</h1>
-          <p className="page-head__desc">Como estão os projetos da organização hoje.</p>
+          <p className="page-head__desc">O que está acontecendo nas atividades da organização.</p>
         </div>
         {canManage ? (
           <div className="page-head__actions">
@@ -68,177 +100,187 @@ export function DashboardPage() {
       </div>
 
       <div className="stat-strip section">
+        <button type="button" className="stat stat--link" onClick={() => showAttention('late')}>
+          <div className={`stat__value num${totals.lateActivities > 0 ? ' stat__value--alert' : ''}`}>
+            {totals.lateActivities}
+          </div>
+          <div className="stat__label">Atividades atrasadas</div>
+          <div className="stat__hint">Prazo já passou</div>
+        </button>
+        <button type="button" className="stat stat--link" onClick={() => showAttention('soon')}>
+          <div className="stat__value num">{totals.dueSoonActivities}</div>
+          <div className="stat__label">Vencem nos próximos 7 dias</div>
+          <div className="stat__hint">Ainda dá tempo</div>
+        </button>
         <div className="stat">
-          <div className="stat__value num">{totals.projects}</div>
-          <div className="stat__label">Projetos ativos</div>
-          <div className="stat__hint">Não arquivados</div>
+          <div className="stat__value num">{totals.inProgressActivities}</div>
+          <div className="stat__label">Atividades em andamento</div>
+          <div className="stat__hint">Em execução agora</div>
         </div>
-        <div className="stat">
-          <div className="stat__value num">{totals.inProgress}</div>
-          <div className="stat__label">Em andamento</div>
-          <div className="stat__hint">{totals.planning} em planejamento</div>
-        </div>
-        <div className="stat">
-          <div className="stat__value num">{totals.completed}</div>
-          <div className="stat__label">Concluídos</div>
-          <div className="stat__hint">Resultados já entregues</div>
-        </div>
-        <div className={`stat${totals.late > 0 ? ' stat--alert' : ''}`}>
-          <div className="stat__value num">{totals.late}</div>
-          <div className="stat__label">Atrasados</div>
-          <div className="stat__hint">Previsão de término vencida</div>
-        </div>
-        <div className="stat">
-          <div className="stat__value num">{totals.pendingActivities}</div>
-          <div className="stat__label">Atividades pendentes</div>
-          <div className="stat__hint">Não iniciadas ou em andamento</div>
-        </div>
-        <div className="stat">
-          <div className="stat__value num">{totals.volunteers}</div>
-          <div className="stat__label">Voluntários envolvidos</div>
-          <div className="stat__hint">Vinculados a algum projeto</div>
-        </div>
-        <div className="stat">
-          <div className="stat__value num">{totals.planning}</div>
-          <div className="stat__label">Em planejamento</div>
-          <div className="stat__hint">Ainda não iniciados</div>
-        </div>
-        <div className="stat">
-          <div className="stat__value num">{byStatus.find((item) => item.status === 'Pausado')?.count ?? 0}</div>
-          <div className="stat__label">Pausados</div>
-          <div className="stat__hint">Aguardando retomada</div>
-        </div>
+        <Link className="stat stat--link" to="/voluntarios">
+          <div className="stat__value num">{totals.activeVolunteers}</div>
+          <div className="stat__label">Voluntários ativos</div>
+          <div className="stat__hint">
+            {totals.activeVolunteersWithoutOpenActivities === 0
+              ? 'Todos com atividade em aberto'
+              : `${totals.activeVolunteersWithoutOpenActivities} sem nenhuma atividade em aberto`}
+          </div>
+        </Link>
       </div>
 
       <div className="grid-sidebar">
-        <section className="panel">
-          <div className="panel__head">
-            <h2>Projetos em andamento</h2>
-            <div className="panel__actions">
-              <Link className="btn btn--sm" to="/projetos">
-                Ver todos
-              </Link>
-            </div>
-          </div>
-
-          {activeProjects.length === 0 ? (
-            <EmptyState
-              title="Nenhum projeto ativo"
-              description="Cadastre o primeiro projeto para começar a acompanhar o trabalho do núcleo."
-              action={
-                canManage ? (
-                  <Button variant="primary" onClick={() => navigate('/projetos?novo=1')}>
-                    Cadastrar projeto
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Projeto</th>
-                    <th>Status</th>
-                    <th>Progresso</th>
-                    <th className="tight">Previsão</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeProjects.map((project) => (
-                    <tr key={project.id}>
-                      <td>
-                        <Link className="row-link" to={`/projetos/${project.id}`}>
-                          {project.name}
-                        </Link>
-                        <div className="table__secondary">
-                          {project.programName}
-                          {project.ownerName ? ` · ${project.ownerName}` : ''}
-                        </div>
-                      </td>
-                      <td>
-                        <StatusBadge status={project.status} />
-                      </td>
-                      <td style={{ minWidth: 150 }}>
-                        <Progress value={project.progress} />
-                      </td>
-                      <td className="tight">
-                        {formatDate(project.endDateForecast)}
-                        {project.isLate ? (
-                          <div style={{ marginTop: 4 }}>
-                            <LateBadge />
-                          </div>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+          <AttentionPanel
+            panelRef={attentionRef}
+            activities={attention}
+            filter={attentionFilter}
+            onFilterChange={setAttentionFilter}
+          />
+          <TeamPanel workload={workload} idle={totals.activeVolunteersWithoutOpenActivities} />
+        </div>
 
         <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Indicadores consolidados</h2>
-            </div>
-            <div className="panel__body">
-              {topIndicators.length === 0 ? (
-                <EmptyState
-                  title="Sem indicadores registrados"
-                  description="Os indicadores de cada projeto aparecem aqui somados por nome."
-                />
-              ) : (
-                topIndicators.map((indicator) => (
-                  <div className="indicator" key={`${indicator.name}-${indicator.unit ?? ''}`}>
-                    <div className="indicator__top">
-                      <span className="indicator__name">{indicator.name}</span>
-                      <span className="indicator__values num">
-                        <strong>{formatNumber(indicator.value)}</strong>
-                        {indicator.unit ? ` ${indicator.unit}` : ''}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-
           <UpcomingActivitiesPanel all={upcomingActivities} />
-
           <BirthdaysPanel />
-
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Distribuição por status</h2>
-            </div>
-            <div className="panel__body">
-              {byStatus.length === 0 ? (
-                <EmptyState title="Sem projetos cadastrados" />
-              ) : (
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {byStatus.map((item) => (
-                    <div key={item.status} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 13 }}>{projectStatusLabel(item.status)}</span>
-                      <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, minWidth: 140 }}>
-                        <Progress
-                          value={totals.projects === 0 ? 0 : (item.count / totals.projects) * 100}
-                          showValue={false}
-                        />
-                        <span className="num" style={{ fontSize: 13, width: 18, textAlign: 'right' }}>
-                          {item.count}
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
         </div>
       </div>
     </>
+  );
+}
+
+interface AttentionPanelProps {
+  activities: Activity[];
+  filter: AttentionFilter;
+  onFilterChange: (filter: AttentionFilter) => void;
+  panelRef: Ref<HTMLElement>;
+}
+
+/** Atividades que pedem acao agora: atrasadas, vencendo em ate 7 dias ou sem responsavel. */
+function AttentionPanel({ activities, filter, onFilterChange, panelRef }: AttentionPanelProps) {
+  const [expanded, setExpanded] = useState(false);
+  const filtered = activities.filter((activity) => matchesFilter(activity, filter));
+  const visible = expanded ? filtered : filtered.slice(0, ATTENTION_VISIBLE);
+
+  return (
+    <section className="panel attention" ref={panelRef}>
+      <div className="panel__head">
+        <h2>Precisa de atenção</h2>
+      </div>
+      <div className="attention__filters" role="group" aria-label="Filtrar atividades">
+        {ATTENTION_FILTERS.map((item) => {
+          const count = activities.filter((activity) => matchesFilter(activity, item.key)).length;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              className={`chip${filter === item.key ? ' chip--active' : ''}`}
+              aria-pressed={filter === item.key}
+              onClick={() => {
+                onFilterChange(item.key);
+                setExpanded(false);
+              }}
+            >
+              {item.label}
+              <span className="chip__count num">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <EmptyState
+          title="Nada pedindo atenção"
+          description={
+            filter === 'all'
+              ? 'Nenhuma atividade atrasada, vencendo nos próximos dias ou sem responsável.'
+              : 'Nenhuma atividade neste recorte.'
+          }
+        />
+      ) : (
+        <ul className="attention__list">
+          {visible.map((activity) => (
+            <li key={activity.id} className="attention__item">
+              <div className="attention__main">
+                <Link
+                  className="row-link attention__title"
+                  to={`/projetos/${activity.projectId}?aba=atividades${activity.isLate ? '&filtro=atrasadas' : ''}`}
+                >
+                  {activity.title}
+                </Link>
+                <div className="attention__meta">
+                  <span>{activity.projectName}</span>
+                  <span>{activity.assignedVolunteerName ?? 'Sem responsável'}</span>
+                </div>
+              </div>
+              <div className="attention__reasons">
+                {activity.isLate ? (
+                  <LateBadge label={dueLabel(activity.dueDate)} />
+                ) : isDueSoon(activity) ? (
+                  <span className="badge badge--pause">vence {dueLabel(activity.dueDate)}</span>
+                ) : null}
+                {!activity.assignedVolunteerId ? <NeutralBadge>sem responsável</NeutralBadge> : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {filtered.length > ATTENTION_VISIBLE ? (
+        <div className="attention__more">
+          <button type="button" className="link-button" onClick={() => setExpanded((current) => !current)}>
+            {expanded ? 'Mostrar menos' : `Mostrar todas (${filtered.length})`}
+          </button>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+/** Carga da equipe: quem esta com mais atividades em aberto, e quantos ativos estao sem nenhuma. */
+function TeamPanel({ workload, idle }: { workload: VolunteerWorkload[]; idle: number }) {
+  return (
+    <section className="panel">
+      <div className="panel__head">
+        <h2>Equipe</h2>
+        <div className="panel__actions">
+          <Link className="btn btn--sm" to="/voluntarios">
+            Ver voluntários
+          </Link>
+        </div>
+      </div>
+      <div className="panel__body">
+        {workload.length === 0 ? (
+          <p className="field__hint">Ninguém está com atividades em aberto.</p>
+        ) : (
+          <ul className="team-load">
+            {workload.map((item) => (
+              <li key={item.volunteerId} className="team-load__item">
+                <Avatar name={item.name} photoUrl={item.photoUrl} size={28} />
+                <Link className="row-link team-load__name" to={`/voluntarios/${item.volunteerId}`}>
+                  {item.name}
+                </Link>
+                <span className="team-load__count num">
+                  {item.openActivities} em aberto
+                  {item.lateActivities > 0 ? (
+                    <span className="team-load__late">
+                      {' · '}
+                      {item.lateActivities} {item.lateActivities > 1 ? 'atrasadas' : 'atrasada'}
+                    </span>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {idle > 0 ? (
+          <p className="field__hint" style={{ marginTop: 12 }}>
+            {idle === 1
+              ? '1 voluntário ativo está sem nenhuma atividade em aberto.'
+              : `${idle} voluntários ativos estão sem nenhuma atividade em aberto.`}
+          </p>
+        ) : null}
+      </div>
+    </section>
   );
 }
 

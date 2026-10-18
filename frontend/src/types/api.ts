@@ -189,32 +189,35 @@ export interface ProjectDetail {
   updates: ProjectUpdate[];
 }
 
-export interface ProjectTotals {
-  projects: number;
-  inProgress: number;
-  planning: number;
-  completed: number;
-  late: number;
-  pendingActivities: number;
-  volunteers: number;
+export interface DashboardTotals {
+  lateActivities: number;
+  dueSoonActivities: number;
+  inProgressActivities: number;
+  activeVolunteers: number;
+  activeVolunteersWithoutOpenActivities: number;
 }
 
-export interface StatusCount {
-  status: ProjectStatus;
-  count: number;
-}
-
-export interface IndicatorSummary {
+export interface VolunteerWorkload {
+  volunteerId: string;
   name: string;
-  unit: string | null;
-  value: number;
+  photoUrl: string | null;
+  openActivities: number;
+  lateActivities: number;
+}
+
+/** Numeros do usuario logado (so quando o acesso esta vinculado a um voluntario). */
+export interface MyActivities {
+  open: number;
+  late: number;
+  dueSoon: number;
 }
 
 export interface Dashboard {
-  totals: ProjectTotals;
-  byStatus: StatusCount[];
-  topIndicators: IndicatorSummary[];
-  activeProjects: ProjectListItem[];
+  totals: DashboardTotals;
+  /** Atividades atrasadas, vencendo em 7 dias ou sem responsavel, mais urgentes primeiro. */
+  attention: Activity[];
+  workload: VolunteerWorkload[];
+  mine: MyActivities | null;
   upcomingActivities: Activity[];
 }
 

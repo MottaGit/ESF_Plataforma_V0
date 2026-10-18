@@ -1,24 +1,28 @@
-using Esf.Api.Domain;
-
 namespace Esf.Api.Dtos;
 
+/// <summary>Visao geral voltada para o trabalho do dia a dia: atividades e voluntarios.</summary>
 public record DashboardDto(
-    ProjectTotalsDto Totals,
-    IReadOnlyList<StatusCountDto> ByStatus,
-    IReadOnlyList<IndicatorSummaryDto> TopIndicators,
-    IReadOnlyList<ProjectListItemDto> ActiveProjects,
+    DashboardTotalsDto Totals,
+    // Atividades que pedem acao (atrasadas, vencendo em 7 dias ou sem responsavel), mais urgentes primeiro.
+    IReadOnlyList<ActivityDto> Attention,
+    // Voluntarios com mais atividades em aberto (carga da equipe).
+    IReadOnlyList<VolunteerWorkloadDto> Workload,
+    // Numeros do usuario logado; null quando o acesso nao esta vinculado a um voluntario.
+    MyActivitiesDto? Mine,
     IReadOnlyList<ActivityDto> UpcomingActivities);
 
-public record ProjectTotalsDto(
-    int Projects,
-    int InProgress,
-    int Planning,
-    int Completed,
-    int Late,
-    int PendingActivities,
-    int Volunteers);
+public record DashboardTotalsDto(
+    int LateActivities,
+    int DueSoonActivities,
+    int InProgressActivities,
+    int ActiveVolunteers,
+    int ActiveVolunteersWithoutOpenActivities);
 
-public record StatusCountDto(ProjectStatus Status, int Count);
+public record VolunteerWorkloadDto(
+    Guid VolunteerId,
+    string Name,
+    string? PhotoUrl,
+    int OpenActivities,
+    int LateActivities);
 
-/// <summary>Indicador consolidado pelo nome, somando todos os projetos.</summary>
-public record IndicatorSummaryDto(string Name, string? Unit, decimal Value);
+public record MyActivitiesDto(int Open, int Late, int DueSoon);

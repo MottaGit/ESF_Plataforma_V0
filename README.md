@@ -109,10 +109,11 @@ O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados r
 
 ## O que a aplicação faz
 
-**Visão geral (dashboard)** — total de projetos, em andamento, em planejamento, concluídos, atrasados, atividades
-pendentes, voluntários envolvidos, indicadores consolidados por nome, projetos ativos e próximas atividades, com o
-recorte **Minhas** (atribuídas ao voluntário vinculado ao seu acesso) ou **Todas**, e os **aniversariantes do mês**
-(voluntários ativos e afastados), com o do dia destacado.
+**Visão geral (dashboard)** — focada no trabalho do dia a dia: atividades e voluntários. No topo, quatro números
+(atividades atrasadas, que vencem nos próximos 7 dias, em andamento e voluntários ativos, com quantos estão sem
+atividade em aberto). O bloco **Precisa de atenção** lista as atividades atrasadas, vencendo em breve ou sem
+responsável (com filtros e link para o projeto); **Equipe** mostra quem está com mais atividades em aberto. À direita,
+**Próximas atividades** (Minhas ou Todas) e os **aniversariantes do mês** (voluntários ativos e afastados).
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um

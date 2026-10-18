@@ -1,5 +1,6 @@
 using Esf.Api.Data;
 using Esf.Api.Domain;
+using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,75 +8,105 @@ namespace Esf.Api.Services;
 
 public class DashboardService
 {
+    /// <summary>Janela de "vence em breve", em dias.</summary>
+    private const int DueSoonDays = 7;
+
+    /// <summary>Limite de itens devolvidos em "precisa de atencao" (a tela mostra os primeiros e expande).</summary>
+    private const int AttentionLimit = 50;
+
+    private const int WorkloadLimit = 6;
+
     private readonly EsfDbContext _db;
-    private readonly ProjectService _projects;
     private readonly ActivityService _activities;
 
-    public DashboardService(EsfDbContext db, ProjectService projects, ActivityService activities)
+    public DashboardService(EsfDbContext db, ActivityService activities)
     {
         _db = db;
-        _projects = projects;
         _activities = activities;
     }
 
-    public async Task<DashboardDto> GetAsync()
+    public async Task<DashboardDto> GetAsync(Guid? currentUserId)
     {
         var today = Mapping.Today;
-        var active = _db.Projects.AsNoTracking().Where(p => !p.IsArchived);
+        var soon = today.AddDays(DueSoonDays);
 
-        var total = await active.CountAsync();
-        var inProgress = await active.CountAsync(p => p.Status == ProjectStatus.EmAndamento);
-        var planning = await active.CountAsync(p => p.Status == ProjectStatus.Planejamento);
-        var completed = await active.CountAsync(p => p.Status == ProjectStatus.Concluido);
-        var late = await active.CountAsync(p => p.EndDateForecast != null
-                                                && p.EndDateForecast < today
-                                                && p.Status != ProjectStatus.Concluido
-                                                && p.Status != ProjectStatus.Cancelado);
-
-        var pendingActivities = await _db.Activities.AsNoTracking()
-            .CountAsync(a => a.Status != ActivityStatus.Concluida && !a.Project!.IsArchived);
-
-        var volunteersInProjects = await _db.ProjectVolunteers.AsNoTracking()
-            .Where(pv => !pv.Project!.IsArchived)
-            .Select(pv => pv.VolunteerId)
-            .Distinct()
-            .CountAsync();
-
-        var byStatus = await active
-            .GroupBy(p => p.Status)
-            .Select(g => new StatusCountDto(g.Key, g.Count()))
+        // Atividades em aberto de projetos que estao acontecendo (planejamento ou andamento, nao arquivados).
+        // O volume de uma organizacao como esta e pequeno, entao o resto e calculado em memoria.
+        var open = await _db.Activities
+            .AsNoTracking()
+            .Include(a => a.Project)
+            .Include(a => a.AssignedVolunteer)
+            .Where(a => a.Status != ActivityStatus.Concluida
+                        && !a.Project!.IsArchived
+                        && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento))
             .ToListAsync();
 
-        var indicatorGroups = await _db.Indicators.AsNoTracking()
-            .Where(i => !i.Project!.IsArchived)
-            .GroupBy(i => new { i.Name, i.Unit })
-            .Select(g => new
+        bool IsLate(Activity a) => a.DueDate.HasValue && a.DueDate.Value < today;
+        bool IsDueSoon(Activity a) => a.DueDate.HasValue && a.DueDate.Value >= today && a.DueDate.Value <= soon;
+
+        // Mais urgente primeiro: atrasadas (as mais antigas antes), depois vencendo, depois sem responsavel.
+        int Urgency(Activity a) => IsLate(a) ? 0 : IsDueSoon(a) ? 1 : 2;
+        var attention = open
+            .Where(a => IsLate(a) || IsDueSoon(a) || a.AssignedVolunteerId == null)
+            .OrderBy(Urgency)
+            .ThenBy(a => a.DueDate ?? DateOnly.MaxValue)
+            .ThenByDescending(a => a.Priority)
+            .ThenBy(a => a.Title)
+            .Take(AttentionLimit)
+            .Select(Mapping.ToDto)
+            .ToList();
+
+        // Agrupa pelo Id: sem rastreamento, cada atividade traz sua propria instancia do voluntario.
+        var workload = open
+            .Where(a => a.AssignedVolunteer is not null)
+            .GroupBy(a => a.AssignedVolunteerId!.Value)
+            .Select(g => new VolunteerWorkloadDto(
+                g.Key,
+                g.First().AssignedVolunteer!.Name,
+                Mapping.PhotoUrl(g.First().AssignedVolunteer!.PhotoStoredName),
+                g.Count(),
+                g.Count(IsLate)))
+            .OrderByDescending(w => w.OpenActivities)
+            .ThenByDescending(w => w.LateActivities)
+            .ThenBy(w => w.Name)
+            .Take(WorkloadLimit)
+            .ToList();
+
+        var busyVolunteers = open
+            .Where(a => a.AssignedVolunteerId.HasValue)
+            .Select(a => a.AssignedVolunteerId!.Value)
+            .ToHashSet();
+
+        var activeVolunteerIds = await _db.Volunteers
+            .AsNoTracking()
+            .Where(v => v.Status == VolunteerStatus.Ativo)
+            .Select(v => v.Id)
+            .ToListAsync();
+
+        var totals = new DashboardTotalsDto(
+            open.Count(IsLate),
+            open.Count(IsDueSoon),
+            open.Count(a => a.Status == ActivityStatus.EmAndamento),
+            activeVolunteerIds.Count,
+            activeVolunteerIds.Count(id => !busyVolunteers.Contains(id)));
+
+        MyActivitiesDto? mine = null;
+        if (currentUserId.HasValue)
+        {
+            var myVolunteerId = await _db.Users
+                .Where(u => u.Id == currentUserId.Value)
+                .Select(u => u.VolunteerId)
+                .FirstOrDefaultAsync();
+
+            if (myVolunteerId.HasValue)
             {
-                g.Key.Name,
-                g.Key.Unit,
-                Value = g.Sum(x => x.Value)
-            })
-            .ToListAsync();
-
-        var topIndicators = indicatorGroups
-            .OrderByDescending(g => g.Value)
-            .Take(6)
-            .Select(g => new IndicatorSummaryDto(g.Name, g.Unit, g.Value))
-            .ToList();
-
-        var activeProjects = (await _projects.ListAsync(new ProjectQuery { Sort = "recent" }))
-            .Where(p => p.Status == ProjectStatus.EmAndamento || p.Status == ProjectStatus.Planejamento)
-            .Take(6)
-            .ToList();
-
-        if (activeProjects.Count == 0)
-            activeProjects = (await _projects.ListAsync(new ProjectQuery { Sort = "recent" })).Take(6).ToList();
+                var myOpen = open.Where(a => a.AssignedVolunteerId == myVolunteerId.Value).ToList();
+                mine = new MyActivitiesDto(myOpen.Count, myOpen.Count(IsLate), myOpen.Count(IsDueSoon));
+            }
+        }
 
         var upcoming = await _activities.ListUpcomingAsync(6);
 
-        var totals = new ProjectTotalsDto(total, inProgress, planning, completed, late,
-            pendingActivities, volunteersInProjects);
-
-        return new DashboardDto(totals, byStatus, topIndicators, activeProjects, upcoming);
+        return new DashboardDto(totals, attention, workload, mine, upcoming);
     }
 }

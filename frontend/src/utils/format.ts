@@ -215,15 +215,15 @@ export function isProjectStale(status: ProjectStatus, lastUpdateAt: string | nul
   return !lastUpdateAt || daysSince(lastUpdateAt) > STALE_PROJECT_DAYS;
 }
 
-/** Texto curto de prazo: "em 4 dias", "atrasado 2 dias", "hoje". */
+/** Texto curto de prazo de atividade: "em 4 dias", "atrasada 2 dias", "hoje". */
 export function dueLabel(dueDate: string | null) {
   if (!dueDate) return 'sem prazo';
   const diff = daysFromToday(dueDate);
 
   if (diff === 0) return 'hoje';
   if (diff === 1) return 'amanhã';
-  if (diff === -1) return 'atrasado 1 dia';
-  if (diff < 0) return `atrasado ${Math.abs(diff)} dias`;
+  if (diff === -1) return 'atrasada 1 dia';
+  if (diff < 0) return `atrasada ${Math.abs(diff)} dias`;
   return `em ${diff} dias`;
 }
 
