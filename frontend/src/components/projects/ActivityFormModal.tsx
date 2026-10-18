@@ -24,8 +24,6 @@ import { Modal } from '../ui/Modal';
 interface ActivityFormModalProps {
   projectId: string;
   activity: Activity | null;
-  /** Titulo ja digitado (vindo da adicao rapida) para uma atividade nova. */
-  initialTitle?: string;
   /** Equipe do projeto: primeira opcao para atribuir a atividade. */
   team: ProjectVolunteer[];
   /** Voluntarios ativos da organizacao. Quem estiver fora da equipe entra nela ao salvar. */
@@ -37,13 +35,12 @@ interface ActivityFormModalProps {
 export function ActivityFormModal({
   projectId,
   activity,
-  initialTitle = '',
   team,
   volunteers,
   onClose,
   onSaved
 }: ActivityFormModalProps) {
-  const [title, setTitle] = useState(activity?.title ?? initialTitle);
+  const [title, setTitle] = useState(activity?.title ?? '');
   const [description, setDescription] = useState(activity?.description ?? '');
   const [assignedVolunteerId, setAssignedVolunteerId] = useState(activity?.assignedVolunteerId ?? '');
   const [status, setStatus] = useState<ActivityStatus>(activity?.status ?? 'AFazer');
@@ -116,18 +113,11 @@ export function ActivityFormModal({
           <Field label="Título" htmlFor="activity-title" required error={titleError ?? undefined} span>
             <TextInput
               id="activity-title"
+              autoFocus={!activity}
               value={title}
               invalid={Boolean(titleError)}
               placeholder="Ex.: Refazer instalação elétrica da casa 2"
               onChange={(event) => setTitle(event.target.value)}
-            />
-          </Field>
-
-          <Field label="Descrição" htmlFor="activity-description" span>
-            <TextArea
-              id="activity-description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
             />
           </Field>
 
@@ -170,20 +160,6 @@ export function ActivityFormModal({
             />
           </Field>
 
-          <Field label="Status" htmlFor="activity-status" required>
-            <Select
-              id="activity-status"
-              value={status}
-              onChange={(event) => setStatus(event.target.value as ActivityStatus)}
-            >
-              {ACTIVITY_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {activityStatusLabel(value)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
           <Field label="Prioridade" htmlFor="activity-priority" required>
             <Select
               id="activity-priority"
@@ -196,6 +172,31 @@ export function ActivityFormModal({
                 </option>
               ))}
             </Select>
+          </Field>
+
+          {/* Atividade nova sempre comeca sem iniciar; o status so aparece ao editar. */}
+          {activity ? (
+            <Field label="Status" htmlFor="activity-status" required>
+              <Select
+                id="activity-status"
+                value={status}
+                onChange={(event) => setStatus(event.target.value as ActivityStatus)}
+              >
+                {ACTIVITY_STATUSES.map((value) => (
+                  <option key={value} value={value}>
+                    {activityStatusLabel(value)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
+
+          <Field label="Descrição" htmlFor="activity-description" span hint="O que precisa ser feito, em poucas linhas.">
+            <TextArea
+              id="activity-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
           </Field>
 
           <Field label="Observações" htmlFor="activity-notes" span>

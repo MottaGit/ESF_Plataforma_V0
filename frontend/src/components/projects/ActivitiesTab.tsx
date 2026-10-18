@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
@@ -6,23 +6,25 @@ import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../t
 import { ACTIVITY_STATUSES, activityStatusLabel, dueLabel, formatDate, formatDateTime } from '../../utils/format';
 import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Select, TextInput } from '../ui/Field';
+import { Select } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
-import { IconChevronDown, IconChevronRight, IconEdit, IconPlus, IconTrash } from '../ui/Icons';
+import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
 import { ActivityFormModal } from './ActivityFormModal';
 
 /** Valor do filtro de responsavel para atividades sem ninguem atribuido. */
 const UNASSIGNED = '__none__';
 
-/** Ordem dos grupos na tela: o que esta em execucao primeiro, concluidas por ultimo (recolhidas). */
-const GROUPS: Array<{ status: ActivityStatus; title: string }> = [
-  { status: 'EmAndamento', title: 'Em andamento' },
-  { status: 'AFazer', title: 'A fazer' },
-  { status: 'Concluida', title: 'Concluídas' }
-];
+/** Ordem das secoes na tela: o que esta em execucao primeiro, concluidas por ultimo (sempre visiveis). */
+const GROUPS: ActivityStatus[] = ['EmAndamento', 'AFazer', 'Concluida'];
 
-/** Dentro de cada grupo: prazo mais proximo primeiro (sem prazo no fim), depois maior prioridade. */
+const GROUP_TITLES: Record<ActivityStatus, string> = {
+  EmAndamento: 'Em andamento',
+  AFazer: 'A fazer',
+  Concluida: 'Concluídas'
+};
+
+/** Dentro de cada secao: prazo mais proximo primeiro (sem prazo no fim), depois maior prioridade. */
 const PRIORITY_WEIGHT = { Alta: 0, Media: 1, Baixa: 2 } as const;
 function compareActivities(a: Activity, b: Activity) {
   const due = (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31');
@@ -41,15 +43,24 @@ interface ActivitiesTabProps {
 export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange, onChanged }: ActivitiesTabProps) {
   const { notify, notifyError } = useToast();
   const [formOpen, setFormOpen] = useState(false);
-  const [formTitle, setFormTitle] = useState('');
   const [editing, setEditing] = useState<Activity | null>(null);
   const [removing, setRemoving] = useState<Activity | null>(null);
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [showDone, setShowDone] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
   const [assigneeFilter, setAssigneeFilter] = useState('');
+
+  // Secao em que cada atividade aparece nesta visita a aba. Mudar o status nao tira a atividade do
+  // lugar (ela so fica riscada, por exemplo); a reorganizacao acontece quando a aba e aberta de novo.
+  const placement = useRef(new Map<string, ActivityStatus>());
+  function sectionOf(activity: Activity) {
+    if (!placement.current.has(activity.id)) placement.current.set(activity.id, activity.status);
+    return placement.current.get(activity.id)!;
+  }
+
+  // Status anterior das atividades concluidas nesta visita, para o "Desfazer".
+  const [undo, setUndo] = useState<Map<string, ActivityStatus>>(new Map());
 
   const activities = project.activities;
   const hasFilters = Boolean(statusFilter || assigneeFilter || onlyLate);
@@ -87,9 +98,17 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     });
   }
 
-  function openForm(activity: Activity | null, title = '') {
+  function forgetUndo(id: string) {
+    setUndo((current) => {
+      if (!current.has(id)) return current;
+      const next = new Map(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function openForm(activity: Activity | null) {
     setEditing(activity);
-    setFormTitle(title);
     setFormOpen(true);
   }
 
@@ -97,13 +116,27 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     if (activity.status === status) return true;
     try {
       await activitiesApi.updateStatus(activity.id, status);
-      if (status === 'Concluida') notify(`"${activity.title}" concluída.`);
       onChanged();
       return true;
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a atividade.');
       return false;
     }
+  }
+
+  /** Caixinha: concluir guarda o status anterior; desmarcar (ou "Desfazer") volta para ele. */
+  async function toggleDone(activity: Activity, done: boolean) {
+    if (done) {
+      const previous = activity.status;
+      setUndo((current) => new Map(current).set(activity.id, previous));
+      const saved = await changeStatus(activity, 'Concluida');
+      if (!saved) forgetUndo(activity.id);
+      return saved;
+    }
+
+    const target = undo.get(activity.id) ?? 'AFazer';
+    forgetUndo(activity.id);
+    return changeStatus(activity, target);
   }
 
   async function handleDelete() {
@@ -125,54 +158,66 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
 
   return (
     <>
-      <QuickAdd project={project} onAdded={onChanged} onOpenForm={(title) => openForm(null, title)} />
+      <div className="toolbar">
+        {activities.length > 0 ? (
+          <>
+            <Select
+              value={statusFilter}
+              aria-label="Filtrar por status"
+              onChange={(event) => setStatusFilter(event.target.value as ActivityStatus | '')}
+            >
+              <option value="">Todos os status</option>
+              {ACTIVITY_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {activityStatusLabel(value)}
+                </option>
+              ))}
+            </Select>
 
-      {activities.length > 0 ? (
-        <div className="toolbar">
-          <Select
-            value={statusFilter}
-            aria-label="Filtrar por status"
-            onChange={(event) => setStatusFilter(event.target.value as ActivityStatus | '')}
-          >
-            <option value="">Todos os status</option>
-            {ACTIVITY_STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {activityStatusLabel(value)}
-              </option>
-            ))}
-          </Select>
+            <Select
+              value={assigneeFilter}
+              aria-label="Filtrar por responsável"
+              onChange={(event) => setAssigneeFilter(event.target.value)}
+            >
+              <option value="">Todos os responsáveis</option>
+              {assignees.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+              <option value={UNASSIGNED}>Sem responsável</option>
+            </Select>
 
-          <Select
-            value={assigneeFilter}
-            aria-label="Filtrar por responsável"
-            onChange={(event) => setAssigneeFilter(event.target.value)}
-          >
-            <option value="">Todos os responsáveis</option>
-            {assignees.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-            <option value={UNASSIGNED}>Sem responsável</option>
-          </Select>
+            <label className="checkbox">
+              <input type="checkbox" checked={onlyLate} onChange={(event) => onOnlyLateChange(event.target.checked)} />
+              Só atrasadas
+            </label>
+          </>
+        ) : null}
 
-          <label className="checkbox">
-            <input type="checkbox" checked={onlyLate} onChange={(event) => onOnlyLateChange(event.target.checked)} />
-            Só atrasadas
-          </label>
-
-          <span className="toolbar__right activities__count num">
-            {doneCount} de {activities.length} concluídas
-            {hasFilters ? ` · mostrando ${visible.length}` : ''}
-          </span>
+        <div className="toolbar__right">
+          {activities.length > 0 ? (
+            <span className="activities__count num">
+              {doneCount} de {activities.length} concluídas
+              {hasFilters ? ` · mostrando ${visible.length}` : ''}
+            </span>
+          ) : null}
+          <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => openForm(null)}>
+            Nova atividade
+          </Button>
         </div>
-      ) : null}
+      </div>
 
       {activities.length === 0 ? (
         <div className="panel">
           <EmptyState
             title="Nenhuma atividade registrada"
-            description="Use o campo acima para quebrar o projeto em atividades e distribuir responsáveis."
+            description="Quebre o projeto em atividades para acompanhar a execução e distribuir responsáveis."
+            action={
+              <Button variant="primary" onClick={() => openForm(null)}>
+                Criar primeira atividade
+              </Button>
+            }
           />
         </div>
       ) : visible.length === 0 ? (
@@ -184,49 +229,34 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
           />
         </div>
       ) : (
-        GROUPS.map((group) => {
-          const items = visible.filter((activity) => activity.status === group.status).sort(compareActivities);
+        GROUPS.map((section) => {
+          const items = visible.filter((activity) => sectionOf(activity) === section).sort(compareActivities);
           if (items.length === 0) return null;
 
-          // Concluidas ficam recolhidas, a menos que o filtro peca exatamente por elas.
-          const collapsible = group.status === 'Concluida' && statusFilter !== 'Concluida';
-          const open = !collapsible || showDone;
-
           return (
-            <section className="act-group" key={group.status}>
-              {collapsible ? (
-                <button
-                  type="button"
-                  className="act-group__title act-group__title--toggle"
-                  aria-expanded={open}
-                  onClick={() => setShowDone((current) => !current)}
-                >
-                  {open ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
-                  {group.title}
-                  <span className="tab__count num">{items.length}</span>
-                </button>
-              ) : (
-                <h3 className="act-group__title">
-                  {group.title}
-                  <span className="tab__count num">{items.length}</span>
-                </h3>
-              )}
-
-              {open ? (
-                <ul className="panel act-list">
-                  {items.map((activity) => (
-                    <ActivityRow
-                      key={activity.id}
-                      activity={activity}
-                      expanded={expanded.has(activity.id)}
-                      onToggleExpanded={() => toggleExpanded(activity.id)}
-                      onStatusChange={(status) => changeStatus(activity, status)}
-                      onEdit={() => openForm(activity)}
-                      onRemove={() => setRemoving(activity)}
-                    />
-                  ))}
-                </ul>
-              ) : null}
+            <section className="act-group" key={section}>
+              <h3 className="act-group__title">
+                {GROUP_TITLES[section]}
+                <span className="tab__count num">{items.length}</span>
+              </h3>
+              <ul className="panel act-list">
+                {items.map((activity) => (
+                  <ActivityRow
+                    key={activity.id}
+                    activity={activity}
+                    canUndo={undo.has(activity.id) && activity.status === 'Concluida'}
+                    expanded={expanded.has(activity.id)}
+                    onToggleExpanded={() => toggleExpanded(activity.id)}
+                    onToggleDone={(done) => toggleDone(activity, done)}
+                    onStatusChange={(status) => {
+                      forgetUndo(activity.id);
+                      void changeStatus(activity, status);
+                    }}
+                    onEdit={() => openForm(activity)}
+                    onRemove={() => setRemoving(activity)}
+                  />
+                ))}
+              </ul>
             </section>
           );
         })
@@ -236,7 +266,6 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
         <ActivityFormModal
           projectId={project.id}
           activity={editing}
-          initialTitle={formTitle}
           team={project.volunteers}
           volunteers={volunteers}
           onClose={() => setFormOpen(false)}
@@ -265,15 +294,27 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
 
 interface ActivityRowProps {
   activity: Activity;
+  /** Concluida nesta visita a aba: mostra o "Desfazer". */
+  canUndo: boolean;
   expanded: boolean;
   onToggleExpanded: () => void;
   /** Resolve com false quando a alteracao nao foi salva. */
-  onStatusChange: (status: ActivityStatus) => Promise<boolean>;
+  onToggleDone: (done: boolean) => Promise<boolean>;
+  onStatusChange: (status: ActivityStatus) => void;
   onEdit: () => void;
   onRemove: () => void;
 }
 
-function ActivityRow({ activity, expanded, onToggleExpanded, onStatusChange, onEdit, onRemove }: ActivityRowProps) {
+function ActivityRow({
+  activity,
+  canUndo,
+  expanded,
+  onToggleExpanded,
+  onToggleDone,
+  onStatusChange,
+  onEdit,
+  onRemove
+}: ActivityRowProps) {
   // A caixinha responde na hora; se o servidor recusar, volta ao estado salvo.
   const [checkedNow, setCheckedNow] = useState<boolean | null>(null);
   const done = activity.status === 'Concluida';
@@ -281,9 +322,9 @@ function ActivityRow({ activity, expanded, onToggleExpanded, onStatusChange, onE
 
   useEffect(() => setCheckedNow(null), [activity.status]);
 
-  async function toggleDone(value: boolean) {
+  async function toggle(value: boolean) {
     setCheckedNow(value);
-    const saved = await onStatusChange(value ? 'Concluida' : 'AFazer');
+    const saved = await onToggleDone(value);
     if (!saved) setCheckedNow(null);
   }
 
@@ -295,7 +336,7 @@ function ActivityRow({ activity, expanded, onToggleExpanded, onStatusChange, onE
         checked={checked}
         aria-label={checked ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
         title={checked ? 'Reabrir atividade' : 'Marcar como concluída'}
-        onChange={(event) => void toggleDone(event.target.checked)}
+        onChange={(event) => void toggle(event.target.checked)}
       />
 
       <div className="act-row__main">
@@ -314,16 +355,17 @@ function ActivityRow({ activity, expanded, onToggleExpanded, onStatusChange, onE
                 : 'sem prazo'}
           </span>
           {!done ? <PriorityBadge priority={activity.priority} /> : null}
+          {canUndo ? (
+            <button type="button" className="act-row__undo" onClick={() => void toggle(false)}>
+              Desfazer
+            </button>
+          ) : null}
         </div>
         {expanded ? <ActivityDetails activity={activity} /> : null}
       </div>
 
       <div className="act-row__side">
-        <ActivityStatusSelect
-          status={activity.status}
-          label={`Status de ${activity.title}`}
-          onChange={(status) => void onStatusChange(status)}
-        />
+        <ActivityStatusSelect status={activity.status} label={`Status de ${activity.title}`} onChange={onStatusChange} />
         <Menu
           label="Ações da atividade"
           items={[
@@ -352,85 +394,5 @@ function ActivityDetails({ activity }: { activity: Activity }) {
         {activity.completedAt ? <span>Concluída em {formatDateTime(activity.completedAt)}</span> : null}
       </div>
     </div>
-  );
-}
-
-interface QuickAddProps {
-  project: ProjectDetail;
-  onAdded: () => void;
-  /** Abre o formulario completo, levando o titulo ja digitado. */
-  onOpenForm: (title: string) => void;
-}
-
-/** Adicao rapida: titulo, responsavel (da equipe) e prazo, direto na lista. */
-function QuickAdd({ project, onAdded, onOpenForm }: QuickAddProps) {
-  const { notify, notifyError } = useToast();
-  const [title, setTitle] = useState('');
-  const [assignee, setAssignee] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (title.trim().length < 3) {
-      notifyError('Escreva um título com ao menos 3 caracteres.');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await activitiesApi.create(project.id, {
-        title: title.trim(),
-        description: null,
-        assignedVolunteerId: assignee || null,
-        status: 'AFazer',
-        priority: 'Media',
-        dueDate: dueDate || null,
-        notes: null
-      });
-      notify('Atividade adicionada.');
-      setTitle('');
-      setDueDate('');
-      onAdded();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível adicionar a atividade.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <form className="panel quick-add" onSubmit={handleSubmit}>
-      <div className="quick-add__title">
-        <IconPlus size={16} />
-        <TextInput
-          value={title}
-          placeholder="Adicionar atividade…"
-          aria-label="Título da nova atividade"
-          onChange={(event) => setTitle(event.target.value)}
-        />
-      </div>
-      <Select value={assignee} aria-label="Responsável da nova atividade" onChange={(event) => setAssignee(event.target.value)}>
-        <option value="">Sem responsável</option>
-        {project.volunteers.map((member) => (
-          <option key={member.volunteerId} value={member.volunteerId}>
-            {member.name}
-          </option>
-        ))}
-      </Select>
-      <TextInput
-        type="date"
-        value={dueDate}
-        aria-label="Prazo da nova atividade"
-        title="Prazo"
-        onChange={(event) => setDueDate(event.target.value)}
-      />
-      <Button type="submit" variant="primary" small loading={saving}>
-        Adicionar
-      </Button>
-      <button type="button" className="quick-add__more" onClick={() => onOpenForm(title.trim())}>
-        Formulário completo
-      </button>
-    </form>
   );
 }

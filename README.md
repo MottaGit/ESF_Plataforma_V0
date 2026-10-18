@@ -127,9 +127,10 @@ próximos 7 dias e equipe, cada uma levando à aba correspondente) e cinco abas:
 então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 
 **Atividades** — título, descrição, responsável, status (a fazer / em andamento / concluída), prioridade
-(baixa / média / alta), prazo e observações. A lista é agrupada por status (em andamento, a fazer e concluídas, estas
-recolhidas), com caixinha para concluir em um clique, status alterável no próprio badge, filtros e adição rápida
-(título, responsável e prazo) direto na lista; o formulário completo fica para os detalhes. O responsável é escolhido entre a
+(baixa / média / alta), prazo e observações. A lista é agrupada por status (em andamento, a fazer e concluídas, todas
+visíveis), com caixinha para concluir em um clique e "Desfazer" logo em seguida. Ao mudar o status, a atividade fica
+no lugar (riscada, se concluída) e só muda de seção quando a aba é aberta de novo. O botão "Nova atividade" abre o
+formulário com título, responsável, prazo, prioridade e descrição. O responsável é escolhido entre a
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado).
 
