@@ -240,3 +240,7 @@ export function emptyToNull(value: string | null | undefined) {
   const trimmed = (value ?? '').trim();
   return trimmed.length > 0 ? trimmed : null;
 }
+
+/** Quando o acesso nao esta vinculado a um voluntario, nao ha como saber quais atividades sao da pessoa. */
+export const UNLINKED_MESSAGE =
+  'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais atividades são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';

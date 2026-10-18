@@ -641,6 +641,8 @@ button { font: inherit; }
 .attention__main { flex: 1; min-width: 0; }
 .attention__title { font-size: 13.5px; }
 .attention__meta { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+.attention__blocked { margin: 4px 0 0; font-size: 12px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
+.attention__blocked::before { content: "Travada: "; font-weight: 500; }
 .attention__reasons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; flex: 0 0 auto; }
 .attention__more { padding: 4px 16px 14px; }
 .link-button {

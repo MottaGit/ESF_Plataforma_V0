@@ -196,7 +196,9 @@ export interface ProjectDetail {
 
 export interface DashboardTotals {
   lateActivities: number;
-  dueSoonActivities: number;
+  blockedActivities: number;
+  /** Concluidas nos ultimos 30 dias. */
+  completedLast30Days: number;
   inProgressActivities: number;
   activeVolunteers: number;
   activeVolunteersWithoutOpenActivities: number;
@@ -214,16 +216,17 @@ export interface VolunteerWorkload {
 export interface MyActivities {
   open: number;
   late: number;
-  dueSoon: number;
+  blocked: number;
 }
 
 export interface Dashboard {
   totals: DashboardTotals;
-  /** Atividades atrasadas, vencendo em 7 dias ou sem responsavel, mais urgentes primeiro. */
+  /** Atividades atrasadas, bloqueadas ou sem responsavel, mais urgentes primeiro. */
   attention: Activity[];
   workload: VolunteerWorkload[];
   mine: MyActivities | null;
-  upcomingActivities: Activity[];
+  /** Proximas atividades em aberto do usuario logado (vazio sem voluntario vinculado). */
+  myUpcoming: Activity[];
 }
 
 export interface Organization {

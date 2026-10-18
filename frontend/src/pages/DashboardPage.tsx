@@ -1,44 +1,36 @@
 import { useCallback, useEffect, useRef, useState, type Ref } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { activitiesApi, dashboardApi, volunteersApi } from '../api/endpoints';
+import { dashboardApi, volunteersApi } from '../api/endpoints';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, LateBadge, NeutralBadge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconPlus } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import type { Activity, Dashboard, Volunteer, VolunteerWorkload } from '../types/api';
-import { MONTH_NAMES, daysFromToday, displayName, dueLabel, isBirthdayToday } from '../utils/format';
+import { MONTH_NAMES, UNLINKED_MESSAGE, displayName, dueLabel, isBirthdayToday } from '../utils/format';
 
 /** Recortes do bloco "Precisa de atencao". */
-type AttentionFilter = 'all' | 'late' | 'soon' | 'unassigned';
+type AttentionFilter = 'all' | 'late' | 'blocked' | 'unassigned';
 
 const ATTENTION_FILTERS: Array<{ key: AttentionFilter; label: string }> = [
   { key: 'all', label: 'Todas' },
   { key: 'late', label: 'Atrasadas' },
-  { key: 'soon', label: 'Próximos 7 dias' },
+  { key: 'blocked', label: 'Bloqueadas' },
   { key: 'unassigned', label: 'Sem responsável' }
 ];
 
 /** Quantas atividades aparecem antes do "Mostrar todas". */
 const ATTENTION_VISIBLE = 8;
 
-function isDueSoon(activity: Activity) {
-  if (!activity.dueDate || activity.isLate) return false;
-  return daysFromToday(activity.dueDate) <= 7;
-}
-
 function matchesFilter(activity: Activity, filter: AttentionFilter) {
   if (filter === 'late') return activity.isLate;
-  if (filter === 'soon') return isDueSoon(activity);
+  if (filter === 'blocked') return activity.status === 'Bloqueada';
   if (filter === 'unassigned') return !activity.assignedVolunteerId;
   return true;
 }
 
 export function DashboardPage() {
-  const { canManage, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +66,7 @@ export function DashboardPage() {
 
   if (!data) return null;
 
-  const { totals, attention, workload, upcomingActivities } = data;
+  const { totals, attention, workload, myUpcoming } = data;
   const firstName = displayName(user).split(' ')[0];
 
   /** Os numeros do topo levam ao recorte correspondente em "Precisa de atencao". */
@@ -92,13 +84,6 @@ export function DashboardPage() {
             <SummaryLine data={data} />
           </p>
         </div>
-        {canManage ? (
-          <div className="page-head__actions">
-            <Button variant="primary" icon={<IconPlus size={15} />} onClick={() => navigate('/projetos?novo=1')}>
-              Novo projeto
-            </Button>
-          </div>
-        ) : null}
       </div>
 
       <div className="stat-strip section">
@@ -109,11 +94,11 @@ export function DashboardPage() {
           <div className="stat__label">Atividades atrasadas</div>
           <div className="stat__hint">Prazo já passou</div>
         </button>
-        <button type="button" className="stat stat--link" onClick={() => showAttention('soon')}>
-          <div className="stat__value num">{totals.dueSoonActivities}</div>
-          <div className="stat__label">Vencem nos próximos 7 dias</div>
-          <div className="stat__hint">Ainda dá tempo</div>
-        </button>
+        <Link className="stat stat--link" to="/projetos?visao=quadro">
+          <div className="stat__value num">{totals.completedLast30Days}</div>
+          <div className="stat__label">Concluídas no mês</div>
+          <div className="stat__hint">Atividades entregues nos últimos 30 dias</div>
+        </Link>
         <div className="stat">
           <div className="stat__value num">{totals.inProgressActivities}</div>
           <div className="stat__label">Atividades em andamento</div>
@@ -142,7 +127,7 @@ export function DashboardPage() {
         </div>
 
         <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
-          <UpcomingActivitiesPanel all={upcomingActivities} />
+          <MyActivitiesPanel activities={myUpcoming} />
           <BirthdaysPanel />
         </div>
       </div>
@@ -173,15 +158,13 @@ function SummaryLine({ data }: { data: Dashboard }) {
             <span className="summary-line__late">{plural(mine.late, 'atrasada', 'atrasadas')}</span>
           </>
         ) : null}
-        {mine.dueSoon > 0
-          ? ` · ${mine.dueSoon} ${mine.dueSoon === 1 ? 'vence' : 'vencem'} nos próximos 7 dias`
-          : null}
+        {mine.blocked > 0 ? ` · ${plural(mine.blocked, 'bloqueada', 'bloqueadas')}` : null}
       </>
     );
   }
 
-  if (totals.lateActivities === 0 && totals.dueSoonActivities === 0)
-    return <>Nenhuma atividade atrasada ou vencendo nos próximos dias na organização.</>;
+  if (totals.lateActivities === 0 && totals.blockedActivities === 0)
+    return <>Nenhuma atividade atrasada ou bloqueada na organização.</>;
 
   return (
     <>
@@ -191,9 +174,9 @@ function SummaryLine({ data }: { data: Dashboard }) {
           {plural(totals.lateActivities, 'atividade atrasada', 'atividades atrasadas')}
         </span>
       ) : null}
-      {totals.lateActivities > 0 && totals.dueSoonActivities > 0 ? ' · ' : null}
-      {totals.dueSoonActivities > 0
-        ? `${totals.dueSoonActivities} ${totals.dueSoonActivities === 1 ? 'vence' : 'vencem'} nos próximos 7 dias`
+      {totals.lateActivities > 0 && totals.blockedActivities > 0 ? ' · ' : null}
+      {totals.blockedActivities > 0
+        ? plural(totals.blockedActivities, 'atividade bloqueada', 'atividades bloqueadas')
         : null}
     </>
   );
@@ -206,7 +189,7 @@ interface AttentionPanelProps {
   panelRef: Ref<HTMLElement>;
 }
 
-/** Atividades que pedem acao agora: atrasadas, vencendo em ate 7 dias ou sem responsavel. */
+/** Atividades que pedem acao agora: atrasadas, bloqueadas ou sem responsavel. */
 function AttentionPanel({ activities, filter, onFilterChange, panelRef }: AttentionPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const filtered = activities.filter((activity) => matchesFilter(activity, filter));
@@ -243,7 +226,7 @@ function AttentionPanel({ activities, filter, onFilterChange, panelRef }: Attent
           title="Nada pedindo atenção"
           description={
             filter === 'all'
-              ? 'Nenhuma atividade atrasada, vencendo nos próximos dias ou sem responsável.'
+              ? 'Nenhuma atividade atrasada, bloqueada ou sem responsável.'
               : 'Nenhuma atividade neste recorte.'
           }
         />
@@ -262,13 +245,13 @@ function AttentionPanel({ activities, filter, onFilterChange, panelRef }: Attent
                   <span>{activity.projectName}</span>
                   <span>{activity.assignedVolunteerName ?? 'Sem responsável'}</span>
                 </div>
+                {activity.status === 'Bloqueada' && activity.blockedReason ? (
+                  <p className="attention__blocked">{activity.blockedReason}</p>
+                ) : null}
               </div>
               <div className="attention__reasons">
-                {activity.isLate ? (
-                  <LateBadge label={dueLabel(activity.dueDate)} />
-                ) : isDueSoon(activity) ? (
-                  <span className="badge badge--pause">vence {dueLabel(activity.dueDate)}</span>
-                ) : null}
+                {activity.isLate ? <LateBadge label={dueLabel(activity.dueDate)} /> : null}
+                {activity.status === 'Bloqueada' ? <span className="badge badge--blocked">bloqueada</span> : null}
                 {!activity.assignedVolunteerId ? <NeutralBadge>sem responsável</NeutralBadge> : null}
               </div>
             </li>
@@ -336,59 +319,30 @@ function TeamPanel({ workload, idle }: { workload: VolunteerWorkload[]; idle: nu
 }
 
 /**
- * Proximas atividades com o recorte "Minhas" (atribuidas ao voluntario vinculado ao usuario logado)
- * ou "Todas" (da organizacao). Abre em "Minhas" quando o usuario tem voluntario vinculado.
+ * Minhas atividades: as proximas em aberto atribuidas ao voluntario vinculado ao usuario logado. Sem
+ * vinculo, explica o que fazer para passar a ver as proprias atividades.
  */
-function UpcomingActivitiesPanel({ all }: { all: Activity[] }) {
+function MyActivitiesPanel({ activities }: { activities: Activity[] }) {
   const { user } = useAuth();
   const linked = Boolean(user?.volunteerId);
-
-  const [scope, setScope] = useState<'mine' | 'all'>(linked ? 'mine' : 'all');
-  const [mine, setMine] = useState<Activity[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (scope !== 'mine' || !linked || mine) return;
-    activitiesApi
-      .upcoming(6, true)
-      .then(setMine)
-      .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar suas atividades.'));
-  }, [scope, linked, mine]);
-
-  const activities = scope === 'mine' ? mine : all;
 
   return (
     <section className="panel">
       <div className="panel__head">
-        <h2>Próximas atividades</h2>
-        <div className="panel__actions btn-row">
-          <Button small variant={scope === 'mine' ? 'primary' : 'default'} onClick={() => setScope('mine')}>
-            Minhas
-          </Button>
-          <Button small variant={scope === 'all' ? 'primary' : 'default'} onClick={() => setScope('all')}>
-            Todas
-          </Button>
-        </div>
+        <h2>Minhas atividades</h2>
+        {linked ? (
+          <div className="panel__actions">
+            <Link className="btn btn--sm" to="/projetos?visao=quadro&de=minhas">
+              Ver no quadro
+            </Link>
+          </div>
+        ) : null}
       </div>
       <div className="panel__body">
-        {scope === 'mine' && !linked ? (
-          <Alert kind="info">
-            Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais atividades são suas. Peça
-            a um administrador para fazer o vínculo em Configurações › Usuários.
-          </Alert>
-        ) : error && scope === 'mine' ? (
-          <Alert kind="error">{error}</Alert>
-        ) : activities === null ? (
-          <Loading label="Carregando suas atividades…" />
+        {!linked ? (
+          <Alert kind="info">{UNLINKED_MESSAGE}</Alert>
         ) : activities.length === 0 ? (
-          <EmptyState
-            title="Nada pendente"
-            description={
-              scope === 'mine'
-                ? 'Você não tem atividades em aberto.'
-                : 'Todas as atividades registradas estão concluídas.'
-            }
-          />
+          <EmptyState title="Nada pendente" description="Você não tem atividades em aberto." />
         ) : (
           <div style={{ display: 'grid', gap: 12 }}>
             {activities.map((activity) => (
@@ -397,12 +351,15 @@ function UpcomingActivitiesPanel({ all }: { all: Activity[] }) {
                   <div style={{ fontSize: 13.5, fontWeight: 500 }}>{activity.title}</div>
                   <div className="table__secondary">
                     <Link to={`/projetos/${activity.projectId}?aba=atividades`}>{activity.projectName}</Link>
-                    {scope === 'all' && activity.assignedVolunteerName ? ` · ${activity.assignedVolunteerName}` : ''}
                   </div>
                 </div>
-                <span className={`badge ${activity.isLate ? 'badge--late' : 'badge--neutral'}`}>
-                  {dueLabel(activity.dueDate)}
-                </span>
+                {activity.status === 'Bloqueada' ? (
+                  <span className="badge badge--blocked">bloqueada</span>
+                ) : (
+                  <span className={`badge ${activity.isLate ? 'badge--late' : 'badge--neutral'}`}>
+                    {dueLabel(activity.dueDate)}
+                  </span>
+                )}
               </div>
             ))}
           </div>
