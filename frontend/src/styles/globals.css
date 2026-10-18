@@ -1345,7 +1345,6 @@ button { font: inherit; }
 .login__brand { display: flex; align-items: center; gap: 10px; margin-bottom: auto; }
 .login__brand-name { font-size: 14px; font-weight: 600; }
 .login__headline { font-size: 28px; font-weight: 600; line-height: 1.25; max-width: 15em; letter-spacing: -0.02em; }
-.login__lede { color: #aab3bf; font-size: 14px; max-width: 34em; margin-top: 14px; }
 .login__points { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .login__points li { color: #c3cad4; font-size: 13.5px; padding-left: 16px; position: relative; }
 .login__points li::before {
@@ -1369,17 +1368,6 @@ button { font: inherit; }
 .login__form h1 { font-size: 20px; margin-bottom: 6px; }
 .login__form-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 22px; }
 .login__fields { display: grid; gap: 14px; margin-bottom: 18px; }
-.login__demo {
-  margin-top: 22px;
-  padding: 12px 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-soft);
-  font-size: 12.5px;
-  color: var(--text-muted);
-}
-.login__demo strong { color: var(--text); font-weight: 600; }
-.login__demo-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
 
 /* ---------------------------------------------------------
    Responsivo

@@ -103,7 +103,9 @@ atualizações de andamento — o suficiente para navegar pela aplicação já n
 | ana.aumond@esf.org.br | Coordenador | `Esf@2026` |
 | fausto.silva@esf.org.br | Usuário | `Esf@2026` |
 
-O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados reais.
+O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados reais. A tela de login não mostra nem
+preenche esses acessos; em produção, troque as senhas de demonstração (ou defina `Seed:DemoPassword` antes do primeiro
+deploy).
 
 ---
 

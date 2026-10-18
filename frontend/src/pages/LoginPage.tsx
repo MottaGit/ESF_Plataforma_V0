@@ -10,8 +10,8 @@ export function LoginPage() {
   const { user, initializing, login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('admin@esf.org.br');
-  const [password, setPassword] = useState('Esf@2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,11 +41,7 @@ export function LoginPage() {
         </div>
 
         <div>
-          <h1 className="login__headline">Os projetos da organização em um lugar só.</h1>
-          <p className="login__lede">
-            Reformas, banheiros, hortas, capacitações e ações culturais deixam de viver em planilhas soltas e passam a ter
-            andamento, responsáveis, indicadores e registro fotográfico no mesmo lugar.
-          </p>
+          <h1 className="login__headline">Gerencie os projetos da sua organização em um só lugar.</h1>
           <ul className="login__points">
             <li>Acompanhe o andamento de cada projeto e o que está atrasado</li>
             <li>Registre atividades, voluntários e resultados alcançados</li>
@@ -88,26 +84,6 @@ export function LoginPage() {
           <Button type="submit" variant="primary" block loading={submitting}>
             Entrar
           </Button>
-
-          <div className="login__demo">
-            <strong>Acessos de demonstração</strong>
-            <div className="login__demo-row">
-              <span>admin@esf.org.br</span>
-              <span>Administrador</span>
-            </div>
-            <div className="login__demo-row">
-              <span>coordenador@esf.org.br</span>
-              <span>Coordenador</span>
-            </div>
-            <div className="login__demo-row">
-              <span>usuario@esf.org.br</span>
-              <span>Usuário</span>
-            </div>
-            <div className="login__demo-row">
-              <span>Senha para todos</span>
-              <strong>Esf@2026</strong>
-            </div>
-          </div>
         </form>
       </section>
     </div>
