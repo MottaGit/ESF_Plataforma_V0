@@ -17,16 +17,17 @@ import {
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
-import { activitiesApi, volunteersApi } from '../../api/endpoints';
+import { activitiesApi, projectsApi, volunteersApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityPriority, ActivityStatus, Volunteer } from '../../types/api';
 import { ACTIVITY_PRIORITIES, daysFromToday, dueLabel, formatDate, priorityLabel } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import { Select, TextInput } from '../ui/Field';
 import { Alert, EmptyState, Loading } from '../ui/Feedback';
-import { IconSearch } from '../ui/Icons';
+import { IconPlus, IconSearch } from '../ui/Icons';
 import { ActivityFormModal } from './ActivityFormModal';
 
 /** Por quantos dias uma concluida continua no quadro (mesmo valor de ActivityService.BoardDoneDays). */
@@ -111,7 +112,10 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Activity | null>(null);
+  const [creating, setCreating] = useState(false);
   const [dragging, setDragging] = useState<Activity | null>(null);
+  /** Projetos que aparecem no quadro (planejamento ou andamento): opcoes para criar uma atividade. */
+  const [activeProjects, setActiveProjects] = useState<Array<{ id: string; name: string }>>([]);
 
   const sensors = useSensors(
     // Mouse: o arraste so comeca depois de mover alguns pixels, entao um clique simples abre o card.
@@ -154,6 +158,16 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
 
   useEffect(() => {
     volunteersApi.list(undefined, true).then(setVolunteers).catch(() => undefined);
+    projectsApi
+      .list({ sort: 'name' })
+      .then((list) =>
+        setActiveProjects(
+          list
+            .filter((project) => project.status === 'Planejamento' || project.status === 'EmAndamento')
+            .map((project) => ({ id: project.id, name: project.name }))
+        )
+      )
+      .catch(() => undefined);
   }, []);
 
   const projectOptions = useMemo(
@@ -231,6 +245,11 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
             {summary.open} atividade(s) em aberto nos projetos em planejamento e em andamento
             {summary.late > 0 ? <span className="summary-line__late"> · {summary.late} atrasada(s)</span> : null}
           </p>
+        </div>
+        <div className="page-head__actions">
+          <Button variant="primary" icon={<IconPlus size={15} />} onClick={() => setCreating(true)}>
+            Nova atividade
+          </Button>
         </div>
       </div>
 
@@ -405,6 +424,22 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
           onSaved={() => {
             setEditing(null);
             notify('Atividade atualizada.');
+            void load(true);
+          }}
+        />
+      ) : null}
+
+      {creating ? (
+        <ActivityFormModal
+          // Filtrando por um projeto, ele ja vem escolhido.
+          projectId={activeProjects.some((project) => project.id === projectFilter) ? projectFilter : ''}
+          projects={activeProjects}
+          activity={null}
+          volunteers={volunteers}
+          onClose={() => setCreating(false)}
+          onSaved={() => {
+            setCreating(false);
+            notify('Atividade criada.');
             void load(true);
           }}
         />

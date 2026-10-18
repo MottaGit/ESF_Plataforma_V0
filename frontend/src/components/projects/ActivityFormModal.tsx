@@ -22,7 +22,10 @@ import { Alert } from '../ui/Feedback';
 import { Modal } from '../ui/Modal';
 
 interface ActivityFormModalProps {
+  /** Projeto da atividade; vazio quando ele e escolhido no proprio formulario (ver `projects`). */
   projectId: string;
+  /** Com esta lista, uma atividade nova ganha o campo "Projeto" (criada fora da pagina do projeto). */
+  projects?: Array<{ id: string; name: string }>;
   activity: Activity | null;
   /** Equipe do projeto: primeira opcao para atribuir a atividade. Sem ela, o formulario busca a equipe. */
   team?: ProjectVolunteer[];
@@ -34,12 +37,15 @@ interface ActivityFormModalProps {
 
 export function ActivityFormModal({
   projectId,
+  projects,
   activity,
   team,
   volunteers,
   onClose,
   onSaved
 }: ActivityFormModalProps) {
+  const chooseProject = !activity && Boolean(projects);
+  const [selectedProjectId, setSelectedProjectId] = useState(projectId);
   const [title, setTitle] = useState(activity?.title ?? '');
   const [description, setDescription] = useState(activity?.description ?? '');
   const [assignedVolunteerId, setAssignedVolunteerId] = useState(activity?.assignedVolunteerId ?? '');
@@ -52,16 +58,20 @@ export function ActivityFormModal({
   const [loadedTeam, setLoadedTeam] = useState<ProjectVolunteer[] | null>(null);
   useEffect(() => {
     if (team) return;
+    if (!selectedProjectId) {
+      setLoadedTeam([]);
+      return;
+    }
     let active = true;
     setLoadedTeam(null);
     volunteersApi
-      .listByProject(projectId)
+      .listByProject(selectedProjectId)
       .then((list) => active && setLoadedTeam(list))
       .catch(() => active && setLoadedTeam([]));
     return () => {
       active = false;
     };
-  }, [team, projectId]);
+  }, [team, selectedProjectId]);
 
   const teamLoading = !team && loadedTeam === null;
   const currentTeam = team ?? loadedTeam ?? [];
@@ -69,6 +79,7 @@ export function ActivityFormModal({
   const others = volunteers.filter((volunteer) => !teamIds.has(volunteer.id));
   const outsiderSelected = !teamLoading && Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
 
+  const [projectError, setProjectError] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -77,11 +88,11 @@ export function ActivityFormModal({
     event.preventDefault();
     setFormError(null);
 
-    if (title.trim().length < 3) {
-      setTitleError('Informe um título com ao menos 3 caracteres.');
-      return;
-    }
-    setTitleError(null);
+    const missingProject = chooseProject && !selectedProjectId;
+    const shortTitle = title.trim().length < 3;
+    setProjectError(missingProject ? 'Selecione o projeto da atividade.' : null);
+    setTitleError(shortTitle ? 'Informe um título com ao menos 3 caracteres.' : null);
+    if (missingProject || shortTitle) return;
 
     const payload: SaveActivityPayload = {
       title: title.trim(),
@@ -96,7 +107,7 @@ export function ActivityFormModal({
     setSaving(true);
     try {
       if (activity) await activitiesApi.update(activity.id, payload);
-      else await activitiesApi.create(projectId, payload);
+      else await activitiesApi.create(selectedProjectId, payload);
       onSaved();
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar a atividade.');
@@ -127,26 +138,57 @@ export function ActivityFormModal({
         ) : null}
 
         <div className="form-grid">
+          {chooseProject ? (
+            <Field label="Projeto" htmlFor="activity-project" required error={projectError ?? undefined} span>
+              <Select
+                id="activity-project"
+                autoFocus={!projectId}
+                value={selectedProjectId}
+                invalid={Boolean(projectError)}
+                onChange={(event) => {
+                  setSelectedProjectId(event.target.value);
+                  setProjectError(null);
+                }}
+              >
+                <option value="">Selecione o projeto</option>
+                {projects!.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
+
           <Field label="Título" htmlFor="activity-title" required error={titleError ?? undefined} span>
             <TextInput
               id="activity-title"
-              autoFocus={!activity}
+              autoFocus={!activity && !(chooseProject && !projectId)}
               value={title}
               invalid={Boolean(titleError)}
               placeholder="Ex.: Refazer instalação elétrica da casa 2"
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) => {
+                setTitle(event.target.value);
+                setTitleError(null);
+              }}
             />
           </Field>
 
           <Field
             label="Responsável"
             htmlFor="activity-owner"
-            hint={outsiderSelected ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.' : undefined}
+            hint={
+              !selectedProjectId
+                ? 'Escolha o projeto primeiro.'
+                : outsiderSelected
+                  ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.'
+                  : undefined
+            }
           >
             <Select
               id="activity-owner"
               value={assignedVolunteerId}
-              disabled={teamLoading}
+              disabled={teamLoading || !selectedProjectId}
               onChange={(event) => setAssignedVolunteerId(event.target.value)}
             >
               <option value="">Sem responsável</option>

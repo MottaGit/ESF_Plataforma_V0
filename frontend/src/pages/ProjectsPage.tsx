@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
-import { ActivityBoard } from '../components/projects/ActivityBoard';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -30,6 +29,11 @@ const sortOptions = [
   { value: 'deadline', label: 'Previsão de término' },
   { value: 'progress', label: 'Maior progresso' }
 ];
+
+// O quadro (e a biblioteca de arrastar e soltar) so e baixado quando a aba e aberta.
+const ActivityBoard = lazy(() =>
+  import('../components/projects/ActivityBoard').then((module) => ({ default: module.ActivityBoard }))
+);
 
 type View = 'list' | 'board';
 
@@ -87,7 +91,23 @@ export function ProjectsPage() {
   );
 
   return view === 'board' ? (
-    <ActivityBoard searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
+    <Suspense
+      fallback={
+        <>
+          <div className="page-head">
+            <div className="page-head__text">
+              <h1>Projetos</h1>
+            </div>
+          </div>
+          {switcher}
+          <section className="panel">
+            <Loading label="Carregando atividades…" />
+          </section>
+        </>
+      }
+    >
+      <ActivityBoard searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
+    </Suspense>
   ) : (
     <ProjectList searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
   );

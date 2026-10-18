@@ -130,7 +130,9 @@ recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projet
 responsável com foto (ou "Sem responsável" em destaque) e prazo, com uma faixa à esquerda vermelha quando atrasada e
 âmbar quando vence em até 7 dias. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
 segure o card um instante e arraste, e o quadro rola sozinho ao chegar na borda) ou, no celular, use o selo de status
-do card. Clicar no card abre a atividade para editar. Filtros: busca por atividade ou projeto, Todas/Minhas, projeto,
+do card. Clicar no card abre a atividade para editar, e o botão "Nova atividade" cria uma pelo próprio quadro,
+escolhendo o projeto no formulário (já vem preenchido quando o quadro está filtrado por um projeto); o responsável é
+escolhido depois do projeto, entre a equipe dele. O quadro é carregado só quando a aba é aberta. Filtros: busca por atividade ou projeto, Todas/Minhas, projeto,
 responsável, prioridade e só atrasadas, todos na URL. No celular as colunas ficam lado a lado e o quadro rola na
 horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
