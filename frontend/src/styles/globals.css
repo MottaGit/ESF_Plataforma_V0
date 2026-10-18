@@ -608,6 +608,7 @@ button { font: inherit; }
 }
 .stat--link:hover { background: var(--surface-soft); text-decoration: none; }
 .stat__value--alert { color: var(--danger); }
+.summary-line__late { color: var(--danger); font-weight: 500; }
 .attention__filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 4px; }
 .chip {
   display: inline-flex;
@@ -1355,9 +1356,9 @@ button { font: inherit; }
   .act-row__side { width: 100%; padding-left: 29px; }
   .lightbox__stage { padding: 0 6px; }
   .lightbox__nav { width: 36px; height: 36px; background: rgba(0, 0, 0, 0.45); }
-  .stat-strip { grid-template-columns: minmax(0, 1fr); }
-  .stat { border-right: 0 !important; border-bottom: 1px solid var(--border) !important; }
-  .stat:last-child { border-bottom: 0 !important; }
+  /* A visao geral tem so 4 numeros: no celular ficam em 2x2 (regras de 1080px), com menos espaco. */
+  .stat { padding: 12px 14px; }
+  .stat__value { font-size: 20px; }
   .header__user-name, .header__user-role { display: none; }
   .page-head { flex-direction: column; }
   .page-head__actions { margin-left: 0; width: 100%; }

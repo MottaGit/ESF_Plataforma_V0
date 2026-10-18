@@ -88,7 +88,9 @@ export function DashboardPage() {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Olá, {firstName}</h1>
-          <p className="page-head__desc">O que está acontecendo nas atividades da organização.</p>
+          <p className="page-head__desc">
+            <SummaryLine data={data} />
+          </p>
         </div>
         {canManage ? (
           <div className="page-head__actions">
@@ -144,6 +146,55 @@ export function DashboardPage() {
           <BirthdaysPanel />
         </div>
       </div>
+    </>
+  );
+}
+
+/** "1 atividade" / "3 atividades" e afins. */
+function plural(count: number, singular: string, pluralForm: string) {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+/**
+ * Resumo de uma linha no cabecalho: as atividades da propria pessoa quando o acesso esta vinculado
+ * a um voluntario; senao, o panorama da organizacao.
+ */
+function SummaryLine({ data }: { data: Dashboard }) {
+  const { mine, totals } = data;
+
+  if (mine) {
+    if (mine.open === 0) return <>Você não tem atividades em aberto.</>;
+    return (
+      <>
+        Você tem {plural(mine.open, 'atividade em aberto', 'atividades em aberto')}
+        {mine.late > 0 ? (
+          <>
+            {' · '}
+            <span className="summary-line__late">{plural(mine.late, 'atrasada', 'atrasadas')}</span>
+          </>
+        ) : null}
+        {mine.dueSoon > 0
+          ? ` · ${mine.dueSoon} ${mine.dueSoon === 1 ? 'vence' : 'vencem'} nos próximos 7 dias`
+          : null}
+      </>
+    );
+  }
+
+  if (totals.lateActivities === 0 && totals.dueSoonActivities === 0)
+    return <>Nenhuma atividade atrasada ou vencendo nos próximos dias na organização.</>;
+
+  return (
+    <>
+      Na organização:{' '}
+      {totals.lateActivities > 0 ? (
+        <span className="summary-line__late">
+          {plural(totals.lateActivities, 'atividade atrasada', 'atividades atrasadas')}
+        </span>
+      ) : null}
+      {totals.lateActivities > 0 && totals.dueSoonActivities > 0 ? ' · ' : null}
+      {totals.dueSoonActivities > 0
+        ? `${totals.dueSoonActivities} ${totals.dueSoonActivities === 1 ? 'vence' : 'vencem'} nos próximos 7 dias`
+        : null}
     </>
   );
 }
