@@ -90,7 +90,7 @@ export function DashboardPage() {
         <div className="stat">
           <div className="stat__value num">{totals.pendingActivities}</div>
           <div className="stat__label">Atividades pendentes</div>
-          <div className="stat__hint">A fazer ou em andamento</div>
+          <div className="stat__hint">Não iniciadas ou em andamento</div>
         </div>
         <div className="stat">
           <div className="stat__value num">{totals.volunteers}</div>

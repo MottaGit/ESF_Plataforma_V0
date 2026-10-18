@@ -20,7 +20,7 @@ const GROUPS: ActivityStatus[] = ['EmAndamento', 'AFazer', 'Concluida'];
 
 const GROUP_TITLES: Record<ActivityStatus, string> = {
   EmAndamento: 'Em andamento',
-  AFazer: 'A fazer',
+  AFazer: 'Não iniciadas',
   Concluida: 'Concluídas'
 };
 

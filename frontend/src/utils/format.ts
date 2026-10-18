@@ -39,7 +39,7 @@ const projectStatusLabels: Record<ProjectStatus, string> = {
 };
 
 const activityStatusLabels: Record<ActivityStatus, string> = {
-  AFazer: 'A fazer',
+  AFazer: 'Não iniciada',
   EmAndamento: 'Em andamento',
   Concluida: 'Concluída'
 };

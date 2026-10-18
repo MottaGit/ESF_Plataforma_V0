@@ -126,8 +126,8 @@ próximos 7 dias e equipe, cada uma levando à aba correspondente) e cinco abas:
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=atividades`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 
-**Atividades** — título, descrição, responsável, status (a fazer / em andamento / concluída), prioridade
-(baixa / média / alta), prazo e observações. A lista é agrupada por status (em andamento, a fazer e concluídas, todas
+**Atividades** — título, descrição, responsável, status (não iniciada / em andamento / concluída), prioridade
+(baixa / média / alta), prazo e observações. A lista é agrupada por status (em andamento, não iniciadas e concluídas, todas
 visíveis), com caixinha para concluir em um clique e "Desfazer" logo em seguida. Ao mudar o status, a atividade fica
 no lugar (riscada, se concluída) e só muda de seção quando a aba é aberta de novo. O botão "Nova atividade" abre o
 formulário com título, responsável, prazo, prioridade e descrição. O responsável é escolhido entre a
