@@ -88,12 +88,12 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
             ) : null}
 
             <div className="field__label" style={{ marginBottom: 6 }}>
-              O que aconteceu?
+              Registrar andamento
             </div>
             <RichTextField
               value={text}
-              ariaLabel="O que aconteceu?"
-              placeholder="Conte o que foi feito, decidido ou observado neste projeto…"
+              ariaLabel="Registrar andamento"
+              placeholder="Conte o que foi feito, o que foi decidido ou o que mudou no projeto…"
               onChange={(html, plain) => {
                 setText(html);
                 setPlainText(plain);
@@ -118,7 +118,7 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
                 accept={ACCEPTED_FILES}
               />
               <Button type="submit" variant="primary" small loading={posting}>
-                Publicar
+                Publicar atualização
               </Button>
             </div>
           </form>

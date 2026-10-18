@@ -134,7 +134,7 @@ formulário com título, responsável, prazo, prioridade e descrição. O respon
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado).
 
-**Andamento** — a tela inicial de cada projeto. No topo, o campo "O que aconteceu?" para publicar um relato com
+**Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um relato com
 formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
 servidor, só essas formatações são aceitas, e elas também aparecem no relatório PDF. Abaixo,
 o feed com data e autor, do mais recente para o mais antigo. Editável depois
