@@ -546,6 +546,10 @@ public static class DbSeeder
             new ProjectUpdate { Project = h4, AuthorUser = ana, Text = "Canteiros preparados. Capacitacao das familias em cultivo de hortalicas em andamento.", CreatedAt = Dt(2026, 3, 1) }
         );
 
+        // Relatos sao texto formatado (HTML); os de demonstracao estao escritos como texto puro.
+        foreach (var update in db.ProjectUpdates.Local)
+            update.Text = RichText.FromPlainText(update.Text);
+
         await db.SaveChangesAsync();
         await ProjectTeam.SyncAllAsync(db);
         logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.", 3, 20, 15);
