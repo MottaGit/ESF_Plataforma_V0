@@ -121,9 +121,7 @@ afastados).
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um
 projeto (ou recarregar) mantém a lista como estava. O **progresso** é calculado pelas atividades concluídas (projeto
-concluído conta como 100%). A coluna **Andamento** mostra há quanto tempo saiu o último relato e destaca projetos em
-planejamento ou em andamento parados há mais de 15 dias. A tela tem duas abas: **Lista de projetos** (a tabela) e
-**Quadro de atividades**.
+concluído conta como 100%). A tela tem duas abas: **Lista de projetos** (a tabela) e **Quadro de atividades**.
 
 **Quadro de atividades** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
@@ -135,8 +133,9 @@ só o texto fica vermelho, e o detalhe ("atrasada 3 dias") fica na dica do mouse
 Atividades e para a Visão geral. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
 segure o card um instante e arraste, e o quadro rola sozinho ao chegar na borda) ou, no celular, use o selo de status
 do card. Clicar no card abre a atividade para editar, e o botão "Nova atividade" cria uma pelo próprio quadro,
-escolhendo o projeto no formulário (já vem preenchido quando o quadro está filtrado por um projeto); o responsável é
-escolhido depois do projeto, entre a equipe dele. O quadro é carregado só quando a aba é aberta. Filtros: busca por atividade ou projeto, Todas/Minhas, projeto,
+escolhendo o projeto no formulário (filtrando por um programa, só os projetos dele aparecem); o responsável é
+escolhido depois do projeto, entre a equipe dele. O quadro é carregado só quando a aba é aberta. Filtros: busca por
+atividade ou projeto, Todas/Minhas (sem voluntário vinculado, "Minhas" explica como pedir o vínculo), programa,
 responsável, prioridade e só atrasadas, todos na URL. No celular as colunas ficam lado a lado e o quadro rola na
 horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).

@@ -312,7 +312,7 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
               id="state"
               value={form.state}
               maxLength={60}
-              placeholder="SP"
+              placeholder="RS"
               onChange={(event) => update('state', event.target.value)}
             />
           </Field>

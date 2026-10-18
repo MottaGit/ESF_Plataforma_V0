@@ -83,6 +83,8 @@ export interface Activity {
   assignedVolunteerPhotoUrl: string | null;
   /** O que esta travando a atividade (so quando bloqueada). */
   blockedReason: string | null;
+  programId: string | null;
+  programName: string | null;
 }
 
 export interface Indicator {

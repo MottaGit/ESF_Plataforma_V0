@@ -184,15 +184,6 @@ export function daysFromToday(date: string) {
   return Math.round((target.getTime() - today.getTime()) / 86400000);
 }
 
-/** Dias desde a data/hora (ISO) ate hoje, contando dias de calendario. */
-export function daysSince(value: string) {
-  const date = new Date(value);
-  date.setHours(0, 0, 0, 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((today.getTime() - date.getTime()) / 86400000);
-}
-
 /** Prazo do projeto em texto: "Faltam 45 dias (até 30/11/2026)", "Atrasado há 5 dias". */
 export function deadlineLabel(endDate: string | null, status: ProjectStatus) {
   if (!endDate) return 'Sem previsão de término';
@@ -204,24 +195,6 @@ export function deadlineLabel(endDate: string | null, status: ProjectStatus) {
   if (diff > 1) return `Faltam ${diff} dias (até ${formatDate(endDate)})`;
   if (diff === -1) return `Atrasado há 1 dia (previsão era ${formatDate(endDate)})`;
   return `Atrasado há ${Math.abs(diff)} dias (previsão era ${formatDate(endDate)})`;
-}
-
-/** Dias sem andamento a partir dos quais um projeto ativo e sinalizado como parado. */
-export const STALE_PROJECT_DAYS = 15;
-
-/** "hoje", "ontem", "há 18 dias" ou "nenhum" (sem relato publicado). */
-export function lastUpdateLabel(lastUpdateAt: string | null) {
-  if (!lastUpdateAt) return 'nenhum';
-  const days = daysSince(lastUpdateAt);
-  if (days <= 0) return 'hoje';
-  if (days === 1) return 'ontem';
-  return `há ${days} dias`;
-}
-
-/** Projeto em planejamento ou andamento sem nenhum relato recente. */
-export function isProjectStale(status: ProjectStatus, lastUpdateAt: string | null) {
-  if (status !== 'Planejamento' && status !== 'EmAndamento') return false;
-  return !lastUpdateAt || daysSince(lastUpdateAt) > STALE_PROJECT_DAYS;
 }
 
 /**

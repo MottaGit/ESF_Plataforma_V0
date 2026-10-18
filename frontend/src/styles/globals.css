@@ -1162,8 +1162,8 @@ button { font: inherit; }
 .chip-group { display: inline-flex; gap: 6px; }
 .chip:disabled { opacity: 0.5; cursor: not-allowed; }
 .chip:disabled:hover { color: var(--text-muted); }
-/* Nomes de projeto sao longos: o filtro nao cresce junto. */
-.toolbar .board-filter--project { max-width: 220px; text-overflow: ellipsis; }
+/* Nomes longos nao fazem o filtro crescer junto. */
+.toolbar .board-filter--program { max-width: 220px; text-overflow: ellipsis; }
 
 .board {
   display: grid;

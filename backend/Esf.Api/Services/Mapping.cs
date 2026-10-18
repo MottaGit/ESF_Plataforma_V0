@@ -51,7 +51,9 @@ public static class Mapping
             a.CreatedAt,
             a.CompletedAt,
             PhotoUrl(a.AssignedVolunteer?.PhotoStoredName),
-            a.BlockedReason);
+            a.BlockedReason,
+            a.Project?.ProgramId,
+            a.Project?.Program?.Name);
 
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);

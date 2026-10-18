@@ -44,7 +44,7 @@ public class ActivityService
         var activities = await _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
-            .Include(a => a.Project)
+            .Include(a => a.Project).ThenInclude(p => p!.Program)
             .Where(a => !a.Project!.IsArchived
                 && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento)
                 && (a.Status != ActivityStatus.Concluida || a.CompletedAt >= doneSince))
@@ -146,7 +146,7 @@ public class ActivityService
         var activity = await _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
-            .Include(a => a.Project)
+            .Include(a => a.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
 
         return Mapping.ToDto(activity);

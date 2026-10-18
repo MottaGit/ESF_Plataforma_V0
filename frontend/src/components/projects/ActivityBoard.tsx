@@ -23,6 +23,7 @@ import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityPriority, ActivityStatus, Volunteer } from '../../types/api';
 import {
   ACTIVITY_PRIORITIES,
+  UNLINKED_MESSAGE,
   daysFromToday,
   dueDateLabel,
   dueDateTitle,
@@ -120,7 +121,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
   /** Atividade esperando o motivo do bloqueio (arrastada ou trocada para "Bloqueada"). */
   const [blocking, setBlocking] = useState<Activity | null>(null);
   /** Projetos que aparecem no quadro (planejamento ou andamento): opcoes para criar uma atividade. */
-  const [activeProjects, setActiveProjects] = useState<Array<{ id: string; name: string }>>([]);
+  const [activeProjects, setActiveProjects] = useState<Array<{ id: string; name: string; programId: string }>>([]);
 
   const sensors = useSensors(
     // Mouse: o arraste so comeca depois de mover alguns pixels, entao um clique simples abre o card.
@@ -131,8 +132,10 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
 
   const myVolunteerId = user?.volunteerId ?? null;
   const query = searchParams.get('busca') ?? '';
-  const mine = searchParams.get('de') === 'minhas' && Boolean(myVolunteerId);
-  const projectFilter = searchParams.get('projeto') ?? '';
+  // "Minhas" sem voluntario vinculado mostra o aviso de como pedir o vinculo, no lugar do quadro.
+  const wantsMine = searchParams.get('de') === 'minhas';
+  const mine = wantsMine && Boolean(myVolunteerId);
+  const programFilter = searchParams.get('programa') ?? '';
   const assigneeFilter = mine ? '' : (searchParams.get('responsavel') ?? '');
   const priorityFilter = (searchParams.get('prioridade') ?? '') as ActivityPriority | '';
   const onlyLate = searchParams.get('atrasadas') === '1';
@@ -169,14 +172,19 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
         setActiveProjects(
           list
             .filter((project) => project.status === 'Planejamento' || project.status === 'EmAndamento')
-            .map((project) => ({ id: project.id, name: project.name }))
+            .map((project) => ({ id: project.id, name: project.name, programId: project.programId }))
         )
       )
       .catch(() => undefined);
   }, []);
 
-  const projectOptions = useMemo(
-    () => uniqueOptions(activities.map((activity) => [activity.projectId, activity.projectName ?? 'Projeto'])),
+  const programOptions = useMemo(
+    () =>
+      uniqueOptions(
+        activities
+          .filter((activity) => activity.programId)
+          .map((activity) => [activity.programId!, activity.programName ?? 'Programa'])
+      ),
     [activities]
   );
 
@@ -193,7 +201,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
   const term = normalize(query.trim());
   const visible = activities.filter((activity) => {
     if (mine && activity.assignedVolunteerId !== myVolunteerId) return false;
-    if (projectFilter && activity.projectId !== projectFilter) return false;
+    if (programFilter && activity.programId !== programFilter) return false;
     if (assigneeFilter === UNASSIGNED && activity.assignedVolunteerId) return false;
     if (assigneeFilter && assigneeFilter !== UNASSIGNED && activity.assignedVolunteerId !== assigneeFilter) return false;
     if (priorityFilter && activity.priority !== priorityFilter) return false;
@@ -202,7 +210,11 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
     return true;
   });
 
-  const hasFilters = Boolean(term || mine || projectFilter || assigneeFilter || priorityFilter || onlyLate);
+  const projectChoices = programFilter
+    ? activeProjects.filter((project) => project.programId === programFilter)
+    : activeProjects;
+
+  const hasFilters = Boolean(term || wantsMine || programFilter || assigneeFilter || priorityFilter || onlyLate);
 
   const summary = useMemo(() => {
     const open = activities.filter((activity) => activity.status !== 'Concluida');
@@ -212,7 +224,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
 
   function clearFilters() {
     setSearch('');
-    updateParams({ busca: null, de: null, projeto: null, responsavel: null, prioridade: null, atrasadas: null });
+    updateParams({ busca: null, de: null, programa: null, responsavel: null, prioridade: null, atrasadas: null });
   }
 
   /** Bloquear pergunta antes o que esta travando; os demais status mudam direto. */
@@ -280,18 +292,16 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
         <div className="chip-group" role="group" aria-label="De quem">
           <button
             type="button"
-            className={`chip${mine ? '' : ' chip--active'}`}
-            aria-pressed={!mine}
+            className={`chip${wantsMine ? '' : ' chip--active'}`}
+            aria-pressed={!wantsMine}
             onClick={() => updateParams({ de: null })}
           >
             Todas
           </button>
           <button
             type="button"
-            className={`chip${mine ? ' chip--active' : ''}`}
-            aria-pressed={mine}
-            disabled={!myVolunteerId}
-            title={myVolunteerId ? undefined : 'Seu acesso não está vinculado a um voluntário.'}
+            className={`chip${wantsMine ? ' chip--active' : ''}`}
+            aria-pressed={wantsMine}
             onClick={() => updateParams({ de: 'minhas', responsavel: null })}
           >
             Minhas
@@ -299,20 +309,20 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
         </div>
 
         <Select
-          className="board-filter--project"
-          value={projectFilter}
-          onChange={(event) => updateParams({ projeto: event.target.value || null })}
-          aria-label="Projeto"
+          className="board-filter--program"
+          value={programFilter}
+          onChange={(event) => updateParams({ programa: event.target.value || null })}
+          aria-label="Programa"
         >
-          <option value="">Todos os projetos</option>
-          {projectOptions.map(([id, name]) => (
+          <option value="">Todos os programas</option>
+          {programOptions.map(([id, name]) => (
             <option key={id} value={id}>
               {name}
             </option>
           ))}
         </Select>
 
-        {!mine ? (
+        {!wantsMine ? (
           <Select
             value={assigneeFilter}
             onChange={(event) => updateParams({ responsavel: event.target.value || null })}
@@ -366,7 +376,9 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
 
       {error ? <Alert kind="error">{error}</Alert> : null}
 
-      {loading ? (
+      {wantsMine && !myVolunteerId ? (
+        <Alert kind="info">{UNLINKED_MESSAGE}</Alert>
+      ) : loading ? (
         <section className="panel">
           <Loading label="Carregando atividades…" />
         </section>
@@ -453,9 +465,9 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
 
       {creating ? (
         <ActivityFormModal
-          // Filtrando por um projeto, ele ja vem escolhido.
-          projectId={activeProjects.some((project) => project.id === projectFilter) ? projectFilter : ''}
-          projects={activeProjects}
+          // Filtrando por um programa, so os projetos dele aparecem (e, se for um so, ja vem escolhido).
+          projectId={projectChoices.length === 1 ? projectChoices[0].id : ''}
+          projects={projectChoices}
           activity={null}
           volunteers={volunteers}
           onClose={() => setCreating(false)}

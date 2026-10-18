@@ -21,7 +21,10 @@ public record ActivityDto(
     // Foto do responsavel (null sem responsavel ou sem foto).
     string? AssignedVolunteerPhotoUrl,
     // O que esta travando a atividade (so quando bloqueada).
-    string? BlockedReason);
+    string? BlockedReason,
+    // Programa do projeto (preenchido quando o projeto e seu programa foram carregados).
+    Guid? ProgramId,
+    string? ProgramName);
 
 public class SaveActivityRequest
 {

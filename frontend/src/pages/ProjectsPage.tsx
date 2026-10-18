@@ -12,14 +12,7 @@ import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
-import {
-  PROJECT_STATUSES,
-  STALE_PROJECT_DAYS,
-  formatDate,
-  isProjectStale,
-  lastUpdateLabel,
-  projectStatusLabel
-} from '../utils/format';
+import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
 import { rememberProjectsQuery } from '../utils/listState';
 
 const sortOptions = [
@@ -358,9 +351,6 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
                   <th>Responsável</th>
                   <th>Local</th>
                   <th>Progresso</th>
-                  <th className="tight" title="Último relato publicado no Andamento do projeto">
-                    Andamento
-                  </th>
                   <th className="tight">Período</th>
                   <th className="right">Ações</th>
                 </tr>
@@ -395,20 +385,6 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
                     </td>
                     <td style={{ minWidth: 120 }}>
                       <Progress value={project.progress} />
-                    </td>
-                    <td>
-                      {isProjectStale(project.status, project.lastUpdateAt) ? (
-                        <span
-                          className="badge badge--pause"
-                          title={`Projeto ativo sem relato de andamento há mais de ${STALE_PROJECT_DAYS} dias`}
-                        >
-                          {lastUpdateLabel(project.lastUpdateAt)}
-                        </span>
-                      ) : (
-                        <span className={project.lastUpdateAt ? undefined : 'table__secondary'}>
-                          {lastUpdateLabel(project.lastUpdateAt)}
-                        </span>
-                      )}
                     </td>
                     <td className="tight">
                       {formatDate(project.startDate)}
