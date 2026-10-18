@@ -24,6 +24,8 @@ export interface User {
   /** Voluntario que este acesso representa. */
   volunteerId: string | null;
   volunteerName: string | null;
+  /** Foto do voluntario vinculado (avatar no topo da tela). */
+  volunteerPhotoUrl: string | null;
 }
 
 export interface LoginResponse {
@@ -123,6 +125,7 @@ export interface ProjectVolunteer {
   sector: VolunteerSector;
   roleInProject: string | null;
   joinedAt: string;
+  photoUrl: string | null;
 }
 
 export interface ProjectUpdate {

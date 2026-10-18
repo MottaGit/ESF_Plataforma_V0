@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { projectsApi, volunteersApi } from '../api/endpoints';
+import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
@@ -66,12 +67,15 @@ export function VolunteerDetailPage() {
       </div>
 
       <div className="page-head">
-        <div className="page-head__text">
-          <h1>{volunteer.name}</h1>
-          <p className="page-head__desc">{sectorLabel(volunteer.sector)}</p>
-          <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-            <VolunteerStatusBadge status={volunteer.status} />
-            {isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? <BirthdayBadge /> : null}
+        <div className="page-head__text person-head">
+          <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={64} />
+          <div>
+            <h1>{volunteer.name}</h1>
+            <p className="page-head__desc">{sectorLabel(volunteer.sector)}</p>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+              <VolunteerStatusBadge status={volunteer.status} />
+              {isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? <BirthdayBadge /> : null}
+            </div>
           </div>
         </div>
 

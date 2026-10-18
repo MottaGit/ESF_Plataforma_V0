@@ -595,6 +595,10 @@ button { font: inherit; }
 }
 .birthday-notice__icon { font-size: 18px; line-height: 1; }
 
+/* Pessoa com a bolinha da foto ao lado do nome (listas e cabecalhos). */
+.person-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.person-head { display: flex; align-items: center; gap: 14px; }
+
 /* Foto do voluntario: area no topo do formulario e o enquadramento circular. */
 .photo-field {
   display: flex;

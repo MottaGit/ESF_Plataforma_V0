@@ -194,14 +194,19 @@ export function VolunteersPage() {
                   return (
                     <tr key={volunteer.id} className={birthday ? 'table__row--birthday' : undefined}>
                       <td>
-                        <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
-                          {volunteer.name}
-                        </Link>
-                        {birthday ? (
-                          <div style={{ marginTop: 4 }}>
-                            <BirthdayBadge />
+                        <div className="person-cell">
+                          <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={32} />
+                          <div>
+                            <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
+                              {volunteer.name}
+                            </Link>
+                            {birthday ? (
+                              <div style={{ marginTop: 4 }}>
+                                <BirthdayBadge />
+                              </div>
+                            ) : null}
                           </div>
-                        ) : null}
+                        </div>
                       </td>
                       <td>{sectorLabel(volunteer.sector)}</td>
                       <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
@@ -276,6 +281,7 @@ interface VolunteerFormModalProps {
 }
 
 export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFormModalProps) {
+  const { user, refreshUser } = useAuth();
   const [name, setName] = useState(volunteer?.name ?? '');
   const [email, setEmail] = useState(volunteer?.email ?? '');
   const [phone, setPhone] = useState(volunteer?.phone ?? '');
@@ -338,6 +344,8 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
       const saved = volunteer ? await volunteersApi.update(volunteer.id, payload) : await volunteersApi.create(payload);
       if (newPhoto) await volunteersApi.uploadPhoto(saved.id, newPhoto.blob);
       else if (photoRemoved && volunteer?.photoUrl) await volunteersApi.removePhoto(saved.id);
+      // A foto do voluntario vinculado a conta aparece no topo da tela.
+      if ((newPhoto || photoRemoved) && saved.id === user?.volunteerId) await refreshUser();
       onSaved();
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o voluntário.');

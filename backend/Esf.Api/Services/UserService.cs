@@ -20,7 +20,10 @@ public class UserService
         return await query
             .OrderBy(u => u.Name)
             .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt,
-                u.VolunteerId, u.Volunteer != null ? u.Volunteer.Name : null))
+                u.VolunteerId, u.Volunteer != null ? u.Volunteer.Name : null,
+                u.Volunteer != null && u.Volunteer.PhotoStoredName != null
+                    ? Mapping.UploadsUrlPrefix + "/" + u.Volunteer.PhotoStoredName
+                    : null))
             .ToListAsync();
     }
 

@@ -32,7 +32,8 @@ public static class Mapping
         dueDate.HasValue && dueDate.Value < Today && status != ActivityStatus.Concluida;
 
     public static UserDto ToDto(User u) =>
-        new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name);
+        new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name,
+            PhotoUrl(u.Volunteer?.PhotoStoredName));
 
     public static ActivityDto ToDto(Activity a) =>
         new(a.Id,
@@ -75,7 +76,8 @@ public static class Mapping
             pv.Volunteer?.Phone,
             pv.Volunteer?.Sector ?? default,
             pv.RoleInProject,
-            pv.JoinedAt);
+            pv.JoinedAt,
+            PhotoUrl(pv.Volunteer?.PhotoStoredName));
 
     public static ProjectFileDto ToDto(ProjectFile f) =>
         new(f.Id,

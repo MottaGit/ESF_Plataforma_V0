@@ -11,7 +11,9 @@ public record UserDto(
     bool IsActive,
     DateTime CreatedAt,
     Guid? VolunteerId,
-    string? VolunteerName);
+    string? VolunteerName,
+    // Foto do voluntario vinculado (avatar do usuario no topo da tela).
+    string? VolunteerPhotoUrl);
 
 public class CreateUserRequest
 {

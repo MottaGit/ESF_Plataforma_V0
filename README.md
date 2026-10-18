@@ -150,7 +150,9 @@ tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o vo
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
 hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
 item do formulário: escolhida do computador e enquadrada num círculo (arrastar e zoom) antes de ser usada; o navegador
-envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário.
+envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário. A foto aparece como uma bolinha na
+lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superior direito (para o voluntário vinculado
+à conta logada); sem foto, aparecem as iniciais.
 
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.

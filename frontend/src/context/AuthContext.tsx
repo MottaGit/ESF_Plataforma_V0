@@ -8,6 +8,8 @@ interface AuthContextValue {
   initializing: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  /** Recarrega o usuario da sessao (ex.: depois de trocar a foto do proprio voluntario). */
+  refreshUser: () => Promise<void>;
   /** Administrador e Coordenador podem criar e editar projetos, voluntarios e indicadores. */
   canManage: boolean;
   isAdmin: boolean;
@@ -51,6 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => onUnauthorized(() => setUser(null)), []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      setUser(await authApi.me());
+    } catch {
+      // Sem sessao valida o onUnauthorized ja cuida de sair; outros erros mantem o usuario atual.
+    }
+  }, []);
+
   const login = useCallback(async (email: string, password: string) => {
     const result = await authApi.login(email, password);
     tokenStore.set(result.token);
@@ -63,10 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       initializing,
       login,
       logout,
+      refreshUser,
       canManage: user?.role === 'Administrador' || user?.role === 'Coordenador',
       isAdmin: user?.role === 'Administrador'
     }),
-    [user, initializing, login, logout]
+    [user, initializing, login, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

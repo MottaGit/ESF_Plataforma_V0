@@ -5,6 +5,7 @@ import { volunteersApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectVolunteer, Volunteer } from '../../types/api';
 import { formatDate, sectorLabel } from '../../utils/format';
+import { Avatar } from '../ui/Avatar';
 import { LateBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextInput } from '../ui/Field';
@@ -115,8 +116,13 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                   return (
                     <tr key={volunteer.volunteerId}>
                       <td>
-                        <div className="table__primary">{volunteer.name}</div>
-                        <div className="table__secondary">{sectorLabel(volunteer.sector)}</div>
+                        <div className="person-cell">
+                          <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
+                          <div>
+                            <div className="table__primary">{volunteer.name}</div>
+                            <div className="table__secondary">{sectorLabel(volunteer.sector)}</div>
+                          </div>
+                        </div>
                       </td>
                       <td>
                         {volunteer.volunteerId === project.ownerVolunteerId ? (

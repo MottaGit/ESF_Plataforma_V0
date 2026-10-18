@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
-import { initials, roleLabel } from '../../utils/format';
+import { roleLabel } from '../../utils/format';
+import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { IconLogout, IconMenu } from '../ui/Icons';
 import { Sidebar } from './Sidebar';
@@ -53,7 +54,7 @@ export function AppLayout() {
           <span className="header__spacer" />
 
           <div className="header__user">
-            <span className="avatar">{initials(user?.name ?? '')}</span>
+            <Avatar name={user?.name ?? ''} photoUrl={user?.volunteerPhotoUrl} size={30} />
             <span>
               <span className="header__user-name">{user?.name}</span>
               <br />

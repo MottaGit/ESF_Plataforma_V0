@@ -32,7 +32,8 @@ public record ProjectVolunteerDto(
     string? Phone,
     VolunteerSector Sector,
     string? RoleInProject,
-    DateTime JoinedAt);
+    DateTime JoinedAt,
+    string? PhotoUrl);
 
 public class SaveVolunteerRequest
 {
