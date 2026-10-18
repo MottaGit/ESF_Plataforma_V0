@@ -39,6 +39,7 @@
   --danger: #b42318;
   --danger-bg: #fdecea;
   --warning: #b54708;
+  --due-soon: #f79009;
 
   /* forma */
   --radius: 8px;
@@ -1149,49 +1150,105 @@ button { font: inherit; }
 .toast__close { margin-left: auto; background: transparent; border: 0; color: inherit; opacity: 0.7; cursor: pointer; }
 
 /* ---------------------------------------------------------
-   Kanban de projetos
+   Quadro de atividades (tela de Projetos)
    --------------------------------------------------------- */
 
-.kanban {
+.chip-group { display: inline-flex; gap: 6px; }
+.chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.chip:disabled:hover { color: var(--text-muted); }
+/* Nomes de projeto sao longos: o filtro nao cresce junto. */
+.toolbar .board-filter--project { max-width: 220px; text-overflow: ellipsis; }
+
+.board {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  align-items: start;
 }
 
-.kanban__col {
+.board__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 220px;
+  padding: 10px;
   background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 10px;
-  min-height: 160px;
 }
-.kanban__col--over { border-color: var(--accent); background: var(--accent-soft); }
+.board__col--over { border-color: var(--accent); background: var(--accent-soft); }
 
-.kanban__head {
+.board__head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   padding: 2px 4px 10px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-muted);
 }
-.kanban__count { margin-left: auto; font-weight: 500; }
+.board__hint { font-size: 11.5px; font-weight: 400; color: var(--text-soft); }
+.board__count { margin-left: auto; font-weight: 500; }
+.board__empty { font-size: 12px; color: var(--text-soft); padding: 6px 4px; }
+.board__cards { display: flex; flex-direction: column; gap: 8px; }
 
-.kanban__card {
+.board-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 11px 10px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 11px;
-  margin-bottom: 8px;
-  cursor: grab;
+  overflow: hidden;
+  cursor: pointer;
 }
-.kanban__card:last-child { margin-bottom: 0; }
-.kanban__card:hover { border-color: var(--border-strong); }
-.kanban__card-title { font-size: 13px; font-weight: 500; margin-bottom: 7px; }
-.kanban__card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--text-muted); }
-.kanban__hint { font-size: 12px; color: var(--text-soft); padding: 6px 4px; }
+.board-card:hover { border-color: var(--border-strong); }
+/* Faixa a esquerda pelo prazo: vermelha quando atrasada, ambar quando vence nos proximos 7 dias. */
+.board-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: transparent;
+}
+.board-card--late::before { background: var(--danger); }
+.board-card--soon::before { background: var(--due-soon); }
+
+.board-card__top { display: flex; align-items: flex-start; gap: 8px; }
+.board-card__title {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.board-card--done .board-card__title { color: var(--text-muted); }
+.board-card__project {
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.board-card__project:hover { color: var(--accent-text); }
+.board-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+.board-card__person { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-muted); }
+.board-card__person--none { color: var(--warning); font-weight: 500; }
+.board-card__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.board-card__due { flex-shrink: 0; color: var(--text-soft); }
+.board-card__due--late { color: var(--danger); font-weight: 500; }
+.board-card__due--soon { color: var(--warning); font-weight: 500; }
+.board-card__status { display: flex; }
 
 /* ---------------------------------------------------------
    Arquivos e mapa
@@ -1339,7 +1396,20 @@ button { font: inherit; }
   }
 
   .grid-2, .form-grid { grid-template-columns: minmax(0, 1fr); }
-  .kanban { grid-template-columns: minmax(0, 1fr); }
+  /* No celular as colunas do quadro continuam lado a lado: rola-se na horizontal, uma coluna por vez,
+     com a borda da proxima aparecendo. O quadro vai de ponta a ponta da tela. */
+  .board {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(85%, 340px);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 14px;
+    margin: 0 -14px;
+    padding: 0 14px 8px;
+  }
+  .board__col { scroll-snap-align: start; }
   .login { grid-template-columns: minmax(0, 1fr); }
   .login__aside { display: none; }
   .meta-list--cols { grid-template-columns: minmax(0, 1fr); }

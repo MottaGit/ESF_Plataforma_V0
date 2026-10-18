@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
+import { ActivityBoard } from '../components/projects/ActivityBoard';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -30,29 +31,20 @@ const sortOptions = [
   { value: 'progress', label: 'Maior progresso' }
 ];
 
+type View = 'list' | 'board';
+
+const VIEWS: Array<{ key: View; label: string }> = [
+  { key: 'list', label: 'Lista de projetos' },
+  { key: 'board', label: 'Quadro de atividades' }
+];
+
+/**
+ * Tela de Projetos com duas visoes: a lista de projetos e o quadro com as atividades de todos os projetos
+ * ativos. Visao e filtros vivem na URL: voltar de um projeto (ou recarregar) mantem a tela como estava.
+ */
 export function ProjectsPage() {
-  const { canManage, isAdmin } = useAuth();
-  const { notify, notifyError } = useToast();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const [projects, setProjects] = useState<ProjectListItem[]>([]);
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Filtros vivem na URL: voltar de um projeto (ou recarregar) mantem a lista como estava.
-  const debouncedSearch = searchParams.get('busca') ?? '';
-  const status = (searchParams.get('status') ?? '') as ProjectStatus | '';
-  const programId = searchParams.get('programa') ?? '';
-  const sort = searchParams.get('ordem') ?? 'recent';
-  const onlyLate = searchParams.get('atrasados') === '1';
-  const includeArchived = searchParams.get('arquivados') === '1';
-  const view: 'list' | 'board' = searchParams.get('visao') === 'quadro' ? 'board' : 'list';
-
-  const [search, setSearch] = useState(debouncedSearch);
-  const [dragOver, setDragOver] = useState<ProjectStatus | null>(null);
+  const view: View = searchParams.get('visao') === 'quadro' ? 'board' : 'list';
 
   const updateParams = useCallback(
     (changes: Record<string, string | null>) => {
@@ -74,6 +66,58 @@ export function ProjectsPage() {
   useEffect(() => {
     rememberProjectsQuery(searchParams.toString());
   }, [searchParams]);
+
+  // Cada visao tem os proprios filtros: trocar de visao comeca sem filtro (e entra no historico do navegador).
+  const switcher = (
+    <div className="tabs">
+      {VIEWS.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          className={`tab${view === item.key ? ' tab--active' : ''}`}
+          aria-pressed={view === item.key}
+          onClick={() => {
+            if (item.key !== view) setSearchParams(item.key === 'board' ? { visao: 'quadro' } : {});
+          }}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  return view === 'board' ? (
+    <ActivityBoard searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
+  ) : (
+    <ProjectList searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
+  );
+}
+
+interface ProjectListProps {
+  searchParams: URLSearchParams;
+  updateParams: (changes: Record<string, string | null>) => void;
+  switcher: ReactNode;
+}
+
+function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps) {
+  const { canManage, isAdmin } = useAuth();
+  const { notify, notifyError } = useToast();
+  const navigate = useNavigate();
+
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const debouncedSearch = searchParams.get('busca') ?? '';
+  const status = (searchParams.get('status') ?? '') as ProjectStatus | '';
+  const programId = searchParams.get('programa') ?? '';
+  const sort = searchParams.get('ordem') ?? 'recent';
+  const onlyLate = searchParams.get('atrasados') === '1';
+  const includeArchived = searchParams.get('arquivados') === '1';
+
+  const [search, setSearch] = useState(debouncedSearch);
 
   const [formProject, setFormProject] = useState<ProjectDetail | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -138,16 +182,6 @@ export function ProjectsPage() {
     }
   }
 
-  async function changeStatus(project: ProjectListItem, nextStatus: ProjectStatus) {
-    if (project.status === nextStatus) return;
-    try {
-      await projectsApi.updateStatus(project.id, nextStatus);
-      void load();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar o status.');
-    }
-  }
-
   async function handleArchiveToggle(project: ProjectListItem) {
     try {
       if (project.isArchived) {
@@ -204,20 +238,9 @@ export function ProjectsPage() {
         ) : null}
       </div>
 
-      <div className="toolbar">
-        <div className="btn-row">
-          <Button small variant={view === 'list' ? 'primary' : 'default'} onClick={() => updateParams({ visao: null })}>
-            Lista
-          </Button>
-          <Button
-            small
-            variant={view === 'board' ? 'primary' : 'default'}
-            onClick={() => updateParams({ visao: 'quadro', status: null })}
-          >
-            Quadro
-          </Button>
-        </div>
+      {switcher}
 
+      <div className="toolbar">
         <span className="search">
           <IconSearch className="search__icon" />
           <TextInput
@@ -228,16 +251,14 @@ export function ProjectsPage() {
           />
         </span>
 
-        {view === 'list' ? (
-          <Select value={status} onChange={(event) => updateParams({ status: event.target.value || null })} aria-label="Status">
-            <option value="">Todos os status</option>
-            {PROJECT_STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {projectStatusLabel(value)}
-              </option>
-            ))}
-          </Select>
-        ) : null}
+        <Select value={status} onChange={(event) => updateParams({ status: event.target.value || null })} aria-label="Status">
+          <option value="">Todos os status</option>
+          {PROJECT_STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {projectStatusLabel(value)}
+            </option>
+          ))}
+        </Select>
 
         <Select
           value={programId}
@@ -307,7 +328,7 @@ export function ProjectsPage() {
               ) : undefined
             }
           />
-        ) : view === 'list' ? (
+        ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
@@ -407,68 +428,8 @@ export function ProjectsPage() {
               </tbody>
             </table>
           </div>
-        ) : (
-          <div className="kanban">
-            {PROJECT_STATUSES.map((statusValue) => {
-              const column = projects.filter((project) => project.status === statusValue);
-              return (
-                <div
-                  key={statusValue}
-                  className={`kanban__col${dragOver === statusValue ? ' kanban__col--over' : ''}`}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setDragOver(statusValue);
-                  }}
-                  onDragLeave={() => setDragOver((current) => (current === statusValue ? null : current))}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    setDragOver(null);
-                    const id = event.dataTransfer.getData('text/plain');
-                    const project = projects.find((item) => item.id === id);
-                    if (project) void changeStatus(project, statusValue);
-                  }}
-                >
-                  <div className="kanban__head">
-                    {projectStatusLabel(statusValue)}
-                    <span className="kanban__count num">{column.length}</span>
-                  </div>
-
-                  {column.length === 0 ? (
-                    <p className="kanban__hint">Nenhum projeto neste status.</p>
-                  ) : (
-                    column.map((project) => (
-                      <article
-                        key={project.id}
-                        className="kanban__card"
-                        draggable
-                        onDragStart={(event) => event.dataTransfer.setData('text/plain', project.id)}
-                        onClick={() => navigate(`/projetos/${project.id}`)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="kanban__card-title">{project.name}</div>
-                        <div className="kanban__card-meta">
-                          <span>{project.programName}</span>
-                          {project.isLate ? <LateBadge /> : null}
-                          {project.ownerName ? <span>{project.ownerName}</span> : null}
-                        </div>
-                        <div style={{ marginTop: 8 }}>
-                          <Progress value={project.progress} />
-                        </div>
-                      </article>
-                    ))
-                  )}
-                </div>
-              );
-            })}
-          </div>
         )}
       </section>
-
-      {view === 'board' && projects.length > 0 ? (
-        <p className="field__hint" style={{ marginTop: 10 }}>
-          Arraste um card para mudar o status. Clique para abrir o projeto.
-        </p>
-      ) : null}
 
       {formOpen ? (
         <ProjectFormModal

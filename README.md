@@ -120,8 +120,17 @@ responsável (com filtros e link para o projeto); **Equipe** mostra quem está c
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um
 projeto (ou recarregar) mantém a lista como estava. O **progresso** é calculado pelas atividades concluídas (projeto
 concluído conta como 100%). A coluna **Andamento** mostra há quanto tempo saiu o último relato e destaca projetos em
-planejamento ou em andamento parados há mais de 15 dias. Duas formas de visualizar: **lista** (tabela) ou **quadro
-Kanban geral** (um card por projeto, colunas por status, arrastar e soltar para mudar o status).
+planejamento ou em andamento parados há mais de 15 dias. A tela tem duas abas: **Lista de projetos** (a tabela) e
+**Quadro de atividades**.
+
+**Quadro de atividades** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
+arquivados), em três colunas: **Não iniciadas**, **Em andamento** e **Concluídas** (só as dos últimos 30 dias). Nas
+colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais
+recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Atividades dele),
+responsável com foto (ou "Sem responsável" em destaque) e prazo, com uma faixa à esquerda vermelha quando atrasada e
+âmbar quando vence em até 7 dias. Clicar no card abre a atividade para editar. Filtros: busca por atividade ou projeto,
+Todas/Minhas, projeto, responsável, prioridade e só atrasadas, todos na URL. No celular as colunas ficam lado a lado
+e o quadro rola na horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto.
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,

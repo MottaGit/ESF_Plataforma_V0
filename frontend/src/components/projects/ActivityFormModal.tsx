@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { activitiesApi } from '../../api/endpoints';
+import { activitiesApi, volunteersApi } from '../../api/endpoints';
 import type {
   Activity,
   ActivityPriority,
@@ -24,8 +24,8 @@ import { Modal } from '../ui/Modal';
 interface ActivityFormModalProps {
   projectId: string;
   activity: Activity | null;
-  /** Equipe do projeto: primeira opcao para atribuir a atividade. */
-  team: ProjectVolunteer[];
+  /** Equipe do projeto: primeira opcao para atribuir a atividade. Sem ela, o formulario busca a equipe. */
+  team?: ProjectVolunteer[];
   /** Voluntarios ativos da organizacao. Quem estiver fora da equipe entra nela ao salvar. */
   volunteers: Volunteer[];
   onClose: () => void;
@@ -48,9 +48,26 @@ export function ActivityFormModal({
   const [dueDate, setDueDate] = useState(activity?.dueDate?.slice(0, 10) ?? '');
   const [notes, setNotes] = useState(activity?.notes ?? '');
 
-  const teamIds = new Set(team.map((member) => member.volunteerId));
+  // Aberto fora da pagina do projeto (quadro de atividades), a equipe vem da API.
+  const [loadedTeam, setLoadedTeam] = useState<ProjectVolunteer[] | null>(null);
+  useEffect(() => {
+    if (team) return;
+    let active = true;
+    setLoadedTeam(null);
+    volunteersApi
+      .listByProject(projectId)
+      .then((list) => active && setLoadedTeam(list))
+      .catch(() => active && setLoadedTeam([]));
+    return () => {
+      active = false;
+    };
+  }, [team, projectId]);
+
+  const teamLoading = !team && loadedTeam === null;
+  const currentTeam = team ?? loadedTeam ?? [];
+  const teamIds = new Set(currentTeam.map((member) => member.volunteerId));
   const others = volunteers.filter((volunteer) => !teamIds.has(volunteer.id));
-  const outsiderSelected = Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
+  const outsiderSelected = !teamLoading && Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
 
   const [titleError, setTitleError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -129,11 +146,12 @@ export function ActivityFormModal({
             <Select
               id="activity-owner"
               value={assignedVolunteerId}
+              disabled={teamLoading}
               onChange={(event) => setAssignedVolunteerId(event.target.value)}
             >
               <option value="">Sem responsável</option>
               <optgroup label="Equipe do projeto">
-                {team.map((member) => (
+                {currentTeam.map((member) => (
                   <option key={member.volunteerId} value={member.volunteerId}>
                     {member.name}
                   </option>
