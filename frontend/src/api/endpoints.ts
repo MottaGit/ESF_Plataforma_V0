@@ -84,8 +84,9 @@ export const activitiesApi = {
     http.request<Activity>(`/api/projects/${projectId}/activities`, { method: 'POST', body: payload }),
   update: (id: string, payload: SaveActivityPayload) =>
     http.request<Activity>(`/api/activities/${id}`, { method: 'PUT', body: payload }),
-  updateStatus: (id: string, status: string) =>
-    http.request<Activity>(`/api/activities/${id}/status`, { method: 'PATCH', body: { status } }),
+  /** blockedReason so vale (e so e guardado) quando o status e Bloqueada. */
+  updateStatus: (id: string, status: string, blockedReason: string | null = null) =>
+    http.request<Activity>(`/api/activities/${id}/status`, { method: 'PATCH', body: { status, blockedReason } }),
   remove: (id: string) => http.request<void>(`/api/activities/${id}`, { method: 'DELETE' })
 };
 

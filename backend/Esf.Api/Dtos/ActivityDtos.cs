@@ -19,7 +19,9 @@ public record ActivityDto(
     DateTime CreatedAt,
     DateTime? CompletedAt,
     // Foto do responsavel (null sem responsavel ou sem foto).
-    string? AssignedVolunteerPhotoUrl);
+    string? AssignedVolunteerPhotoUrl,
+    // O que esta travando a atividade (so quando bloqueada).
+    string? BlockedReason);
 
 public class SaveActivityRequest
 {
@@ -38,10 +40,18 @@ public class SaveActivityRequest
 
     public DateOnly? DueDate { get; set; }
     public string? Notes { get; set; }
+
+    /// <summary>Opcional; so e guardado quando o status e Bloqueada.</summary>
+    [StringLength(300, ErrorMessage = "Descreva o bloqueio em ate 300 caracteres.")]
+    public string? BlockedReason { get; set; }
 }
 
 public class UpdateActivityStatusRequest
 {
     [Required(ErrorMessage = "Selecione o status.")]
     public ActivityStatus? Status { get; set; }
+
+    /// <summary>Opcional; so e guardado quando o status e Bloqueada.</summary>
+    [StringLength(300, ErrorMessage = "Descreva o bloqueio em ate 300 caracteres.")]
+    public string? BlockedReason { get; set; }
 }

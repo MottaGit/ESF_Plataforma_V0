@@ -4,7 +4,7 @@ export type UserRole = 'Administrador' | 'Coordenador' | 'Usuario';
 
 export type ProjectStatus = 'Planejamento' | 'EmAndamento' | 'Pausado' | 'Concluido' | 'Cancelado';
 
-export type ActivityStatus = 'AFazer' | 'EmAndamento' | 'Concluida';
+export type ActivityStatus = 'AFazer' | 'EmAndamento' | 'Bloqueada' | 'Concluida';
 
 export type ActivityPriority = 'Baixa' | 'Media' | 'Alta';
 
@@ -81,6 +81,8 @@ export interface Activity {
   createdAt: string;
   completedAt: string | null;
   assignedVolunteerPhotoUrl: string | null;
+  /** O que esta travando a atividade (so quando bloqueada). */
+  blockedReason: string | null;
 }
 
 export interface Indicator {
@@ -270,6 +272,7 @@ export interface SaveActivityPayload {
   priority: ActivityPriority;
   dueDate: string | null;
   notes: string | null;
+  blockedReason: string | null;
 }
 
 export interface SaveVolunteerPayload {

@@ -29,6 +29,7 @@ import { Select, TextInput } from '../ui/Field';
 import { Alert, EmptyState, Loading } from '../ui/Feedback';
 import { IconPlus, IconSearch } from '../ui/Icons';
 import { ActivityFormModal } from './ActivityFormModal';
+import { BlockActivityDialog } from './BlockActivityDialog';
 
 /** Por quantos dias uma concluida continua no quadro (mesmo valor de ActivityService.BoardDoneDays). */
 const DONE_DAYS = 30;
@@ -40,6 +41,7 @@ const UNASSIGNED = 'nenhum';
 const COLUMNS: Array<{ status: ActivityStatus; title: string; hint?: string }> = [
   { status: 'AFazer', title: 'Não iniciadas' },
   { status: 'EmAndamento', title: 'Em andamento' },
+  { status: 'Bloqueada', title: 'Bloqueadas' },
   { status: 'Concluida', title: 'Concluídas', hint: `últimos ${DONE_DAYS} dias` }
 ];
 
@@ -67,10 +69,11 @@ function urgencyOf(activity: Activity): Urgency {
 }
 
 /** Copia local com o novo status, para o card mudar de coluna antes da resposta do servidor. */
-function withStatus(activity: Activity, status: ActivityStatus): Activity {
+function withStatus(activity: Activity, status: ActivityStatus, blockedReason: string | null): Activity {
   return {
     ...activity,
     status,
+    blockedReason: status === 'Bloqueada' ? blockedReason : null,
     completedAt: status === 'Concluida' ? new Date().toISOString() : null,
     isLate: status !== 'Concluida' && Boolean(activity.dueDate) && daysFromToday(activity.dueDate!) < 0
   };
@@ -114,6 +117,8 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
   const [editing, setEditing] = useState<Activity | null>(null);
   const [creating, setCreating] = useState(false);
   const [dragging, setDragging] = useState<Activity | null>(null);
+  /** Atividade esperando o motivo do bloqueio (arrastada ou trocada para "Bloqueada"). */
+  const [blocking, setBlocking] = useState<Activity | null>(null);
   /** Projetos que aparecem no quadro (planejamento ou andamento): opcoes para criar uma atividade. */
   const [activeProjects, setActiveProjects] = useState<Array<{ id: string; name: string }>>([]);
 
@@ -210,14 +215,20 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
     updateParams({ busca: null, de: null, projeto: null, responsavel: null, prioridade: null, atrasadas: null });
   }
 
-  async function changeStatus(activity: Activity, status: ActivityStatus) {
+  /** Bloquear pergunta antes o que esta travando; os demais status mudam direto. */
+  function requestStatus(activity: Activity, status: ActivityStatus) {
     if (activity.status === status) return;
+    if (status === 'Bloqueada') setBlocking(activity);
+    else void changeStatus(activity, status);
+  }
+
+  async function changeStatus(activity: Activity, status: ActivityStatus, blockedReason: string | null = null) {
     const replace = (next: Activity) =>
       setActivities((current) => current.map((item) => (item.id === next.id ? next : item)));
 
-    replace(withStatus(activity, status));
+    replace(withStatus(activity, status, blockedReason));
     try {
-      replace(await activitiesApi.updateStatus(activity.id, status));
+      replace(await activitiesApi.updateStatus(activity.id, status, blockedReason));
     } catch (err) {
       replace(activity);
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a atividade.');
@@ -233,7 +244,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
     setDragging(null);
     const activity = activities.find((item) => item.id === event.active.id);
     const status = event.over?.id as ActivityStatus | undefined;
-    if (activity && status) void changeStatus(activity, status);
+    if (activity && status) requestStatus(activity, status);
   }
 
   return (
@@ -394,7 +405,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
                             key={activity.id}
                             activity={activity}
                             onOpen={() => setEditing(activity)}
-                            onStatusChange={(status) => void changeStatus(activity, status)}
+                            onStatusChange={(status) => requestStatus(activity, status)}
                           />
                         ))}
                       </div>
@@ -425,6 +436,17 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
             setEditing(null);
             notify('Atividade atualizada.');
             void load(true);
+          }}
+        />
+      ) : null}
+
+      {blocking ? (
+        <BlockActivityDialog
+          title={blocking.title}
+          onCancel={() => setBlocking(null)}
+          onConfirm={(reason) => {
+            setBlocking(null);
+            void changeStatus(blocking, 'Bloqueada', reason);
           }}
         />
       ) : null}
@@ -523,6 +545,10 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
         >
           {activity.projectName}
         </Link>
+      ) : null}
+
+      {activity.status === 'Bloqueada' && activity.blockedReason ? (
+        <p className="board-card__blocked">{activity.blockedReason}</p>
       ) : null}
 
       <div className="board-card__foot">

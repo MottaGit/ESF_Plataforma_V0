@@ -21,7 +21,9 @@ public enum ActivityStatus
 {
     AFazer = 0,
     EmAndamento = 1,
-    Concluida = 2
+    Concluida = 2,
+    // Parada por algum impedimento (o motivo fica em Activity.BlockedReason). Continua em aberto.
+    Bloqueada = 3
 }
 
 public enum ActivityPriority

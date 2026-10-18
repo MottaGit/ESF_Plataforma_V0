@@ -21,6 +21,7 @@ const projectStatusClass: Record<ProjectStatus, string> = {
 const activityStatusClass: Record<ActivityStatus, string> = {
   AFazer: 'badge--plan',
   EmAndamento: 'badge--run',
+  Bloqueada: 'badge--blocked',
   Concluida: 'badge--done'
 };
 

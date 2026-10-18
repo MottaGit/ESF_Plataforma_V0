@@ -13,7 +13,7 @@ export const PROJECT_STATUSES: ProjectStatus[] = ['Planejamento', 'EmAndamento',
 const PAST_PROJECT_STATUSES = new Set<ProjectStatus>(['Concluido', 'Cancelado']);
 export const isPastProjectStatus = (status: ProjectStatus) => PAST_PROJECT_STATUSES.has(status);
 
-export const ACTIVITY_STATUSES: ActivityStatus[] = ['AFazer', 'EmAndamento', 'Concluida'];
+export const ACTIVITY_STATUSES: ActivityStatus[] = ['AFazer', 'EmAndamento', 'Bloqueada', 'Concluida'];
 
 export const ACTIVITY_PRIORITIES: ActivityPriority[] = ['Baixa', 'Media', 'Alta'];
 
@@ -41,6 +41,7 @@ const projectStatusLabels: Record<ProjectStatus, string> = {
 const activityStatusLabels: Record<ActivityStatus, string> = {
   AFazer: 'Não iniciada',
   EmAndamento: 'Em andamento',
+  Bloqueada: 'Bloqueada',
   Concluida: 'Concluída'
 };
 

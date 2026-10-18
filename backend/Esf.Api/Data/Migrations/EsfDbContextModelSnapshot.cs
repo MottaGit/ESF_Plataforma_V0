@@ -31,6 +31,10 @@ namespace Esf.Api.Data.Migrations
                     b.Property<Guid?>("AssignedVolunteerId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("BlockedReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 

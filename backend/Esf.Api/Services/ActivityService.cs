@@ -118,12 +118,13 @@ public class ActivityService
         return await GetDtoAsync(id);
     }
 
-    public async Task<ActivityDto> UpdateStatusAsync(Guid id, ActivityStatus status)
+    public async Task<ActivityDto> UpdateStatusAsync(Guid id, ActivityStatus status, string? blockedReason = null)
     {
         var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
 
         activity.Status = status;
         activity.CompletedAt = status == ActivityStatus.Concluida ? DateTime.UtcNow : null;
+        activity.BlockedReason = BlockedReasonFor(status, blockedReason);
 
         await TouchProjectAsync(activity.ProjectId);
         await _db.SaveChangesAsync();
@@ -172,10 +173,15 @@ public class ActivityService
         activity.Priority = r.Priority!.Value;
         activity.DueDate = r.DueDate;
         activity.Notes = string.IsNullOrWhiteSpace(r.Notes) ? null : r.Notes.Trim();
+        activity.BlockedReason = BlockedReasonFor(activity.Status, r.BlockedReason);
 
         if (activity.Status == ActivityStatus.Concluida)
             activity.CompletedAt ??= DateTime.UtcNow;
         else
             activity.CompletedAt = null;
     }
+
+    /// <summary>O motivo do bloqueio so existe enquanto a atividade esta bloqueada.</summary>
+    private static string? BlockedReasonFor(ActivityStatus status, string? reason) =>
+        status == ActivityStatus.Bloqueada && !string.IsNullOrWhiteSpace(reason) ? reason.Trim() : null;
 }

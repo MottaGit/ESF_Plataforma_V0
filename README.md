@@ -124,7 +124,8 @@ planejamento ou em andamento parados há mais de 15 dias. A tela tem duas abas: 
 **Quadro de atividades**.
 
 **Quadro de atividades** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
-arquivados), em três colunas: **Não iniciadas**, **Em andamento** e **Concluídas** (só as dos últimos 30 dias). Nas
+arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
+dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
 colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais
 recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Atividades dele),
 responsável com foto (ou "Sem responsável" em destaque) e prazo, com uma faixa à esquerda vermelha quando atrasada e
@@ -143,9 +144,9 @@ próximos 7 dias e equipe, cada uma levando à aba correspondente) e cinco abas:
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=atividades`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 
-**Atividades** — título, descrição, responsável, status (não iniciada / em andamento / concluída), prioridade
+**Atividades** — título, descrição, responsável, status (não iniciada / em andamento / bloqueada / concluída; ao bloquear, um motivo opcional), prioridade
 (baixa / média / alta), prazo e observações. A lista tem duas seções sempre visíveis: **Em aberto** (não iniciadas
-primeiro, depois em andamento, reordenando na hora quando o status muda) e **Concluídas**. Há caixinha para concluir em
+primeiro, depois em andamento e bloqueadas, reordenando na hora quando o status muda) e **Concluídas**. Há caixinha para concluir em
 um clique e "Desfazer" logo em seguida; a atividade concluída fica riscada no lugar e só passa para "Concluídas" quando
 a aba é aberta de novo. O botão "Nova atividade" abre o
 formulário com título, responsável, prazo, prioridade e descrição. O responsável é escolhido entre a

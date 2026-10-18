@@ -14,6 +14,8 @@ public class Activity
     public Volunteer? AssignedVolunteer { get; set; }
 
     public ActivityStatus Status { get; set; } = ActivityStatus.AFazer;
+    /// <summary>O que esta travando a atividade; so existe enquanto ela esta bloqueada.</summary>
+    public string? BlockedReason { get; set; }
     public ActivityPriority Priority { get; set; } = ActivityPriority.Media;
     public DateOnly? DueDate { get; set; }
     public string? Notes { get; set; }

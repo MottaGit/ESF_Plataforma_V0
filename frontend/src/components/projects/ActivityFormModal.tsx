@@ -53,6 +53,7 @@ export function ActivityFormModal({
   const [priority, setPriority] = useState<ActivityPriority>(activity?.priority ?? 'Media');
   const [dueDate, setDueDate] = useState(activity?.dueDate?.slice(0, 10) ?? '');
   const [notes, setNotes] = useState(activity?.notes ?? '');
+  const [blockedReason, setBlockedReason] = useState(activity?.blockedReason ?? '');
 
   // Aberto fora da pagina do projeto (quadro de atividades), a equipe vem da API.
   const [loadedTeam, setLoadedTeam] = useState<ProjectVolunteer[] | null>(null);
@@ -101,7 +102,8 @@ export function ActivityFormModal({
       status,
       priority,
       dueDate: dueDate || null,
-      notes: emptyToNull(notes)
+      notes: emptyToNull(notes),
+      blockedReason: status === 'Bloqueada' ? emptyToNull(blockedReason) : null
     };
 
     setSaving(true);
@@ -248,6 +250,18 @@ export function ActivityFormModal({
                   </option>
                 ))}
               </Select>
+            </Field>
+          ) : null}
+
+          {status === 'Bloqueada' ? (
+            <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece no card e no Precisa de atenção.">
+              <TextInput
+                id="activity-blocked"
+                maxLength={300}
+                value={blockedReason}
+                placeholder="Ex.: aguardando a doação do material"
+                onChange={(event) => setBlockedReason(event.target.value)}
+              />
             </Field>
           ) : null}
 

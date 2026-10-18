@@ -49,7 +49,7 @@ public class ActivitiesController : ControllerBase
 
     [HttpPatch("activities/{id:guid}/status")]
     public async Task<ActionResult<ActivityDto>> UpdateStatus(Guid id, UpdateActivityStatusRequest request)
-        => Ok(await _activities.UpdateStatusAsync(id, request.Status!.Value));
+        => Ok(await _activities.UpdateStatusAsync(id, request.Status!.Value, request.BlockedReason));
 
     [HttpDelete("activities/{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)

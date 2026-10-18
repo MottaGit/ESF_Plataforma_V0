@@ -79,6 +79,7 @@ public class EsfDbContext : DbContext
         b.Entity<Activity>(e =>
         {
             e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.BlockedReason).HasMaxLength(300);
 
             e.HasOne(x => x.Project)
                 .WithMany(p => p.Activities)

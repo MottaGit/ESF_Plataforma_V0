@@ -11,6 +11,7 @@ import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
 import { ActivityFormModal } from './ActivityFormModal';
+import { BlockActivityDialog } from './BlockActivityDialog';
 
 /** Valor do filtro de responsavel para atividades sem ninguem atribuido. */
 const UNASSIGNED = '__none__';
@@ -23,8 +24,8 @@ const SECTIONS: Array<{ key: Section; title: string }> = [
   { key: 'done', title: 'Concluídas' }
 ];
 
-/** Ordem dentro de "Em aberto": nao iniciadas primeiro, depois em andamento. */
-const STATUS_ORDER: Record<ActivityStatus, number> = { AFazer: 0, EmAndamento: 1, Concluida: 2 };
+/** Ordem dentro de "Em aberto": nao iniciadas, em andamento e, por fim, as bloqueadas. */
+const STATUS_ORDER: Record<ActivityStatus, number> = { AFazer: 0, EmAndamento: 1, Bloqueada: 2, Concluida: 3 };
 
 /** Desempate dentro do mesmo status: prazo mais proximo primeiro (sem prazo no fim), depois maior prioridade. */
 const PRIORITY_WEIGHT = { Alta: 0, Media: 1, Baixa: 2 } as const;
@@ -47,6 +48,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
   const [removing, setRemoving] = useState<Activity | null>(null);
+  const [blocking, setBlocking] = useState<Activity | null>(null);
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -128,10 +130,10 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     setFormOpen(true);
   }
 
-  async function changeStatus(activity: Activity, status: ActivityStatus) {
+  async function changeStatus(activity: Activity, status: ActivityStatus, blockedReason: string | null = null) {
     if (activity.status === status) return true;
     try {
-      await activitiesApi.updateStatus(activity.id, status);
+      await activitiesApi.updateStatus(activity.id, status, blockedReason);
       onChanged();
       return true;
     } catch (err) {
@@ -268,7 +270,9 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
                     onToggleDone={(done) => toggleDone(activity, done)}
                     onStatusChange={(status) => {
                       forgetUndo(activity.id);
-                      void changeStatus(activity, status);
+                      // Bloquear pergunta antes o que esta travando.
+                      if (status === 'Bloqueada') setBlocking(activity);
+                      else void changeStatus(activity, status);
                     }}
                     onEdit={() => openForm(activity)}
                     onRemove={() => setRemoving(activity)}
@@ -291,6 +295,17 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
             setFormOpen(false);
             notify(editing ? 'Atividade atualizada.' : 'Atividade criada.');
             onChanged();
+          }}
+        />
+      ) : null}
+
+      {blocking ? (
+        <BlockActivityDialog
+          title={blocking.title}
+          onCancel={() => setBlocking(null)}
+          onConfirm={(reason) => {
+            setBlocking(null);
+            void changeStatus(blocking, 'Bloqueada', reason);
           }}
         />
       ) : null}
@@ -379,6 +394,9 @@ function ActivityRow({
             </button>
           ) : null}
         </div>
+        {activity.status === 'Bloqueada' && activity.blockedReason ? (
+          <p className="act-row__blocked">{activity.blockedReason}</p>
+        ) : null}
         {expanded ? <ActivityDetails activity={activity} /> : null}
       </div>
 

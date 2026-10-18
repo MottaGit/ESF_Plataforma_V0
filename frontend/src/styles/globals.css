@@ -35,6 +35,7 @@
   --st-pause-bg: #fdf1e3;     --st-pause-fg: #b54708;
   --st-done-bg: #e6f4ec;      --st-done-fg: #067647;
   --st-cancel-bg: #fdecea;    --st-cancel-fg: #b42318;
+  --st-blocked-bg: #f4ebff;   --st-blocked-fg: #6941c6;
 
   --danger: #b42318;
   --danger-bg: #fdecea;
@@ -575,6 +576,7 @@ button { font: inherit; }
 .badge--pause { background: var(--st-pause-bg); color: var(--st-pause-fg); }
 .badge--done { background: var(--st-done-bg); color: var(--st-done-fg); }
 .badge--cancel { background: var(--st-cancel-bg); color: var(--st-cancel-fg); }
+.badge--blocked { background: var(--st-blocked-bg); color: var(--st-blocked-fg); }
 .badge--late { background: var(--danger-bg); color: var(--danger); }
 .badge--neutral { background: var(--surface-soft); color: var(--text-muted); }
 .badge--birthday { background: #fdf2fa; color: #a3216d; }
@@ -1161,7 +1163,7 @@ button { font: inherit; }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -1249,6 +1251,19 @@ button { font: inherit; }
   text-overflow: ellipsis;
 }
 .board-card__project:hover { color: var(--accent-text); }
+/* O que esta travando a atividade bloqueada. */
+.act-row__blocked { margin: 6px 0 0; font-size: 12.5px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
+.act-row__blocked::before { content: "Travada: "; font-weight: 500; }
+.board-card__blocked {
+  margin: 0;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--st-blocked-bg);
+  color: var(--st-blocked-fg);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 .board-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
 .board-card__person { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-muted); }
 .board-card__person--none { color: var(--warning); font-weight: 500; }
