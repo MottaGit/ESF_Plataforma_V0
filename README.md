@@ -192,7 +192,9 @@ a cada deploy. Fotos grandes são reduzidas no navegador antes do envio (JPEG co
 identificação, descrição, objetivo, período, status, responsável, localização, atividades, voluntários e
 indicadores (sempre incluídos) e fotos (opcional).
 
-**Configurações** — dados institucionais, logo, gestão de usuários e troca da própria senha.
+**Configurações** — dados institucionais, logo, **programas** (criar, renomear, arquivar e excluir os que não têm
+projetos; arquivado, o programa sai das opções de novos projetos), gestão de usuários e troca da própria senha. No
+formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar.
 
 ---
 
@@ -297,7 +299,8 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/auth/change-password` | troca a própria senha |
 | GET | `/api/dashboard` | números e listas da visão geral |
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
-| GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos) |
+| GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
+| PUT/DELETE | `/api/programs/{id}` | renomeia e arquiva/reativa; exclui só programa sem projetos |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
 | PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |

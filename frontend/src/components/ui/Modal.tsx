@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { IconClose } from './Icons';
 
 interface ModalProps {
@@ -10,18 +10,28 @@ interface ModalProps {
   children: ReactNode;
 }
 
+// Modais abertos, do mais antigo ao mais recente: um pode abrir por cima de outro (ex.: "Novo programa" dentro do
+// formulario de projeto). Esc fecha so o de cima, e a pagina so volta a rolar quando o ultimo fecha.
+const openModals: symbol[] = [];
+
 export function Modal({ title, subtitle, size = 'default', onClose, footer, children }: ModalProps) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
+    const id = Symbol('modal');
+    openModals.push(id);
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape' && openModals[openModals.length - 1] === id) onCloseRef.current();
     };
     document.addEventListener('keydown', handleKey);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
+      openModals.splice(openModals.indexOf(id), 1);
+      if (openModals.length === 0) document.body.style.overflow = '';
     };
-  }, [onClose]);
+  }, []);
 
   const sizeClass = size === 'wide' ? ' modal--wide' : size === 'narrow' ? ' modal--narrow' : '';
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError, assetUrl } from '../api/client';
-import { authApi, organizationApi, usersApi, volunteersApi } from '../api/endpoints';
+import { authApi, organizationApi, programsApi, usersApi, volunteersApi } from '../api/endpoints';
+import { ProgramFormModal } from '../components/projects/ProgramFormModal';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
@@ -9,17 +10,26 @@ import { IconEdit, IconPlus, IconTrash, IconUpload } from '../components/ui/Icon
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { Organization, SaveOrganizationPayload, SaveUserPayload, User, UserRole, Volunteer } from '../types/api';
+import type {
+  Organization,
+  Program,
+  SaveOrganizationPayload,
+  SaveUserPayload,
+  User,
+  UserRole,
+  Volunteer
+} from '../types/api';
 import { USER_ROLES, emptyToNull, formatDate, roleDescription, roleLabel } from '../utils/format';
 
-type TabKey = 'organization' | 'users' | 'account';
+type TabKey = 'organization' | 'programs' | 'users' | 'account';
 
 export function SettingsPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, canManage } = useAuth();
   const [tab, setTab] = useState<TabKey>('organization');
 
   const tabs: Array<{ key: TabKey; label: string }> = [
     { key: 'organization', label: 'Organização' },
+    { key: 'programs', label: 'Programas' },
     { key: 'users', label: 'Usuários' },
     { key: 'account', label: 'Minha conta' }
   ];
@@ -29,7 +39,7 @@ export function SettingsPage() {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Configurações</h1>
-          <p className="page-head__desc">Dados institucionais, acessos e sua própria conta.</p>
+          <p className="page-head__desc">Dados institucionais, programas, acessos e sua própria conta.</p>
         </div>
       </div>
 
@@ -47,6 +57,7 @@ export function SettingsPage() {
       </div>
 
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
+      {tab === 'programs' ? <ProgramsSection canEdit={canManage} /> : null}
       {tab === 'users' ? <UsersSection canEdit={isAdmin} /> : null}
       {tab === 'account' ? <AccountSection /> : null}
     </>
@@ -299,6 +310,180 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         </div>
       </section>
     </div>
+  );
+}
+
+/**
+ * Programas (agrupamentos de projetos): criar, renomear e arquivar. Arquivado, o programa some das opcoes
+ * de novos projetos, mas os projetos dele continuam como estao. Excluir so vale para programa sem projetos.
+ */
+function ProgramsSection({ canEdit }: { canEdit: boolean }) {
+  const { notify, notifyError } = useToast();
+
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Program | null>(null);
+  const [removing, setRemoving] = useState<Program | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      setPrograms(await programsApi.list(false));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os programas.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  async function toggleArchived(program: Program) {
+    const archive = program.status === 'Ativo';
+    try {
+      await programsApi.update(program.id, { name: program.name, status: archive ? 'Arquivado' : 'Ativo' });
+      notify(archive ? 'Programa arquivado.' : 'Programa reativado.');
+      void load();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível alterar o programa.');
+    }
+  }
+
+  async function handleDelete() {
+    if (!removing) return;
+    setBusy(true);
+    try {
+      await programsApi.remove(removing.id);
+      notify('Programa excluído.');
+      setRemoving(null);
+      void load();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o programa.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="toolbar">
+        <p className="field__hint" style={{ maxWidth: 560 }}>
+          Programas agrupam projetos do mesmo tipo. Arquivar tira o programa das opções de novos projetos, sem mexer nos
+          projetos que já existem.
+        </p>
+        {canEdit ? (
+          <div className="toolbar__right">
+            <Button
+              variant="primary"
+              small
+              icon={<IconPlus size={15} />}
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
+              Novo programa
+            </Button>
+          </div>
+        ) : null}
+      </div>
+
+      {error ? <Alert kind="error">{error}</Alert> : null}
+
+      <section className="panel">
+        {loading ? (
+          <Loading label="Carregando programas…" />
+        ) : programs.length === 0 ? (
+          <EmptyState title="Nenhum programa cadastrado" />
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Projetos</th>
+                  <th>Situação</th>
+                  {canEdit ? <th className="right">Ações</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {programs.map((program) => (
+                  <tr key={program.id}>
+                    <td>
+                      <div className="table__primary">{program.name}</div>
+                    </td>
+                    <td className="num">{program.projectsCount}</td>
+                    <td>
+                      <NeutralBadge>{program.status === 'Ativo' ? 'Ativo' : 'Arquivado'}</NeutralBadge>
+                    </td>
+                    {canEdit ? (
+                      <td>
+                        <div className="row-actions">
+                          <Button
+                            small
+                            variant="ghost"
+                            icon={<IconEdit size={15} />}
+                            title="Renomear programa"
+                            aria-label="Renomear programa"
+                            onClick={() => {
+                              setEditing(program);
+                              setFormOpen(true);
+                            }}
+                          />
+                          <Button small variant="ghost" onClick={() => void toggleArchived(program)}>
+                            {program.status === 'Ativo' ? 'Arquivar' : 'Reativar'}
+                          </Button>
+                          {program.projectsCount === 0 ? (
+                            <Button
+                              small
+                              variant="ghost"
+                              icon={<IconTrash size={15} />}
+                              title="Excluir programa"
+                              aria-label="Excluir programa"
+                              onClick={() => setRemoving(program)}
+                            />
+                          ) : null}
+                        </div>
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {formOpen ? (
+        <ProgramFormModal
+          program={editing}
+          onClose={() => setFormOpen(false)}
+          onSaved={() => {
+            setFormOpen(false);
+            notify(editing ? 'Programa renomeado.' : 'Programa criado.');
+            void load();
+          }}
+        />
+      ) : null}
+
+      {removing ? (
+        <ConfirmDialog
+          title="Excluir programa"
+          message={`O programa "${removing.name}" não tem projetos e será removido.`}
+          confirmLabel="Excluir"
+          destructive
+          busy={busy}
+          onCancel={() => setRemoving(null)}
+          onConfirm={() => void handleDelete()}
+        />
+      ) : null}
+    </>
   );
 }
 

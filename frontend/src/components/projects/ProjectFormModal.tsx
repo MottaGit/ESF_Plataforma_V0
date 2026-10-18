@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { programsApi, projectsApi } from '../../api/endpoints';
+import { projectsApi } from '../../api/endpoints';
 import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
 import { PROJECT_STATUSES, emptyToNull, projectStatusLabel, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
+import { IconPlus } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
-
-const NEW_PROGRAM_VALUE = '__new__';
+import { ProgramFormModal } from './ProgramFormModal';
 
 interface ProjectFormModalProps {
   project: ProjectDetail | null;
@@ -66,31 +66,22 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [programOptions, setProgramOptions] = useState<Program[]>(programs);
+  // Programas ativos; ao editar um projeto de programa arquivado, o dele continua na lista.
+  const [programOptions, setProgramOptions] = useState<Program[]>(() =>
+    project && !programs.some((program) => program.id === project.programId)
+      ? [
+          ...programs,
+          {
+            id: project.programId,
+            name: `${project.programName} (arquivado)`,
+            status: 'Arquivado',
+            createdAt: project.createdAt,
+            projectsCount: 0
+          }
+        ]
+      : programs
+  );
   const [creatingProgram, setCreatingProgram] = useState(false);
-  const [newProgramName, setNewProgramName] = useState('');
-  const [programError, setProgramError] = useState<string | null>(null);
-  const [creatingBusy, setCreatingBusy] = useState(false);
-
-  async function handleCreateProgram() {
-    if (newProgramName.trim().length < 3) {
-      setProgramError('Informe um nome com ao menos 3 caracteres.');
-      return;
-    }
-    setProgramError(null);
-    setCreatingBusy(true);
-    try {
-      const created = await programsApi.create({ name: newProgramName.trim() });
-      setProgramOptions((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
-      update('programId', created.id);
-      setCreatingProgram(false);
-      setNewProgramName('');
-    } catch (err) {
-      setProgramError(err instanceof ApiError ? err.message : 'Não foi possível criar o programa.');
-    } finally {
-      setCreatingBusy(false);
-    }
-  }
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -155,233 +146,224 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
   }
 
   return (
-    <Modal
-      title={project ? 'Editar projeto' : 'Novo projeto'}
-      subtitle={project ? project.name : 'Os campos marcados com * são obrigatórios.'}
-      size="wide"
-      onClose={onClose}
-      footer={
-        <>
-          <span className="modal__foot-note">Você poderá completar as demais informações depois.</span>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" loading={saving} onClick={(event) => handleSubmit(event)}>
-            {project ? 'Salvar alterações' : 'Criar projeto'}
-          </Button>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit}>
-        {formError ? (
-          <div style={{ marginBottom: 16 }}>
-            <Alert kind="error">{formError}</Alert>
-          </div>
-        ) : null}
+    <>
+      <Modal
+        title={project ? 'Editar projeto' : 'Novo projeto'}
+        subtitle={project ? project.name : 'Os campos marcados com * são obrigatórios.'}
+        size="wide"
+        onClose={onClose}
+        footer={
+          <>
+            <span className="modal__foot-note">Você poderá completar as demais informações depois.</span>
+            <Button onClick={onClose}>Cancelar</Button>
+            <Button variant="primary" loading={saving} onClick={(event) => handleSubmit(event)}>
+              {project ? 'Salvar alterações' : 'Criar projeto'}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit}>
+          {formError ? (
+            <div style={{ marginBottom: 16 }}>
+              <Alert kind="error">{formError}</Alert>
+            </div>
+          ) : null}
 
-        <div className="form-grid">
-          <Field label="Nome do projeto" htmlFor="name" required error={errors.name} span>
-            <TextInput
-              id="name"
-              value={form.name}
-              invalid={Boolean(errors.name)}
-              placeholder="Ex.: Reforma habitacional - Vila São José"
-              onChange={(event) => update('name', event.target.value)}
-            />
-          </Field>
+          <div className="form-grid">
+            <Field label="Nome do projeto" htmlFor="name" required error={errors.name} span>
+              <TextInput
+                id="name"
+                value={form.name}
+                invalid={Boolean(errors.name)}
+                placeholder="Ex.: Reforma habitacional - Vila São José"
+                onChange={(event) => update('name', event.target.value)}
+              />
+            </Field>
 
-          <Field label="Programa" htmlFor="program" required error={errors.programId ?? programError}>
-            <Select
-              id="program"
-              value={creatingProgram ? NEW_PROGRAM_VALUE : form.programId}
-              invalid={Boolean(errors.programId)}
-              onChange={(event) => {
-                const value = event.target.value;
-                if (value === NEW_PROGRAM_VALUE) {
-                  setCreatingProgram(true);
-                } else {
-                  setCreatingProgram(false);
-                  update('programId', value);
-                }
-              }}
+            <Field
+              label="Programa"
+              htmlFor="program"
+              required
+              error={errors.programId}
+              hint="Para renomear ou arquivar programas, use Configurações › Programas."
             >
-              <option value="" disabled>
-                Selecione um programa
-              </option>
-              {programOptions.map((program) => (
-                <option key={program.id} value={program.id}>
-                  {program.name}
-                </option>
-              ))}
-              <option value={NEW_PROGRAM_VALUE}>+ Novo programa…</option>
-            </Select>
-
-            {creatingProgram ? (
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <TextInput
-                  autoFocus
-                  placeholder="Nome do novo programa"
-                  value={newProgramName}
-                  onChange={(event) => setNewProgramName(event.target.value)}
-                />
-                <Button type="button" small loading={creatingBusy} onClick={() => void handleCreateProgram()}>
-                  Criar
-                </Button>
-                <Button
-                  type="button"
-                  small
-                  variant="ghost"
-                  onClick={() => {
-                    setCreatingProgram(false);
-                    setNewProgramName('');
-                    setProgramError(null);
-                  }}
+              <div className="select-with-action">
+                <Select
+                  id="program"
+                  value={form.programId}
+                  invalid={Boolean(errors.programId)}
+                  onChange={(event) => update('programId', event.target.value)}
                 >
-                  Cancelar
+                  <option value="" disabled>
+                    Selecione um programa
+                  </option>
+                  {programOptions.map((program) => (
+                    <option key={program.id} value={program.id}>
+                      {program.name}
+                    </option>
+                  ))}
+                </Select>
+                <Button type="button" small icon={<IconPlus size={14} />} onClick={() => setCreatingProgram(true)}>
+                  Novo
                 </Button>
               </div>
-            ) : null}
-          </Field>
+            </Field>
 
-          <Field
-            label="Responsável"
-            htmlFor="owner"
-            hint="Quem responde pelo projeto na organização. Entra automaticamente na equipe."
-          >
-            <Select
-              id="owner"
-              value={form.ownerVolunteerId}
-              onChange={(event) => update('ownerVolunteerId', event.target.value)}
+            <Field
+              label="Responsável"
+              htmlFor="owner"
+              hint="Quem responde pelo projeto na organização. Entra automaticamente na equipe."
             >
-              <option value="">Sem responsável definido</option>
-              {volunteers.map((volunteer) => (
-                <option key={volunteer.id} value={volunteer.id}>
-                  {volunteer.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+              <Select
+                id="owner"
+                value={form.ownerVolunteerId}
+                onChange={(event) => update('ownerVolunteerId', event.target.value)}
+              >
+                <option value="">Sem responsável definido</option>
+                {volunteers.map((volunteer) => (
+                  <option key={volunteer.id} value={volunteer.id}>
+                    {volunteer.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
 
-          <Field label="Descrição" htmlFor="description" span hint="O que será feito, em poucas linhas.">
-            <TextArea
-              id="description"
-              value={form.description}
-              onChange={(event) => update('description', event.target.value)}
-            />
-          </Field>
-
-          <Field label="Objetivo" htmlFor="objective" span hint="O resultado que o projeto quer alcançar.">
-            <TextArea id="objective" value={form.objective} onChange={(event) => update('objective', event.target.value)} />
-          </Field>
-
-          <Field label="Comunidade ou beneficiários" htmlFor="beneficiaries">
-            <TextInput
-              id="beneficiaries"
-              value={form.beneficiaries}
-              placeholder="Ex.: Associação de Moradores do Jardim Semear"
-              onChange={(event) => update('beneficiaries', event.target.value)}
-            />
-          </Field>
-
-          <Field label="Público beneficiado" htmlFor="targetAudience">
-            <TextInput
-              id="targetAudience"
-              value={form.targetAudience}
-              placeholder="Ex.: 30 famílias"
-              onChange={(event) => update('targetAudience', event.target.value)}
-            />
-          </Field>
-
-          <Field label="Endereço" htmlFor="address" span>
-            <TextInput
-              id="address"
-              value={form.address}
-              placeholder="Rua, número"
-              onChange={(event) => update('address', event.target.value)}
-            />
-          </Field>
-
-          <Field label="Bairro" htmlFor="district">
-            <TextInput id="district" value={form.district} onChange={(event) => update('district', event.target.value)} />
-          </Field>
-
-          <Field label="Cidade" htmlFor="city">
-            <TextInput id="city" value={form.city} onChange={(event) => update('city', event.target.value)} />
-          </Field>
-
-          <Field label="Estado" htmlFor="state">
-            <TextInput
-              id="state"
-              value={form.state}
-              maxLength={60}
-              placeholder="RS"
-              onChange={(event) => update('state', event.target.value)}
-            />
-          </Field>
-
-          <Field
-            label="Coordenadas"
-            htmlFor="latitude"
-            hint="Opcional. Usadas para exibir o mapa do projeto."
-            error={errors.latitude ?? errors.longitude}
-          >
-            <div style={{ display: 'flex', gap: 8 }}>
-              <TextInput
-                id="latitude"
-                value={form.latitude}
-                placeholder="Latitude"
-                invalid={Boolean(errors.latitude)}
-                onChange={(event) => update('latitude', event.target.value)}
+            <Field label="Descrição" htmlFor="description" span hint="O que será feito, em poucas linhas.">
+              <TextArea
+                id="description"
+                value={form.description}
+                onChange={(event) => update('description', event.target.value)}
               />
+            </Field>
+
+            <Field label="Objetivo" htmlFor="objective" span hint="O resultado que o projeto quer alcançar.">
+              <TextArea id="objective" value={form.objective} onChange={(event) => update('objective', event.target.value)} />
+            </Field>
+
+            <Field label="Comunidade ou beneficiários" htmlFor="beneficiaries">
               <TextInput
-                id="longitude"
-                value={form.longitude}
-                placeholder="Longitude"
-                invalid={Boolean(errors.longitude)}
-                onChange={(event) => update('longitude', event.target.value)}
+                id="beneficiaries"
+                value={form.beneficiaries}
+                placeholder="Ex.: Associação de Moradores do Jardim Semear"
+                onChange={(event) => update('beneficiaries', event.target.value)}
               />
-            </div>
-          </Field>
+            </Field>
 
-          <Field label="Data de início" htmlFor="startDate" required error={errors.startDate}>
-            <TextInput
-              id="startDate"
-              type="date"
-              value={form.startDate}
-              invalid={Boolean(errors.startDate)}
-              onChange={(event) => update('startDate', event.target.value)}
-            />
-          </Field>
+            <Field label="Público beneficiado" htmlFor="targetAudience">
+              <TextInput
+                id="targetAudience"
+                value={form.targetAudience}
+                placeholder="Ex.: 30 famílias"
+                onChange={(event) => update('targetAudience', event.target.value)}
+              />
+            </Field>
 
-          <Field label="Previsão de término" htmlFor="endDateForecast" error={errors.endDateForecast}>
-            <TextInput
-              id="endDateForecast"
-              type="date"
-              value={form.endDateForecast}
-              invalid={Boolean(errors.endDateForecast)}
-              onChange={(event) => update('endDateForecast', event.target.value)}
-            />
-          </Field>
+            <Field label="Endereço" htmlFor="address" span>
+              <TextInput
+                id="address"
+                value={form.address}
+                placeholder="Rua, número"
+                onChange={(event) => update('address', event.target.value)}
+              />
+            </Field>
 
-          <Field label="Status" htmlFor="status" required>
-            <Select
-              id="status"
-              value={form.status}
-              onChange={(event) => update('status', event.target.value as ProjectStatus)}
+            <Field label="Bairro" htmlFor="district">
+              <TextInput id="district" value={form.district} onChange={(event) => update('district', event.target.value)} />
+            </Field>
+
+            <Field label="Cidade" htmlFor="city">
+              <TextInput id="city" value={form.city} onChange={(event) => update('city', event.target.value)} />
+            </Field>
+
+            <Field label="Estado" htmlFor="state">
+              <TextInput
+                id="state"
+                value={form.state}
+                maxLength={60}
+                placeholder="RS"
+                onChange={(event) => update('state', event.target.value)}
+              />
+            </Field>
+
+            <Field
+              label="Coordenadas"
+              htmlFor="latitude"
+              hint="Opcional. Usadas para exibir o mapa do projeto."
+              error={errors.latitude ?? errors.longitude}
             >
-              {PROJECT_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {projectStatusLabel(status)}
-                </option>
-              ))}
-            </Select>
-          </Field>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <TextInput
+                  id="latitude"
+                  value={form.latitude}
+                  placeholder="Latitude"
+                  invalid={Boolean(errors.latitude)}
+                  onChange={(event) => update('latitude', event.target.value)}
+                />
+                <TextInput
+                  id="longitude"
+                  value={form.longitude}
+                  placeholder="Longitude"
+                  invalid={Boolean(errors.longitude)}
+                  onChange={(event) => update('longitude', event.target.value)}
+                />
+              </div>
+            </Field>
 
-          <Field label="Observações" htmlFor="notes" span>
-            <TextArea id="notes" value={form.notes} onChange={(event) => update('notes', event.target.value)} />
-          </Field>
-        </div>
+            <Field label="Data de início" htmlFor="startDate" required error={errors.startDate}>
+              <TextInput
+                id="startDate"
+                type="date"
+                value={form.startDate}
+                invalid={Boolean(errors.startDate)}
+                onChange={(event) => update('startDate', event.target.value)}
+              />
+            </Field>
 
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
-      </form>
-    </Modal>
+            <Field label="Previsão de término" htmlFor="endDateForecast" error={errors.endDateForecast}>
+              <TextInput
+                id="endDateForecast"
+                type="date"
+                value={form.endDateForecast}
+                invalid={Boolean(errors.endDateForecast)}
+                onChange={(event) => update('endDateForecast', event.target.value)}
+              />
+            </Field>
+
+            <Field label="Status" htmlFor="status" required>
+              <Select
+                id="status"
+                value={form.status}
+                onChange={(event) => update('status', event.target.value as ProjectStatus)}
+              >
+                {PROJECT_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {projectStatusLabel(status)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field label="Observações" htmlFor="notes" span>
+              <TextArea id="notes" value={form.notes} onChange={(event) => update('notes', event.target.value)} />
+            </Field>
+          </div>
+
+          <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        </form>
+      </Modal>
+
+      {/* Abre por cima do formulario; o programa criado ja fica escolhido. */}
+      {creatingProgram ? (
+        <ProgramFormModal
+          program={null}
+          onClose={() => setCreatingProgram(false)}
+          onSaved={(created) => {
+            setProgramOptions((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+            update('programId', created.id);
+            setCreatingProgram(false);
+          }}
+        />
+      ) : null}
+    </>
   );
 }

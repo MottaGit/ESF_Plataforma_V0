@@ -1456,3 +1456,7 @@ button { font: inherit; }
   .page-head { flex-direction: column; }
   .page-head__actions { margin-left: 0; width: 100%; }
 }
+
+/* Select com um botao ao lado (ex.: Programa + "Novo" no formulario de projeto). */
+.select-with-action { display: flex; gap: 8px; align-items: center; }
+.select-with-action .select { flex: 1; min-width: 0; }

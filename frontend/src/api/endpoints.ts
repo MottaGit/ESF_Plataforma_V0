@@ -21,6 +21,7 @@ import type {
   SaveProjectPayload,
   SaveUserPayload,
   SaveVolunteerPayload,
+  UpdateProgramPayload,
   User,
   Volunteer,
   VolunteerSector
@@ -68,9 +69,15 @@ export const projectsApi = {
 };
 
 export const programsApi = {
-  list: (onlyActive = true) => http.request<Program[]>('/api/programs', { query: { onlyActive } }),
+  // Vai como texto: o cliente omite parametros false, e na API o padrao aqui e "so ativos".
+  list: (onlyActive = true) => http.request<Program[]>('/api/programs', { query: { onlyActive: String(onlyActive) } }),
   create: (payload: SaveProgramPayload) =>
-    http.request<Program>('/api/programs', { method: 'POST', body: payload })
+    http.request<Program>('/api/programs', { method: 'POST', body: payload }),
+  /** Renomear e arquivar/reativar. */
+  update: (id: string, payload: UpdateProgramPayload) =>
+    http.request<Program>(`/api/programs/${id}`, { method: 'PUT', body: payload }),
+  /** So para programa sem projetos. */
+  remove: (id: string) => http.request<void>(`/api/programs/${id}`, { method: 'DELETE' })
 };
 
 export const activitiesApi = {

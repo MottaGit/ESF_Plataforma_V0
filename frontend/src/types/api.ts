@@ -39,6 +39,8 @@ export interface Program {
   name: string;
   status: ProgramStatus;
   createdAt: string;
+  /** Quantos projetos (inclusive arquivados) pertencem ao programa. */
+  projectsCount: number;
 }
 
 export interface ProjectListItem {
@@ -294,6 +296,11 @@ export interface SaveVolunteerPayload {
 
 export interface SaveProgramPayload {
   name: string;
+}
+
+export interface UpdateProgramPayload {
+  name: string;
+  status: ProgramStatus;
 }
 
 export interface SaveIndicatorPayload {

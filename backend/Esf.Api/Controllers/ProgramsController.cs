@@ -23,4 +23,19 @@ public class ProgramsController : ControllerBase
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramDto>> Create(SaveProgramRequest request)
         => Ok(await _programs.CreateAsync(request));
+
+    /// <summary>Renomear e arquivar/reativar.</summary>
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<ProgramDto>> Update(Guid id, UpdateProgramRequest request)
+        => Ok(await _programs.UpdateAsync(id, request));
+
+    /// <summary>So para programa sem projetos.</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _programs.DeleteAsync(id);
+        return NoContent();
+    }
 }
