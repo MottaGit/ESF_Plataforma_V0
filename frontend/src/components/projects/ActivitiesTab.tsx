@@ -15,16 +15,18 @@ import { ActivityFormModal } from './ActivityFormModal';
 /** Valor do filtro de responsavel para atividades sem ninguem atribuido. */
 const UNASSIGNED = '__none__';
 
-/** Ordem das secoes na tela: o que esta em execucao primeiro, concluidas por ultimo (sempre visiveis). */
-const GROUPS: ActivityStatus[] = ['EmAndamento', 'AFazer', 'Concluida'];
+/** Secoes da lista: em aberto (nao iniciadas e em andamento juntas) e concluidas, sempre visiveis. */
+type Section = 'open' | 'done';
 
-const GROUP_TITLES: Record<ActivityStatus, string> = {
-  EmAndamento: 'Em andamento',
-  AFazer: 'Não iniciadas',
-  Concluida: 'Concluídas'
-};
+const SECTIONS: Array<{ key: Section; title: string }> = [
+  { key: 'open', title: 'Em aberto' },
+  { key: 'done', title: 'Concluídas' }
+];
 
-/** Dentro de cada secao: prazo mais proximo primeiro (sem prazo no fim), depois maior prioridade. */
+/** Ordem dentro de "Em aberto": nao iniciadas primeiro, depois em andamento. */
+const STATUS_ORDER: Record<ActivityStatus, number> = { AFazer: 0, EmAndamento: 1, Concluida: 2 };
+
+/** Desempate dentro do mesmo status: prazo mais proximo primeiro (sem prazo no fim), depois maior prioridade. */
 const PRIORITY_WEIGHT = { Alta: 0, Media: 1, Baixa: 2 } as const;
 function compareActivities(a: Activity, b: Activity) {
   const due = (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31');
@@ -51,16 +53,30 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
   const [assigneeFilter, setAssigneeFilter] = useState('');
 
-  // Secao em que cada atividade aparece nesta visita a aba. Mudar o status nao tira a atividade do
-  // lugar (ela so fica riscada, por exemplo); a reorganizacao acontece quando a aba e aberta de novo.
-  const placement = useRef(new Map<string, ActivityStatus>());
-  function sectionOf(activity: Activity) {
-    if (!placement.current.has(activity.id)) placement.current.set(activity.id, activity.status);
-    return placement.current.get(activity.id)!;
+  // Status de cada atividade quando ela apareceu nesta visita a aba. Concluir (ou reabrir) nao tira a
+  // atividade da secao em que estava: ela fica riscada no lugar e so muda de secao quando a aba e
+  // aberta de novo. Ja trocar entre "nao iniciada" e "em andamento" reordena a lista na hora.
+  const firstSeen = useRef(new Map<string, ActivityStatus>());
+  function statusWhenSeen(activity: Activity) {
+    if (!firstSeen.current.has(activity.id)) firstSeen.current.set(activity.id, activity.status);
+    return firstSeen.current.get(activity.id)!;
+  }
+
+  function sectionOf(activity: Activity): Section {
+    return statusWhenSeen(activity) === 'Concluida' ? 'done' : 'open';
   }
 
   // Status anterior das atividades concluidas nesta visita, para o "Desfazer".
   const [undo, setUndo] = useState<Map<string, ActivityStatus>>(new Map());
+
+  /** Em "Em aberto", quem acabou de ser concluida fica na posicao do status que tinha antes. */
+  function compareOpen(a: Activity, b: Activity) {
+    const rank = (activity: Activity) =>
+      STATUS_ORDER[
+        activity.status === 'Concluida' ? (undo.get(activity.id) ?? statusWhenSeen(activity)) : activity.status
+      ];
+    return rank(a) - rank(b) || compareActivities(a, b);
+  }
 
   const activities = project.activities;
   const hasFilters = Boolean(statusFilter || assigneeFilter || onlyLate);
@@ -229,14 +245,16 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
           />
         </div>
       ) : (
-        GROUPS.map((section) => {
-          const items = visible.filter((activity) => sectionOf(activity) === section).sort(compareActivities);
+        SECTIONS.map((section) => {
+          const items = visible
+            .filter((activity) => sectionOf(activity) === section.key)
+            .sort(section.key === 'open' ? compareOpen : compareActivities);
           if (items.length === 0) return null;
 
           return (
-            <section className="act-group" key={section}>
+            <section className="act-group" key={section.key}>
               <h3 className="act-group__title">
-                {GROUP_TITLES[section]}
+                {section.title}
                 <span className="tab__count num">{items.length}</span>
               </h3>
               <ul className="panel act-list">
