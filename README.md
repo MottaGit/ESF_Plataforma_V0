@@ -196,7 +196,11 @@ indicadores (sempre incluídos) e fotos (opcional).
 
 **Configurações** — dados institucionais, logo, **programas** (criar, renomear, arquivar e excluir os que não têm
 projetos; arquivado, o programa sai das opções de novos projetos), gestão de usuários e troca da própria senha. No
-formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar.
+formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba aberta fica na URL
+(`?aba=organizacao`, `programas`, `usuarios` ou `conta`).
+
+**Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
+acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**.
 
 ---
 

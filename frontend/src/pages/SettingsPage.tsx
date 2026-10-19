@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ApiError, assetUrl } from '../api/client';
 import { authApi, organizationApi, programsApi, usersApi, volunteersApi } from '../api/endpoints';
 import { ProgramFormModal } from '../components/projects/ProgramFormModal';
@@ -23,16 +24,22 @@ import { USER_ROLES, emptyToNull, formatDate, roleDescription, roleLabel } from 
 
 type TabKey = 'organization' | 'programs' | 'users' | 'account';
 
+// A aba aberta fica na URL (?aba=conta), para o menu da conta e links diretos cairem no lugar certo.
+const tabs: Array<{ key: TabKey; label: string; slug: string }> = [
+  { key: 'organization', label: 'Organização', slug: 'organizacao' },
+  { key: 'programs', label: 'Programas', slug: 'programas' },
+  { key: 'users', label: 'Usuários', slug: 'usuarios' },
+  { key: 'account', label: 'Minha conta', slug: 'conta' }
+];
+
 export function SettingsPage() {
   const { isAdmin, canManage } = useAuth();
-  const [tab, setTab] = useState<TabKey>('organization');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = tabs.find((item) => item.slug === searchParams.get('aba'))?.key ?? 'organization';
 
-  const tabs: Array<{ key: TabKey; label: string }> = [
-    { key: 'organization', label: 'Organização' },
-    { key: 'programs', label: 'Programas' },
-    { key: 'users', label: 'Usuários' },
-    { key: 'account', label: 'Minha conta' }
-  ];
+  function setTab(key: TabKey) {
+    setSearchParams(key === 'organization' ? {} : { aba: tabs.find((item) => item.key === key)!.slug }, { replace: true });
+  }
 
   return (
     <>

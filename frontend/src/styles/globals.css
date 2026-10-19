@@ -226,6 +226,25 @@ button { font: inherit; }
 
 .header__user-name { font-size: 13px; font-weight: 500; line-height: 1.2; }
 .header__user-role { font-size: 11.5px; color: var(--text-muted); }
+n/* Foto e nome no topo: abrem o menu da conta. */
+.account { position: relative; }
+.account__trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.account__trigger:hover, .account__trigger[aria-expanded="true"] { background: var(--surface-soft); }
+.account__who { display: flex; flex-direction: column; }
+.account__chevron { color: var(--text-muted); }
+.account__list { min-width: 190px; }
+.menu__separator { height: 1px; margin: 4px 0; background: var(--border); }
 
 .icon-button {
   background: transparent;

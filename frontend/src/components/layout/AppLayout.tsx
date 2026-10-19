@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
-import { useAuth } from '../../context/AuthContext';
-import { displayName, roleLabel } from '../../utils/format';
-import { Avatar } from '../ui/Avatar';
-import { Button } from '../ui/Button';
-import { IconLogout, IconMenu } from '../ui/Icons';
+import { IconMenu } from '../ui/Icons';
+import { AccountMenu } from './AccountMenu';
 import { Sidebar } from './Sidebar';
 
 const titles: Array<{ match: RegExp; title: string }> = [
@@ -18,7 +15,6 @@ const titles: Array<{ match: RegExp; title: string }> = [
 ];
 
 export function AppLayout() {
-  const { user, logout } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [organizationName, setOrganizationName] = useState('Engenheiros Sem Fronteiras');
@@ -54,15 +50,7 @@ export function AppLayout() {
           <span className="header__spacer" />
 
           <div className="header__user">
-            <Avatar name={displayName(user)} photoUrl={user?.volunteerPhotoUrl} size={30} />
-            <span>
-              <span className="header__user-name">{displayName(user)}</span>
-              <br />
-              <span className="header__user-role">{user ? roleLabel(user.role) : ''}</span>
-            </span>
-            <Button variant="ghost" small icon={<IconLogout size={15} />} onClick={logout} title="Sair">
-              Sair
-            </Button>
+            <AccountMenu />
           </div>
         </header>
 

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from './Button';
 import { IconMore } from './Icons';
+import { usePopover } from './usePopover';
 
 export interface MenuItem {
   label: string;
@@ -11,26 +12,7 @@ export interface MenuItem {
 
 /** Botao "..." que abre uma lista de acoes. Fecha ao escolher, clicar fora ou apertar Esc. */
 export function Menu({ items, label = 'Mais ações' }: { items: MenuItem[]; label?: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function handleClick(event: MouseEvent) {
-      if (!ref.current?.contains(event.target as Node)) setOpen(false);
-    }
-    function handleKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false);
-    }
-
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [open]);
+  const { open, setOpen, ref } = usePopover();
 
   return (
     <div className="menu" ref={ref}>
