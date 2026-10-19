@@ -10,8 +10,9 @@ export function LoginPage() {
   const { user, initializing, login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Ja vem com o acesso de administrador da demonstracao (o mesmo do seed).
+  const [email, setEmail] = useState('leonardo.motta@esf.org.br');
+  const [password, setPassword] = useState('Esf@2026');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -84,6 +85,26 @@ export function LoginPage() {
           <Button type="submit" variant="primary" block loading={submitting}>
             Entrar
           </Button>
+
+          <div className="login__demo">
+            <strong>Acessos de demonstração</strong>
+            <div className="login__demo-row">
+              <span>leonardo.motta@esf.org.br</span>
+              <span>Administrador</span>
+            </div>
+            <div className="login__demo-row">
+              <span>ana.aumond@esf.org.br</span>
+              <span>Coordenador</span>
+            </div>
+            <div className="login__demo-row">
+              <span>fausto.silva@esf.org.br</span>
+              <span>Usuário</span>
+            </div>
+            <div className="login__demo-row">
+              <span>Senha para todos</span>
+              <strong>Esf@2026</strong>
+            </div>
+          </div>
         </form>
       </section>
     </div>
