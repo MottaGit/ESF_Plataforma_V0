@@ -1478,3 +1478,81 @@ n/* Foto e nome no topo: abrem o menu da conta. */
 /* Select com um botao ao lado (ex.: Programa + "Novo" no formulario de projeto). */
 .select-with-action { display: flex; gap: 8px; align-items: center; }
 .select-with-action .select { flex: 1; min-width: 0; }
+
+/* ---------------------------------------------------------
+   Sininho de avisos (topo da tela)
+   --------------------------------------------------------- */
+
+.bell { position: relative; }
+.bell__button { position: relative; padding: 7px; }
+.bell__button[aria-expanded="true"] { background: var(--surface-soft); color: var(--text); }
+.bell__count {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.bell__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  width: 380px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+}
+.bell__head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13.5px;
+}
+.bell__empty { margin: 0; padding: 18px 16px; font-size: 13px; color: var(--text-muted); }
+.bell__list { list-style: none; margin: 0; padding: 4px 0; }
+.bell__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.bell__item:hover { background: var(--surface-soft); }
+.bell__item--unread { background: var(--accent-soft); }
+.bell__item--unread:hover { background: #dcebe6; }
+.bell__dot { flex: 0 0 auto; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: transparent; }
+.bell__item--unread .bell__dot { background: var(--accent); }
+.bell__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bell__message { font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.bell__item--unread .bell__message { font-weight: 500; }
+.bell__meta { font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 560px) {
+  /* No celular o painel ocupa a largura da tela, logo abaixo do topo. */
+  .bell { position: static; }
+  .bell__panel { position: fixed; left: 8px; right: 8px; top: calc(var(--header-h) + 4px); width: auto; }
+}

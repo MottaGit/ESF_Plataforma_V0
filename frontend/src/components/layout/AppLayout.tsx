@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
+import { NotificationBell } from './NotificationBell';
 import { Sidebar } from './Sidebar';
 
 const titles: Array<{ match: RegExp; title: string }> = [
@@ -48,6 +49,8 @@ export function AppLayout() {
 
           <span className="header__title">{title}</span>
           <span className="header__spacer" />
+
+          <NotificationBell />
 
           <div className="header__user">
             <AccountMenu />

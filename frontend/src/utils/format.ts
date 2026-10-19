@@ -251,3 +251,21 @@ export function emptyToNull(value: string | null | undefined) {
 /** Quando o acesso nao esta vinculado a um voluntario, nao ha como saber quais atividades sao da pessoa. */
 export const UNLINKED_MESSAGE =
   'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais atividades são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';
+
+/** Quando algo aconteceu, em texto curto: "agora", "há 5 min", "há 2 h", "ontem", "há 3 dias" ou a data. */
+export function timeAgo(value: string) {
+  const date = new Date(value);
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return 'agora';
+  if (minutes < 60) return `há ${minutes} min`;
+  if (minutes < 24 * 60) return `há ${Math.floor(minutes / 60)} h`;
+
+  const day = new Date(date);
+  day.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((today.getTime() - day.getTime()) / 86400000);
+  if (days <= 1) return 'ontem';
+  if (days < 7) return `há ${days} dias`;
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}

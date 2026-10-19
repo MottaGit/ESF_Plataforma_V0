@@ -200,7 +200,14 @@ formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num
 (`?aba=organizacao`, `programas`, `usuarios` ou `conta`).
 
 **Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
-acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**.
+acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
+de avisos, com a quantidade de não lidos: clicar abre a lista dos 30 mais recentes (não lidos destacados, com o projeto
+e há quanto tempo), e abrir um aviso o marca como lido e leva à aba Atividades do projeto (ou ao projeto); há também
+"Marcar todas como lidas". Os avisos são do voluntário vinculado ao acesso: atividade atribuída a você; sua atividade
+bloqueada (com o motivo), concluída ou reaberta por outra pessoa; entrada na equipe de um projeto; definição como
+responsável por um projeto; e atividade sua que vence amanhã ou hoje (o lembrete some quando ela é concluída). Ninguém
+recebe aviso do que ele mesmo fez. O contador é conferido a cada minuto, ao trocar de tela e ao voltar para a aba do
+navegador. Sem voluntário vinculado, o painel explica como pedir o vínculo. Não há e-mail nem notificação no celular.
 
 ---
 

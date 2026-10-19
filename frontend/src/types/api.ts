@@ -233,6 +233,41 @@ export interface Dashboard {
   myUpcoming: Activity[];
 }
 
+/** O que gerou o aviso do sininho. */
+export type NotificationType =
+  | 'ActivityAssigned'
+  | 'ActivityBlocked'
+  | 'ActivityCompleted'
+  | 'ActivityReopened'
+  | 'AddedToTeam'
+  | 'ProjectOwner'
+  | 'ActivityDueTomorrow'
+  | 'ActivityDueToday';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  message: string;
+  /** Linha de apoio, normalmente o nome do projeto. */
+  context: string | null;
+  projectId: string | null;
+  activityId: string | null;
+  createdAt: string;
+  read: boolean;
+}
+
+/** linked=false: o acesso nao esta vinculado a um voluntario (sem avisos). */
+export interface NotificationList {
+  linked: boolean;
+  unreadCount: number;
+  items: AppNotification[];
+}
+
+export interface UnreadNotifications {
+  linked: boolean;
+  count: number;
+}
+
 export interface Organization {
   id: string;
   name: string;

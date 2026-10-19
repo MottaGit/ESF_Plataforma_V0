@@ -5,6 +5,7 @@ import type {
   Dashboard,
   Indicator,
   LoginResponse,
+  NotificationList,
   Organization,
   Program,
   ProjectDetail,
@@ -21,6 +22,7 @@ import type {
   SaveProjectPayload,
   SaveUserPayload,
   SaveVolunteerPayload,
+  UnreadNotifications,
   UpdateProgramPayload,
   User,
   Volunteer,
@@ -196,6 +198,13 @@ export const usersApi = {
       }
     }),
   remove: (id: string) => http.request<void>(`/api/users/${id}`, { method: 'DELETE' })
+};
+
+export const notificationsApi = {
+  list: () => http.request<NotificationList>('/api/notifications'),
+  unread: () => http.request<UnreadNotifications>('/api/notifications/unread'),
+  markRead: (id: string) => http.request<void>(`/api/notifications/${id}/read`, { method: 'POST' }),
+  markAllRead: () => http.request<void>('/api/notifications/read-all', { method: 'POST' })
 };
 
 export const organizationApi = {
