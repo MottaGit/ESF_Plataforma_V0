@@ -116,8 +116,9 @@ quatro números: atividades atrasadas, concluídas no mês (últimos 30 dias, le
 ativos (com quantos estão sem atividade em aberto). O bloco **Precisa de atenção** lista as atividades atrasadas,
 bloqueadas (com o motivo) ou sem responsável, com filtros e link para o projeto; **Equipe** mostra quem está com mais
 atividades em aberto. À direita, **Minhas atividades** (as próximas em aberto de quem está logado, com atalho para o
-quadro; sem voluntário vinculado, explica como pedir o vínculo) e os **aniversariantes do mês** (voluntários ativos e
-afastados).
+quadro; sem voluntário vinculado, explica como pedir o vínculo) e os **aniversariantes** dos últimos 10 dias e dos
+próximos 30, atravessando viradas de mês e de ano (voluntários ativos e afastados): quem já fez aparece esmaecido com
+"há 3 dias", o do dia fica destacado e os próximos mostram a data e a distância ("3 de novembro · em 15 dias").
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um

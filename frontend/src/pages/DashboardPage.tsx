@@ -8,12 +8,12 @@ import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { useAuth } from '../context/AuthContext';
 import type { Activity, Dashboard, Volunteer, VolunteerWorkload } from '../types/api';
 import {
-  MONTH_NAMES,
   UNLINKED_MESSAGE,
+  birthdayLabel,
+  birthdayOffset,
   displayName,
   dueDateLabel,
-  dueDateTitle,
-  isBirthdayToday
+  dueDateTitle
 } from '../utils/format';
 
 /** Recortes do bloco "Precisa de atencao". */
@@ -28,6 +28,10 @@ const ATTENTION_FILTERS: Array<{ key: AttentionFilter; label: string }> = [
 
 /** Quantas atividades aparecem antes do "Mostrar todas". */
 const ATTENTION_VISIBLE = 8;
+
+/** Janela de aniversarios: os que passaram ha poucos dias e os que vem pela frente. */
+const BIRTHDAYS_DAYS_BACK = 10;
+const BIRTHDAYS_DAYS_AHEAD = 30;
 
 function matchesFilter(activity: Activity, filter: AttentionFilter) {
   if (filter === 'late') return activity.isLate;
@@ -383,9 +387,16 @@ function MyActivitiesPanel({ activities }: { activities: Activity[] }) {
   );
 }
 
+/** "há 3 dias", "ontem", "amanhã", "3 de novembro · em 15 dias". */
+function birthdayWhen(day: number, month: number, offset: number) {
+  if (offset === -1) return 'ontem';
+  if (offset < 0) return `há ${-offset} dias`;
+  return `${birthdayLabel(day, month)} · ${offset === 1 ? 'amanhã' : `em ${offset} dias`}`;
+}
+
 /**
- * Aniversariantes do mes (pela data local de quem esta usando), so de quem ainda faz parte da
- * organizacao (ativos e afastados). O aniversariante do dia fica destacado.
+ * Aniversariantes dos ultimos 10 dias e dos proximos 30 (pela data local de quem esta usando), so de quem
+ * ainda faz parte da organizacao (ativos e afastados). Quem ja fez fica esmaecido; o do dia, destacado.
  */
 function BirthdaysPanel() {
   const [volunteers, setVolunteers] = useState<Volunteer[] | null>(null);
@@ -398,17 +409,19 @@ function BirthdaysPanel() {
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os aniversários.'));
   }, []);
 
-  const today = new Date();
-  const month = today.getMonth() + 1;
   const people = (volunteers ?? [])
-    .filter((volunteer) => volunteer.birthMonth === month && volunteer.birthDay)
     .filter((volunteer) => volunteer.status === 'Ativo' || volunteer.status === 'Afastado')
-    .sort((a, b) => (a.birthDay ?? 0) - (b.birthDay ?? 0) || a.name.localeCompare(b.name));
+    .flatMap((volunteer) => {
+      if (!volunteer.birthDay || !volunteer.birthMonth) return [];
+      const offset = birthdayOffset(volunteer.birthDay, volunteer.birthMonth, BIRTHDAYS_DAYS_BACK, BIRTHDAYS_DAYS_AHEAD);
+      return offset === null ? [] : [{ volunteer, day: volunteer.birthDay, month: volunteer.birthMonth, offset }];
+    })
+    .sort((a, b) => a.offset - b.offset || a.volunteer.name.localeCompare(b.volunteer.name));
 
   return (
     <section className="panel">
       <div className="panel__head">
-        <h2>Aniversariantes de {MONTH_NAMES[month - 1]}</h2>
+        <h2>Aniversariantes</h2>
       </div>
       <div className="panel__body">
         {error ? (
@@ -416,29 +429,27 @@ function BirthdaysPanel() {
         ) : volunteers === null ? (
           <Loading label="Carregando aniversários…" />
         ) : people.length === 0 ? (
-          <p className="field__hint">Ninguém faz aniversário em {MONTH_NAMES[month - 1]}.</p>
+          <p className="field__hint">Nenhum aniversário nos últimos dias nem nas próximas semanas.</p>
         ) : (
           <ul className="birthday-list">
-            {people.map((volunteer) => {
-              const isToday = isBirthdayToday(volunteer.birthDay, volunteer.birthMonth);
-              const passed = !isToday && (volunteer.birthDay ?? 0) < today.getDate();
-              return (
-                <li
-                  key={volunteer.id}
-                  className={`birthday-list__item${isToday ? ' birthday-list__item--today' : ''}${passed ? ' birthday-list__item--passed' : ''}`}
-                >
-                  <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
-                  <Link className="row-link birthday-list__name" to={`/voluntarios/${volunteer.id}`}>
-                    {volunteer.name}
-                  </Link>
-                  {isToday ? (
-                    <BirthdayBadge />
-                  ) : (
-                    <span className="birthday-list__day num">dia {volunteer.birthDay}</span>
-                  )}
-                </li>
-              );
-            })}
+            {people.map(({ volunteer, day, month, offset }) => (
+              <li
+                key={volunteer.id}
+                className={`birthday-list__item${offset === 0 ? ' birthday-list__item--today' : ''}${offset < 0 ? ' birthday-list__item--passed' : ''}`}
+              >
+                <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
+                <Link className="row-link birthday-list__name" to={`/voluntarios/${volunteer.id}`}>
+                  {volunteer.name}
+                </Link>
+                {offset === 0 ? (
+                  <BirthdayBadge />
+                ) : (
+                  <span className="birthday-list__day" title={birthdayLabel(day, month) ?? undefined}>
+                    {birthdayWhen(day, month, offset)}
+                  </span>
+                )}
+              </li>
+            ))}
           </ul>
         )}
       </div>

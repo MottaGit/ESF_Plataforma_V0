@@ -176,6 +176,24 @@ export function isBirthdayToday(day: number | null, month: number | null) {
   return today.getDate() === day && today.getMonth() + 1 === month;
 }
 
+/**
+ * Dias de hoje ate o aniversario (so dia e mes), quando ele cai na janela [-daysBack, +daysAhead]: negativo se
+ * ja passou, 0 hoje, positivo se ainda vem. Fora da janela, null. Olha o ano anterior, o atual e o seguinte,
+ * entao atravessa a virada do ano; 29/02 em ano nao bissexto conta como 28/02.
+ */
+export function birthdayOffset(day: number, month: number, daysBack: number, daysAhead: number) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  for (const year of [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1]) {
+    const lastDayOfMonth = new Date(year, month, 0).getDate();
+    const birthday = new Date(year, month - 1, Math.min(day, lastDayOfMonth));
+    const offset = Math.round((birthday.getTime() - today.getTime()) / 86400000);
+    if (offset >= -daysBack && offset <= daysAhead) return offset;
+  }
+  return null;
+}
+
 /** Dias de hoje ate a data ("2026-03-14"): positivo no futuro, negativo no passado. */
 export function daysFromToday(date: string) {
   const target = new Date(`${date.slice(0, 10)}T00:00:00`);
