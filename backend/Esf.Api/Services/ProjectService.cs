@@ -10,8 +10,13 @@ namespace Esf.Api.Services;
 public class ProjectService
 {
     private readonly EsfDbContext _db;
+    private readonly NotificationService _notifications;
 
-    public ProjectService(EsfDbContext db) => _db = db;
+    public ProjectService(EsfDbContext db, NotificationService notifications)
+    {
+        _db = db;
+        _notifications = notifications;
+    }
 
     public async Task<List<ProjectListItemDto>> ListAsync(ProjectQuery q)
     {
@@ -124,6 +129,8 @@ public class ProjectService
 
         _db.Projects.Add(project);
         await ProjectTeam.EnsureMemberAsync(_db, project.Id, project.OwnerVolunteerId);
+        if (project.OwnerVolunteerId.HasValue)
+            await _notifications.ProjectOwnerAsync(project.OwnerVolunteerId.Value, project.Id, project.Name);
         await _db.SaveChangesAsync();
 
         return await GetDetailAsync(project.Id);
@@ -136,10 +143,13 @@ public class ProjectService
         await EnsureOwnerExistsAsync(request.OwnerVolunteerId);
 
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
+        var previousOwner = project.OwnerVolunteerId;
         Apply(project, request);
         project.UpdatedAt = DateTime.UtcNow;
 
         await ProjectTeam.EnsureMemberAsync(_db, project.Id, project.OwnerVolunteerId);
+        if (project.OwnerVolunteerId.HasValue && project.OwnerVolunteerId != previousOwner)
+            await _notifications.ProjectOwnerAsync(project.OwnerVolunteerId.Value, project.Id, project.Name);
         await _db.SaveChangesAsync();
         return await GetDetailAsync(id);
     }

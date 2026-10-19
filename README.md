@@ -283,6 +283,7 @@ ESF_Plataforma_V0/
 | `ProjectUpdates` | relatos de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | dados institucionais (registro único) |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}` |
+| `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável e prazos de hoje/amanhã), com data de leitura; os de mais de 90 dias são apagados |
 
 Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
 e `SET NULL` para referências a usuários (excluir um usuário não apaga o projeto dele).
@@ -310,6 +311,8 @@ A documentação interativa fica em `/swagger`.
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
 | GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
+| GET | `/api/notifications` · `/unread` | avisos do usuário logado (30 mais recentes) e a quantidade de não lidos |
+| POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
 | GET/POST/PUT/DELETE | `/api/volunteers[/{id}]` | cadastro de voluntários |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |

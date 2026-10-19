@@ -16,11 +16,13 @@ public class VolunteerService
 
     private readonly EsfDbContext _db;
     private readonly FileStorageService _storage;
+    private readonly NotificationService _notifications;
 
-    public VolunteerService(EsfDbContext db, FileStorageService storage)
+    public VolunteerService(EsfDbContext db, FileStorageService storage, NotificationService notifications)
     {
         _db = db;
         _storage = storage;
+        _notifications = notifications;
     }
 
     public async Task<List<VolunteerDto>> ListAsync(string? search, bool onlyActive, VolunteerSector? sector)
@@ -180,6 +182,7 @@ public class VolunteerService
         };
 
         _db.ProjectVolunteers.Add(link);
+        await _notifications.AddedToTeamAsync(volunteerId, projectId);
         await _db.SaveChangesAsync();
 
         await _db.Entry(link).Reference(l => l.Volunteer).LoadAsync();

@@ -58,3 +58,16 @@ public enum ProgramStatus
     Ativo = 0,
     Arquivado = 1
 }
+
+/// <summary>O que gerou um aviso para o voluntario (sininho no topo da tela).</summary>
+public enum NotificationType
+{
+    ActivityAssigned = 0,
+    ActivityBlocked = 1,
+    ActivityCompleted = 2,
+    ActivityReopened = 3,
+    AddedToTeam = 4,
+    ProjectOwner = 5,
+    ActivityDueTomorrow = 6,
+    ActivityDueToday = 7
+}

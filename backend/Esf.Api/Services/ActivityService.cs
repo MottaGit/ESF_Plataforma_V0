@@ -10,8 +10,13 @@ namespace Esf.Api.Services;
 public class ActivityService
 {
     private readonly EsfDbContext _db;
+    private readonly NotificationService _notifications;
 
-    public ActivityService(EsfDbContext db) => _db = db;
+    public ActivityService(EsfDbContext db, NotificationService notifications)
+    {
+        _db = db;
+        _notifications = notifications;
+    }
 
     public async Task<List<ActivityDto>> ListByProjectAsync(Guid projectId)
     {
@@ -99,6 +104,7 @@ public class ActivityService
 
         _db.Activities.Add(activity);
         await ProjectTeam.EnsureMemberAsync(_db, projectId, activity.AssignedVolunteerId);
+        await _notifications.ActivityAssignedAsync(activity);
         await TouchProjectAsync(projectId);
         await _db.SaveChangesAsync();
 
@@ -110,8 +116,17 @@ public class ActivityService
         var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
         await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
 
+        var previousAssignee = activity.AssignedVolunteerId;
+        var previousStatus = activity.Status;
+
         Apply(activity, request);
         await ProjectTeam.EnsureMemberAsync(_db, activity.ProjectId, activity.AssignedVolunteerId);
+
+        // Mudou o responsavel: o aviso de atribuicao ja basta; senao, avisa da mudanca de status (se houver).
+        if (activity.AssignedVolunteerId.HasValue && activity.AssignedVolunteerId != previousAssignee)
+            await _notifications.ActivityAssignedAsync(activity);
+        else
+            await _notifications.ActivityStatusChangedAsync(activity, previousStatus);
         await TouchProjectAsync(activity.ProjectId);
         await _db.SaveChangesAsync();
 
@@ -122,9 +137,11 @@ public class ActivityService
     {
         var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
 
+        var previousStatus = activity.Status;
         activity.Status = status;
         activity.CompletedAt = status == ActivityStatus.Concluida ? DateTime.UtcNow : null;
         activity.BlockedReason = BlockedReasonFor(status, blockedReason);
+        await _notifications.ActivityStatusChangedAsync(activity, previousStatus);
 
         await TouchProjectAsync(activity.ProjectId);
         await _db.SaveChangesAsync();

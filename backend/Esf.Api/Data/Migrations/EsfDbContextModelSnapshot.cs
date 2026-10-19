@@ -105,6 +105,61 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("Indicators");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Context")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("VolunteerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("VolunteerId", "CreatedAt");
+
+                    b.HasIndex("VolunteerId", "Key")
+                        .IsUnique()
+                        .HasFilter("\"Key\" IS NOT NULL");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -528,6 +583,31 @@ namespace Esf.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Activity", "Activity")
+                        .WithMany()
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Esf.Api.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Esf.Api.Domain.Entities.Volunteer", "Volunteer")
+                        .WithMany()
+                        .HasForeignKey("VolunteerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Volunteer");
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.Project", b =>

@@ -18,6 +18,7 @@ public class EsfDbContext : DbContext
     public DbSet<ProjectUpdate> ProjectUpdates => Set<ProjectUpdate>();
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -118,6 +119,19 @@ public class EsfDbContext : DbContext
                 .WithMany(v => v.Projects)
                 .HasForeignKey(x => x.VolunteerId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<Notification>(e =>
+        {
+            e.Property(x => x.Message).HasMaxLength(400).IsRequired();
+            e.Property(x => x.Context).HasMaxLength(200);
+            e.Property(x => x.Key).HasMaxLength(120);
+            e.HasIndex(x => new { x.VolunteerId, x.CreatedAt });
+            e.HasIndex(x => new { x.VolunteerId, x.Key }).IsUnique().HasFilter("\"Key\" IS NOT NULL");
+
+            e.HasOne(x => x.Volunteer).WithMany().HasForeignKey(x => x.VolunteerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Project).WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Activity).WithMany().HasForeignKey(x => x.ActivityId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<StoredFile>(e =>
