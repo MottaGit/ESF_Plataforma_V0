@@ -15,7 +15,7 @@ public class NotificationsController : ControllerBase
 
     public NotificationsController(NotificationService notifications) => _notifications = notifications;
 
-    /// <summary>Os 30 mais recentes e quantos nao foram lidos.</summary>
+    /// <summary>Todos os nao lidos (ate 50) e os lidos mais recentes completando 15, mais a contagem de nao lidos.</summary>
     [HttpGet]
     public async Task<ActionResult<NotificationsDto>> List() => Ok(await _notifications.ListAsync());
 

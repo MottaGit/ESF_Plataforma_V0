@@ -15,10 +15,16 @@ namespace Esf.Api.Services;
 /// </summary>
 public class NotificationService
 {
-    /// <summary>Avisos mais antigos que isso sao apagados.</summary>
-    private const int RetentionDays = 90;
+    /// <summary>Avisos ja lidos somem depois disso.</summary>
+    private const int ReadRetentionDays = 30;
 
-    private const int ListLimit = 30;
+    /// <summary>Nao lidos ficam um pouco mais, para quem passou um tempo sem entrar nao perder nada.</summary>
+    private const int UnreadRetentionDays = 60;
+
+    /// <summary>Tamanho da lista: os nao lidos aparecem todos (ate MaxUnreadListed) e os lidos completam ate aqui.</summary>
+    private const int ListSize = 15;
+
+    private const int MaxUnreadListed = 50;
 
     private static readonly NotificationType[] DueTypes =
         { NotificationType.ActivityDueTomorrow, NotificationType.ActivityDueToday };
@@ -108,20 +114,32 @@ public class NotificationService
         var volunteerId = await MyVolunteerIdAsync();
         if (!volunteerId.HasValue) return new NotificationsDto(false, 0, new List<NotificationDto>());
 
-        var cutoff = DateTime.UtcNow.AddDays(-RetentionDays);
-        await _db.Notifications.Where(n => n.VolunteerId == volunteerId.Value && n.CreatedAt < cutoff).ExecuteDeleteAsync();
+        var readCutoff = DateTime.UtcNow.AddDays(-ReadRetentionDays);
+        var unreadCutoff = DateTime.UtcNow.AddDays(-UnreadRetentionDays);
+        await _db.Notifications
+            .Where(n => n.VolunteerId == volunteerId.Value
+                        && (n.CreatedAt < unreadCutoff || (n.ReadAt != null && n.CreatedAt < readCutoff)))
+            .ExecuteDeleteAsync();
         await EnsureDueRemindersAsync(volunteerId.Value);
 
-        var items = await Visible(volunteerId.Value)
+        // Nenhum nao lido fica de fora; os lidos so completam a lista.
+        var unreadItems = await ToDtos(Visible(volunteerId.Value).Where(n => n.ReadAt == null), MaxUnreadListed);
+        var readItems = unreadItems.Count < ListSize
+            ? await ToDtos(Visible(volunteerId.Value).Where(n => n.ReadAt != null), ListSize - unreadItems.Count)
+            : new List<NotificationDto>();
+        var unread = await Visible(volunteerId.Value).CountAsync(n => n.ReadAt == null);
+
+        var items = unreadItems.Concat(readItems).OrderByDescending(n => n.CreatedAt).ToList();
+        return new NotificationsDto(true, unread, items);
+    }
+
+    private static Task<List<NotificationDto>> ToDtos(IQueryable<Notification> query, int take) =>
+        query
             .OrderByDescending(n => n.CreatedAt)
-            .Take(ListLimit)
+            .Take(take)
             .Select(n => new NotificationDto(n.Id, n.Type, n.Message, n.Context, n.ProjectId, n.ActivityId, n.CreatedAt,
                 n.ReadAt != null))
             .ToListAsync();
-        var unread = await Visible(volunteerId.Value).CountAsync(n => n.ReadAt == null);
-
-        return new NotificationsDto(true, unread, items);
-    }
 
     public async Task MarkReadAsync(Guid id)
     {

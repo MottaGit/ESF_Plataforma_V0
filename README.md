@@ -201,9 +201,10 @@ formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num
 
 **Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
 acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
-de avisos, com a quantidade de não lidos: clicar abre a lista dos 30 mais recentes (não lidos destacados, com o projeto
-e há quanto tempo), e abrir um aviso o marca como lido e leva à aba Atividades do projeto (ou ao projeto); há também
-"Marcar todas como lidas". Os avisos são do voluntário vinculado ao acesso: atividade atribuída a você; sua atividade
+de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes
+completando 15 itens; cada aviso com o projeto e há quanto tempo), e abrir um aviso o marca como lido e leva à aba
+Atividades do projeto (ou ao projeto); há também "Marcar todas como lidas". Avisos lidos somem depois de 30 dias; os não
+lidos ficam até 60, para quem passou um tempo sem entrar não perder nada. Os avisos são do voluntário vinculado ao acesso: atividade atribuída a você; sua atividade
 bloqueada (com o motivo), concluída ou reaberta por outra pessoa; entrada na equipe de um projeto; definição como
 responsável por um projeto; e atividade sua que vence amanhã ou hoje (o lembrete some quando ela é concluída). Ninguém
 recebe aviso do que ele mesmo fez. O contador é conferido a cada minuto, ao trocar de tela e ao voltar para a aba do
@@ -294,7 +295,7 @@ ESF_Plataforma_V0/
 | `ProjectUpdates` | relatos de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | dados institucionais (registro único) |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}` |
-| `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável e prazos de hoje/amanhã), com data de leitura; os de mais de 90 dias são apagados |
+| `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável e prazos de hoje/amanhã), com data de leitura; os lidos são apagados após 30 dias e os não lidos após 60 |
 
 Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
 e `SET NULL` para referências a usuários (excluir um usuário não apaga o projeto dele).
@@ -322,7 +323,7 @@ A documentação interativa fica em `/swagger`.
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
 | GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
-| GET | `/api/notifications` · `/unread` | avisos do usuário logado (30 mais recentes) e a quantidade de não lidos |
+| GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
 | GET/POST/PUT/DELETE | `/api/volunteers[/{id}]` | cadastro de voluntários |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
