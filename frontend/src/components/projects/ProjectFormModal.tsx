@@ -14,10 +14,12 @@ import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
 import { IconPlus } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
-import { ProgramFormModal } from './ProgramFormModal';
+import { ProgramFormModal } from '../programs/ProgramFormModal';
 
 interface ProjectFormModalProps {
   project: ProjectDetail | null;
+  /** Projeto novo criado a partir da pagina de um programa: ja vem com ele escolhido. */
+  initialProgramId?: string;
   volunteers: Volunteer[];
   programs: Program[];
   onClose: () => void;
@@ -66,8 +68,15 @@ function initialState(project: ProjectDetail | null, fallbackProgramId: string):
   };
 }
 
-export function ProjectFormModal({ project, volunteers, programs, onClose, onSaved }: ProjectFormModalProps) {
-  const [form, setForm] = useState<FormState>(() => initialState(project, programs[0]?.id ?? ''));
+export function ProjectFormModal({
+  project,
+  initialProgramId,
+  volunteers,
+  programs,
+  onClose,
+  onSaved
+}: ProjectFormModalProps) {
+  const [form, setForm] = useState<FormState>(() => initialState(project, initialProgramId ?? programs[0]?.id ?? ''));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -82,7 +91,11 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
             name: `${project.programName} (arquivado)`,
             status: 'Arquivado',
             createdAt: project.createdAt,
-            projectsCount: 0
+            projectsCount: 0,
+            activeProjectsCount: 0,
+            doneProjectsCount: 0,
+            icon: project.programIcon,
+            color: project.programColor
           }
         ]
       : programs
@@ -191,7 +204,7 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
               htmlFor="program"
               required
               error={errors.programId}
-              hint="Para renomear ou arquivar programas, use Configurações › Programas."
+              hint="Para editar ou arquivar programas, use Projetos › Programas."
             >
               <div className="select-with-action">
                 <Select

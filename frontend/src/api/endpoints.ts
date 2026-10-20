@@ -80,9 +80,10 @@ export const projectsApi = {
 export const programsApi = {
   // Vai como texto: o cliente omite parametros false, e na API o padrao aqui e "so ativos".
   list: (onlyActive = true) => http.request<Program[]>('/api/programs', { query: { onlyActive: String(onlyActive) } }),
+  get: (id: string) => http.request<Program>(`/api/programs/${id}`),
   create: (payload: SaveProgramPayload) =>
     http.request<Program>('/api/programs', { method: 'POST', body: payload }),
-  /** Renomear e arquivar/reativar. */
+  /** Renomear, trocar icone e cor e arquivar/reativar. */
   update: (id: string, payload: UpdateProgramPayload) =>
     http.request<Program>(`/api/programs/${id}`, { method: 'PUT', body: payload }),
   /** So para programa sem projetos. */

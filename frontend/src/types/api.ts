@@ -43,6 +43,12 @@ export interface Program {
   createdAt: string;
   /** Quantos projetos (inclusive arquivados) pertencem ao programa. */
   projectsCount: number;
+  /** Em planejamento ou em andamento (sem os arquivados). */
+  activeProjectsCount: number;
+  doneProjectsCount: number;
+  /** Chaves de icone e cor (ver utils/programs.ts). */
+  icon: string;
+  color: string;
 }
 
 export interface ProjectListItem {
@@ -69,6 +75,8 @@ export interface ProjectListItem {
   lastUpdateAt: string | null;
   /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
   imageAuthorizedOn: string | null;
+  programIcon: string;
+  programColor: string;
 }
 
 export interface Activity {
@@ -229,6 +237,8 @@ export interface ProjectDetail {
   updates: ProjectUpdate[];
   /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
   imageAuthorizedOn: string | null;
+  programIcon: string;
+  programColor: string;
 }
 
 export interface DashboardTotals {
@@ -384,11 +394,15 @@ export interface SaveVolunteerPayload {
 
 export interface SaveProgramPayload {
   name: string;
+  icon: string;
+  color: string;
 }
 
 export interface UpdateProgramPayload {
   name: string;
   status: ProgramStatus;
+  icon: string;
+  color: string;
 }
 
 export interface SaveIndicatorPayload {

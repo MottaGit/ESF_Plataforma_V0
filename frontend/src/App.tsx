@@ -6,6 +6,8 @@ import { ToastProvider } from './context/ToastContext';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { ProgramDetailPage } from './pages/ProgramDetailPage';
+import { ProgramsPage } from './pages/ProgramsPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -31,6 +33,8 @@ export function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/projetos" element={<ProjectsPage />} />
               <Route path="/projetos/:id" element={<ProjectDetailPage />} />
+              <Route path="/programas" element={<ProgramsPage />} />
+              <Route path="/programas/:id" element={<ProgramDetailPage />} />
               <Route path="/voluntarios" element={<VolunteersPage />} />
               <Route path="/voluntarios/:id" element={<VolunteerDetailPage />} />
               <Route path="/relatorios" element={<ReportsPage />} />

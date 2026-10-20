@@ -11,6 +11,7 @@ const titles: Array<{ match: RegExp; title: string }> = [
   { match: /^\/$/, title: 'Visão geral' },
   { match: /^\/projetos$/, title: 'Projetos' },
   { match: /^\/projetos\/.+/, title: 'Detalhes do projeto' },
+  { match: /^\/programas/, title: 'Programas' },
   { match: /^\/voluntarios/, title: 'Voluntários' },
   { match: /^\/relatorios/, title: 'Relatórios' },
   { match: /^\/configuracoes/, title: 'Configurações' }

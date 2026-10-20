@@ -1,3 +1,5 @@
+using Esf.Api.Common;
+
 namespace Esf.Api.Domain.Entities;
 
 /// <summary>
@@ -10,6 +12,12 @@ public class ProjectProgram
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public ProgramStatus Status { get; set; } = ProgramStatus.Ativo;
+
+    /// <summary>Icone do programa (chave de ProgramAppearance.Icons), usado nos cards e nos pinos do mapa.</summary>
+    public string Icon { get; set; } = ProgramAppearance.DefaultIcon;
+
+    /// <summary>Cor do programa (chave de ProgramAppearance.Colors), usada nos cards e nos pinos do mapa.</summary>
+    public string Color { get; set; } = ProgramAppearance.DefaultColor;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Project> Projects { get; set; } = new List<Project>();

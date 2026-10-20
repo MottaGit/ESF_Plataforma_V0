@@ -142,7 +142,9 @@ export function ProjectDetailPage() {
         <div className="page-head__text">
           <h1>{project.name}</h1>
           <p className="page-head__desc">
-            {project.programName}
+            <Link className="page-head__link" to={`/programas/${project.programId}`}>
+              {project.programName}
+            </Link>
             {project.city ? ` · ${project.district ? `${project.district}, ` : ''}${project.city}` : ''}
             {project.ownerName ? ` · responsável: ${project.ownerName}` : ''}
           </p>

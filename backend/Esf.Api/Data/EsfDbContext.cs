@@ -78,6 +78,8 @@ public class EsfDbContext : DbContext
         {
             e.Property(x => x.Name).HasMaxLength(120).IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
+            e.Property(x => x.Icon).HasMaxLength(20).IsRequired();
+            e.Property(x => x.Color).HasMaxLength(20).IsRequired();
         });
 
         b.Entity<Activity>(e =>

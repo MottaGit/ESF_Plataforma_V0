@@ -235,8 +235,11 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
             {summary.late > 0 ? ` · ${summary.late} com prazo vencido` : ''}
           </p>
         </div>
-        {canManage ? (
-          <div className="page-head__actions">
+        <div className="page-head__actions">
+          <Link to="/programas" className="btn">
+            Programas
+          </Link>
+          {canManage ? (
             <Button
               variant="primary"
               icon={<IconPlus size={15} />}
@@ -247,8 +250,8 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
             >
               Novo projeto
             </Button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
 
       {switcher}

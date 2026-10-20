@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { displayName } from '../../utils/format';
 import {
@@ -17,7 +17,8 @@ interface SidebarProps {
 
 const items = [
   { to: '/', label: 'Visão geral', icon: IconDashboard, end: true },
-  { to: '/projetos', label: 'Projetos', icon: IconProjects, end: false },
+  // Programas ficam dentro de Projetos (Projetos › Programas).
+  { to: '/projetos', label: 'Projetos', icon: IconProjects, end: false, also: '/programas' },
   { to: '/voluntarios', label: 'Voluntários', icon: IconVolunteers, end: false },
   { to: '/relatorios', label: 'Relatórios', icon: IconReports, end: false },
   { to: '/configuracoes', label: 'Configurações', icon: IconSettings, end: false }
@@ -25,6 +26,7 @@ const items = [
 
 export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
   const { user } = useAuth();
+  const { pathname } = useLocation();
 
   return (
     <aside className={`sidebar${open ? ' sidebar--open' : ''}`}>
@@ -43,7 +45,9 @@ export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
             to={item.to}
             end={item.end}
             onClick={onNavigate}
-            className={({ isActive }) => `nav-item${isActive ? ' nav-item--active' : ''}`}
+            className={({ isActive }) =>
+              `nav-item${isActive || (item.also !== undefined && pathname.startsWith(item.also)) ? ' nav-item--active' : ''}`
+            }
           >
             <item.icon className="nav-item__icon" />
             {item.label}

@@ -125,6 +125,14 @@ edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenaç
 projeto (ou recarregar) mantém a lista como estava. O **progresso** é calculado pelas atividades concluídas (projeto
 concluído conta como 100%). A tela tem duas abas: **Lista de projetos** (a tabela) e **Quadro de atividades**.
 
+**Programas** — ficam em Projetos › botão "Programas" (não mais em Configurações; o link antigo
+`/configuracoes?aba=programas` leva para lá). A página mostra um card por programa, com ícone, cor e quantos projetos
+estão em andamento e concluídos; "Mostrar arquivados" inclui os arquivados. O card abre a página do programa, com os
+projetos dele e, para a coordenação, "Editar" (nome, ícone e cor, de listas fixas — o ícone e a cor aparecem nos cards
+e nos pinos do mapa), "Novo projeto" (já dentro do programa) e arquivar/reativar ou excluir (só sem projetos). No topo
+de cada projeto, o nome do programa leva à página dele. Programas que já existiam ganharam ícone pelo nome (banheiro,
+horta, evento).
+
 **Quadro de atividades** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
 dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
@@ -233,10 +241,9 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 identificação, descrição, objetivo, período, status, responsável, localização, atividades, voluntários e
 indicadores (sempre incluídos) e fotos (opcional).
 
-**Configurações** — dados institucionais, logo, **programas** (criar, renomear, arquivar e excluir os que não têm
-projetos; arquivado, o programa sai das opções de novos projetos), gestão de usuários e troca da própria senha. No
-formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba aberta fica na URL
-(`?aba=organizacao`, `programas`, `usuarios` ou `conta`).
+**Configurações** — dados institucionais, logo, gestão de usuários e troca da própria senha. No formulário de
+projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
+aberta fica na URL (`?aba=organizacao`, `usuarios`, `historico` ou `conta`).
 
 **Privacidade (LGPD)** — a política de privacidade e os termos de uso ficam em `/privacidade`, aberta a qualquer pessoa
 (link na tela de login). No primeiro acesso, e de novo sempre que o texto muda, uma janela pede o aceite antes de usar
@@ -377,7 +384,7 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/dashboard` | números e listas da visão geral |
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
-| PUT/DELETE | `/api/programs/{id}` | renomeia e arquiva/reativa; exclui só programa sem projetos |
+| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos; edita nome, ícone e cor e arquiva/reativa; exclui só programa sem projetos |
 | GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
 | POST | `/api/volunteers/{id}/certificate` | certificado de voluntariado em PDF (período, horas por semana e CPF opcional, que não é guardado) |

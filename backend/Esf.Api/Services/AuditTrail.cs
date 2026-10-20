@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
+using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
@@ -73,7 +74,7 @@ public static class AuditTrail
         [typeof(Indicator)] = new() { ["Name"] = "Nome", ["Value"] = "Valor", ["Unit"] = "Unidade" },
         [typeof(ProjectFile)] = new() { ["Description"] = "Legenda" },
         [typeof(ProjectUpdate)] = new() { ["Text"] = "Texto" },
-        [typeof(ProjectProgram)] = new() { ["Name"] = "Nome", ["Status"] = "Situação" },
+        [typeof(ProjectProgram)] = new() { ["Name"] = "Nome", ["Status"] = "Situação", ["Icon"] = "Ícone", ["Color"] = "Cor" },
         [typeof(ProjectVolunteer)] = new() { ["RoleInProject"] = "Função" },
         [typeof(SignedDocument)] = new() { ["SignedOn"] = "Assinado em" },
         [typeof(VolunteerStatusChange)] = new() { ["Status"] = "Status", ["StartsOn"] = "A partir de" },
@@ -204,6 +205,10 @@ public static class AuditTrail
         return value switch
         {
             string text when type == typeof(ProjectUpdate) => Truncate(RichText.ToPlainText(text), 160),
+            string key when type == typeof(ProjectProgram) && property == "Icon" =>
+                ProgramAppearance.Icons.GetValueOrDefault(key, key),
+            string key when type == typeof(ProjectProgram) && property == "Color" =>
+                ProgramAppearance.Colors.GetValueOrDefault(key, key),
             string text => Truncate(text, 160),
             bool flag => flag ? "sim" : "não",
             decimal number => Math.Round(number, 2).ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ','),

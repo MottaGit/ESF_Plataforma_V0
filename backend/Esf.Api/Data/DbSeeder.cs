@@ -96,8 +96,8 @@ public static class DbSeeder
         ana.Volunteer = vAna;
         fausto.Volunteer = vFausto;
 
-        var pBanheiro = new ProjectProgram { Name = "Banheiro Direito da Gente" };
-        var pHorta = new ProjectProgram { Name = "Horta comunitaria" };
+        var pBanheiro = new ProjectProgram { Name = "Banheiro Direito da Gente", Icon = "banheiro", Color = "blue" };
+        var pHorta = new ProjectProgram { Name = "Horta comunitaria", Icon = "horta", Color = "green" };
         db.Programs.AddRange(pBanheiro, pHorta);
 
         const string cidade = "Porto Alegre";

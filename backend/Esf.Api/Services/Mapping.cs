@@ -155,5 +155,7 @@ public static class Mapping
             // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.
             p.Files.OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
             p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList(),
-            imageAuthorizedOn);
+            imageAuthorizedOn,
+            p.Program.Icon,
+            p.Program.Color);
 }

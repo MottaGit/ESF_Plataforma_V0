@@ -25,7 +25,10 @@ public record ProjectListItemDto(
     // Data da atualizacao de andamento mais recente (null se o projeto nunca teve uma).
     DateTime? LastUpdateAt,
     // Data da autorizacao de uso de imagem dos beneficiarios mais recente (null: nao registrada).
-    DateOnly? ImageAuthorizedOn)
+    DateOnly? ImageAuthorizedOn,
+    // Icone e cor do programa (cards e pinos do mapa).
+    string ProgramIcon,
+    string ProgramColor)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(Status, ActivitiesTotal, ActivitiesDone);
@@ -62,7 +65,9 @@ public record ProjectDetailDto(
     IReadOnlyList<ProjectFileDto> Files,
     IReadOnlyList<ProjectUpdateDto> Updates,
     // Data da autorizacao de uso de imagem dos beneficiarios mais recente (null: nao registrada).
-    DateOnly? ImageAuthorizedOn)
+    DateOnly? ImageAuthorizedOn,
+    string ProgramIcon,
+    string ProgramColor)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(

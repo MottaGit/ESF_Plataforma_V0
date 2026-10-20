@@ -87,7 +87,9 @@ public class ProjectService
                 p.Updates.Max(u => (DateTime?)u.CreatedAt),
                 _db.SignedDocuments
                     .Where(d => d.ProjectId == p.Id && d.Kind == SignedDocumentKind.BeneficiaryImageAuthorization)
-                    .Max(d => (DateOnly?)d.SignedOn)))
+                    .Max(d => (DateOnly?)d.SignedOn),
+                p.Program!.Icon,
+                p.Program!.Color))
             .ToListAsync();
 
         // O progresso e calculado em memoria, entao a ordenacao por ele tambem (a lista ja vem por nome).

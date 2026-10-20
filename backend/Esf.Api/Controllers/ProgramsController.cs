@@ -19,6 +19,9 @@ public class ProgramsController : ControllerBase
     public async Task<ActionResult<List<ProgramDto>>> List([FromQuery] bool onlyActive = true)
         => Ok(await _programs.ListAsync(onlyActive));
 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ProgramDto>> Get(Guid id) => Ok(await _programs.GetAsync(id));
+
     [HttpPost]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramDto>> Create(SaveProgramRequest request)
