@@ -15,7 +15,9 @@ public class OrganizationController : ControllerBase
 
     public OrganizationController(OrganizationService organization) => _organization = organization;
 
+    /// <summary>Dados institucionais publicos (nome, CNPJ, contatos): a pagina de privacidade abre sem login.</summary>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<OrganizationDto>> Get() => Ok(await _organization.GetAsync());
 
     [HttpPut]

@@ -13,7 +13,9 @@ public record UserDto(
     Guid? VolunteerId,
     string? VolunteerName,
     // Foto do voluntario vinculado (avatar do usuario no topo da tela).
-    string? VolunteerPhotoUrl);
+    string? VolunteerPhotoUrl,
+    // Ainda nao aceitou a versao vigente da politica de privacidade e dos termos de uso.
+    bool TermsPending);
 
 public class CreateUserRequest
 {

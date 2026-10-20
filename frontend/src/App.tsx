@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -19,6 +20,7 @@ export function App() {
         <ToastProvider>
           <Routes>
             <Route path="/entrar" element={<LoginPage />} />
+            <Route path="/privacidade" element={<PrivacyPage />} />
             <Route
               element={
                 <ProtectedRoute>

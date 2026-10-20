@@ -13,4 +13,8 @@ public class User
     /// <summary>Voluntario que este acesso representa. Permite saber quais atividades sao "minhas".</summary>
     public Guid? VolunteerId { get; set; }
     public Volunteer? Volunteer { get; set; }
+
+    /// <summary>Quando aceitou a politica de privacidade e os termos de uso, e qual versao.</summary>
+    public DateTime? TermsAcceptedAt { get; set; }
+    public string? TermsVersion { get; set; }
 }

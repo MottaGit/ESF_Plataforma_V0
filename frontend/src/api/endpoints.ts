@@ -37,6 +37,7 @@ export const authApi = {
       skipAuthRedirect: true
     }),
   me: () => http.request<User>('/api/auth/me'),
+  acceptTerms: () => http.request<User>('/api/auth/accept-terms', { method: 'POST' }),
   changePassword: (currentPassword: string, newPassword: string) =>
     http.request<void>('/api/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } })
 };

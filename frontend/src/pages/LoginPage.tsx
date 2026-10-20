@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { Button } from '../components/ui/Button';
 import { Field, TextInput } from '../components/ui/Field';
@@ -105,6 +105,10 @@ export function LoginPage() {
               <strong>Esf@2026</strong>
             </div>
           </div>
+
+          <p className="login__legal">
+            <Link to="/privacidade">Política de privacidade e termos de uso</Link>
+          </p>
         </form>
       </section>
     </div>

@@ -1,3 +1,4 @@
+using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
@@ -33,7 +34,7 @@ public static class Mapping
 
     public static UserDto ToDto(User u) =>
         new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name,
-            PhotoUrl(u.Volunteer?.PhotoStoredName));
+            PhotoUrl(u.Volunteer?.PhotoStoredName), u.TermsVersion != PrivacyTerms.CurrentVersion);
 
     public static ActivityDto ToDto(Activity a) =>
         new(a.Id,

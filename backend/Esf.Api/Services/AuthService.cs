@@ -38,6 +38,18 @@ public class AuthService
         return Mapping.ToDto(user);
     }
 
+    /// <summary>Registra o aceite da versao vigente da politica de privacidade e dos termos de uso.</summary>
+    public async Task<UserDto> AcceptTermsAsync(Guid userId)
+    {
+        var user = await _db.Users.Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Id == userId)
+                   ?? throw AppException.NotFound("Usuario");
+
+        user.TermsAcceptedAt = DateTime.UtcNow;
+        user.TermsVersion = PrivacyTerms.CurrentVersion;
+        await _db.SaveChangesAsync();
+        return Mapping.ToDto(user);
+    }
+
     public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId)

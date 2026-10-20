@@ -489,6 +489,12 @@ namespace Esf.Api.Data.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("TermsAcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TermsVersion")
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("VolunteerId")
                         .HasColumnType("uuid");
 

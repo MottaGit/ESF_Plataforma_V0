@@ -199,6 +199,11 @@ projetos; arquivado, o programa sai das opções de novos projetos), gestão de 
 formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba aberta fica na URL
 (`?aba=organizacao`, `programas`, `usuarios` ou `conta`).
 
+**Privacidade (LGPD)** — a política de privacidade e os termos de uso ficam em `/privacidade`, aberta a qualquer pessoa
+(link na tela de login). No primeiro acesso, e de novo sempre que o texto muda, uma janela pede o aceite antes de usar
+a plataforma; a data e a versão aceita ficam registradas. Para publicar uma nova versão, atualize o texto em
+`pages/PrivacyPage.tsx` e a data em `PrivacyTerms.CurrentVersion` (API).
+
 **Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
 acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
 de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes
@@ -312,6 +317,7 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/auth/login` | autentica e devolve o token |
 | GET | `/api/auth/me` | usuário da sessão |
 | POST | `/api/auth/change-password` | troca a própria senha |
+| POST | `/api/auth/accept-terms` | registra o aceite da política de privacidade e dos termos de uso (versão vigente) |
 | GET | `/api/dashboard` | números e listas da visão geral |
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |

@@ -23,7 +23,8 @@ public class UserService
                 u.VolunteerId, u.Volunteer != null ? u.Volunteer.Name : null,
                 u.Volunteer != null && u.Volunteer.PhotoStoredName != null
                     ? Mapping.UploadsUrlPrefix + "/" + u.Volunteer.PhotoStoredName
-                    : null))
+                    : null,
+                u.TermsVersion != PrivacyTerms.CurrentVersion))
             .ToListAsync();
     }
 

@@ -29,6 +29,12 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserDto>> Me()
         => Ok(await _auth.MeAsync(_currentUser.RequireId()));
 
+    /// <summary>Aceite da politica de privacidade e dos termos de uso (pedido no primeiro acesso).</summary>
+    [HttpPost("accept-terms")]
+    [Authorize]
+    public async Task<ActionResult<UserDto>> AcceptTerms()
+        => Ok(await _auth.AcceptTermsAsync(_currentUser.RequireId()));
+
     [HttpPost("change-password")]
     [Authorize]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)

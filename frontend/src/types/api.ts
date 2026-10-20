@@ -26,6 +26,8 @@ export interface User {
   volunteerName: string | null;
   /** Foto do voluntario vinculado (avatar no topo da tela). */
   volunteerPhotoUrl: string | null;
+  /** Ainda nao aceitou a versao vigente da politica de privacidade e dos termos de uso. */
+  termsPending: boolean;
 }
 
 export interface LoginResponse {

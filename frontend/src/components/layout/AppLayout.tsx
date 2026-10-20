@@ -4,6 +4,7 @@ import { organizationApi } from '../../api/endpoints';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
 import { NotificationBell } from './NotificationBell';
+import { TermsGate } from './TermsGate';
 import { Sidebar } from './Sidebar';
 
 const titles: Array<{ match: RegExp; title: string }> = [
@@ -60,6 +61,8 @@ export function AppLayout() {
         <main className="content">
           <Outlet />
         </main>
+
+        <TermsGate />
       </div>
     </div>
   );
