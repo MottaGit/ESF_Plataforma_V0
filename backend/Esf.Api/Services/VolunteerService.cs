@@ -66,7 +66,8 @@ public class VolunteerService
                 v.PhotoStoredName != null ? Mapping.UploadsUrlPrefix + "/" + v.PhotoStoredName : null,
                 _db.SignedDocuments
                     .Where(d => d.VolunteerId == v.Id && d.Kind == SignedDocumentKind.VolunteerTerm)
-                    .Max(d => (DateOnly?)d.SignedOn)))
+                    .Max(d => (DateOnly?)d.SignedOn),
+                v.AnonymizedAt != null))
             .ToListAsync();
     }
 
@@ -79,6 +80,13 @@ public class VolunteerService
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
         return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id));
+    }
+
+    /// <summary>Depois de anonimizado, o cadastro nao volta a receber dados pessoais.</summary>
+    private static void EnsureNotAnonymized(Volunteer volunteer)
+    {
+        if (volunteer.AnonymizedAt.HasValue)
+            throw new AppException("Os dados deste voluntario foram anonimizados e nao podem mais ser editados.");
     }
 
     /// <summary>Data do termo de adesao assinado mais recente (null: pendente).</summary>
@@ -107,11 +115,44 @@ public class VolunteerService
             .Include(v => v.Projects).ThenInclude(pv => pv.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
+        EnsureNotAnonymized(volunteer);
         Apply(volunteer, request);
         await _db.SaveChangesAsync();
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
         return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id));
+    }
+
+    /// <summary>
+    /// LGPD: troca a exclusao. Apaga nome, contatos, habilidades, observacoes, aniversario e foto, desvincula o
+    /// acesso e apaga os avisos da pessoa; mantem projetos, atividades e os documentos assinados (guardados para
+    /// defesa da organizacao), agora sem identificar a pessoa.
+    /// </summary>
+    public async Task<VolunteerDto> AnonymizeAsync(Guid id)
+    {
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+        if (volunteer.AnonymizedAt.HasValue) throw new AppException("Os dados deste voluntario ja foram anonimizados.");
+
+        var photo = volunteer.PhotoStoredName;
+        volunteer.Name = "Voluntário removido";
+        volunteer.Email = null;
+        volunteer.Phone = null;
+        volunteer.Skills = null;
+        volunteer.Notes = null;
+        volunteer.BirthDay = null;
+        volunteer.BirthMonth = null;
+        volunteer.PhotoStoredName = null;
+        volunteer.Status = VolunteerStatus.ExMembro;
+        volunteer.AnonymizedAt = DateTime.UtcNow;
+
+        foreach (var user in await _db.Users.Where(u => u.VolunteerId == id).ToListAsync())
+            user.VolunteerId = null;
+
+        await _db.SaveChangesAsync();
+        await _db.Notifications.Where(n => n.VolunteerId == id).ExecuteDeleteAsync();
+        await _storage.DeleteAsync(photo);
+
+        return await GetAsync(id);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -132,6 +173,7 @@ public class VolunteerService
     public async Task<VolunteerDto> SetPhotoAsync(Guid id, IFormFile file)
     {
         var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+        EnsureNotAnonymized(volunteer);
 
         if (file is null || !PhotoExtensions.Contains(Path.GetExtension(file.FileName))
             || !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))

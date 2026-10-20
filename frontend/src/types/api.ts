@@ -128,6 +128,8 @@ export interface Volunteer {
   photoUrl: string | null;
   /** Data do termo de adesao assinado mais recente; null quando esta pendente. */
   termSignedOn: string | null;
+  /** Dados pessoais anonimizados (nome generico, sem contatos nem foto); so o historico continua. */
+  anonymized: boolean;
 }
 
 export interface ProjectVolunteer {

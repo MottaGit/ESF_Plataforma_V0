@@ -37,8 +37,17 @@ public class VolunteersController : ControllerBase
     public async Task<ActionResult<VolunteerDto>> Update(Guid id, SaveVolunteerRequest request)
         => Ok(await _volunteers.UpdateAsync(id, request));
 
-    [HttpDelete("volunteers/{id:guid}")]
+    /// <summary>
+    /// Anonimiza os dados pessoais do voluntario (no lugar da exclusao): o historico de projetos e atividades
+    /// continua, sem identificar a pessoa. Nao da para desfazer.
+    /// </summary>
+    [HttpPost("volunteers/{id:guid}/anonymize")]
     [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<VolunteerDto>> Anonymize(Guid id) => Ok(await _volunteers.AnonymizeAsync(id));
+
+    /// <summary>Exclusao definitiva (apaga tambem os vinculos e documentos). A tela usa a anonimizacao.</summary>
+    [HttpDelete("volunteers/{id:guid}")]
+    [Authorize(Policy = Policies.AdminOnly)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _volunteers.DeleteAsync(id);

@@ -188,6 +188,12 @@ pendente", com o filtro "Só com termo pendente". Os documentos assinados não f
 download com login da coordenação. Quem assina pela organização (nome e cargo) é configurado em Configurações ›
 Organização.
 
+**Anonimizar voluntário** — na lista, a coordenação usa "Anonimizar" no lugar de excluir (quando a pessoa sai da
+organização ou pede a exclusão dos dados): nome vira "Voluntário removido", saem e-mail, telefone, habilidades,
+observações, aniversário e foto, a situação passa a ex-membro, o acesso vinculado é desfeito e os avisos da pessoa
+são apagados. Projetos, atividades e documentos assinados continuam, sem identificar a pessoa, e o cadastro não pode
+mais ser editado. A exclusão definitiva continua na API, só para administrador.
+
 **Certificado de voluntariado** — na página do voluntário, "Gerar certificado" (coordenação) pede o período, as horas
 por semana (6 por padrão) e, se quiser, o CPF, que só vai para o PDF e não fica salvo. O certificado sai em A4 deitado,
 no modelo da organização: nome e CNPJ, CPF, o nome do voluntário em destaque, o período por extenso e o total de horas
@@ -360,7 +366,8 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
-| GET/POST/PUT/DELETE | `/api/volunteers[/{id}]` | cadastro de voluntários |
+| GET/POST/PUT | `/api/volunteers[/{id}]` | cadastro de voluntários (DELETE, exclusão definitiva, só administrador) |
+| POST | `/api/volunteers/{id}/anonymize` | anonimiza os dados pessoais e mantém o histórico (LGPD) |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |

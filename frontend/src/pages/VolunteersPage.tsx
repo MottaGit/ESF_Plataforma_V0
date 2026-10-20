@@ -7,7 +7,7 @@ import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconPlus, IconSearch, IconTrash, IconUpload } from '../components/ui/Icons';
+import { IconEdit, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -72,16 +72,17 @@ export function VolunteersPage() {
   const shown = onlyPendingTerm ? volunteers.filter(needsTerm) : volunteers;
   const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
 
-  async function handleDelete() {
+  /** LGPD: no lugar da exclusao, apaga os dados pessoais e mantem o historico dos projetos. */
+  async function handleAnonymize() {
     if (!removing) return;
     setBusy(true);
     try {
-      await volunteersApi.remove(removing.id);
-      notify('Voluntário excluído.');
+      await volunteersApi.anonymize(removing.id);
+      notify('Dados do voluntário anonimizados.');
       setRemoving(null);
       void load();
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o voluntário.');
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível anonimizar o voluntário.');
     } finally {
       setBusy(false);
     }
@@ -246,27 +247,31 @@ export function VolunteersPage() {
                       </td>
                       {canManage ? (
                         <td>
-                          <div className="row-actions">
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconEdit size={15} />}
-                              title="Editar voluntário"
-                              aria-label="Editar voluntário"
-                              onClick={() => {
-                                setEditing(volunteer);
-                                setFormOpen(true);
-                              }}
-                            />
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconTrash size={15} />}
-                              title="Excluir voluntário"
-                              aria-label="Excluir voluntário"
-                              onClick={() => setRemoving(volunteer)}
-                            />
-                          </div>
+                          {volunteer.anonymized ? (
+                            <span className="table__secondary">dados anonimizados</span>
+                          ) : (
+                            <div className="row-actions">
+                              <Button
+                                small
+                                variant="ghost"
+                                icon={<IconEdit size={15} />}
+                                title="Editar voluntário"
+                                aria-label="Editar voluntário"
+                                onClick={() => {
+                                  setEditing(volunteer);
+                                  setFormOpen(true);
+                                }}
+                              />
+                              <Button
+                                small
+                                variant="ghost"
+                                title="Apagar os dados pessoais e manter o histórico"
+                                onClick={() => setRemoving(volunteer)}
+                              >
+                                Anonimizar
+                              </Button>
+                            </div>
+                          )}
                         </td>
                       ) : null}
                     </tr>
@@ -292,13 +297,13 @@ export function VolunteersPage() {
 
       {removing ? (
         <ConfirmDialog
-          title="Excluir voluntário"
-          message={`${removing.name} será removido do cadastro e dos projetos em que está vinculado.`}
-          confirmLabel="Excluir"
+          title="Anonimizar voluntário"
+          message={`Os dados pessoais de ${removing.name} (nome, contatos, aniversário, foto e observações) serão apagados de vez. O histórico de projetos e atividades continua, como "Voluntário removido", e os documentos assinados ficam guardados. Use quando a pessoa sair da organização ou pedir a exclusão dos dados. Não dá para desfazer.`}
+          confirmLabel="Anonimizar"
           destructive
           busy={busy}
           onCancel={() => setRemoving(null)}
-          onConfirm={() => void handleDelete()}
+          onConfirm={() => void handleAnonymize()}
         />
       ) : null}
     </>

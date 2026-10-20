@@ -88,7 +88,7 @@ export function VolunteerDetailPage() {
           </div>
         </div>
 
-        {canManage ? (
+        {canManage && !volunteer.anonymized ? (
           <div className="page-head__actions">
             <Button icon={<IconDownload size={15} />} onClick={() => setCertificateOpen(true)}>
               Gerar certificado
@@ -99,6 +99,15 @@ export function VolunteerDetailPage() {
           </div>
         ) : null}
       </div>
+
+      {volunteer.anonymized ? (
+        <div style={{ marginBottom: 16 }}>
+          <Alert kind="info">
+            Os dados pessoais deste voluntário foram anonimizados. O histórico de projetos e atividades continua, sem
+            identificar a pessoa.
+          </Alert>
+        </div>
+      ) : null}
 
       <div className="grid-sidebar">
         <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>

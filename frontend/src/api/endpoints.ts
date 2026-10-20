@@ -111,6 +111,8 @@ export const volunteersApi = {
   update: (id: string, payload: SaveVolunteerPayload) =>
     http.request<Volunteer>(`/api/volunteers/${id}`, { method: 'PUT', body: payload }),
   remove: (id: string) => http.request<void>(`/api/volunteers/${id}`, { method: 'DELETE' }),
+  /** LGPD: apaga os dados pessoais e mantem o historico (a tela usa no lugar da exclusao). */
+  anonymize: (id: string) => http.request<Volunteer>(`/api/volunteers/${id}/anonymize`, { method: 'POST' }),
   /** Foto ja recortada (quadrada) pelo navegador. */
   uploadPhoto: (id: string, photo: Blob) => {
     const formData = new FormData();

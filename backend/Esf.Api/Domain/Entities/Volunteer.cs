@@ -19,6 +19,12 @@ public class Volunteer
 
     /// <summary>Foto (ja recortada em quadrado pelo navegador), gravada no armazenamento de arquivos.</summary>
     public string? PhotoStoredName { get; set; }
+
+    /// <summary>
+    /// Quando os dados pessoais foram anonimizados (pedido do titular ou saida da organizacao): nome generico,
+    /// sem contatos, foto nem aniversario. Projetos, atividades e documentos assinados continuam.
+    /// </summary>
+    public DateTime? AnonymizedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<ProjectVolunteer> Projects { get; set; } = new List<ProjectVolunteer>();

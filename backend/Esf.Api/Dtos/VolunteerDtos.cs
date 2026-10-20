@@ -25,7 +25,9 @@ public record VolunteerDto(
     int? BirthMonth,
     string? PhotoUrl,
     // Data do termo de adesao assinado mais recente (null: termo pendente).
-    DateOnly? TermSignedOn);
+    DateOnly? TermSignedOn,
+    // Dados pessoais ja anonimizados: so o historico continua.
+    bool Anonymized);
 
 public record ProjectVolunteerDto(
     Guid VolunteerId,
