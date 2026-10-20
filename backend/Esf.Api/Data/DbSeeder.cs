@@ -76,10 +76,20 @@ public static class DbSeeder
         var vMariaAntonia = new Volunteer { Name = "Maria Antonia", Sector = VolunteerSector.Qualidade };
         var vFausto = new Volunteer { Name = "Fausto da Silva", Sector = VolunteerSector.Projetos };
 
-        db.Volunteers.AddRange(
+        Volunteer[] volunteers =
+        [
             vLeonardo, vClivia, vSandra, vAna, vGiovani, vFelipe, vAdriano, vEdu, vLuca,
             vGuilherme, vTanea, vCarol, vJulia, vMarcosHeitor, vAlice, vYasminM, vFrancielly, vAlisson, vMariaAntonia,
-            vFausto);
+            vFausto
+        ];
+        db.Volunteers.AddRange(volunteers);
+
+        // Historico de status de demonstracao: todos ativos desde marco de 2025; Fausto teve um afastamento.
+        foreach (var volunteer in volunteers)
+            VolunteerStatusHistoryService.Start(db, volunteer, new DateOnly(2025, 3, 1));
+        db.VolunteerStatusChanges.AddRange(
+            new VolunteerStatusChange { VolunteerId = vFausto.Id, Status = VolunteerStatus.Afastado, StartsOn = new DateOnly(2025, 12, 1) },
+            new VolunteerStatusChange { VolunteerId = vFausto.Id, Status = VolunteerStatus.Ativo, StartsOn = new DateOnly(2026, 2, 1) });
 
         // Acessos de demonstracao representam voluntarios ja cadastrados.
         leonardo.Volunteer = vLeonardo;

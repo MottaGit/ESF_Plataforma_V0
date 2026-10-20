@@ -77,3 +77,25 @@ public class AddProjectVolunteerRequest
     [StringLength(120)]
     public string? RoleInProject { get; set; }
 }
+
+/// <summary>Um periodo do historico de status (EndsOn vazio: o status atual).</summary>
+public record VolunteerStatusPeriodDto(Guid Id, VolunteerStatus Status, DateOnly StartsOn, DateOnly? EndsOn);
+
+/// <summary>
+/// Horas de voluntariado (dias como Ativo x carga semanal). O historico so vem para a coordenacao e para o
+/// proprio voluntario; para os demais, null.
+/// </summary>
+public record VolunteerHoursDto(int Hours, int WeeklyHours, List<VolunteerStatusPeriodDto>? History);
+
+/// <summary>"Status X de tal data ate tal data (ou ate hoje)" no historico do voluntario.</summary>
+public class SaveStatusPeriodRequest
+{
+    [Required(ErrorMessage = "Selecione o status.")]
+    public VolunteerStatus? Status { get; set; }
+
+    [Required(ErrorMessage = "Informe a data de inicio.")]
+    public DateOnly? StartsOn { get; set; }
+
+    /// <summary>Vazio: continua ate hoje (vira o status atual).</summary>
+    public DateOnly? EndsOn { get; set; }
+}

@@ -103,6 +103,7 @@ public class VolunteerService
         volunteer.CreatedAt = DateTime.UtcNow;
 
         _db.Volunteers.Add(volunteer);
+        VolunteerStatusHistoryService.Start(_db, volunteer, Mapping.Today);
         await _db.SaveChangesAsync();
 
         return Mapping.ToDto(volunteer, new List<VolunteerProjectDto>());
@@ -116,7 +117,11 @@ public class VolunteerService
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
         EnsureNotAnonymized(volunteer);
+        var previousStatus = volunteer.Status;
         Apply(volunteer, request);
+        // Mudou a situacao pelo cadastro: entra no historico a partir de hoje.
+        if (volunteer.Status != previousStatus)
+            await VolunteerStatusHistoryService.ApplyPeriodAsync(_db, volunteer, volunteer.Status, Mapping.Today, null);
         await _db.SaveChangesAsync();
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
@@ -142,8 +147,9 @@ public class VolunteerService
         volunteer.BirthDay = null;
         volunteer.BirthMonth = null;
         volunteer.PhotoStoredName = null;
-        volunteer.Status = VolunteerStatus.ExMembro;
         volunteer.AnonymizedAt = DateTime.UtcNow;
+        if (volunteer.Status != VolunteerStatus.ExMembro)
+            await VolunteerStatusHistoryService.ApplyPeriodAsync(_db, volunteer, VolunteerStatus.ExMembro, Mapping.Today, null);
 
         foreach (var user in await _db.Users.Where(u => u.VolunteerId == id).ToListAsync())
             user.VolunteerId = null;

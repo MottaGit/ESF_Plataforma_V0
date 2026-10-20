@@ -65,6 +65,29 @@ public class VolunteersController : ControllerBase
     public async Task<ActionResult<VolunteerDto>> RemovePhoto(Guid id)
         => Ok(await _volunteers.RemovePhotoAsync(id));
 
+    /// <summary>Horas de voluntariado; o historico de status so vem para a coordenacao e para o proprio voluntario.</summary>
+    [HttpGet("volunteers/{id:guid}/hours")]
+    public async Task<ActionResult<VolunteerHoursDto>> Hours(Guid id, [FromServices] VolunteerStatusHistoryService history)
+        => Ok(await history.GetAsync(id));
+
+    [HttpPost("volunteers/{id:guid}/status-history")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<VolunteerHoursDto>> AddStatusPeriod(Guid id, SaveStatusPeriodRequest request,
+        [FromServices] VolunteerStatusHistoryService history)
+        => Ok(await history.AddPeriodAsync(id, request));
+
+    [HttpPut("volunteers/{id:guid}/status-history/{periodId:guid}")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<VolunteerHoursDto>> UpdateStatusPeriod(Guid id, Guid periodId,
+        SaveStatusPeriodRequest request, [FromServices] VolunteerStatusHistoryService history)
+        => Ok(await history.UpdatePeriodAsync(id, periodId, request));
+
+    [HttpDelete("volunteers/{id:guid}/status-history/{periodId:guid}")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<VolunteerHoursDto>> DeleteStatusPeriod(Guid id, Guid periodId,
+        [FromServices] VolunteerStatusHistoryService history)
+        => Ok(await history.DeletePeriodAsync(id, periodId));
+
     [HttpGet("projects/{projectId:guid}/volunteers")]
     public async Task<ActionResult<List<ProjectVolunteerDto>>> ListByProject(Guid projectId)
         => Ok(await _volunteers.ListByProjectAsync(projectId));

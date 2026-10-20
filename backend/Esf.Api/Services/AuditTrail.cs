@@ -76,6 +76,7 @@ public static class AuditTrail
         [typeof(ProjectProgram)] = new() { ["Name"] = "Nome", ["Status"] = "Situação" },
         [typeof(ProjectVolunteer)] = new() { ["RoleInProject"] = "Função" },
         [typeof(SignedDocument)] = new() { ["SignedOn"] = "Assinado em" },
+        [typeof(VolunteerStatusChange)] = new() { ["Status"] = "Status", ["StartsOn"] = "A partir de" },
         [typeof(Organization)] = new()
         {
             ["Name"] = "Nome", ["LegalName"] = "Razão social", ["Cnpj"] = "CNPJ", ["Email"] = "E-mail",
@@ -100,6 +101,13 @@ public static class AuditTrail
             .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .Where(e => Fields.ContainsKey(e.Entity.GetType()))
             .ToList();
+
+        // A primeira linha do historico de status de um voluntario novo ja esta no "criou o voluntario".
+        var newVolunteers = entries
+            .Where(e => e.State == EntityState.Added && e.Entity is Volunteer)
+            .Select(e => ((Volunteer)e.Entity).Id)
+            .ToHashSet();
+        entries.RemoveAll(e => e.Entity is VolunteerStatusChange c && newVolunteers.Contains(c.VolunteerId));
         if (entries.Count == 0) return;
 
         var userName = await db.Users.AsNoTracking()
@@ -152,6 +160,9 @@ public static class AuditTrail
                 ? $"Termo de adesão de {VolunteerRef(d.VolunteerId)}"
                 : "Autorização de imagem dos beneficiários",
             d.Id, d.ProjectId),
+        VolunteerStatusChange c => ("Histórico de status",
+            $"{VolunteerRef(c.VolunteerId)}: {(c.Status.HasValue ? Format(typeof(VolunteerStatusChange), "Status", c.Status) : "sem registro")} a partir de {c.StartsOn:dd/MM/yyyy}",
+            c.Id, null),
         Organization o => ("Organização", o.Name, o.Id, null),
         _ => ("Registro", entity.GetType().Name, Guid.Empty, null)
     };

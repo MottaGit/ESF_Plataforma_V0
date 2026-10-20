@@ -691,6 +691,32 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("Volunteers");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.VolunteerStatusChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("VolunteerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VolunteerId", "StartsOn")
+                        .IsUnique();
+
+                    b.ToTable("VolunteerStatusChanges");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.Activity", b =>
                 {
                     b.HasOne("Esf.Api.Domain.Entities.Volunteer", "AssignedVolunteer")
@@ -848,6 +874,17 @@ namespace Esf.Api.Data.Migrations
                         .WithOne()
                         .HasForeignKey("Esf.Api.Domain.Entities.User", "VolunteerId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Volunteer");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.VolunteerStatusChange", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Volunteer", "Volunteer")
+                        .WithMany()
+                        .HasForeignKey("VolunteerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Volunteer");
                 });

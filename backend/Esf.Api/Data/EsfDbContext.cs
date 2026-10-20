@@ -21,6 +21,7 @@ public class EsfDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<SignedDocument> SignedDocuments => Set<SignedDocument>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
+    public DbSet<VolunteerStatusChange> VolunteerStatusChanges => Set<VolunteerStatusChange>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -143,6 +144,12 @@ public class EsfDbContext : DbContext
 
             e.HasOne(x => x.Volunteer).WithMany().HasForeignKey(x => x.VolunteerId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Project).WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<VolunteerStatusChange>(e =>
+        {
+            e.HasIndex(x => new { x.VolunteerId, x.StartsOn }).IsUnique();
+            e.HasOne(x => x.Volunteer).WithMany().HasForeignKey(x => x.VolunteerId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Notification>(e =>
