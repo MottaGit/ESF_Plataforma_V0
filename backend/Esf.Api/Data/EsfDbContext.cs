@@ -27,9 +27,18 @@ public class EsfDbContext : DbContext
     public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
 
+    /// <summary>Funcao esf_fold do banco: minusculas e sem acento (busca geral). So vale dentro de consultas.</summary>
+    public static string Fold(string text) => throw new NotSupportedException("Use apenas em consultas.");
+
+    /// <summary>Funcao esf_fold_html do banco: como Fold, sem as tags do texto formatado dos relatos.</summary>
+    public static string FoldHtml(string html) => throw new NotSupportedException("Use apenas em consultas.");
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
+
+        b.HasDbFunction(typeof(EsfDbContext).GetMethod(nameof(Fold), new[] { typeof(string) })!).HasName("esf_fold");
+        b.HasDbFunction(typeof(EsfDbContext).GetMethod(nameof(FoldHtml), new[] { typeof(string) })!).HasName("esf_fold_html");
 
         b.Entity<User>(e =>
         {

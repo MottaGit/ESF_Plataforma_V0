@@ -33,6 +33,7 @@ import type {
   SaveUserPayload,
   SaveStatusPeriodPayload,
   SaveVolunteerPayload,
+  SearchResults,
   SignedDocument,
   UnreadNotifications,
   UpdateProgramPayload,
@@ -309,4 +310,9 @@ export const organizationApi = {
 export const certificatesApi = {
   download: (volunteerId: string, payload: CertificatePayload) =>
     http.download(`/api/volunteers/${volunteerId}/certificate`, payload, 'certificado.pdf')
+};
+
+export const searchApi = {
+  /** Projetos, programas, atividades, voluntarios e relatos (sem diferenciar acentos). */
+  search: (q: string) => http.request<SearchResults>('/api/search', { query: { q } })
 };

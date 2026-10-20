@@ -185,6 +185,13 @@ sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário no
 comentou em…"); na edição, só quem foi mencionado agora. Todo aviso de atividade (atribuição, bloqueio, prazo,
 comentário) abre direto a janela daquela atividade. O resumo nos cards ganha o contador de comentários.
 
+**Busca geral** — campo fixo no topo de todas as telas (no celular, a lupa abre a busca ocupando a largura da tela);
+**Ctrl+K** (⌘K no Mac) leva o cursor até ele. Procura ao mesmo tempo em projetos (nome, comunidade, bairro, cidade),
+atividades (título e descrição), voluntários, programas e relatos de andamento, sem diferenciar maiúsculas nem acentos
+("joao" acha "João"), e mostra até 5 de cada tipo, agrupados. Setas escolhem e Enter abre; uma atividade abre direto
+na janela dela. Voluntários anonimizados, documentos assinados e o histórico de alterações ficam de fora. No banco, a
+comparação usa a função `esf_fold` (criada pela migração, sem depender de extensão do Postgres).
+
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
@@ -441,6 +448,7 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/activities/{id}/details` | checklist, anexos e comentários da atividade |
 | POST · PUT/DELETE | `/api/activities/{id}/checklist` · `/api/checklist/{itemId}` | inclui, marca/reescreve e remove itens do checklist |
 | GET | `/api/activities/{id}/mentionable` | quem pode ser mencionado com @ (equipe primeiro) |
+| GET | `/api/search?q=` | busca geral (projetos, atividades, voluntários, programas e relatos; mínimo 2 letras) |
 | POST · PUT/DELETE | `/api/activities/{id}/comments` · `/api/comments/{commentId}` | comenta; edita (autor) e apaga (autor ou coordenação) |
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |

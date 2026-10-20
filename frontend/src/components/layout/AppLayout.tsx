@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
+import { GlobalSearch } from './GlobalSearch';
 import { NotificationBell } from './NotificationBell';
 import { TermsGate } from './TermsGate';
 import { Sidebar } from './Sidebar';
@@ -52,6 +53,7 @@ export function AppLayout() {
           <span className="header__title">{title}</span>
           <span className="header__spacer" />
 
+          <GlobalSearch />
           <NotificationBell />
 
           <div className="header__user">

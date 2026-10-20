@@ -600,3 +600,21 @@ export interface AuditFilters {
   to?: string;
   page?: number;
 }
+
+/** Busca geral do topo: poucos resultados de cada tipo. */
+export interface SearchResults {
+  projects: Array<{
+    id: string;
+    name: string;
+    programName: string;
+    programIcon: string;
+    programColor: string;
+    status: ProjectStatus;
+    isArchived: boolean;
+  }>;
+  programs: Array<{ id: string; name: string; icon: string; color: string; isArchived: boolean }>;
+  activities: Array<{ id: string; title: string; projectId: string; projectName: string; status: ActivityStatus }>;
+  volunteers: Array<{ id: string; name: string; sector: VolunteerSector; photoUrl: string | null }>;
+  /** Relatos: trecho do texto em volta do termo. */
+  updates: Array<{ id: string; projectId: string; projectName: string; createdAt: string; snippet: string }>;
+}
