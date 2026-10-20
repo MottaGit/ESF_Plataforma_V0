@@ -17,6 +17,7 @@ const ENTITY_TYPES = [
   'Indicador',
   'Equipe',
   'Voluntário',
+  'Histórico de status',
   'Documento assinado',
   'Programa',
   'Usuário',
@@ -29,6 +30,11 @@ function describe(entry: AuditEntry) {
     if (entry.action === 'Created') return `adicionou ${entry.entityLabel} à equipe`;
     if (entry.action === 'Deleted') return `tirou ${entry.entityLabel} da equipe`;
     return `alterou a função de ${entry.entityLabel} na equipe`;
+  }
+  if (entry.entityType === 'Histórico de status') {
+    if (entry.action === 'Created') return `registrou no histórico de status: ${entry.entityLabel}`;
+    if (entry.action === 'Deleted') return `tirou do histórico de status: ${entry.entityLabel}`;
+    return `alterou no histórico de status: ${entry.entityLabel}`;
   }
   const verb = entry.action === 'Created' ? 'criou' : entry.action === 'Deleted' ? 'excluiu' : 'alterou';
   const feminine = ['Atividade', 'Organização'].includes(entry.entityType);

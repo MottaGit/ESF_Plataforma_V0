@@ -10,9 +10,10 @@ import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
+import { VolunteerHoursPanel } from '../components/volunteers/VolunteerHoursPanel';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { ProjectListItem, Volunteer, VolunteerProject } from '../types/api';
+import type { ProjectListItem, Volunteer, VolunteerHours, VolunteerProject, VolunteerStatusPeriod } from '../types/api';
 import {
   birthdayLabel,
   emptyToNull,
@@ -30,6 +31,7 @@ export function VolunteerDetailPage() {
   const navigate = useNavigate();
 
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
+  const [hours, setHours] = useState<VolunteerHours | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -38,7 +40,13 @@ export function VolunteerDetailPage() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      setVolunteer(await volunteersApi.get(id));
+      // As horas sao um extra: se falharem, o perfil abre do mesmo jeito.
+      const [loaded, loadedHours] = await Promise.all([
+        volunteersApi.get(id),
+        volunteersApi.hours(id).catch(() => null)
+      ]);
+      setVolunteer(loaded);
+      setHours(loadedHours);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o voluntário.');
     } finally {
@@ -147,6 +155,15 @@ export function VolunteerDetailPage() {
             </div>
           </section>
 
+          {hours ? (
+            <VolunteerHoursPanel
+              volunteerId={volunteer.id}
+              hours={hours}
+              canEdit={canManage && !volunteer.anonymized}
+              onChanged={() => void load()}
+            />
+          ) : null}
+
           <section className="panel">
             <div className="panel__head">
               <h2>Perfil</h2>
@@ -201,7 +218,11 @@ export function VolunteerDetailPage() {
       </div>
 
       {certificateOpen ? (
-        <CertificateModal volunteer={volunteer} onClose={() => setCertificateOpen(false)} />
+        <CertificateModal
+          volunteer={volunteer}
+          history={hours?.history ?? null}
+          onClose={() => setCertificateOpen(false)}
+        />
       ) : null}
 
       {editing ? (
@@ -437,13 +458,36 @@ function certificateHours(start: string, end: string, weeklyHours: number) {
 }
 
 /**
+ * Periodo sugerido para o certificado: do inicio do primeiro periodo como Ativo ao fim do ultimo (ou hoje).
+ * Sem historico, do comeco do ano ate hoje.
+ */
+function certificatePeriod(history: VolunteerStatusPeriod[] | null) {
+  const today = todayInputValue();
+  const active = (history ?? []).filter((period) => period.status === 'Ativo');
+  if (active.length === 0) return { start: `${today.slice(0, 4)}-01-01`, end: today };
+  const start = active.reduce((first, period) => (period.startsOn < first ? period.startsOn : first), active[0].startsOn);
+  const end = active.some((period) => !period.endsOn)
+    ? today
+    : active.reduce((last, period) => (period.endsOn! > last ? period.endsOn! : last), active[0].endsOn!);
+  return { start, end };
+}
+
+/**
  * Certificado de participacao no voluntariado: periodo, horas por semana (6 por padrao) e, se quiser, o CPF,
  * que vai so para o PDF e nao fica salvo.
  */
-function CertificateModal({ volunteer, onClose }: { volunteer: Volunteer; onClose: () => void }) {
-  const today = todayInputValue();
-  const [startDate, setStartDate] = useState(`${today.slice(0, 4)}-01-01`);
-  const [endDate, setEndDate] = useState(today);
+function CertificateModal({
+  volunteer,
+  history,
+  onClose
+}: {
+  volunteer: Volunteer;
+  history: VolunteerStatusPeriod[] | null;
+  onClose: () => void;
+}) {
+  const [suggested] = useState(() => certificatePeriod(history));
+  const [startDate, setStartDate] = useState(suggested.start);
+  const [endDate, setEndDate] = useState(suggested.end);
   const [weeklyHours, setWeeklyHours] = useState('6');
   const [cpf, setCpf] = useState('');
   const [error, setError] = useState<string | null>(null);

@@ -24,12 +24,14 @@ import type {
   SaveProgramPayload,
   SaveProjectPayload,
   SaveUserPayload,
+  SaveStatusPeriodPayload,
   SaveVolunteerPayload,
   SignedDocument,
   UnreadNotifications,
   UpdateProgramPayload,
   User,
   Volunteer,
+  VolunteerHours,
   VolunteerSector
 } from '../types/api';
 
@@ -122,6 +124,14 @@ export const volunteersApi = {
     return http.request<Volunteer>(`/api/volunteers/${id}/photo`, { method: 'POST', formData });
   },
   removePhoto: (id: string) => http.request<Volunteer>(`/api/volunteers/${id}/photo`, { method: 'DELETE' }),
+  /** Horas de voluntariado e, para quem pode ver, o historico de status. */
+  hours: (id: string) => http.request<VolunteerHours>(`/api/volunteers/${id}/hours`),
+  addStatusPeriod: (id: string, payload: SaveStatusPeriodPayload) =>
+    http.request<VolunteerHours>(`/api/volunteers/${id}/status-history`, { method: 'POST', body: payload }),
+  updateStatusPeriod: (id: string, periodId: string, payload: SaveStatusPeriodPayload) =>
+    http.request<VolunteerHours>(`/api/volunteers/${id}/status-history/${periodId}`, { method: 'PUT', body: payload }),
+  removeStatusPeriod: (id: string, periodId: string) =>
+    http.request<VolunteerHours>(`/api/volunteers/${id}/status-history/${periodId}`, { method: 'DELETE' }),
   listByProject: (projectId: string) => http.request<ProjectVolunteer[]>(`/api/projects/${projectId}/volunteers`),
   addToProject: (projectId: string, volunteerId: string, roleInProject: string | null) =>
     http.request<ProjectVolunteer>(`/api/projects/${projectId}/volunteers`, {

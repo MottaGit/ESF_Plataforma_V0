@@ -202,6 +202,16 @@ no modelo da organização: nome e CNPJ, CPF, o nome do voluntário em destaque,
 fica privada; sem ela, a linha sai em branco para assinar à mão), o nome, o cargo e uma linha opcional (ex.: "Gestão
 2025") de quem assina, e o logo da organização.
 
+**Horas de voluntariado** — a página do voluntário mostra o total de horas: dias como Ativo vezes 6 h por semana (a
+mesma conta do certificado). Os dias saem do histórico de status, que a plataforma registra sozinha quando a situação
+muda no cadastro (a partir daquele dia). A coordenação corrige ou completa o passado em "Incluir período" (status, de e
+até; sem "até", continua até hoje): o período substitui o que havia nessas datas e, depois dele, volta o status
+anterior; um afastamento de um mês no passado é só "Afastado, de 01/08 a 31/08". Editar um período é como tirá-lo e
+incluir de novo; remover faz o status anterior valer também nessas datas. Datas fora do histórico (antes do primeiro
+registro ou entre um período antigo e a volta da pessoa) não contam horas. Voluntários que já existiam começam com o
+status atual desde a data do cadastro. Todos veem o total; o histórico só aparece para a coordenação e para o próprio
+voluntário, e só a coordenação edita. O certificado já abre com o período do primeiro ao último período como Ativo.
+
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.
 
@@ -234,7 +244,7 @@ a plataforma; a data e a versão aceita ficam registradas. Para publicar uma nov
 `pages/PrivacyPage.tsx` e a data em `PrivacyTerms.CurrentVersion` (API).
 
 **Histórico de alterações** — toda criação, alteração ou exclusão feita por uma pessoa logada (projetos, atividades,
-relatos, arquivos, indicadores, equipe, voluntários, documentos assinados, programas, usuários e dados da organização)
+relatos, arquivos, indicadores, equipe, voluntários, histórico de status, documentos assinados, programas, usuários e dados da organização)
 fica registrada automaticamente, com quem fez, quando e o valor antes e depois de cada campo. Em Configurações ›
 Histórico (só administradores) a lista aparece em frases ("Ana alterou a atividade…"), com filtros por projeto, pessoa,
 tipo e período, 50 por vez. Dados pessoais do cadastro de voluntário (nome, contatos, aniversário, observações, foto) só
@@ -338,6 +348,7 @@ ESF_Plataforma_V0/
 | `Activities` | atividades do projeto (FK `ProjectId`, responsável opcional) |
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
+| `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com papel no projeto |
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a uma atualização |
 | `ProjectUpdates` | relatos de andamento do projeto (texto, autor, data, editável) |
@@ -385,6 +396,8 @@ A documentação interativa fica em `/swagger`.
 | GET/POST/PUT | `/api/volunteers[/{id}]` | cadastro de voluntários (DELETE, exclusão definitiva, só administrador) |
 | POST | `/api/volunteers/{id}/anonymize` | anonimiza os dados pessoais e mantém o histórico (LGPD) |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
+| GET | `/api/volunteers/{id}/hours` | horas de voluntariado; o histórico de status só vem para a coordenação e para o próprio voluntário |
+| POST/PUT/DELETE | `/api/volunteers/{id}/status-history[/{periodId}]` | inclui, edita ou remove um período do histórico de status (coordenação) |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |

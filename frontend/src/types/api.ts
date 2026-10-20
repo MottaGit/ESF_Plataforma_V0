@@ -132,6 +132,29 @@ export interface Volunteer {
   anonymized: boolean;
 }
 
+/** Um periodo do historico de status (endsOn null: o status atual). */
+export interface VolunteerStatusPeriod {
+  id: string;
+  status: VolunteerStatus;
+  startsOn: string;
+  endsOn: string | null;
+}
+
+/** Horas de voluntariado; o historico so vem para a coordenacao e para o proprio voluntario. */
+export interface VolunteerHours {
+  hours: number;
+  weeklyHours: number;
+  /** Do mais recente ao mais antigo; null quando a pessoa logada nao pode ver. */
+  history: VolunteerStatusPeriod[] | null;
+}
+
+export interface SaveStatusPeriodPayload {
+  status: VolunteerStatus;
+  startsOn: string;
+  /** null: continua ate hoje. */
+  endsOn: string | null;
+}
+
 export interface ProjectVolunteer {
   volunteerId: string;
   name: string;
