@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { indicatorsApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
@@ -153,9 +154,16 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
               <MetaItem label="Comunidade ou beneficiários" value={project.beneficiaries ?? '—'} />
               <MetaItem label="Público beneficiado" value={project.targetAudience ?? '—'} />
               <MetaItem label="Localização" value={location || '—'} />
-              {project.latitude != null && project.longitude != null ? (
-                <MetaItem label="Coordenadas" value={`${project.latitude}, ${project.longitude}`} />
-              ) : null}
+              <div>
+                <div className="meta__label">No mapa</div>
+                <div className="meta__value">
+                  {project.latitude != null && project.longitude != null ? (
+                    <Link to={`/projetos?exibir=mapa&foco=${project.id}`}>Ver no mapa</Link>
+                  ) : (
+                    'Ainda não marcado (Editar projeto › Marcar no mapa)'
+                  )}
+                </div>
+              </div>
               <MetaItem label="Criado em" value={formatDateTime(project.createdAt)} />
               <MetaItem label="Última alteração" value={formatDateTime(project.updatedAt)} />
             </div>

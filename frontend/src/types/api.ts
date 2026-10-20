@@ -114,6 +114,9 @@ export interface ProjectListItem {
   imageAuthorizedOn: string | null;
   programIcon: string;
   programColor: string;
+  /** Ponto no mapa; null quando o projeto ainda nao foi marcado. */
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface Activity {

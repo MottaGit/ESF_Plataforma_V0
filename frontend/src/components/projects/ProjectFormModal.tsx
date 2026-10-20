@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { Suspense, lazy, useEffect, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { programsApi, projectsApi } from '../../api/endpoints';
 import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
@@ -12,9 +12,14 @@ import {
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
-import { IconPlus } from '../ui/Icons';
+import { IconMapPin, IconPlus } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 import { ProgramFormModal } from '../programs/ProgramFormModal';
+
+// O mapa (Leaflet) so e baixado quando alguem vai marcar o local.
+const LocationPickerModal = lazy(() =>
+  import('../map/LocationPickerModal').then((module) => ({ default: module.LocationPickerModal }))
+);
 
 interface ProjectFormModalProps {
   project: ProjectDetail | null;
@@ -161,8 +166,6 @@ export function ProjectFormModal({
     if (form.endDateForecast && form.startDate && form.endDateForecast < form.startDate)
       found.endDateForecast = 'A previsão não pode ser anterior ao início.';
 
-    if (form.latitude && Number.isNaN(Number(form.latitude))) found.latitude = 'Latitude inválida.';
-    if (form.longitude && Number.isNaN(Number(form.longitude))) found.longitude = 'Longitude inválida.';
 
     setErrors(found);
     return Object.keys(found).length === 0;
@@ -207,6 +210,22 @@ export function ProjectFormModal({
 
   // Projeto novo: so o essencial; o resto se completa depois em Sobre › Editar.
   const quick = !project;
+
+  const [picking, setPicking] = useState(false);
+  const marked = Boolean(form.latitude && form.longitude);
+  const locationField = (
+    <Field label="Localização no mapa" span hint="Aparece no mapa da tela Projetos.">
+      <div className="location-field">
+        <span className={`location-field__status${marked ? '' : ' location-field__status--empty'}`}>
+          <IconMapPin size={15} />
+          {marked ? 'Marcada no mapa' : 'Ainda não marcada'}
+        </span>
+        <Button type="button" small onClick={() => setPicking(true)}>
+          {marked ? 'Ajustar no mapa' : 'Marcar no mapa'}
+        </Button>
+      </div>
+    </Field>
+  );
 
   const startDateField = (
     <Field label="Data de início" htmlFor="startDate" required error={errors.startDate}>
@@ -376,31 +395,11 @@ export function ProjectFormModal({
               />
             </Field>
 
+            {quick ? locationField : null}
+
             {!quick ? (
               <>
-                <Field
-                  label="Coordenadas"
-                  htmlFor="latitude"
-                  hint="Opcional. Usadas para exibir o mapa do projeto."
-                  error={errors.latitude ?? errors.longitude}
-                >
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <TextInput
-                      id="latitude"
-                      value={form.latitude}
-                      placeholder="Latitude"
-                      invalid={Boolean(errors.latitude)}
-                      onChange={(event) => update('latitude', event.target.value)}
-                    />
-                    <TextInput
-                      id="longitude"
-                      value={form.longitude}
-                      placeholder="Longitude"
-                      invalid={Boolean(errors.longitude)}
-                      onChange={(event) => update('longitude', event.target.value)}
-                    />
-                  </div>
-                </Field>
+                {locationField}
 
                 {startDateField}
 
@@ -438,6 +437,23 @@ export function ProjectFormModal({
           <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
         </form>
       </Modal>
+
+      {picking ? (
+        <Suspense fallback={null}>
+          <LocationPickerModal
+            initial={marked ? { latitude: Number(form.latitude), longitude: Number(form.longitude) } : null}
+            address={[form.address, form.district, form.city, form.state].map((part) => part.trim()).filter(Boolean).join(', ')}
+            icon={chosenProgram?.icon ?? programOptions.find((program) => program.id === form.programId)?.icon ?? 'pin'}
+            color={chosenProgram?.color ?? programOptions.find((program) => program.id === form.programId)?.color ?? 'teal'}
+            onClose={() => setPicking(false)}
+            onConfirm={(location) => {
+              update('latitude', location ? String(location.latitude) : '');
+              update('longitude', location ? String(location.longitude) : '');
+              setPicking(false);
+            }}
+          />
+        </Suspense>
+      ) : null}
 
       {/* Abre por cima do formulario; o programa criado ja fica escolhido. */}
       {creatingProgram ? (

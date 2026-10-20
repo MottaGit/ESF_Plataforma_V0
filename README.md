@@ -127,6 +127,15 @@ concluído conta como 100%). A tela tem duas abas: **Projetos** (a tabela) e **Q
 projeto** pede só o essencial (nome, programa, responsável, data de início e endereço; começa em planejamento); o resto
 (descrição, objetivo, comunidade, público, previsão de término, status, observações) fica em Editar projeto.
 
+**Mapa dos projetos** — em Projetos, a alternância **Lista | Mapa** mostra os projetos num mapa do OpenStreetMap
+(gratuito, sem chave), com os mesmos filtros da lista. Cada pino tem o ícone e a cor do programa; clicar mostra nome,
+programa, status e local, e o nome leva ao projeto. Embaixo ficam a legenda dos programas e quantos projetos ainda não
+têm localização (com a lista deles). Para marcar o local, o projeto tem **"Marcar no mapa"** (no novo projeto e em
+Editar projeto, no lugar das coordenadas digitadas): o mapa busca o endereço do formulário no OpenStreetMap (Nominatim,
+só quando a pessoa clica em Buscar), aceita um clique no lugar certo e o pino pode ser arrastado; "Remover localização"
+apaga o ponto. Em Sobre, "Ver no mapa" abre o mapa já centrado no projeto. O mapa (Leaflet) só é baixado quando é
+aberto.
+
 **Programas** — ficam em Projetos › botão "Programas" (não mais em Configurações; o link antigo
 `/configuracoes?aba=programas` leva para lá). A página mostra um card por programa, com ícone, cor e quantos projetos
 estão em andamento e concluídos; "Mostrar arquivados" inclui os arquivados. O card abre a página do programa, com os

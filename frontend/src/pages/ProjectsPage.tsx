@@ -7,7 +7,7 @@ import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { IconEdit, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -26,6 +26,11 @@ const sortOptions = [
 // O quadro (e a biblioteca de arrastar e soltar) so e baixado quando a aba e aberta.
 const ActivityBoard = lazy(() =>
   import('../components/projects/ActivityBoard').then((module) => ({ default: module.ActivityBoard }))
+);
+
+// O mapa (Leaflet) tambem so e baixado quando alguem abre a visao de mapa.
+const ProjectsMap = lazy(() =>
+  import('../components/map/ProjectsMap').then((module) => ({ default: module.ProjectsMap }))
 );
 
 type View = 'list' | 'board';
@@ -129,6 +134,9 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
   const sort = searchParams.get('ordem') ?? 'recent';
   const onlyLate = searchParams.get('atrasados') === '1';
   const includeArchived = searchParams.get('arquivados') === '1';
+  // Lista ou mapa: os mesmos filtros valem para os dois.
+  const showMap = searchParams.get('exibir') === 'mapa';
+  const focusId = searchParams.get('foco');
 
   const [search, setSearch] = useState(debouncedSearch);
 
@@ -289,17 +297,19 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
           ))}
         </Select>
 
-        <Select
-          value={sort}
-          onChange={(event) => updateParams({ ordem: event.target.value === 'recent' ? null : event.target.value })}
-          aria-label="Ordenação"
-        >
-          {sortOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
+        {!showMap ? (
+          <Select
+            value={sort}
+            onChange={(event) => updateParams({ ordem: event.target.value === 'recent' ? null : event.target.value })}
+            aria-label="Ordenação"
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        ) : null}
 
         <div className="toolbar__right">
           <label className="checkbox">
@@ -318,117 +328,149 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
             />
             Incluir arquivados
           </label>
+          <div className="segmented" role="group" aria-label="Exibir como">
+            <button
+              type="button"
+              className={`segmented__option${showMap ? '' : ' segmented__option--active'}`}
+              aria-pressed={!showMap}
+              onClick={() => updateParams({ exibir: null, foco: null })}
+            >
+              <IconListBullet size={15} />
+              Lista
+            </button>
+            <button
+              type="button"
+              className={`segmented__option${showMap ? ' segmented__option--active' : ''}`}
+              aria-pressed={showMap}
+              onClick={() => updateParams({ exibir: 'mapa' })}
+            >
+              <IconMapPin size={15} />
+              Mapa
+            </button>
+          </div>
         </div>
       </div>
 
       {error ? <Alert kind="error">{error}</Alert> : null}
 
-      <section className="panel">
-        {loading ? (
-          <Loading label="Carregando projetos…" />
-        ) : projects.length === 0 ? (
-          <EmptyState
-            title="Nenhum projeto encontrado"
-            description="Ajuste a busca e os filtros, ou cadastre um novo projeto para começar."
-            action={
-              canManage ? (
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    setFormProject(null);
-                    setFormOpen(true);
-                  }}
-                >
-                  Cadastrar projeto
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Projeto</th>
-                  <th>Status</th>
-                  <th>Responsável</th>
-                  <th>Local</th>
-                  <th>Progresso</th>
-                  <th className="tight">Período</th>
-                  <th className="right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((project) => (
-                  <tr key={project.id}>
-                    <td style={{ minWidth: 210 }}>
-                      <Link className="row-link" to={`/projetos/${project.id}`}>
-                        {project.name}
-                      </Link>
-                      <div className="table__secondary">
-                        {project.programName}
-                        {project.isArchived ? ' · arquivado' : ''}
-                        {project.activitiesTotal > 0
-                          ? ` · ${project.activitiesDone}/${project.activitiesTotal} atividades`
-                          : ''}
-                      </div>
-                    </td>
-                    <td>
-                      <StatusBadge status={project.status} />
-                      {project.isLate ? (
-                        <div style={{ marginTop: 4 }}>
-                          <LateBadge />
+      {showMap && !loading ? (
+        <Suspense
+          fallback={
+            <section className="panel">
+              <Loading label="Carregando mapa…" />
+            </section>
+          }
+        >
+          <ProjectsMap projects={projects} focusId={focusId} />
+        </Suspense>
+      ) : (
+        <section className="panel">
+          {loading ? (
+            <Loading label="Carregando projetos…" />
+          ) : projects.length === 0 ? (
+            <EmptyState
+              title="Nenhum projeto encontrado"
+              description="Ajuste a busca e os filtros, ou cadastre um novo projeto para começar."
+              action={
+                canManage ? (
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setFormProject(null);
+                      setFormOpen(true);
+                    }}
+                  >
+                    Cadastrar projeto
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Projeto</th>
+                    <th>Status</th>
+                    <th>Responsável</th>
+                    <th>Local</th>
+                    <th>Progresso</th>
+                    <th className="tight">Período</th>
+                    <th className="right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projects.map((project) => (
+                    <tr key={project.id}>
+                      <td style={{ minWidth: 210 }}>
+                        <Link className="row-link" to={`/projetos/${project.id}`}>
+                          {project.name}
+                        </Link>
+                        <div className="table__secondary">
+                          {project.programName}
+                          {project.isArchived ? ' · arquivado' : ''}
+                          {project.activitiesTotal > 0
+                            ? ` · ${project.activitiesDone}/${project.activitiesTotal} atividades`
+                            : ''}
                         </div>
-                      ) : null}
-                    </td>
-                    <td>{project.ownerName ?? '—'}</td>
-                    <td>
-                      {project.district ?? '—'}
-                      <div className="table__secondary">{project.city ?? ''}</div>
-                    </td>
-                    <td style={{ minWidth: 120 }}>
-                      <Progress value={project.progress} />
-                    </td>
-                    <td className="tight">
-                      {formatDate(project.startDate)}
-                      <div className="table__secondary">até {formatDate(project.endDateForecast)}</div>
-                    </td>
-                    <td>
-                      <div className="row-actions">
-                        {canManage ? (
-                          <>
+                      </td>
+                      <td>
+                        <StatusBadge status={project.status} />
+                        {project.isLate ? (
+                          <div style={{ marginTop: 4 }}>
+                            <LateBadge />
+                          </div>
+                        ) : null}
+                      </td>
+                      <td>{project.ownerName ?? '—'}</td>
+                      <td>
+                        {project.district ?? '—'}
+                        <div className="table__secondary">{project.city ?? ''}</div>
+                      </td>
+                      <td style={{ minWidth: 120 }}>
+                        <Progress value={project.progress} />
+                      </td>
+                      <td className="tight">
+                        {formatDate(project.startDate)}
+                        <div className="table__secondary">até {formatDate(project.endDateForecast)}</div>
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          {canManage ? (
+                            <>
+                              <Button
+                                small
+                                variant="ghost"
+                                icon={<IconEdit size={15} />}
+                                title="Editar projeto"
+                                aria-label="Editar projeto"
+                                onClick={() => void openEdit(project)}
+                              />
+                              <Button small variant="ghost" onClick={() => void handleArchiveToggle(project)}>
+                                {project.isArchived ? 'Reativar' : 'Arquivar'}
+                              </Button>
+                            </>
+                          ) : null}
+                          {isAdmin ? (
                             <Button
                               small
                               variant="ghost"
-                              icon={<IconEdit size={15} />}
-                              title="Editar projeto"
-                              aria-label="Editar projeto"
-                              onClick={() => void openEdit(project)}
+                              icon={<IconTrash size={15} />}
+                              title="Excluir projeto"
+                              aria-label="Excluir projeto"
+                              onClick={() => setRemoving(project)}
                             />
-                            <Button small variant="ghost" onClick={() => void handleArchiveToggle(project)}>
-                              {project.isArchived ? 'Reativar' : 'Arquivar'}
-                            </Button>
-                          </>
-                        ) : null}
-                        {isAdmin ? (
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconTrash size={15} />}
-                            title="Excluir projeto"
-                            aria-label="Excluir projeto"
-                            onClick={() => setRemoving(project)}
-                          />
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
 
       {formOpen ? (
         <ProjectFormModal

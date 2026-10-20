@@ -89,7 +89,9 @@ public class ProjectService
                     .Where(d => d.ProjectId == p.Id && d.Kind == SignedDocumentKind.BeneficiaryImageAuthorization)
                     .Max(d => (DateOnly?)d.SignedOn),
                 p.Program!.Icon,
-                p.Program!.Color))
+                p.Program!.Color,
+                p.Latitude,
+                p.Longitude))
             .ToListAsync();
 
         // O progresso e calculado em memoria, entao a ordenacao por ele tambem (a lista ja vem por nome).

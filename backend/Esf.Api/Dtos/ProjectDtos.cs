@@ -28,7 +28,10 @@ public record ProjectListItemDto(
     DateOnly? ImageAuthorizedOn,
     // Icone e cor do programa (cards e pinos do mapa).
     string ProgramIcon,
-    string ProgramColor)
+    string ProgramColor,
+    // Ponto do projeto no mapa (vazio: ainda nao marcado).
+    double? Latitude,
+    double? Longitude)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(Status, ActivitiesTotal, ActivitiesDone);
