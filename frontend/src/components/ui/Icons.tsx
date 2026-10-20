@@ -168,6 +168,21 @@ export const IconChevronDown = (p: IconProps) => svg(<path d="m6 10 6 6 6-6" />,
 
 export const IconChevronUp = (p: IconProps) => svg(<path d="m6 14 6-6 6 6" />, p);
 
+export const IconChecklist = (p: IconProps) =>
+  svg(
+    <>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" />
+    </>,
+    p
+  );
+
+export const IconPaperclip = (p: IconProps) =>
+  svg(<path d="m20 11.5-7.8 7.8a5 5 0 0 1-7.1-7.1l8.2-8.2a3.4 3.4 0 0 1 4.8 4.8l-8.2 8.2a1.7 1.7 0 0 1-2.4-2.4l7.4-7.4" />, p);
+
+export const IconComment = (p: IconProps) =>
+  svg(<path d="M5 18.5V6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v7a2.5 2.5 0 0 1-2.5 2.5H9l-4 2.5z" />, p);
+
 export const IconListBullet = (p: IconProps) =>
   svg(
     <>

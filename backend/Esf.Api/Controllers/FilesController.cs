@@ -29,8 +29,9 @@ public class FilesController : ControllerBase
     public async Task<ActionResult<ProjectFileDto>> Upload(
         Guid projectId,
         [FromForm] IFormFile file,
-        [FromForm] string? description)
-        => Ok(await _files.UploadAsync(projectId, file, description, _currentUser.Id));
+        [FromForm] string? description,
+        [FromForm] Guid? activityId)
+        => Ok(await _files.UploadAsync(projectId, file, description, _currentUser.Id, activityId));
 
     [HttpGet("files/{id:guid}/download")]
     public async Task<IActionResult> Download(Guid id)

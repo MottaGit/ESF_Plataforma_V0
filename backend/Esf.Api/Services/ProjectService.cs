@@ -106,7 +106,8 @@ public class ProjectService
         var imageAuthorizedOn = await _db.SignedDocuments
             .Where(d => d.ProjectId == id && d.Kind == SignedDocumentKind.BeneficiaryImageAuthorization)
             .MaxAsync(d => (DateOnly?)d.SignedOn);
-        return Mapping.ToDetailDto(project, imageAuthorizedOn);
+        var counts = await ActivityCounts.ForAsync(_db, project.Activities.Select(a => a.Id).ToList());
+        return Mapping.ToDetailDto(project, imageAuthorizedOn, counts);
     }
 
     /// <summary>Carrega o projeto com todas as colecoes (usado no detalhe e no relatorio).</summary>
@@ -121,6 +122,7 @@ public class ProjectService
             .Include(p => p.Indicators)
             .Include(p => p.Files).ThenInclude(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
             .Include(p => p.Files).ThenInclude(f => f.ProjectUpdate)
+            .Include(p => p.Files).ThenInclude(f => f.Activity)
             .Include(p => p.Updates).ThenInclude(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(p => p.Updates).ThenInclude(u => u.Attachments)
             .FirstOrDefaultAsync(p => p.Id == id);

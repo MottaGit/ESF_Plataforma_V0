@@ -249,6 +249,11 @@ function FileCard({ file, onChanged, onRemove, onView }: FileCardProps) {
             </NeutralBadge>
           </span>
         ) : null}
+        {file.activityId ? (
+          <span>
+            <NeutralBadge>da atividade "{file.activityTitle}"</NeutralBadge>
+          </span>
+        ) : null}
         <span className="file-card__meta">
           {formatFileSize(file.sizeBytes)} · {formatDateTime(file.uploadedAt)}
         </span>

@@ -73,6 +73,39 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("Activities");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ActivityChecklistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Done")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("DoneAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId", "Position");
+
+                    b.ToTable("ActivityChecklistItems");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.AuditEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -437,6 +470,9 @@ namespace Esf.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ActivityId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -472,6 +508,8 @@ namespace Esf.Api.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
 
                     b.HasIndex("ProjectId");
 
@@ -816,6 +854,17 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ActivityChecklistItem", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Activity", "Activity")
+                        .WithMany("ChecklistItems")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.Indicator", b =>
                 {
                     b.HasOne("Esf.Api.Domain.Entities.Project", "Project")
@@ -894,6 +943,11 @@ namespace Esf.Api.Data.Migrations
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectFile", b =>
                 {
+                    b.HasOne("Esf.Api.Domain.Entities.Activity", "Activity")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Esf.Api.Domain.Entities.Project", "Project")
                         .WithMany("Files")
                         .HasForeignKey("ProjectId")
@@ -909,6 +963,8 @@ namespace Esf.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UploadedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Activity");
 
                     b.Navigation("Project");
 
@@ -990,6 +1046,13 @@ namespace Esf.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Volunteer");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.Activity", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("ChecklistItems");
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.Project", b =>

@@ -24,7 +24,32 @@ public record ActivityDto(
     string? BlockedReason,
     // Programa do projeto (preenchido quando o projeto e seu programa foram carregados).
     Guid? ProgramId,
-    string? ProgramName);
+    string? ProgramName,
+    // Resumo do que fica dentro da atividade (checklist e anexos), para os cards e a lista.
+    int ChecklistTotal,
+    int ChecklistDone,
+    int AttachmentsCount);
+
+public record ChecklistItemDto(Guid Id, string Text, bool Done, DateTime? DoneAt);
+
+/// <summary>O que fica dentro da atividade: checklist e anexos.</summary>
+public record ActivityDetailsDto(List<ChecklistItemDto> Checklist, List<ProjectFileDto> Attachments);
+
+public class SaveChecklistItemRequest
+{
+    [Required(ErrorMessage = "Escreva o item.")]
+    [StringLength(300, MinimumLength = 1, ErrorMessage = "O item deve ter ate 300 caracteres.")]
+    public string Text { get; set; } = string.Empty;
+}
+
+/// <summary>Marcar/desmarcar e/ou reescrever um item (o que vier vazio fica como esta).</summary>
+public class UpdateChecklistItemRequest
+{
+    [StringLength(300, MinimumLength = 1, ErrorMessage = "O item deve ter ate 300 caracteres.")]
+    public string? Text { get; set; }
+
+    public bool? Done { get; set; }
+}
 
 public class SaveActivityRequest
 {

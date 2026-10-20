@@ -23,6 +23,7 @@ public class EsfDbContext : DbContext
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
     public DbSet<VolunteerStatusChange> VolunteerStatusChanges => Set<VolunteerStatusChange>();
     public DbSet<ProgramTemplateActivity> ProgramTemplateActivities => Set<ProgramTemplateActivity>();
+    public DbSet<ActivityChecklistItem> ActivityChecklistItems => Set<ActivityChecklistItem>();
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -118,6 +119,14 @@ public class EsfDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        b.Entity<ActivityChecklistItem>(e =>
+        {
+            e.Property(x => x.Text).HasMaxLength(300).IsRequired();
+            e.HasIndex(x => new { x.ActivityId, x.Position });
+            e.HasOne(x => x.Activity).WithMany(a => a.ChecklistItems).HasForeignKey(x => x.ActivityId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<Indicator>(e =>
         {
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
@@ -210,6 +219,12 @@ public class EsfDbContext : DbContext
             e.HasOne(x => x.UploadedByUser)
                 .WithMany()
                 .HasForeignKey(x => x.UploadedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Excluir a atividade nao apaga o arquivo: ele continua no projeto, sem a atividade.
+            e.HasOne(x => x.Activity)
+                .WithMany(a => a.Attachments)
+                .HasForeignKey(x => x.ActivityId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             e.HasOne(x => x.ProjectUpdate)

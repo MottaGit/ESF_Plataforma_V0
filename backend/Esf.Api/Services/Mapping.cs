@@ -36,7 +36,10 @@ public static class Mapping
         new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name,
             PhotoUrl(u.Volunteer?.PhotoStoredName), u.TermsVersion != PrivacyTerms.CurrentVersion);
 
-    public static ActivityDto ToDto(Activity a) =>
+    public static ActivityDto ToDto(Activity a) => ToDto(a, null);
+
+    /// <summary>Com o resumo do checklist e dos anexos (sem ele, os contadores vao zerados).</summary>
+    public static ActivityDto ToDto(Activity a, ActivityCounts? counts) =>
         new(a.Id,
             a.ProjectId,
             a.Project?.Name,
@@ -54,7 +57,10 @@ public static class Mapping
             PhotoUrl(a.AssignedVolunteer?.PhotoStoredName),
             a.BlockedReason,
             a.Project?.ProgramId,
-            a.Project?.Program?.Name);
+            a.Project?.Program?.Name,
+            counts?.ChecklistTotal ?? 0,
+            counts?.ChecklistDone ?? 0,
+            counts?.Attachments ?? 0);
 
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);
@@ -96,7 +102,9 @@ public static class Mapping
             PersonName(f.UploadedByUser),
             f.UploadedAt,
             f.ProjectUpdateId,
-            f.ProjectUpdate?.CreatedAt);
+            f.ProjectUpdate?.CreatedAt,
+            f.ActivityId,
+            f.Activity?.Title);
 
     public static ProjectUpdateDto ToDto(ProjectUpdate u) =>
         new(u.Id,
@@ -120,7 +128,8 @@ public static class Mapping
             o.UpdatedAt, o.SignatoryName, o.SignatoryRole, o.SignatoryNote, o.SignatureStoredName != null);
 
     /// <summary>Detalhe completo do projeto, com as colecoes ja carregadas.</summary>
-    public static ProjectDetailDto ToDetailDto(Project p, DateOnly? imageAuthorizedOn = null) =>
+    public static ProjectDetailDto ToDetailDto(Project p, DateOnly? imageAuthorizedOn = null,
+        IReadOnlyDictionary<Guid, ActivityCounts>? counts = null) =>
         new(p.Id,
             p.Name,
             p.Description,
@@ -149,7 +158,7 @@ public static class Mapping
                 .OrderBy(a => a.Status)
                 .ThenByDescending(a => a.Priority)
                 .ThenBy(a => a.DueDate ?? DateOnly.MaxValue)
-                .Select(ToDto).ToList(),
+                .Select(a => ToDto(a, counts?.GetValueOrDefault(a.Id))).ToList(),
             p.Volunteers.OrderBy(v => v.Volunteer!.Name).Select(ToDto).ToList(),
             p.Indicators.OrderBy(i => i.CreatedAt).Select(ToDto).ToList(),
             // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.

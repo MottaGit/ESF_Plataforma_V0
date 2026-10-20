@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi, volunteersApi } from '../../api/endpoints';
 import type {
@@ -21,6 +21,7 @@ import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
 import { Modal } from '../ui/Modal';
+import { ActivityExtras } from './ActivityExtras';
 
 interface ActivityFormModalProps {
   /** Projeto da atividade; vazio quando ele e escolhido no proprio formulario (ver `projects`). */
@@ -34,6 +35,8 @@ interface ActivityFormModalProps {
   volunteers: Volunteer[];
   onClose: () => void;
   onSaved: () => void;
+  /** Checklist ou anexos mudaram (chamado ao fechar): quem abriu atualiza os contadores. */
+  onExtrasChanged?: () => void;
 }
 
 export function ActivityFormModal({
@@ -43,8 +46,16 @@ export function ActivityFormModal({
   team,
   volunteers,
   onClose,
-  onSaved
+  onSaved,
+  onExtrasChanged
 }: ActivityFormModalProps) {
+  // Checklist e anexos gravam na hora; ao fechar sem salvar, quem abriu ainda precisa saber.
+  const extrasChanged = useRef(false);
+  function close() {
+    if (extrasChanged.current) onExtrasChanged?.();
+    onClose();
+  }
+
   const chooseProject = !activity && Boolean(projects);
   const [selectedProjectId, setSelectedProjectId] = useState(projectId);
   const [title, setTitle] = useState(activity?.title ?? '');
@@ -122,165 +133,177 @@ export function ActivityFormModal({
   return (
     <Modal
       title={activity ? 'Editar atividade' : 'Nova atividade'}
-      subtitle="Atividades organizam a execução do projeto no dia a dia."
-      onClose={onClose}
+      subtitle={
+        activity
+          ? 'Checklist e anexos são gravados na hora; os demais campos, ao salvar.'
+          : 'Atividades organizam a execução do projeto no dia a dia.'
+      }
+      size={activity ? 'wide' : 'default'}
+      onClose={close}
       footer={
         <>
-          <Button onClick={onClose}>Cancelar</Button>
+          <Button onClick={close}>Cancelar</Button>
           <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
             {activity ? 'Salvar alterações' : 'Criar atividade'}
           </Button>
         </>
       }
     >
-      <form onSubmit={handleSubmit}>
-        {formError ? (
-          <div style={{ marginBottom: 16 }}>
-            <Alert kind="error">{formError}</Alert>
-          </div>
-        ) : null}
-
-        <div className="form-grid">
-          {chooseProject ? (
-            <Field label="Projeto" htmlFor="activity-project" required error={projectError ?? undefined} span>
-              <Select
-                id="activity-project"
-                autoFocus={!projectId}
-                value={selectedProjectId}
-                invalid={Boolean(projectError)}
-                onChange={(event) => {
-                  setSelectedProjectId(event.target.value);
-                  setProjectError(null);
-                }}
-              >
-                <option value="">Selecione o projeto</option>
-                {projects!.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+      <div className={activity ? 'activity-modal' : undefined}>
+        <form onSubmit={handleSubmit}>
+          {formError ? (
+            <div style={{ marginBottom: 16 }}>
+              <Alert kind="error">{formError}</Alert>
+            </div>
           ) : null}
 
-          <Field label="Título" htmlFor="activity-title" required error={titleError ?? undefined} span>
-            <TextInput
-              id="activity-title"
-              autoFocus={!activity && !(chooseProject && !projectId)}
-              value={title}
-              invalid={Boolean(titleError)}
-              placeholder="Ex.: Refazer instalação elétrica da casa 2"
-              onChange={(event) => {
-                setTitle(event.target.value);
-                setTitleError(null);
-              }}
-            />
-          </Field>
+          <div className="form-grid">
+            {chooseProject ? (
+              <Field label="Projeto" htmlFor="activity-project" required error={projectError ?? undefined} span>
+                <Select
+                  id="activity-project"
+                  autoFocus={!projectId}
+                  value={selectedProjectId}
+                  invalid={Boolean(projectError)}
+                  onChange={(event) => {
+                    setSelectedProjectId(event.target.value);
+                    setProjectError(null);
+                  }}
+                >
+                  <option value="">Selecione o projeto</option>
+                  {projects!.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
 
-          <Field
-            label="Responsável"
-            htmlFor="activity-owner"
-            hint={
-              !selectedProjectId
-                ? 'Escolha o projeto primeiro.'
-                : outsiderSelected
-                  ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.'
-                  : undefined
-            }
-          >
-            <Select
-              id="activity-owner"
-              value={assignedVolunteerId}
-              disabled={teamLoading || !selectedProjectId}
-              onChange={(event) => setAssignedVolunteerId(event.target.value)}
+            <Field label="Título" htmlFor="activity-title" required error={titleError ?? undefined} span>
+              <TextInput
+                id="activity-title"
+                autoFocus={!activity && !(chooseProject && !projectId)}
+                value={title}
+                invalid={Boolean(titleError)}
+                placeholder="Ex.: Refazer instalação elétrica da casa 2"
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  setTitleError(null);
+                }}
+              />
+            </Field>
+
+            <Field
+              label="Responsável"
+              htmlFor="activity-owner"
+              hint={
+                !selectedProjectId
+                  ? 'Escolha o projeto primeiro.'
+                  : outsiderSelected
+                    ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.'
+                    : undefined
+              }
             >
-              <option value="">Sem responsável</option>
-              <optgroup label="Equipe do projeto">
-                {currentTeam.map((member) => (
-                  <option key={member.volunteerId} value={member.volunteerId}>
-                    {member.name}
-                  </option>
-                ))}
-              </optgroup>
-              {others.length > 0 ? (
-                <optgroup label="Outros voluntários (entram na equipe)">
-                  {others.map((volunteer) => (
-                    <option key={volunteer.id} value={volunteer.id}>
-                      {volunteer.name}
+              <Select
+                id="activity-owner"
+                value={assignedVolunteerId}
+                disabled={teamLoading || !selectedProjectId}
+                onChange={(event) => setAssignedVolunteerId(event.target.value)}
+              >
+                <option value="">Sem responsável</option>
+                <optgroup label="Equipe do projeto">
+                  {currentTeam.map((member) => (
+                    <option key={member.volunteerId} value={member.volunteerId}>
+                      {member.name}
                     </option>
                   ))}
                 </optgroup>
-              ) : null}
-            </Select>
-          </Field>
+                {others.length > 0 ? (
+                  <optgroup label="Outros voluntários (entram na equipe)">
+                    {others.map((volunteer) => (
+                      <option key={volunteer.id} value={volunteer.id}>
+                        {volunteer.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+              </Select>
+            </Field>
 
-          <Field label="Prazo" htmlFor="activity-due">
-            <TextInput
-              id="activity-due"
-              type="date"
-              value={dueDate}
-              onChange={(event) => setDueDate(event.target.value)}
-            />
-          </Field>
+            <Field label="Prazo" htmlFor="activity-due">
+              <TextInput
+                id="activity-due"
+                type="date"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+              />
+            </Field>
 
-          <Field label="Prioridade" htmlFor="activity-priority" required>
-            <Select
-              id="activity-priority"
-              value={priority}
-              onChange={(event) => setPriority(event.target.value as ActivityPriority)}
-            >
-              {ACTIVITY_PRIORITIES.map((value) => (
-                <option key={value} value={value}>
-                  {priorityLabel(value)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          {/* Atividade nova sempre comeca sem iniciar; o status so aparece ao editar. */}
-          {activity ? (
-            <Field label="Status" htmlFor="activity-status" required>
+            <Field label="Prioridade" htmlFor="activity-priority" required>
               <Select
-                id="activity-status"
-                value={status}
-                onChange={(event) => setStatus(event.target.value as ActivityStatus)}
+                id="activity-priority"
+                value={priority}
+                onChange={(event) => setPriority(event.target.value as ActivityPriority)}
               >
-                {ACTIVITY_STATUSES.map((value) => (
+                {ACTIVITY_PRIORITIES.map((value) => (
                   <option key={value} value={value}>
-                    {activityStatusLabel(value)}
+                    {priorityLabel(value)}
                   </option>
                 ))}
               </Select>
             </Field>
-          ) : null}
 
-          {status === 'Bloqueada' ? (
-            <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece no card e no Precisa de atenção.">
-              <TextInput
-                id="activity-blocked"
-                maxLength={300}
-                value={blockedReason}
-                placeholder="Ex.: aguardando a doação do material"
-                onChange={(event) => setBlockedReason(event.target.value)}
+            {/* Atividade nova sempre comeca sem iniciar; o status so aparece ao editar. */}
+            {activity ? (
+              <Field label="Status" htmlFor="activity-status" required>
+                <Select
+                  id="activity-status"
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value as ActivityStatus)}
+                >
+                  {ACTIVITY_STATUSES.map((value) => (
+                    <option key={value} value={value}>
+                      {activityStatusLabel(value)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+
+            {status === 'Bloqueada' ? (
+              <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece no card e no Precisa de atenção.">
+                <TextInput
+                  id="activity-blocked"
+                  maxLength={300}
+                  value={blockedReason}
+                  placeholder="Ex.: aguardando a doação do material"
+                  onChange={(event) => setBlockedReason(event.target.value)}
+                />
+              </Field>
+            ) : null}
+
+            <Field label="Descrição" htmlFor="activity-description" span hint="O que precisa ser feito, em poucas linhas.">
+              <TextArea
+                id="activity-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
               />
             </Field>
-          ) : null}
 
-          <Field label="Descrição" htmlFor="activity-description" span hint="O que precisa ser feito, em poucas linhas.">
-            <TextArea
-              id="activity-description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </Field>
+            <Field label="Observações" htmlFor="activity-notes" span hint={SENSITIVE_DATA_HINT}>
+              <TextArea id="activity-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
+            </Field>
+          </div>
 
-          <Field label="Observações" htmlFor="activity-notes" span hint={SENSITIVE_DATA_HINT}>
-            <TextArea id="activity-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
-          </Field>
-        </div>
+          <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        </form>
 
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
-      </form>
+        {/* Atividade ja criada: checklist e anexos ao lado do formulario (embaixo, no celular). */}
+        {activity ? (
+          <ActivityExtras activity={activity} onChanged={() => (extrasChanged.current = true)} />
+        ) : null}
+      </div>
     </Modal>
   );
 }

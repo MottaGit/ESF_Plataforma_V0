@@ -2,9 +2,11 @@ import { shrinkImage } from '../utils/images';
 import { http } from './client';
 import type {
   Activity,
+  ActivityDetails,
   AuditFilters,
   AuditPage,
   CertificatePayload,
+  ChecklistItem,
   Dashboard,
   Indicator,
   LoginResponse,
@@ -109,7 +111,14 @@ export const activitiesApi = {
   /** blockedReason so vale (e so e guardado) quando o status e Bloqueada. */
   updateStatus: (id: string, status: string, blockedReason: string | null = null) =>
     http.request<Activity>(`/api/activities/${id}/status`, { method: 'PATCH', body: { status, blockedReason } }),
-  remove: (id: string) => http.request<void>(`/api/activities/${id}`, { method: 'DELETE' })
+  remove: (id: string) => http.request<void>(`/api/activities/${id}`, { method: 'DELETE' }),
+  /** Checklist e anexos da atividade. */
+  details: (id: string) => http.request<ActivityDetails>(`/api/activities/${id}/details`),
+  addChecklistItem: (id: string, text: string) =>
+    http.request<ChecklistItem>(`/api/activities/${id}/checklist`, { method: 'POST', body: { text } }),
+  updateChecklistItem: (itemId: string, changes: { text?: string; done?: boolean }) =>
+    http.request<ChecklistItem>(`/api/checklist/${itemId}`, { method: 'PUT', body: changes }),
+  removeChecklistItem: (itemId: string) => http.request<void>(`/api/checklist/${itemId}`, { method: 'DELETE' })
 };
 
 export const volunteersApi = {
@@ -159,10 +168,12 @@ export const indicatorsApi = {
 
 export const filesApi = {
   listByProject: (projectId: string) => http.request<ProjectFile[]>(`/api/projects/${projectId}/files`),
-  upload: async (projectId: string, file: File, description: string) => {
+  /** Com activityId, o arquivo fica anexado na atividade (e continua na aba Arquivos). */
+  upload: async (projectId: string, file: File, description: string, activityId?: string) => {
     const formData = new FormData();
     formData.append('file', await shrinkImage(file));
     if (description) formData.append('description', description);
+    if (activityId) formData.append('activityId', activityId);
     return http.request<ProjectFile>(`/api/projects/${projectId}/files`, { method: 'POST', formData });
   },
   updateDescription: (id: string, description: string | null) =>

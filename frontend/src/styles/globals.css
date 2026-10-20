@@ -1787,3 +1787,61 @@ n/* Foto e nome no topo: abrem o menu da conta. */
 .location-results button { width: 100%; text-align: left; padding: 8px 10px; border: 0; background: var(--surface); font: inherit; font-size: 13px; cursor: pointer; }
 .location-results button:hover { background: var(--surface-soft); }
 .location-map { height: clamp(260px, 50vh, 460px); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+/* ---------------------------------------------------------
+   Atividade: checklist, anexos e o resumo nos cards
+   --------------------------------------------------------- */
+
+.activity-modal { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 20px; align-items: start; }
+.extras { display: grid; gap: 18px; padding-left: 20px; border-left: 1px solid var(--border); }
+.extras__section { display: grid; gap: 8px; align-content: start; }
+.extras__head { display: flex; align-items: center; gap: 8px; }
+.extras__head h3 { font-size: 13px; font-weight: 600; margin: 0; }
+.extras__count { font-size: 12px; color: var(--text-muted); }
+.extras__progress { height: 4px; border-radius: 2px; background: var(--surface-soft); overflow: hidden; }
+.extras__progress span { display: block; height: 100%; background: var(--accent); transition: width 0.2s; }
+.extras__hint { margin: 0; }
+.extras__remove {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.extras__remove:hover { background: var(--danger-bg); color: var(--danger); }
+
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.checklist__item { display: flex; align-items: flex-start; gap: 6px; }
+.checklist__item label { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; font-size: 13px; cursor: pointer; padding: 3px 0; }
+.checklist__item input { margin-top: 2px; accent-color: var(--accent); }
+.checklist__item span { overflow-wrap: anywhere; }
+.checklist__item--done span { color: var(--text-muted); text-decoration: line-through; }
+.checklist__add { display: flex; gap: 6px; }
+.checklist__add .input { height: 32px; font-size: 13px; }
+
+.attachments { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.attachments li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.attachments__link { display: flex; align-items: center; gap: 8px; min-width: 0; color: inherit; text-decoration: none; }
+.attachments__link:hover .attachments__name { text-decoration: underline; }
+.attachments__thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
+.attachments__icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 5px; background: var(--surface-soft); color: var(--text-muted); flex-shrink: 0; }
+.attachments__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attachments__size { font-size: 12px; color: var(--text-soft); white-space: nowrap; }
+
+.activity-counters { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-muted); }
+.activity-counters--button { border: 0; background: none; padding: 0; font: inherit; font-size: 12px; cursor: pointer; }
+.activity-counters--button:hover { color: var(--accent-text); }
+.activity-counters__item { display: inline-flex; align-items: center; gap: 3px; }
+.activity-counters__item--done { color: var(--st-done-fg); }
+.board-card .activity-counters { margin-top: -2px; }
+
+@media (max-width: 760px) {
+  .activity-modal { grid-template-columns: minmax(0, 1fr); }
+  .extras { padding-left: 0; border-left: 0; padding-top: 16px; border-top: 1px solid var(--border); }
+}

@@ -15,7 +15,10 @@ public record ProjectFileDto(
     DateTime UploadedAt,
     // Preenchidos quando o arquivo foi anexado a uma atualizacao de andamento.
     Guid? ProjectUpdateId,
-    DateTime? UpdateCreatedAt);
+    DateTime? UpdateCreatedAt,
+    // Preenchidos quando o arquivo foi anexado numa atividade.
+    Guid? ActivityId,
+    string? ActivityTitle);
 
 public class SaveFileDescriptionRequest
 {

@@ -11,6 +11,10 @@ public class ProjectFile
     public Guid? ProjectUpdateId { get; set; }
     public ProjectUpdate? ProjectUpdate { get; set; }
 
+    /// <summary>Quando preenchido, o arquivo foi anexado numa atividade (continua na aba Arquivos do projeto).</summary>
+    public Guid? ActivityId { get; set; }
+    public Activity? Activity { get; set; }
+
     /// <summary>Nome original enviado pelo usuario.</summary>
     public string FileName { get; set; } = string.Empty;
     /// <summary>Nome fisico no disco (gerado pela aplicacao).</summary>

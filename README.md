@@ -169,6 +169,14 @@ responsável, prioridade e só atrasadas, todos na URL. No celular as colunas fi
 horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
 
+**Dentro da atividade: checklist e anexos** — ao abrir uma atividade existente (clicar no card do quadro, ou Editar /
+o resumo na lista do projeto), a janela fica em duas colunas (uma embaixo da outra no celular): à esquerda o formulário
+de sempre; à direita o **checklist** (itens para marcar, com barra de progresso; incluir com Enter, remover no ×) e os
+**anexos** (vários arquivos de uma vez; imagens aparecem em miniatura). Checklist e anexos gravam na hora, sem depender
+do "Salvar". Os anexos também aparecem na aba Arquivos do projeto, com o selo "da atividade …"; excluir a atividade
+mantém o arquivo no projeto. O card do quadro e a linha da lista mostram o resumo (`☑ 3/5 · 📎 1`), que fica verde
+quando o checklist está completo.
+
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
@@ -374,6 +382,7 @@ ESF_Plataforma_V0/
 | `Programs` | programas (nome, situação, ícone, cor e os textos sugeridos do modelo) |
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | atividades e indicadores padrão do modelo de cada programa |
 | `Activities` | atividades do projeto (FK `ProjectId`, responsável opcional) |
+| `ActivityChecklistItems` | itens do checklist de cada atividade (texto, feito, ordem) |
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
@@ -420,6 +429,8 @@ A documentação interativa fica em `/swagger`.
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
 | GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
+| GET | `/api/activities/{id}/details` | checklist e anexos da atividade |
+| POST · PUT/DELETE | `/api/activities/{id}/checklist` · `/api/checklist/{itemId}` | inclui, marca/reescreve e remove itens do checklist |
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
 | GET/POST/PUT | `/api/volunteers[/{id}]` | cadastro de voluntários (DELETE, exclusão definitiva, só administrador) |
@@ -430,7 +441,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |
-| GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart) |
+| GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart; com `activityId`, anexo de uma atividade) |
 | GET/PUT/DELETE | `/api/files/{id}[/download]` | download, edição da legenda e exclusão |
 | GET/POST | `/api/projects/{id}/updates` | relatos de andamento (texto + fotos, multipart) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do relato |

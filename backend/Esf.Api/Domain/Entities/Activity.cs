@@ -22,4 +22,9 @@ public class Activity
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
+
+    public ICollection<ActivityChecklistItem> ChecklistItems { get; set; } = new List<ActivityChecklistItem>();
+
+    /// <summary>Arquivos anexados na atividade (tambem aparecem na aba Arquivos do projeto).</summary>
+    public ICollection<ProjectFile> Attachments { get; set; } = new List<ProjectFile>();
 }

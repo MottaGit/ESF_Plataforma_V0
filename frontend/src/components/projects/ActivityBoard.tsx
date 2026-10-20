@@ -36,6 +36,7 @@ import { Button } from '../ui/Button';
 import { Select, TextInput } from '../ui/Field';
 import { Alert, EmptyState, Loading } from '../ui/Feedback';
 import { IconPlus, IconSearch } from '../ui/Icons';
+import { ActivityCounters } from './ActivityCounters';
 import { ActivityFormModal } from './ActivityFormModal';
 import { BlockActivityDialog } from './BlockActivityDialog';
 
@@ -449,6 +450,7 @@ export function ActivityBoard({ searchParams, updateParams, switcher }: Activity
             notify('Atividade atualizada.');
             void load(true);
           }}
+          onExtrasChanged={() => void load(true)}
         />
       ) : null}
 
@@ -560,6 +562,8 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
       {activity.status === 'Bloqueada' && activity.blockedReason ? (
         <p className="board-card__blocked">{activity.blockedReason}</p>
       ) : null}
+
+      <ActivityCounters activity={activity} />
 
       <div className="board-card__foot">
         {activity.assignedVolunteerName ? (

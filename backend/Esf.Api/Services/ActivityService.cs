@@ -31,7 +31,7 @@ public class ActivityService
             .ThenByDescending(a => a.Priority)
             .ToListAsync();
 
-        return activities.Select(Mapping.ToDto).ToList();
+        return await WithCountsAsync(activities);
     }
 
     /// <summary>Concluidas que continuam aparecendo no quadro de atividades.</summary>
@@ -55,7 +55,7 @@ public class ActivityService
                 && (a.Status != ActivityStatus.Concluida || a.CompletedAt >= doneSince))
             .ToListAsync();
 
-        return activities.Select(Mapping.ToDto).ToList();
+        return await WithCountsAsync(activities);
     }
 
     /// <summary>Atividades pendentes com prazo proximo, usadas no dashboard.</summary>
@@ -166,7 +166,80 @@ public class ActivityService
             .Include(a => a.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
 
-        return Mapping.ToDto(activity);
+        return (await WithCountsAsync(new List<Activity> { activity }))[0];
+    }
+
+    /// <summary>DTOs com o resumo do checklist e dos anexos (para os cards e a lista).</summary>
+    private async Task<List<ActivityDto>> WithCountsAsync(List<Activity> activities)
+    {
+        var counts = await ActivityCounts.ForAsync(_db, activities.Select(a => a.Id).ToList());
+        return activities.Select(a => Mapping.ToDto(a, counts.GetValueOrDefault(a.Id))).ToList();
+    }
+
+    // ---------- dentro da atividade: checklist e anexos ----------
+
+    public async Task<ActivityDetailsDto> GetDetailsAsync(Guid id)
+    {
+        if (!await _db.Activities.AnyAsync(a => a.Id == id))
+            throw AppException.NotFound("Atividade");
+
+        var checklist = await _db.ActivityChecklistItems.AsNoTracking()
+            .Where(i => i.ActivityId == id)
+            .OrderBy(i => i.Position).ThenBy(i => i.CreatedAt)
+            .Select(i => new ChecklistItemDto(i.Id, i.Text, i.Done, i.DoneAt))
+            .ToListAsync();
+
+        var attachments = await _db.ProjectFiles.AsNoTracking()
+            .Include(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
+            .Include(f => f.Activity)
+            .Where(f => f.ActivityId == id)
+            .OrderBy(f => f.UploadedAt)
+            .ToListAsync();
+
+        return new ActivityDetailsDto(checklist, attachments.Select(Mapping.ToDto).ToList());
+    }
+
+    public async Task<ChecklistItemDto> AddChecklistItemAsync(Guid activityId, SaveChecklistItemRequest request)
+    {
+        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == activityId)
+                       ?? throw AppException.NotFound("Atividade");
+
+        var position = await _db.ActivityChecklistItems
+            .Where(i => i.ActivityId == activityId)
+            .MaxAsync(i => (int?)i.Position) ?? -1;
+
+        var item = new ActivityChecklistItem { ActivityId = activity.Id, Text = request.Text.Trim(), Position = position + 1 };
+        _db.ActivityChecklistItems.Add(item);
+        await TouchProjectAsync(activity.ProjectId);
+        await _db.SaveChangesAsync();
+        return new ChecklistItemDto(item.Id, item.Text, item.Done, item.DoneAt);
+    }
+
+    public async Task<ChecklistItemDto> UpdateChecklistItemAsync(Guid itemId, UpdateChecklistItemRequest request)
+    {
+        var item = await _db.ActivityChecklistItems.Include(i => i.Activity).FirstOrDefaultAsync(i => i.Id == itemId)
+                   ?? throw AppException.NotFound("Item do checklist");
+
+        if (!string.IsNullOrWhiteSpace(request.Text)) item.Text = request.Text.Trim();
+        if (request.Done.HasValue && request.Done.Value != item.Done)
+        {
+            item.Done = request.Done.Value;
+            item.DoneAt = item.Done ? DateTime.UtcNow : null;
+        }
+
+        await TouchProjectAsync(item.Activity!.ProjectId);
+        await _db.SaveChangesAsync();
+        return new ChecklistItemDto(item.Id, item.Text, item.Done, item.DoneAt);
+    }
+
+    public async Task DeleteChecklistItemAsync(Guid itemId)
+    {
+        var item = await _db.ActivityChecklistItems.Include(i => i.Activity).FirstOrDefaultAsync(i => i.Id == itemId)
+                   ?? throw AppException.NotFound("Item do checklist");
+
+        _db.ActivityChecklistItems.Remove(item);
+        await TouchProjectAsync(item.Activity!.ProjectId);
+        await _db.SaveChangesAsync();
     }
 
     private async Task EnsureAssigneeExistsAsync(Guid? volunteerId)

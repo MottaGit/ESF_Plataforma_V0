@@ -17,6 +17,7 @@ import { Select } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
+import { ActivityCounters } from './ActivityCounters';
 import { ActivityFormModal } from './ActivityFormModal';
 import { BlockActivityDialog } from './BlockActivityDialog';
 
@@ -303,6 +304,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
             notify(editing ? 'Atividade atualizada.' : 'Atividade criada.');
             onChanged();
           }}
+          onExtrasChanged={onChanged}
         />
       ) : null}
 
@@ -396,6 +398,7 @@ function ActivityRow({
               : dueDateLabel(activity.dueDate)}
           </span>
           {!done ? <PriorityBadge priority={activity.priority} /> : null}
+          <ActivityCounters activity={activity} onClick={onEdit} />
           {canUndo ? (
             <button type="button" className="act-row__undo" onClick={() => void toggle(false)}>
               Desfazer

@@ -139,6 +139,23 @@ export interface Activity {
   blockedReason: string | null;
   programId: string | null;
   programName: string | null;
+  /** Resumo do que fica dentro da atividade (cards e lista). */
+  checklistTotal: number;
+  checklistDone: number;
+  attachmentsCount: number;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+  doneAt: string | null;
+}
+
+/** O que fica dentro da atividade: checklist e anexos. */
+export interface ActivityDetails {
+  checklist: ChecklistItem[];
+  attachments: ProjectFile[];
 }
 
 export interface Indicator {
@@ -241,6 +258,9 @@ export interface ProjectFile {
   /** Preenchidos quando o arquivo foi anexado a uma atualizacao de andamento. */
   projectUpdateId: string | null;
   updateCreatedAt: string | null;
+  /** Preenchidos quando o arquivo foi anexado numa atividade. */
+  activityId: string | null;
+  activityTitle: string | null;
 }
 
 export interface ProjectDetail {

@@ -57,4 +57,23 @@ public class ActivitiesController : ControllerBase
         await _activities.DeleteAsync(id);
         return NoContent();
     }
+
+    /// <summary>O que fica dentro da atividade: checklist e anexos.</summary>
+    [HttpGet("activities/{id:guid}/details")]
+    public async Task<ActionResult<ActivityDetailsDto>> Details(Guid id) => Ok(await _activities.GetDetailsAsync(id));
+
+    [HttpPost("activities/{id:guid}/checklist")]
+    public async Task<ActionResult<ChecklistItemDto>> AddChecklistItem(Guid id, SaveChecklistItemRequest request)
+        => Ok(await _activities.AddChecklistItemAsync(id, request));
+
+    [HttpPut("checklist/{itemId:guid}")]
+    public async Task<ActionResult<ChecklistItemDto>> UpdateChecklistItem(Guid itemId, UpdateChecklistItemRequest request)
+        => Ok(await _activities.UpdateChecklistItemAsync(itemId, request));
+
+    [HttpDelete("checklist/{itemId:guid}")]
+    public async Task<IActionResult> DeleteChecklistItem(Guid itemId)
+    {
+        await _activities.DeleteChecklistItemAsync(itemId);
+        return NoContent();
+    }
 }

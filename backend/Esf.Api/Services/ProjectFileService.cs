@@ -26,6 +26,7 @@ public class ProjectFileService
             .AsNoTracking()
             .Include(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
             .Include(f => f.ProjectUpdate)
+            .Include(f => f.Activity)
             .Where(f => f.ProjectId == projectId)
             .OrderByDescending(f => f.UploadedAt)
             .ToListAsync();
@@ -39,6 +40,7 @@ public class ProjectFileService
         var file = await _db.ProjectFiles
             .Include(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
             .Include(f => f.ProjectUpdate)
+            .Include(f => f.Activity)
             .FirstOrDefaultAsync(f => f.Id == fileId) ?? throw AppException.NotFound("Arquivo");
 
         file.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
@@ -47,10 +49,15 @@ public class ProjectFileService
         return Mapping.ToDto(file);
     }
 
-    public async Task<ProjectFileDto> UploadAsync(Guid projectId, IFormFile file, string? description, Guid? userId)
+    /// <summary>Envia um arquivo ao projeto; com activityId, ele fica anexado naquela atividade.</summary>
+    public async Task<ProjectFileDto> UploadAsync(Guid projectId, IFormFile file, string? description, Guid? userId,
+        Guid? activityId = null)
     {
         if (!await _db.Projects.AnyAsync(p => p.Id == projectId))
             throw AppException.NotFound("Projeto");
+
+        if (activityId.HasValue && !await _db.Activities.AnyAsync(a => a.Id == activityId.Value && a.ProjectId == projectId))
+            throw AppException.NotFound("Atividade");
 
         var saved = await _storage.SaveAsync(file);
 
@@ -63,7 +70,8 @@ public class ProjectFileService
             SizeBytes = saved.Size,
             Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             UploadedByUserId = userId,
-            UploadedAt = DateTime.UtcNow
+            UploadedAt = DateTime.UtcNow,
+            ActivityId = activityId
         };
 
         _db.ProjectFiles.Add(entity);
@@ -75,6 +83,8 @@ public class ProjectFileService
 
         if (entity.UploadedByUserId.HasValue)
             await _db.Entry(entity).Reference(f => f.UploadedByUser).Query().Include(u => u.Volunteer).LoadAsync();
+        if (entity.ActivityId.HasValue)
+            await _db.Entry(entity).Reference(f => f.Activity).LoadAsync();
 
         return Mapping.ToDto(entity);
     }
