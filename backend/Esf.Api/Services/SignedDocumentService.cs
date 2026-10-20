@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
@@ -72,7 +70,7 @@ public class SignedDocumentService
         var volunteer = await _db.Volunteers.AsNoTracking().FirstOrDefaultAsync(v => v.Id == volunteerId)
                         ?? throw AppException.NotFound("Voluntario");
         var org = await OrganizationAsync();
-        return (DocumentTemplates.VolunteerTerm(org, volunteer), $"termo-de-adesao-{Slug(volunteer.Name)}.pdf");
+        return (DocumentTemplates.VolunteerTerm(org, volunteer), $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}.pdf");
     }
 
     /// <summary>Autorizacao de uso de imagem para as familias do projeto assinarem (uma por familia).</summary>
@@ -81,7 +79,7 @@ public class SignedDocumentService
         var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == projectId)
                       ?? throw AppException.NotFound("Projeto");
         var org = await OrganizationAsync();
-        return (DocumentTemplates.BeneficiaryImageAuthorization(org, project), $"autorizacao-de-imagem-{Slug(project.Name)}.pdf");
+        return (DocumentTemplates.BeneficiaryImageAuthorization(org, project), $"autorizacao-de-imagem-{TextHelpers.Slug(project.Name)}.pdf");
     }
 
     /// <summary>Remove os arquivos dos documentos de um voluntario ou projeto que esta sendo excluido.</summary>
@@ -146,18 +144,4 @@ public class SignedDocumentService
     private async Task<Organization> OrganizationAsync() =>
         await _db.Organizations.AsNoTracking().OrderBy(o => o.UpdatedAt).FirstOrDefaultAsync()
         ?? new Organization { Name = "Engenheiros Sem Fronteiras" };
-
-    /// <summary>"Ana Aumond" -> "ana-aumond" (para o nome do arquivo).</summary>
-    private static string Slug(string value)
-    {
-        var normalized = value.Normalize(NormalizationForm.FormD);
-        var builder = new StringBuilder();
-        foreach (var c in normalized)
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark) continue;
-            builder.Append(char.IsLetterOrDigit(c) ? char.ToLowerInvariant(c) : '-');
-        }
-        var slug = string.Join('-', builder.ToString().Split('-', StringSplitOptions.RemoveEmptyEntries));
-        return slug.Length == 0 ? "documento" : slug;
-    }
 }

@@ -306,6 +306,10 @@ export interface Organization {
   /** Quem assina pela organizacao nos termos e certificados. */
   signatoryName: string | null;
   signatoryRole: string | null;
+  /** Linha abaixo do cargo no certificado (ex.: Gestao 2025). */
+  signatoryNote: string | null;
+  /** Ha imagem de assinatura para os certificados (o arquivo e privado). */
+  hasSignature: boolean;
 }
 
 /* ---------- payloads de escrita ---------- */
@@ -391,6 +395,15 @@ export interface SaveOrganizationPayload {
   state: string | null;
   signatoryName: string | null;
   signatoryRole: string | null;
+  signatoryNote: string | null;
+}
+
+/** Certificado de voluntariado: periodo e carga semanal; o CPF so vai para o PDF. */
+export interface CertificatePayload {
+  startDate: string;
+  endDate: string;
+  weeklyHours: number;
+  cpf: string | null;
 }
 
 export interface ReportPayload {

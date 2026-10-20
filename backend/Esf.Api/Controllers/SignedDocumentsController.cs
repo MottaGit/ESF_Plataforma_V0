@@ -53,6 +53,15 @@ public class SignedDocumentsController : ControllerBase
         return File(content, "application/pdf", fileName);
     }
 
+    /// <summary>Certificado de participacao no voluntariado em PDF (o CPF informado nao e guardado).</summary>
+    [HttpPost("volunteers/{volunteerId:guid}/certificate")]
+    public async Task<IActionResult> Certificate(Guid volunteerId, CertificateRequest request,
+        [FromServices] CertificateService certificates)
+    {
+        var (content, fileName) = await certificates.GenerateAsync(volunteerId, request);
+        return File(content, "application/pdf", fileName);
+    }
+
     [HttpGet("documents/{id:guid}/download")]
     public async Task<IActionResult> Download(Guid id)
     {

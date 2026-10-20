@@ -188,6 +188,14 @@ pendente", com o filtro "Só com termo pendente". Os documentos assinados não f
 download com login da coordenação. Quem assina pela organização (nome e cargo) é configurado em Configurações ›
 Organização.
 
+**Certificado de voluntariado** — na página do voluntário, "Gerar certificado" (coordenação) pede o período, as horas
+por semana (6 por padrão) e, se quiser, o CPF, que só vai para o PDF e não fica salvo. O certificado sai em A4 deitado,
+no modelo da organização: nome e CNPJ, CPF, o nome do voluntário em destaque, o período por extenso e o total de horas
+— semanas do período (contando o primeiro e o último dia) vezes a carga semanal, arredondado para baixo; de 07/10 a
+31/12/2025, com 6 h/semana, são 73 horas. Embaixo vão a assinatura (imagem enviada em Configurações › Organização, que
+fica privada; sem ela, a linha sai em branco para assinar à mão), o nome, o cargo e uma linha opcional (ex.: "Gestão
+2025") de quem assina, e o logo da organização.
+
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.
 
@@ -340,6 +348,8 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/programs/{id}` | renomeia e arquiva/reativa; exclui só programa sem projetos |
 | GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
+| POST | `/api/volunteers/{id}/certificate` | certificado de voluntariado em PDF (período, horas por semana e CPF opcional, que não é guardado) |
+| POST/DELETE | `/api/organization/signature` | imagem da assinatura usada nos certificados (privada) |
 | GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
 | PATCH | `/api/projects/{id}/status` | mudança de status |

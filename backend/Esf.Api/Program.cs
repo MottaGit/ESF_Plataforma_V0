@@ -50,6 +50,7 @@ builder.Services.AddScoped<OrganizationService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<SignedDocumentService>();
+builder.Services.AddScoped<CertificateService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

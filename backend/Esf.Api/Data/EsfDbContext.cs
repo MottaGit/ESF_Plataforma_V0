@@ -207,6 +207,8 @@ public class EsfDbContext : DbContext
             e.Property(x => x.LogoUrl).HasMaxLength(500);
             e.Property(x => x.SignatoryName).HasMaxLength(160);
             e.Property(x => x.SignatoryRole).HasMaxLength(120);
+            e.Property(x => x.SignatoryNote).HasMaxLength(80);
+            e.Property(x => x.SignatureStoredName).HasMaxLength(160);
         });
     }
 }

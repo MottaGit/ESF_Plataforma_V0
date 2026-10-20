@@ -39,6 +39,7 @@ public class OrganizationService
         org.State = Clean(request.State);
         org.SignatoryName = Clean(request.SignatoryName);
         org.SignatoryRole = Clean(request.SignatoryRole);
+        org.SignatoryNote = Clean(request.SignatoryNote);
         org.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -61,6 +62,25 @@ public class OrganizationService
         await _db.SaveChangesAsync();
 
         // O logo antigo so sai depois que o novo foi gravado.
+        await _storage.DeleteAsync(previous);
+        return Mapping.ToDto(org);
+    }
+
+    /// <summary>
+    /// Troca (ou remove, com null) a imagem da assinatura usada nos certificados. Fica privada: so entra nos PDFs
+    /// gerados pela API e nunca sai por /uploads.
+    /// </summary>
+    public async Task<OrganizationDto> UpdateSignatureAsync(IFormFile? file)
+    {
+        if (file is not null && !new[] { ".png", ".jpg", ".jpeg" }.Contains(Path.GetExtension(file.FileName).ToLowerInvariant()))
+            throw new AppException("Envie a assinatura como imagem PNG (de preferencia com fundo transparente) ou JPG.");
+
+        var org = await GetEntityAsync();
+        var previous = org.SignatureStoredName;
+        org.SignatureStoredName = file is null ? null : (await _storage.SaveAsync(file, isPrivate: true)).StoredName;
+        org.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
         await _storage.DeleteAsync(previous);
         return Mapping.ToDto(org);
     }

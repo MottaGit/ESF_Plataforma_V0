@@ -18,7 +18,10 @@ public record OrganizationDto(
     DateTime UpdatedAt,
     // Quem assina pela organizacao nos termos e certificados.
     string? SignatoryName,
-    string? SignatoryRole);
+    string? SignatoryRole,
+    string? SignatoryNote,
+    // Ha imagem de assinatura para os certificados (o arquivo em si e privado).
+    bool HasSignature);
 
 public class SaveOrganizationRequest
 {
@@ -56,4 +59,7 @@ public class SaveOrganizationRequest
 
     [StringLength(120)]
     public string? SignatoryRole { get; set; }
+
+    [StringLength(80)]
+    public string? SignatoryNote { get; set; }
 }

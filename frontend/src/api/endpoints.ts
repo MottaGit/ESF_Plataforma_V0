@@ -2,6 +2,7 @@ import { shrinkImage } from '../utils/images';
 import { http } from './client';
 import type {
   Activity,
+  CertificatePayload,
   Dashboard,
   Indicator,
   LoginResponse,
@@ -238,5 +239,18 @@ export const organizationApi = {
     const formData = new FormData();
     formData.append('file', file);
     return http.request<Organization>('/api/organization/logo', { method: 'POST', formData });
-  }
+  },
+  /** Imagem da assinatura usada nos certificados (fica privada). */
+  uploadSignature: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return http.request<Organization>('/api/organization/signature', { method: 'POST', formData });
+  },
+  removeSignature: () => http.request<Organization>('/api/organization/signature', { method: 'DELETE' })
+};
+
+/** Certificado de participacao no voluntariado (PDF gerado na hora; o CPF nao e guardado). */
+export const certificatesApi = {
+  download: (volunteerId: string, payload: CertificatePayload) =>
+    http.download(`/api/volunteers/${volunteerId}/certificate`, payload, 'certificado.pdf')
 };

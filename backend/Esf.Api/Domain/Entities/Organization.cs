@@ -20,5 +20,9 @@ public class Organization
     /// <summary>Quem assina pela organizacao nos termos e certificados (ex.: Diretora Geral).</summary>
     public string? SignatoryName { get; set; }
     public string? SignatoryRole { get; set; }
+    /// <summary>Linha abaixo do cargo no certificado (ex.: Gestao 2025).</summary>
+    public string? SignatoryNote { get; set; }
+    /// <summary>Imagem da assinatura usada nos certificados (arquivo privado).</summary>
+    public string? SignatureStoredName { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

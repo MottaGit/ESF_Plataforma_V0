@@ -74,6 +74,7 @@ export function SettingsPage() {
 function OrganizationSection({ canEdit }: { canEdit: boolean }) {
   const { notify, notifyError } = useToast();
   const logoInput = useRef<HTMLInputElement>(null);
+  const signatureInput = useRef<HTMLInputElement>(null);
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +92,8 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
     city: null,
     state: null,
     signatoryName: null,
-    signatoryRole: null
+    signatoryRole: null,
+    signatoryNote: null
   });
 
   useEffect(() => {
@@ -111,7 +113,8 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
           city: data.city,
           state: data.state,
           signatoryName: data.signatoryName,
-          signatoryRole: data.signatoryRole
+          signatoryRole: data.signatoryRole,
+          signatoryNote: data.signatoryNote
         });
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os dados.'))
@@ -135,7 +138,8 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         city: emptyToNull(form.city),
         state: emptyToNull(form.state),
         signatoryName: emptyToNull(form.signatoryName),
-        signatoryRole: emptyToNull(form.signatoryRole)
+        signatoryRole: emptyToNull(form.signatoryRole),
+        signatoryNote: emptyToNull(form.signatoryNote)
       });
       setOrganization(saved);
       notify('Dados da organização salvos.');
@@ -158,6 +162,19 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível enviar o logo.');
     } finally {
       if (logoInput.current) logoInput.current.value = '';
+    }
+  }
+
+  /** Envia (com arquivo) ou remove (sem) a imagem da assinatura usada nos certificados. */
+  async function handleSignature(file: File | null) {
+    try {
+      const saved = file ? await organizationApi.uploadSignature(file) : await organizationApi.removeSignature();
+      setOrganization(saved);
+      notify(file ? 'Assinatura atualizada.' : 'Assinatura removida.');
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a assinatura.');
+    } finally {
+      if (signatureInput.current) signatureInput.current.value = '';
     }
   }
 
@@ -276,6 +293,19 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
               />
             </Field>
 
+            <Field
+              label="Linha abaixo do cargo"
+              htmlFor="org-signatory-note"
+              hint="Opcional, aparece no certificado. Ex.: Gestão 2025."
+            >
+              <TextInput
+                id="org-signatory-note"
+                value={form.signatoryNote ?? ''}
+                disabled={!canEdit}
+                onChange={(event) => setForm({ ...form, signatoryNote: event.target.value })}
+              />
+            </Field>
+
             <Field label="Missão" htmlFor="org-mission" span>
               <TextArea
                 id="org-mission"
@@ -305,7 +335,8 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         </form>
       </section>
 
-      <section className="panel" style={{ alignSelf: 'start' }}>
+      <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+      <section className="panel">
         <div className="panel__head">
           <h2>Logo</h2>
         </div>
@@ -346,6 +377,43 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
           ) : null}
         </div>
       </section>
+
+      <section className="panel">
+        <div className="panel__head">
+          <h2>Assinatura dos certificados</h2>
+        </div>
+        <div className="panel__body">
+          <p className="field__hint" style={{ marginBottom: 12 }}>
+            {organization?.hasSignature
+              ? `Assinatura de ${organization.signatoryName ?? 'quem assina'} enviada. Ela só aparece nos certificados de voluntariado.`
+              : 'Sem imagem de assinatura: o certificado sai com a linha em branco, para assinar à mão.'}
+          </p>
+          {canEdit ? (
+            <div className="btn-row">
+              <Button small icon={<IconUpload size={15} />} onClick={() => signatureInput.current?.click()}>
+                {organization?.hasSignature ? 'Trocar imagem' : 'Enviar imagem'}
+              </Button>
+              {organization?.hasSignature ? (
+                <Button small variant="ghost" onClick={() => void handleSignature(null)}>
+                  Remover
+                </Button>
+              ) : null}
+              <input
+                ref={signatureInput}
+                type="file"
+                accept=".png,.jpg,.jpeg"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void handleSignature(file);
+                }}
+              />
+            </div>
+          ) : null}
+          <p className="field__hint" style={{ marginTop: 8 }}>PNG com fundo transparente fica melhor.</p>
+        </div>
+      </section>
+      </div>
     </div>
   );
 }

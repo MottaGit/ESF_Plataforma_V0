@@ -117,7 +117,7 @@ public static class Mapping
 
     public static OrganizationDto ToDto(Organization o) =>
         new(o.Id, o.Name, o.LegalName, o.Cnpj, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl,
-            o.UpdatedAt, o.SignatoryName, o.SignatoryRole);
+            o.UpdatedAt, o.SignatoryName, o.SignatoryRole, o.SignatoryNote, o.SignatureStoredName != null);
 
     /// <summary>Detalhe completo do projeto, com as colecoes ja carregadas.</summary>
     public static ProjectDetailDto ToDetailDto(Project p, DateOnly? imageAuthorizedOn = null) =>

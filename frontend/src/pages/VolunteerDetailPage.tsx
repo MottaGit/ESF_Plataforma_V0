@@ -1,19 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { projectsApi, volunteersApi } from '../api/endpoints';
+import { certificatesApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { SignedDocumentsPanel } from '../components/documents/SignedDocumentsPanel';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconChevronLeft, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
+import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { ProjectListItem, Volunteer, VolunteerProject } from '../types/api';
-import { birthdayLabel, isBirthdayToday, isPastProjectStatus, sectorLabel } from '../utils/format';
+import {
+  birthdayLabel,
+  emptyToNull,
+  isBirthdayToday,
+  isPastProjectStatus,
+  sectorLabel,
+  todayInputValue
+} from '../utils/format';
 import { VolunteerFormModal } from './VolunteersPage';
 
 export function VolunteerDetailPage() {
@@ -26,6 +33,7 @@ export function VolunteerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [certificateOpen, setCertificateOpen] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -82,6 +90,9 @@ export function VolunteerDetailPage() {
 
         {canManage ? (
           <div className="page-head__actions">
+            <Button icon={<IconDownload size={15} />} onClick={() => setCertificateOpen(true)}>
+              Gerar certificado
+            </Button>
             <Button variant="primary" icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
               Editar voluntário
             </Button>
@@ -179,6 +190,10 @@ export function VolunteerDetailPage() {
           />
         </div>
       </div>
+
+      {certificateOpen ? (
+        <CertificateModal volunteer={volunteer} onClose={() => setCertificateOpen(false)} />
+      ) : null}
 
       {editing ? (
         <VolunteerFormModal
@@ -402,6 +417,96 @@ function LinkProjectModal({ volunteerId, linkedProjectIds, onClose, onSaved }: L
           </Field>
         </div>
       )}
+    </Modal>
+  );
+}
+
+/** Total de horas do certificado: semanas do periodo (contando o primeiro e o ultimo dia) x carga semanal. */
+function certificateHours(start: string, end: string, weeklyHours: number) {
+  const days = Math.round((new Date(`${end}T00:00:00`).getTime() - new Date(`${start}T00:00:00`).getTime()) / 86400000) + 1;
+  return days > 0 && weeklyHours > 0 ? Math.floor((days / 7) * weeklyHours) : 0;
+}
+
+/**
+ * Certificado de participacao no voluntariado: periodo, horas por semana (6 por padrao) e, se quiser, o CPF,
+ * que vai so para o PDF e nao fica salvo.
+ */
+function CertificateModal({ volunteer, onClose }: { volunteer: Volunteer; onClose: () => void }) {
+  const today = todayInputValue();
+  const [startDate, setStartDate] = useState(`${today.slice(0, 4)}-01-01`);
+  const [endDate, setEndDate] = useState(today);
+  const [weeklyHours, setWeeklyHours] = useState('6');
+  const [cpf, setCpf] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const hours = Number(weeklyHours);
+  const total = startDate && endDate ? certificateHours(startDate, endDate, hours) : 0;
+
+  async function generate(event?: FormEvent) {
+    event?.preventDefault();
+    if (!startDate || !endDate || endDate < startDate) {
+      setError('Informe um período válido (o fim não pode ser antes do início).');
+      return;
+    }
+    if (!Number.isInteger(hours) || hours < 1 || hours > 60) {
+      setError('Informe de 1 a 60 horas por semana.');
+      return;
+    }
+    setGenerating(true);
+    setError(null);
+    try {
+      await certificatesApi.download(volunteer.id, { startDate, endDate, weeklyHours: hours, cpf: emptyToNull(cpf) });
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível gerar o certificado.');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <Modal
+      title="Gerar certificado"
+      subtitle={`Certificado de participação no voluntariado de ${volunteer.name}.`}
+      size="narrow"
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="primary" loading={generating} onClick={() => void generate()}>
+            Gerar PDF
+          </Button>
+        </>
+      }
+    >
+      {error ? (
+        <div style={{ marginBottom: 14 }}>
+          <Alert kind="error">{error}</Alert>
+        </div>
+      ) : null}
+      <form onSubmit={generate} className="form-grid">
+        <Field label="Início" htmlFor="certificate-start" required>
+          <TextInput id="certificate-start" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+        </Field>
+        <Field label="Fim" htmlFor="certificate-end" required>
+          <TextInput id="certificate-end" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+        </Field>
+        <Field label="Horas por semana" htmlFor="certificate-hours" required hint={`Total no período: ${total} horas.`}>
+          <TextInput
+            id="certificate-hours"
+            type="number"
+            min={1}
+            max={60}
+            value={weeklyHours}
+            onChange={(event) => setWeeklyHours(event.target.value)}
+          />
+        </Field>
+        <Field label="CPF" htmlFor="certificate-cpf" hint="Opcional. Só vai para o certificado; não fica salvo.">
+          <TextInput id="certificate-cpf" value={cpf} placeholder="000.000.000-00" onChange={(event) => setCpf(event.target.value)} />
+        </Field>
+        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+      </form>
     </Modal>
   );
 }
