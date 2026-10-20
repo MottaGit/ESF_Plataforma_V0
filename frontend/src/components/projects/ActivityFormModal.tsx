@@ -12,6 +12,7 @@ import type {
 import {
   ACTIVITY_PRIORITIES,
   ACTIVITY_STATUSES,
+  SENSITIVE_DATA_HINT,
   activityStatusLabel,
   emptyToNull,
   priorityLabel
@@ -273,7 +274,7 @@ export function ActivityFormModal({
             />
           </Field>
 
-          <Field label="Observações" htmlFor="activity-notes" span>
+          <Field label="Observações" htmlFor="activity-notes" span hint={SENSITIVE_DATA_HINT}>
             <TextArea id="activity-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
           </Field>
         </div>

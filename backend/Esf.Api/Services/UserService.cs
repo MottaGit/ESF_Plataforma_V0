@@ -71,7 +71,12 @@ public class UserService
         user.VolunteerId = request.VolunteerId;
 
         if (!string.IsNullOrWhiteSpace(request.NewPassword))
+        {
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            // Senha redefinida pelo administrador: libera o acesso, se estava bloqueado por tentativas erradas.
+            user.FailedLoginCount = 0;
+            user.LockedUntil = null;
+        }
 
         await _db.SaveChangesAsync();
         return await GetDtoAsync(id);

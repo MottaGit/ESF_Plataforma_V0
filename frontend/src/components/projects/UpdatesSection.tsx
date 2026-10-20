@@ -3,7 +3,7 @@ import { ApiError } from '../../api/client';
 import { projectUpdatesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
-import { formatDateTime } from '../../utils/format';
+import { SENSITIVE_DATA_HINT, formatDateTime } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
@@ -105,6 +105,10 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
               files={stagedFiles}
               onRemove={(index) => setStagedFiles((current) => current.filter((_, i) => i !== index))}
             />
+
+            <p className="field__hint" style={{ marginTop: 8 }}>
+              {SENSITIVE_DATA_HINT} Fotos de pessoas, só com autorização de uso de imagem.
+            </p>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
               <Button type="button" small icon={<IconUpload size={15} />} onClick={() => fileInputRef.current?.click()}>

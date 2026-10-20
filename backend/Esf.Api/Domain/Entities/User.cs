@@ -17,4 +17,8 @@ public class User
     /// <summary>Quando aceitou a politica de privacidade e os termos de uso, e qual versao.</summary>
     public DateTime? TermsAcceptedAt { get; set; }
     public string? TermsVersion { get; set; }
+
+    /// <summary>Senhas erradas seguidas; ao chegar no limite, o acesso fica bloqueado ate LockedUntil.</summary>
+    public int FailedLoginCount { get; set; }
+    public DateTime? LockedUntil { get; set; }
 }

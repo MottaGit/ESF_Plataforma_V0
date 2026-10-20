@@ -17,6 +17,7 @@ import {
   MONTH_NAMES,
   VOLUNTEER_SECTORS,
   VOLUNTEER_STATUSES,
+  SENSITIVE_DATA_HINT,
   emptyToNull,
   isBirthdayToday,
   isPastProjectStatus,
@@ -538,7 +539,7 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
             <TextArea id="volunteer-skills" value={skills} onChange={(event) => setSkills(event.target.value)} />
           </Field>
 
-          <Field label="Outras informações relevantes" htmlFor="volunteer-notes" span>
+          <Field label="Outras informações relevantes" htmlFor="volunteer-notes" span hint={SENSITIVE_DATA_HINT}>
             <TextArea id="volunteer-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
           </Field>
         </div>

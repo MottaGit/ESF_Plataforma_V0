@@ -242,6 +242,11 @@ registram que mudaram, sem o valor, e nomes de voluntários são resolvidos na h
 aparece como "Voluntário removido" também no histórico. Senhas nunca entram. O que não vem de uma pessoa (dados de
 demonstração, rotinas internas) não é registrado.
 
+**Proteção do login** — depois de 10 senhas erradas seguidas, o acesso fica bloqueado por 15 minutos (nem a senha
+certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acerto antes disso zera a contagem, e a
+senha redefinida por um administrador libera o acesso na hora. Os campos de texto livre (observações e relatos) lembram
+de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
+
 **Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
 acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
 de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes

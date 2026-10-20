@@ -269,3 +269,6 @@ export function timeAgo(value: string) {
   if (days < 7) return `há ${days} dias`;
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
+
+/** Dica dos campos de texto livre: a plataforma nao deve guardar dados sensiveis (LGPD). */
+export const SENSITIVE_DATA_HINT = 'Não registre dados sensíveis (saúde, religião, origem, opinião política) nem CPF.';

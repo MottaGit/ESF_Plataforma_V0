@@ -2,7 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { projectsApi } from '../../api/endpoints';
 import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
-import { PROJECT_STATUSES, emptyToNull, projectStatusLabel, todayInputValue } from '../../utils/format';
+import {
+  PROJECT_STATUSES,
+  SENSITIVE_DATA_HINT,
+  emptyToNull,
+  projectStatusLabel,
+  todayInputValue
+} from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
@@ -343,7 +349,7 @@ export function ProjectFormModal({ project, volunteers, programs, onClose, onSav
               </Select>
             </Field>
 
-            <Field label="Observações" htmlFor="notes" span>
+            <Field label="Observações" htmlFor="notes" span hint={SENSITIVE_DATA_HINT}>
               <TextArea id="notes" value={form.notes} onChange={(event) => update('notes', event.target.value)} />
             </Field>
           </div>
