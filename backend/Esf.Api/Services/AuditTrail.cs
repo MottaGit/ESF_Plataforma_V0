@@ -74,7 +74,18 @@ public static class AuditTrail
         [typeof(Indicator)] = new() { ["Name"] = "Nome", ["Value"] = "Valor", ["Unit"] = "Unidade" },
         [typeof(ProjectFile)] = new() { ["Description"] = "Legenda" },
         [typeof(ProjectUpdate)] = new() { ["Text"] = "Texto" },
-        [typeof(ProjectProgram)] = new() { ["Name"] = "Nome", ["Status"] = "Situação", ["Icon"] = "Ícone", ["Color"] = "Cor" },
+        [typeof(ProjectProgram)] = new()
+        {
+            ["Name"] = "Nome", ["Status"] = "Situação", ["Icon"] = "Ícone", ["Color"] = "Cor",
+            ["TemplateDescription"] = "Descrição sugerida", ["TemplateObjective"] = "Objetivo sugerido",
+            ["TemplateTargetAudience"] = "Público sugerido"
+        },
+        [typeof(ProgramTemplateActivity)] = new()
+        {
+            ["Title"] = "Título", ["Description"] = "Descrição", ["Priority"] = "Prioridade",
+            ["DueDays"] = "Prazo (dias após o início)"
+        },
+        [typeof(ProgramTemplateIndicator)] = new() { ["Name"] = "Nome", ["Unit"] = "Unidade" },
         [typeof(ProjectVolunteer)] = new() { ["RoleInProject"] = "Função" },
         [typeof(SignedDocument)] = new() { ["SignedOn"] = "Assinado em" },
         [typeof(VolunteerStatusChange)] = new() { ["Status"] = "Status", ["StartsOn"] = "A partir de" },
@@ -164,6 +175,8 @@ public static class AuditTrail
         VolunteerStatusChange c => ("Histórico de status",
             $"{VolunteerRef(c.VolunteerId)}: {(c.Status.HasValue ? Format(typeof(VolunteerStatusChange), "Status", c.Status) : "sem registro")} a partir de {c.StartsOn:dd/MM/yyyy}",
             c.Id, null),
+        ProgramTemplateActivity a => ("Modelo do programa", $"{a.Program?.Name ?? "Programa"}: atividade \"{a.Title}\"", a.Id, null),
+        ProgramTemplateIndicator i => ("Modelo do programa", $"{i.Program?.Name ?? "Programa"}: indicador \"{i.Name}\"", i.Id, null),
         Organization o => ("Organização", o.Name, o.Id, null),
         _ => ("Registro", entity.GetType().Name, Guid.Empty, null)
     };

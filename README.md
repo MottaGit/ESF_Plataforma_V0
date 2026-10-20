@@ -133,6 +133,14 @@ e nos pinos do mapa), "Novo projeto" (já dentro do programa) e arquivar/reativa
 de cada projeto, o nome do programa leva à página dele. Programas que já existiam ganharam ícone pelo nome (banheiro,
 horta, evento).
 
+**Modelo do programa** — aba "Modelo" na página do programa: **atividades padrão** (título, prioridade, descrição e
+prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
+**textos sugeridos** (descrição, objetivo e público beneficiado). A coordenação inclui, edita, reordena e remove; cada
+mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
+mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado): as atividades entram sem responsável,
+com o prazo contado da data de início, os indicadores entram zerados e os textos preenchem o que ficou em branco. Os
+cards dos programas mostram o resumo do modelo ("Modelo: 5 atividades · 2 indicadores" ou "Sem modelo").
+
 **Quadro de atividades** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
 dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
@@ -352,6 +360,8 @@ ESF_Plataforma_V0/
 | --- | --- |
 | `Users` | acesso à plataforma (nome, e-mail, hash da senha, perfil, ativo, voluntário vinculado) |
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
+| `Programs` | programas (nome, situação, ícone, cor e os textos sugeridos do modelo) |
+| `ProgramTemplateActivities` / `ProgramTemplateIndicators` | atividades e indicadores padrão do modelo de cada programa |
 | `Activities` | atividades do projeto (FK `ProjectId`, responsável opcional) |
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
@@ -385,13 +395,14 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
 | GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos; edita nome, ícone e cor e arquiva/reativa; exclui só programa sem projetos |
+| GET/PUT | `/api/programs/{id}/template` | modelo do programa (PUT grava o modelo inteiro; coordenação) |
 | GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
 | POST | `/api/volunteers/{id}/certificate` | certificado de voluntariado em PDF (período, horas por semana e CPF opcional, que não é guardado) |
 | POST/DELETE | `/api/organization/signature` | imagem da assinatura usada nos certificados (privada) |
 | GET | `/api/audit` | histórico de alterações (só administradores), com filtros por projeto, pessoa, tipo e período |
 | GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
-| POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
+| POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos (na criação, `useTemplate` aplica o modelo do programa) |
 | PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |
 | GET/POST | `/api/projects/{id}/activities` | atividades do projeto |

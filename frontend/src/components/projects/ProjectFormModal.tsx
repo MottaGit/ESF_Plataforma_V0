@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { projectsApi } from '../../api/endpoints';
+import { programsApi, projectsApi } from '../../api/endpoints';
 import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
 import {
   PROJECT_STATUSES,
@@ -68,6 +68,25 @@ function initialState(project: ProjectDetail | null, fallbackProgramId: string):
   };
 }
 
+/** "Cria 5 atividades e 2 indicadores e preenche os textos sugeridos." (null: programa sem modelo) */
+function templateDescription(program: Program) {
+  const created = [
+    program.templateActivitiesCount > 0
+      ? `${program.templateActivitiesCount} atividade${program.templateActivitiesCount === 1 ? '' : 's'}`
+      : null,
+    program.templateIndicatorsCount > 0
+      ? `${program.templateIndicatorsCount} indicador${program.templateIndicatorsCount === 1 ? '' : 'es'}`
+      : null
+  ].filter(Boolean);
+  const parts = [
+    created.length > 0 ? `cria ${created.join(' e ')}` : null,
+    program.hasTemplateTexts ? 'preenche os textos sugeridos' : null
+  ].filter(Boolean);
+  if (parts.length === 0) return null;
+  const sentence = parts.join(' e ');
+  return `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}.`;
+}
+
 export function ProjectFormModal({
   project,
   initialProgramId,
@@ -95,12 +114,33 @@ export function ProjectFormModal({
             activeProjectsCount: 0,
             doneProjectsCount: 0,
             icon: project.programIcon,
-            color: project.programColor
+            color: project.programColor,
+            templateActivitiesCount: 0,
+            templateIndicatorsCount: 0,
+            hasTemplateTexts: false
           }
         ]
       : programs
   );
   const [creatingProgram, setCreatingProgram] = useState(false);
+
+  // Projeto novo: o modelo do programa escolhido (se houver) vem marcado. O programa e buscado na hora, porque a
+  // lista recebida pode ser de antes de o modelo mudar.
+  const [useTemplate, setUseTemplate] = useState(true);
+  const [chosenProgram, setChosenProgram] = useState<Program | null>(null);
+  useEffect(() => {
+    if (project || !form.programId) return;
+    let active = true;
+    programsApi
+      .get(form.programId)
+      .then((program) => active && setChosenProgram(program))
+      .catch(() => active && setChosenProgram(null));
+    return () => {
+      active = false;
+    };
+  }, [project, form.programId]);
+  const templateParts =
+    chosenProgram && chosenProgram.id === form.programId ? templateDescription(chosenProgram) : null;
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -150,7 +190,8 @@ export function ProjectFormModal({
       longitude: form.longitude ? Number(form.longitude) : null,
       startDate: form.startDate,
       endDateForecast: form.endDateForecast || null,
-      status: form.status
+      status: form.status,
+      useTemplate: !project && Boolean(templateParts) && useTemplate
     };
 
     setSaving(true);
@@ -227,6 +268,16 @@ export function ProjectFormModal({
                 </Button>
               </div>
             </Field>
+
+            {!project && templateParts ? (
+              <div className="field span-2 template-choice">
+                <label className="checkbox">
+                  <input type="checkbox" checked={useTemplate} onChange={(event) => setUseTemplate(event.target.checked)} />
+                  Usar o modelo do programa
+                </label>
+                <span className="field__hint">{templateParts}</span>
+              </div>
+            ) : null}
 
             <Field
               label="Responsável"

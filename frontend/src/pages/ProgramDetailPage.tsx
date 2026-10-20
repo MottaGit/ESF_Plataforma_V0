@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { ProgramFormModal } from '../components/programs/ProgramFormModal';
 import { ProgramMark } from '../components/programs/ProgramMark';
+import { ProgramTemplateTab } from '../components/programs/ProgramTemplateTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -15,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectListItem, Volunteer } from '../types/api';
 import { formatDate } from '../utils/format';
-import { programProjectsSummary } from './ProgramsPage';
+import { programProjectsSummary, programTemplateSummary } from './ProgramsPage';
 
 /** Pagina do programa: os projetos dele e (para a coordenacao) editar, arquivar e criar projeto ja no programa. */
 export function ProgramDetailPage() {
@@ -23,6 +24,8 @@ export function ProgramDetailPage() {
   const { canManage } = useAuth();
   const { notify, notifyError } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('aba') === 'modelo' ? 'template' : 'projects';
 
   const [program, setProgram] = useState<Program | null>(null);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
@@ -152,71 +155,92 @@ export function ProgramDetailPage() {
       </div>
 
       <div className="tabs">
-        <button type="button" className="tab tab--active">
+        <button
+          type="button"
+          className={`tab${tab === 'projects' ? ' tab--active' : ''}`}
+          onClick={() => setSearchParams({}, { replace: true })}
+        >
           Projetos
           <span className="tab__count num">{projects.length}</span>
         </button>
+        <button
+          type="button"
+          className={`tab${tab === 'template' ? ' tab--active' : ''}`}
+          title={programTemplateSummary(program) ?? 'Sem modelo'}
+          onClick={() => setSearchParams({ aba: 'modelo' }, { replace: true })}
+        >
+          Modelo
+          <span className="tab__count num">{program.templateActivitiesCount + program.templateIndicatorsCount}</span>
+        </button>
       </div>
 
-      <section className="panel">
-        {projects.length === 0 ? (
-          <EmptyState
-            title="Nenhum projeto neste programa"
-            description={canManage && !archived ? 'Crie o primeiro projeto já dentro do programa.' : undefined}
-            action={
-              canManage && !archived ? (
-                <Button variant="primary" onClick={() => setCreatingProject(true)}>
-                  Novo projeto
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Projeto</th>
-                  <th>Status</th>
-                  <th>Responsável</th>
-                  <th>Local</th>
-                  <th>Progresso</th>
-                  <th className="tight">Início</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((project) => (
-                  <tr key={project.id}>
-                    <td style={{ minWidth: 210 }}>
-                      <Link className="row-link" to={`/projetos/${project.id}`}>
-                        {project.name}
-                      </Link>
-                      {project.isArchived ? <div className="table__secondary">arquivado</div> : null}
-                    </td>
-                    <td>
-                      <StatusBadge status={project.status} />
-                      {project.isLate ? (
-                        <div style={{ marginTop: 4 }}>
-                          <LateBadge />
-                        </div>
-                      ) : null}
-                    </td>
-                    <td>{project.ownerName ?? '—'}</td>
-                    <td>
-                      {project.district ?? '—'}
-                      <div className="table__secondary">{project.city ?? ''}</div>
-                    </td>
-                    <td style={{ minWidth: 120 }}>
-                      <Progress value={project.progress} />
-                    </td>
-                    <td className="tight">{formatDate(project.startDate)}</td>
+      {tab === 'template' ? (
+        <ProgramTemplateTab
+          programId={program.id}
+          canEdit={canManage}
+          onChanged={() => programsApi.get(program.id).then(setProgram).catch(() => undefined)}
+        />
+      ) : (
+        <section className="panel">
+          {projects.length === 0 ? (
+            <EmptyState
+              title="Nenhum projeto neste programa"
+              description={canManage && !archived ? 'Crie o primeiro projeto já dentro do programa.' : undefined}
+              action={
+                canManage && !archived ? (
+                  <Button variant="primary" onClick={() => setCreatingProject(true)}>
+                    Novo projeto
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Projeto</th>
+                    <th>Status</th>
+                    <th>Responsável</th>
+                    <th>Local</th>
+                    <th>Progresso</th>
+                    <th className="tight">Início</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+                </thead>
+                <tbody>
+                  {projects.map((project) => (
+                    <tr key={project.id}>
+                      <td style={{ minWidth: 210 }}>
+                        <Link className="row-link" to={`/projetos/${project.id}`}>
+                          {project.name}
+                        </Link>
+                        {project.isArchived ? <div className="table__secondary">arquivado</div> : null}
+                      </td>
+                      <td>
+                        <StatusBadge status={project.status} />
+                        {project.isLate ? (
+                          <div style={{ marginTop: 4 }}>
+                            <LateBadge />
+                          </div>
+                        ) : null}
+                      </td>
+                      <td>{project.ownerName ?? '—'}</td>
+                      <td>
+                        {project.district ?? '—'}
+                        <div className="table__secondary">{project.city ?? ''}</div>
+                      </td>
+                      <td style={{ minWidth: 120 }}>
+                        <Progress value={project.progress} />
+                      </td>
+                      <td className="tight">{formatDate(project.startDate)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
 
       {editing ? (
         <ProgramFormModal

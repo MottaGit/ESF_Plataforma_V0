@@ -19,6 +19,18 @@ export function programProjectsSummary(program: Program) {
   return `${program.activeProjectsCount} em andamento · ${done}`;
 }
 
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+/** "5 atividades · 2 indicadores · textos sugeridos"; null quando o programa nao tem modelo. */
+export function programTemplateSummary(program: Program) {
+  const parts = [
+    program.templateActivitiesCount > 0 ? plural(program.templateActivitiesCount, 'atividade', 'atividades') : null,
+    program.templateIndicatorsCount > 0 ? plural(program.templateIndicatorsCount, 'indicador', 'indicadores') : null,
+    program.hasTemplateTexts ? 'textos sugeridos' : null
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
 /** Programas (Projetos › Programas): um card por programa; o card leva a pagina do programa. */
 export function ProgramsPage() {
   const { canManage } = useAuth();
@@ -104,6 +116,9 @@ export function ProgramsPage() {
                   {program.status === 'Arquivado' ? <NeutralBadge>Arquivado</NeutralBadge> : null}
                 </span>
                 <span className="program-card__meta">{programProjectsSummary(program)}</span>
+                <span className="program-card__meta">
+                  {programTemplateSummary(program) ? `Modelo: ${programTemplateSummary(program)}` : 'Sem modelo'}
+                </span>
               </span>
             </Link>
           ))}

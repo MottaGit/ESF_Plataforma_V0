@@ -22,6 +22,15 @@ public class ProgramsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProgramDto>> Get(Guid id) => Ok(await _programs.GetAsync(id));
 
+    /// <summary>Modelo do programa: atividades e indicadores padrao e textos sugeridos.</summary>
+    [HttpGet("{id:guid}/template")]
+    public async Task<ActionResult<ProgramTemplateDto>> Template(Guid id) => Ok(await _programs.GetTemplateAsync(id));
+
+    [HttpPut("{id:guid}/template")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<ProgramTemplateDto>> SaveTemplate(Guid id, SaveProgramTemplateRequest request)
+        => Ok(await _programs.SaveTemplateAsync(id, request));
+
     [HttpPost]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramDto>> Create(SaveProgramRequest request)

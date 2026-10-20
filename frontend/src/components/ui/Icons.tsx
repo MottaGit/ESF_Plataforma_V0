@@ -166,6 +166,8 @@ export const IconChevronRight = (p: IconProps) => svg(<path d="m10 6 6 6-6 6" />
 
 export const IconChevronDown = (p: IconProps) => svg(<path d="m6 10 6 6 6-6" />, p);
 
+export const IconChevronUp = (p: IconProps) => svg(<path d="m6 14 6-6 6 6" />, p);
+
 export const IconListBullet = (p: IconProps) =>
   svg(
     <>

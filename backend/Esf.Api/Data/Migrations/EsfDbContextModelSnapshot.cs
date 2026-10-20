@@ -283,6 +283,67 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("Organizations");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("DueDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProgramId", "Position");
+
+                    b.ToTable("ProgramTemplateActivities");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateIndicator", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProgramId", "Position");
+
+                    b.ToTable("ProgramTemplateIndicators");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -447,6 +508,16 @@ namespace Esf.Api.Data.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TemplateDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TemplateObjective")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TemplateTargetAudience")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
 
@@ -781,6 +852,28 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("Volunteer");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateActivity", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.ProjectProgram", "Program")
+                        .WithMany("TemplateActivities")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Program");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateIndicator", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.ProjectProgram", "Program")
+                        .WithMany("TemplateIndicators")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Program");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.Project", b =>
                 {
                     b.HasOne("Esf.Api.Domain.Entities.Volunteer", "OwnerVolunteer")
@@ -915,6 +1008,10 @@ namespace Esf.Api.Data.Migrations
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectProgram", b =>
                 {
                     b.Navigation("Projects");
+
+                    b.Navigation("TemplateActivities");
+
+                    b.Navigation("TemplateIndicators");
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectUpdate", b =>

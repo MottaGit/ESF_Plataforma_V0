@@ -20,5 +20,15 @@ public class ProjectProgram
     public string Color { get; set; } = ProgramAppearance.DefaultColor;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // ---------- modelo: o que um projeto novo do programa ja recebe ----------
+
+    /// <summary>Textos sugeridos: preenchem descricao, objetivo e publico do projeto novo quando vierem vazios.</summary>
+    public string? TemplateDescription { get; set; }
+    public string? TemplateObjective { get; set; }
+    public string? TemplateTargetAudience { get; set; }
+
+    public ICollection<ProgramTemplateActivity> TemplateActivities { get; set; } = new List<ProgramTemplateActivity>();
+    public ICollection<ProgramTemplateIndicator> TemplateIndicators { get; set; } = new List<ProgramTemplateIndicator>();
+
     public ICollection<Project> Projects { get; set; } = new List<Project>();
 }

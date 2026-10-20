@@ -22,6 +22,8 @@ public class EsfDbContext : DbContext
     public DbSet<SignedDocument> SignedDocuments => Set<SignedDocument>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
     public DbSet<VolunteerStatusChange> VolunteerStatusChanges => Set<VolunteerStatusChange>();
+    public DbSet<ProgramTemplateActivity> ProgramTemplateActivities => Set<ProgramTemplateActivity>();
+    public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -80,6 +82,24 @@ public class EsfDbContext : DbContext
             e.HasIndex(x => x.Name).IsUnique();
             e.Property(x => x.Icon).HasMaxLength(20).IsRequired();
             e.Property(x => x.Color).HasMaxLength(20).IsRequired();
+            e.Property(x => x.TemplateTargetAudience).HasMaxLength(300);
+        });
+
+        b.Entity<ProgramTemplateActivity>(e =>
+        {
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.HasIndex(x => new { x.ProgramId, x.Position });
+            e.HasOne(x => x.Program).WithMany(p => p.TemplateActivities).HasForeignKey(x => x.ProgramId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<ProgramTemplateIndicator>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Unit).HasMaxLength(60);
+            e.HasIndex(x => new { x.ProgramId, x.Position });
+            e.HasOne(x => x.Program).WithMany(p => p.TemplateIndicators).HasForeignKey(x => x.ProgramId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Activity>(e =>

@@ -1690,3 +1690,31 @@ n/* Foto e nome no topo: abrem o menu da conta. */
   cursor: pointer;
 }
 .color-picker__option--active { box-shadow: 0 0 0 2px var(--text); }
+
+/* Modelo do programa */
+.template__intro { display: block; max-width: 760px; margin: 0 0 14px; }
+.template-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.template-side { display: grid; gap: 16px; }
+.template-list { list-style: none; margin: 0; padding: 0; }
+.template-list__item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.template-list__item:last-child { border-bottom: 0; }
+.template-list__index {
+  flex: 0 0 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+}
+.template-list__main { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.template-list__title { font-weight: 500; font-size: 13.5px; }
+.template-list__meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-muted); }
+.template-list__desc { margin: 0; font-size: 12.5px; color: var(--text-muted); white-space: pre-line; }
+.template-list__item .row-actions { flex-shrink: 0; }
+.template-choice { gap: 2px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--accent-soft); }
+@media (max-width: 900px) {
+  .template-grid { grid-template-columns: minmax(0, 1fr); }
+}

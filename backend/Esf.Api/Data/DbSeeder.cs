@@ -100,6 +100,26 @@ public static class DbSeeder
         var pHorta = new ProjectProgram { Name = "Horta comunitaria", Icon = "horta", Color = "green" };
         db.Programs.AddRange(pBanheiro, pHorta);
 
+        // Modelos de demonstracao: o que um projeto novo de cada programa ja recebe.
+        pBanheiro.TemplateObjective = "Garantir acesso a saneamento digno com a construção ou reforma do banheiro da família.";
+        pBanheiro.TemplateTargetAudience = "1 família";
+        db.ProgramTemplateActivities.AddRange(
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 0, Title = "Visita técnica e levantamento", Priority = ActivityPriority.Alta, DueDays = 7 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Alta, DueDays = 20 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 2, Title = "Compra de material", Priority = ActivityPriority.Media, DueDays = 30 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 3, Title = "Mutirão de obra", Priority = ActivityPriority.Media },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 4, Title = "Entrega e registro final", Priority = ActivityPriority.Baixa });
+        db.ProgramTemplateIndicators.AddRange(
+            new ProgramTemplateIndicator { Program = pBanheiro, Position = 0, Name = "Famílias atendidas", Unit = "famílias" },
+            new ProgramTemplateIndicator { Program = pBanheiro, Position = 1, Name = "Banheiros construídos", Unit = "un." });
+        db.ProgramTemplateActivities.AddRange(
+            new ProgramTemplateActivity { Program = pHorta, Position = 0, Title = "Preparo do terreno", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pHorta, Position = 1, Title = "Plantio com a comunidade", Priority = ActivityPriority.Media },
+            new ProgramTemplateActivity { Program = pHorta, Position = 2, Title = "Oficina de manejo", Priority = ActivityPriority.Baixa });
+        db.ProgramTemplateIndicators.AddRange(
+            new ProgramTemplateIndicator { Program = pHorta, Position = 0, Name = "Canteiros", Unit = "un." },
+            new ProgramTemplateIndicator { Program = pHorta, Position = 1, Name = "Famílias envolvidas", Unit = "famílias" });
+
         const string cidade = "Porto Alegre";
         const string estado = "RS";
 

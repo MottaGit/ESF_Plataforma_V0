@@ -49,6 +49,43 @@ export interface Program {
   /** Chaves de icone e cor (ver utils/programs.ts). */
   icon: string;
   color: string;
+  /** Resumo do modelo do programa. */
+  templateActivitiesCount: number;
+  templateIndicatorsCount: number;
+  hasTemplateTexts: boolean;
+}
+
+export interface TemplateActivity {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: ActivityPriority;
+  /** Prazo em dias depois do inicio do projeto; null: sem prazo. */
+  dueDays: number | null;
+}
+
+export interface TemplateIndicator {
+  id: string;
+  name: string;
+  unit: string | null;
+}
+
+/** Modelo do programa: o que um projeto novo dele ja recebe. */
+export interface ProgramTemplate {
+  description: string | null;
+  objective: string | null;
+  targetAudience: string | null;
+  activities: TemplateActivity[];
+  indicators: TemplateIndicator[];
+}
+
+/** O modelo inteiro; itens com id null sao novos e os que faltarem sao apagados. */
+export interface SaveProgramTemplatePayload {
+  description: string | null;
+  objective: string | null;
+  targetAudience: string | null;
+  activities: Array<Omit<TemplateActivity, 'id'> & { id: string | null }>;
+  indicators: Array<Omit<TemplateIndicator, 'id'> & { id: string | null }>;
 }
 
 export interface ProjectListItem {
@@ -367,6 +404,8 @@ export interface SaveProjectPayload {
   startDate: string;
   endDateForecast: string | null;
   status: ProjectStatus;
+  /** So na criacao: usa o modelo do programa. */
+  useTemplate?: boolean;
 }
 
 export interface SaveActivityPayload {

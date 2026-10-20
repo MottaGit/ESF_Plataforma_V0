@@ -11,6 +11,7 @@ import type {
   NotificationList,
   Organization,
   Program,
+  ProgramTemplate,
   ProjectDetail,
   ProjectFile,
   ProjectFilters,
@@ -20,6 +21,7 @@ import type {
   ReportPayload,
   SaveActivityPayload,
   SaveIndicatorPayload,
+  SaveProgramTemplatePayload,
   SaveOrganizationPayload,
   SaveProgramPayload,
   SaveProjectPayload,
@@ -81,6 +83,9 @@ export const programsApi = {
   // Vai como texto: o cliente omite parametros false, e na API o padrao aqui e "so ativos".
   list: (onlyActive = true) => http.request<Program[]>('/api/programs', { query: { onlyActive: String(onlyActive) } }),
   get: (id: string) => http.request<Program>(`/api/programs/${id}`),
+  template: (id: string) => http.request<ProgramTemplate>(`/api/programs/${id}/template`),
+  saveTemplate: (id: string, payload: SaveProgramTemplatePayload) =>
+    http.request<ProgramTemplate>(`/api/programs/${id}/template`, { method: 'PUT', body: payload }),
   create: (payload: SaveProgramPayload) =>
     http.request<Program>('/api/programs', { method: 'POST', body: payload }),
   /** Renomear, trocar icone e cor e arquivar/reativar. */

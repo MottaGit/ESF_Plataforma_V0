@@ -122,6 +122,12 @@ public class SaveProjectRequest
 
     [Required(ErrorMessage = "Selecione o status.")]
     public ProjectStatus? Status { get; set; }
+
+    /// <summary>
+    /// So na criacao: usa o modelo do programa (cria as atividades e os indicadores padrao e preenche descricao,
+    /// objetivo e publico que vierem vazios).
+    /// </summary>
+    public bool UseTemplate { get; set; }
 }
 
 public class UpdateProjectStatusRequest

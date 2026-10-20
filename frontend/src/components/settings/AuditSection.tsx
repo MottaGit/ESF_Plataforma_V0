@@ -20,6 +20,7 @@ const ENTITY_TYPES = [
   'Histórico de status',
   'Documento assinado',
   'Programa',
+  'Modelo do programa',
   'Usuário',
   'Organização'
 ];
@@ -30,6 +31,11 @@ function describe(entry: AuditEntry) {
     if (entry.action === 'Created') return `adicionou ${entry.entityLabel} à equipe`;
     if (entry.action === 'Deleted') return `tirou ${entry.entityLabel} da equipe`;
     return `alterou a função de ${entry.entityLabel} na equipe`;
+  }
+  if (entry.entityType === 'Modelo do programa') {
+    if (entry.action === 'Created') return `incluiu no modelo do programa: ${entry.entityLabel}`;
+    if (entry.action === 'Deleted') return `tirou do modelo do programa: ${entry.entityLabel}`;
+    return `alterou no modelo do programa: ${entry.entityLabel}`;
   }
   if (entry.entityType === 'Histórico de status') {
     if (entry.action === 'Created') return `registrou no histórico de status: ${entry.entityLabel}`;
