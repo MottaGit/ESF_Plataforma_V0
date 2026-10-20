@@ -31,7 +31,7 @@ const ActivityBoard = lazy(() =>
 type View = 'list' | 'board';
 
 const VIEWS: Array<{ key: View; label: string }> = [
-  { key: 'list', label: 'Lista de projetos' },
+  { key: 'list', label: 'Projetos' },
   { key: 'board', label: 'Quadro de atividades' }
 ];
 

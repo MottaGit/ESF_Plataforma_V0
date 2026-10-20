@@ -99,7 +99,7 @@ function uniqueOptions(pairs: Array<[string, string]>) {
 interface ActivityBoardProps {
   searchParams: URLSearchParams;
   updateParams: (changes: Record<string, string | null>) => void;
-  /** Abas "Lista de projetos | Quadro de atividades", logo abaixo do titulo. */
+  /** Abas "Projetos | Quadro de atividades", logo abaixo do titulo. */
   switcher: ReactNode;
 }
 

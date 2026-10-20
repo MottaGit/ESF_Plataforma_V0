@@ -123,7 +123,9 @@ próximos 30, atravessando viradas de mês e de ano (voluntários ativos e afast
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um
 projeto (ou recarregar) mantém a lista como estava. O **progresso** é calculado pelas atividades concluídas (projeto
-concluído conta como 100%). A tela tem duas abas: **Lista de projetos** (a tabela) e **Quadro de atividades**.
+concluído conta como 100%). A tela tem duas abas: **Projetos** (a tabela) e **Quadro de atividades**. O **novo
+projeto** pede só o essencial (nome, programa, responsável, data de início e endereço; começa em planejamento); o resto
+(descrição, objetivo, comunidade, público, previsão de término, status, observações) fica em Editar projeto.
 
 **Programas** — ficam em Projetos › botão "Programas" (não mais em Configurações; o link antigo
 `/configuracoes?aba=programas` leva para lá). A página mostra um card por programa, com ícone, cor e quantos projetos

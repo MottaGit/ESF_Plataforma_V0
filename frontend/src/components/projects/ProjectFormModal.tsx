@@ -205,16 +205,31 @@ export function ProjectFormModal({
     }
   }
 
+  // Projeto novo: so o essencial; o resto se completa depois em Sobre › Editar.
+  const quick = !project;
+
+  const startDateField = (
+    <Field label="Data de início" htmlFor="startDate" required error={errors.startDate}>
+      <TextInput
+        id="startDate"
+        type="date"
+        value={form.startDate}
+        invalid={Boolean(errors.startDate)}
+        onChange={(event) => update('startDate', event.target.value)}
+      />
+    </Field>
+  );
+
   return (
     <>
       <Modal
         title={project ? 'Editar projeto' : 'Novo projeto'}
-        subtitle={project ? project.name : 'Os campos marcados com * são obrigatórios.'}
+        subtitle={project ? project.name : 'Só o essencial agora; descrição, objetivo, público e o resto você completa depois em Sobre.'}
         size="wide"
         onClose={onClose}
         footer={
           <>
-            <span className="modal__foot-note">Você poderá completar as demais informações depois.</span>
+            {quick ? <span className="modal__foot-note">Campos com * são obrigatórios.</span> : null}
             <Button onClick={onClose}>Cancelar</Button>
             <Button variant="primary" loading={saving} onClick={(event) => handleSubmit(event)}>
               {project ? 'Salvar alterações' : 'Criar projeto'}
@@ -298,35 +313,41 @@ export function ProjectFormModal({
               </Select>
             </Field>
 
-            <Field label="Descrição" htmlFor="description" span hint="O que será feito, em poucas linhas.">
-              <TextArea
-                id="description"
-                value={form.description}
-                onChange={(event) => update('description', event.target.value)}
-              />
-            </Field>
+            {quick ? startDateField : null}
 
-            <Field label="Objetivo" htmlFor="objective" span hint="O resultado que o projeto quer alcançar.">
-              <TextArea id="objective" value={form.objective} onChange={(event) => update('objective', event.target.value)} />
-            </Field>
+            {!quick ? (
+              <>
+                <Field label="Descrição" htmlFor="description" span hint="O que será feito, em poucas linhas.">
+                  <TextArea
+                    id="description"
+                    value={form.description}
+                    onChange={(event) => update('description', event.target.value)}
+                  />
+                </Field>
 
-            <Field label="Comunidade ou beneficiários" htmlFor="beneficiaries">
-              <TextInput
-                id="beneficiaries"
-                value={form.beneficiaries}
-                placeholder="Ex.: Associação de Moradores do Jardim Semear"
-                onChange={(event) => update('beneficiaries', event.target.value)}
-              />
-            </Field>
+                <Field label="Objetivo" htmlFor="objective" span hint="O resultado que o projeto quer alcançar.">
+                  <TextArea id="objective" value={form.objective} onChange={(event) => update('objective', event.target.value)} />
+                </Field>
 
-            <Field label="Público beneficiado" htmlFor="targetAudience">
-              <TextInput
-                id="targetAudience"
-                value={form.targetAudience}
-                placeholder="Ex.: 30 famílias"
-                onChange={(event) => update('targetAudience', event.target.value)}
-              />
-            </Field>
+                <Field label="Comunidade ou beneficiários" htmlFor="beneficiaries">
+                  <TextInput
+                    id="beneficiaries"
+                    value={form.beneficiaries}
+                    placeholder="Ex.: Associação de Moradores do Jardim Semear"
+                    onChange={(event) => update('beneficiaries', event.target.value)}
+                  />
+                </Field>
+
+                <Field label="Público beneficiado" htmlFor="targetAudience">
+                  <TextInput
+                    id="targetAudience"
+                    value={form.targetAudience}
+                    placeholder="Ex.: 30 famílias"
+                    onChange={(event) => update('targetAudience', event.target.value)}
+                  />
+                </Field>
+              </>
+            ) : null}
 
             <Field label="Endereço" htmlFor="address" span>
               <TextInput
@@ -355,67 +376,63 @@ export function ProjectFormModal({
               />
             </Field>
 
-            <Field
-              label="Coordenadas"
-              htmlFor="latitude"
-              hint="Opcional. Usadas para exibir o mapa do projeto."
-              error={errors.latitude ?? errors.longitude}
-            >
-              <div style={{ display: 'flex', gap: 8 }}>
-                <TextInput
-                  id="latitude"
-                  value={form.latitude}
-                  placeholder="Latitude"
-                  invalid={Boolean(errors.latitude)}
-                  onChange={(event) => update('latitude', event.target.value)}
-                />
-                <TextInput
-                  id="longitude"
-                  value={form.longitude}
-                  placeholder="Longitude"
-                  invalid={Boolean(errors.longitude)}
-                  onChange={(event) => update('longitude', event.target.value)}
-                />
-              </div>
-            </Field>
+            {!quick ? (
+              <>
+                <Field
+                  label="Coordenadas"
+                  htmlFor="latitude"
+                  hint="Opcional. Usadas para exibir o mapa do projeto."
+                  error={errors.latitude ?? errors.longitude}
+                >
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <TextInput
+                      id="latitude"
+                      value={form.latitude}
+                      placeholder="Latitude"
+                      invalid={Boolean(errors.latitude)}
+                      onChange={(event) => update('latitude', event.target.value)}
+                    />
+                    <TextInput
+                      id="longitude"
+                      value={form.longitude}
+                      placeholder="Longitude"
+                      invalid={Boolean(errors.longitude)}
+                      onChange={(event) => update('longitude', event.target.value)}
+                    />
+                  </div>
+                </Field>
 
-            <Field label="Data de início" htmlFor="startDate" required error={errors.startDate}>
-              <TextInput
-                id="startDate"
-                type="date"
-                value={form.startDate}
-                invalid={Boolean(errors.startDate)}
-                onChange={(event) => update('startDate', event.target.value)}
-              />
-            </Field>
+                {startDateField}
 
-            <Field label="Previsão de término" htmlFor="endDateForecast" error={errors.endDateForecast}>
-              <TextInput
-                id="endDateForecast"
-                type="date"
-                value={form.endDateForecast}
-                invalid={Boolean(errors.endDateForecast)}
-                onChange={(event) => update('endDateForecast', event.target.value)}
-              />
-            </Field>
+                <Field label="Previsão de término" htmlFor="endDateForecast" error={errors.endDateForecast}>
+                  <TextInput
+                    id="endDateForecast"
+                    type="date"
+                    value={form.endDateForecast}
+                    invalid={Boolean(errors.endDateForecast)}
+                    onChange={(event) => update('endDateForecast', event.target.value)}
+                  />
+                </Field>
 
-            <Field label="Status" htmlFor="status" required>
-              <Select
-                id="status"
-                value={form.status}
-                onChange={(event) => update('status', event.target.value as ProjectStatus)}
-              >
-                {PROJECT_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {projectStatusLabel(status)}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+                <Field label="Status" htmlFor="status" required>
+                  <Select
+                    id="status"
+                    value={form.status}
+                    onChange={(event) => update('status', event.target.value as ProjectStatus)}
+                  >
+                    {PROJECT_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {projectStatusLabel(status)}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
 
-            <Field label="Observações" htmlFor="notes" span hint={SENSITIVE_DATA_HINT}>
-              <TextArea id="notes" value={form.notes} onChange={(event) => update('notes', event.target.value)} />
-            </Field>
+                <Field label="Observações" htmlFor="notes" span hint={SENSITIVE_DATA_HINT}>
+                  <TextArea id="notes" value={form.notes} onChange={(event) => update('notes', event.target.value)} />
+                </Field>
+              </>
+            ) : null}
           </div>
 
           <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
