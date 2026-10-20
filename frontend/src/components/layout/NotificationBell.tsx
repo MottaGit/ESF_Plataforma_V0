@@ -11,11 +11,11 @@ import { usePopover } from '../ui/usePopover';
 /** De quanto em quanto tempo o sininho confere se chegou aviso novo. */
 const POLL_MS = 60_000;
 
-/** Para onde o aviso leva: a aba Atividades do projeto, quando e de uma atividade; senao, o projeto. */
+/** Para onde o aviso leva: a propria atividade (aberta na aba Atividades), quando e de uma; senao, o projeto. */
 function linkFor(notification: AppNotification) {
   if (!notification.projectId) return null;
   return notification.activityId
-    ? `/projetos/${notification.projectId}?aba=atividades`
+    ? `/projetos/${notification.projectId}?aba=atividades&atividade=${notification.activityId}`
     : `/projetos/${notification.projectId}`;
 }
 

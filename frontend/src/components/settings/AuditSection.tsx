@@ -12,6 +12,8 @@ import { Alert, EmptyState, Loading } from '../ui/Feedback';
 const ENTITY_TYPES = [
   'Projeto',
   'Atividade',
+  'Checklist',
+  'Comentário',
   'Relato',
   'Arquivo',
   'Indicador',
@@ -32,7 +34,17 @@ function describe(entry: AuditEntry) {
     if (entry.action === 'Deleted') return `tirou ${entry.entityLabel} da equipe`;
     return `alterou a função de ${entry.entityLabel} na equipe`;
   }
-  if (entry.entityType === 'Modelo do programa') {
+  if (entry.entityType === 'Checklist') {
+    if (entry.action === 'Created') return `incluiu no checklist: ${entry.entityLabel}`;
+    if (entry.action === 'Deleted') return `tirou do checklist: ${entry.entityLabel}`;
+    return `alterou no checklist: ${entry.entityLabel}`;
+  }
+  if (entry.entityType === 'Comentário') {
+    if (entry.action === 'Created') return `comentou em ${entry.entityLabel}`;
+    if (entry.action === 'Deleted') return `apagou o comentário em ${entry.entityLabel}`;
+    return `editou o comentário em ${entry.entityLabel}`;
+  }
+    if (entry.entityType === 'Modelo do programa') {
     if (entry.action === 'Created') return `incluiu no modelo do programa: ${entry.entityLabel}`;
     if (entry.action === 'Deleted') return `tirou do modelo do programa: ${entry.entityLabel}`;
     return `alterou no modelo do programa: ${entry.entityLabel}`;

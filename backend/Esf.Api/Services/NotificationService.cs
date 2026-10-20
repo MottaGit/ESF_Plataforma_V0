@@ -84,6 +84,25 @@ public class NotificationService
             activity.ProjectId, activity.Id, await ProjectNameAsync(activity.ProjectId));
     }
 
+    /// <summary>
+    /// Comentario numa atividade: avisa quem foi mencionado e (num comentario novo) o responsavel pela atividade,
+    /// se ele nao foi mencionado. Ninguem e avisado do proprio comentario.
+    /// </summary>
+    public async Task CommentedAsync(Activity activity, string text, IReadOnlyCollection<Guid> mentioned, bool notifyAssignee)
+    {
+        var actor = await GetActorAsync();
+        var snippet = text.Length <= 90 ? text : text[..89] + "…";
+        var projectName = await ProjectNameAsync(activity.ProjectId);
+
+        foreach (var volunteerId in mentioned)
+            await AddAsync(volunteerId, NotificationType.CommentMention,
+                $"{actor.Name} mencionou você em \"{activity.Title}\": {snippet}", activity.ProjectId, activity.Id, projectName);
+
+        if (notifyAssignee && activity.AssignedVolunteerId.HasValue && !mentioned.Contains(activity.AssignedVolunteerId.Value))
+            await AddAsync(activity.AssignedVolunteerId.Value, NotificationType.ActivityCommented,
+                $"{actor.Name} comentou em \"{activity.Title}\": {snippet}", activity.ProjectId, activity.Id, projectName);
+    }
+
     public async Task AddedToTeamAsync(Guid volunteerId, Guid projectId)
     {
         var actor = await GetActorAsync();

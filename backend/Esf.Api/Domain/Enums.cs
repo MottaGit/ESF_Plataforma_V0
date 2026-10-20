@@ -69,7 +69,9 @@ public enum NotificationType
     AddedToTeam = 4,
     ProjectOwner = 5,
     ActivityDueTomorrow = 6,
-    ActivityDueToday = 7
+    ActivityDueToday = 7,
+    CommentMention = 8,
+    ActivityCommented = 9
 }
 
 /// <summary>Documentos assinados guardados na plataforma.</summary>

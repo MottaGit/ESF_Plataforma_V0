@@ -177,6 +177,14 @@ do "Salvar". Os anexos também aparecem na aba Arquivos do projeto, com o selo "
 mantém o arquivo no projeto. O card do quadro e a linha da lista mostram o resumo (`☑ 3/5 · 📎 1`), que fica verde
 quando o checklist está completo.
 
+**Comentários nas atividades** — na mesma janela, abaixo do checklist e dos anexos: a conversa do dia a dia sobre a
+atividade (não vai para o relatório, ao contrário dos relatos de Andamento). Digitar **@** abre a lista de pessoas com
+acesso (a equipe do projeto primeiro, sem diferenciar acentos) e escolher insere o nome; Ctrl+Enter envia. Quem
+escreveu edita (aparece "(editado)") e apaga o próprio comentário; a coordenação também apaga os dos outros. Avisos no
+sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário novo, o responsável pela atividade ("Ana
+comentou em…"); na edição, só quem foi mencionado agora. Todo aviso de atividade (atribuição, bloqueio, prazo,
+comentário) abre direto a janela daquela atividade. O resumo nos cards ganha o contador de comentários.
+
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
@@ -383,6 +391,7 @@ ESF_Plataforma_V0/
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | atividades e indicadores padrão do modelo de cada programa |
 | `Activities` | atividades do projeto (FK `ProjectId`, responsável opcional) |
 | `ActivityChecklistItems` | itens do checklist de cada atividade (texto, feito, ordem) |
+| `ActivityComments` | comentários das atividades (autor, texto, voluntários mencionados, edição) |
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
@@ -393,7 +402,7 @@ ESF_Plataforma_V0/
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
 | `AuditEntries` | histórico de alterações: quem fez, quando, o quê e os campos alterados (antes e depois) |
-| `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável e prazos de hoje/amanhã), com data de leitura; os lidos são apagados após 30 dias e os não lidos após 60 |
+| `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável, prazos de hoje/amanhã, menção e comentário), com data de leitura; os lidos são apagados após 30 dias e os não lidos após 60 |
 
 Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
 e `SET NULL` para referências a usuários (excluir um usuário não apaga o projeto dele).
@@ -429,8 +438,10 @@ A documentação interativa fica em `/swagger`.
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
 | GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
-| GET | `/api/activities/{id}/details` | checklist e anexos da atividade |
+| GET | `/api/activities/{id}/details` | checklist, anexos e comentários da atividade |
 | POST · PUT/DELETE | `/api/activities/{id}/checklist` · `/api/checklist/{itemId}` | inclui, marca/reescreve e remove itens do checklist |
+| GET | `/api/activities/{id}/mentionable` | quem pode ser mencionado com @ (equipe primeiro) |
+| POST · PUT/DELETE | `/api/activities/{id}/comments` · `/api/comments/{commentId}` | comenta; edita (autor) e apaga (autor ou coordenação) |
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
 | GET/POST/PUT | `/api/volunteers[/{id}]` | cadastro de voluntários (DELETE, exclusão definitiva, só administrador) |

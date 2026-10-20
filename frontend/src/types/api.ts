@@ -143,6 +143,7 @@ export interface Activity {
   checklistTotal: number;
   checklistDone: number;
   attachmentsCount: number;
+  commentsCount: number;
 }
 
 export interface ChecklistItem {
@@ -152,10 +153,43 @@ export interface ChecklistItem {
   doneAt: string | null;
 }
 
-/** O que fica dentro da atividade: checklist e anexos. */
+/** O que fica dentro da atividade: checklist, anexos e comentarios. */
 export interface ActivityDetails {
   checklist: ChecklistItem[];
   attachments: ProjectFile[];
+  comments: ActivityComment[];
+}
+
+export interface Mention {
+  volunteerId: string;
+  name: string;
+}
+
+export interface ActivityComment {
+  id: string;
+  authorUserId: string | null;
+  authorName: string;
+  authorPhotoUrl: string | null;
+  text: string;
+  mentions: Mention[];
+  createdAt: string;
+  editedAt: string | null;
+  /** Editar: so quem escreveu. Apagar: quem escreveu e a coordenacao. */
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+/** Quem pode ser mencionado com @ (tem acesso); inTeam: esta na equipe do projeto. */
+export interface Mentionable {
+  volunteerId: string;
+  name: string;
+  photoUrl: string | null;
+  inTeam: boolean;
+}
+
+export interface SaveCommentPayload {
+  text: string;
+  mentionedVolunteerIds: string[];
 }
 
 export interface Indicator {
@@ -358,7 +392,9 @@ export type NotificationType =
   | 'AddedToTeam'
   | 'ProjectOwner'
   | 'ActivityDueTomorrow'
-  | 'ActivityDueToday';
+  | 'ActivityDueToday'
+  | 'CommentMention'
+  | 'ActivityCommented';
 
 export interface AppNotification {
   id: string;

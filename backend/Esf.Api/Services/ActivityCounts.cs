@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Esf.Api.Services;
 
 /// <summary>Resumo do que fica dentro de uma atividade, para os cards do quadro e a lista do projeto.</summary>
-public record ActivityCounts(int ChecklistTotal, int ChecklistDone, int Attachments)
+public record ActivityCounts(int ChecklistTotal, int ChecklistDone, int Attachments, int Comments)
 {
     /// <summary>Contagens de varias atividades de uma vez (consultas agrupadas).</summary>
     public static async Task<Dictionary<Guid, ActivityCounts>> ForAsync(EsfDbContext db, IReadOnlyCollection<Guid> ids)
@@ -23,10 +23,16 @@ public record ActivityCounts(int ChecklistTotal, int ChecklistDone, int Attachme
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Key, x => x.Count);
 
+        var comments = await db.ActivityComments
+            .Where(c => ids.Contains(c.ActivityId))
+            .GroupBy(c => c.ActivityId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count);
+
         return ids.Distinct().ToDictionary(id => id, id =>
         {
             var (total, done) = checklist.GetValueOrDefault(id);
-            return new ActivityCounts(total, done, attachments.GetValueOrDefault(id));
+            return new ActivityCounts(total, done, attachments.GetValueOrDefault(id), comments.GetValueOrDefault(id));
         });
     }
 }

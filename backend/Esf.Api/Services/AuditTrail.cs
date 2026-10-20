@@ -87,6 +87,7 @@ public static class AuditTrail
         },
         [typeof(ProgramTemplateIndicator)] = new() { ["Name"] = "Nome", ["Unit"] = "Unidade" },
         [typeof(ActivityChecklistItem)] = new() { ["Text"] = "Item", ["Done"] = "Feito" },
+        [typeof(ActivityComment)] = new() { ["Text"] = "Texto" },
         [typeof(ProjectVolunteer)] = new() { ["RoleInProject"] = "Função" },
         [typeof(SignedDocument)] = new() { ["SignedOn"] = "Assinado em" },
         [typeof(VolunteerStatusChange)] = new() { ["Status"] = "Status", ["StartsOn"] = "A partir de" },
@@ -179,6 +180,7 @@ public static class AuditTrail
         ProgramTemplateActivity a => ("Modelo do programa", $"{a.Program?.Name ?? "Programa"}: atividade \"{a.Title}\"", a.Id, null),
         ProgramTemplateIndicator i => ("Modelo do programa", $"{i.Program?.Name ?? "Programa"}: indicador \"{i.Name}\"", i.Id, null),
         ActivityChecklistItem c => ("Checklist", $"{c.Activity?.Title ?? "Atividade"}: {c.Text}", c.Id, c.Activity?.ProjectId),
+        ActivityComment c => ("Comentário", $"{c.Activity?.Title ?? "Atividade"}: {Truncate(c.Text, 80)}", c.Id, c.Activity?.ProjectId),
         Organization o => ("Organização", o.Name, o.Id, null),
         _ => ("Registro", entity.GetType().Name, Guid.Empty, null)
     };

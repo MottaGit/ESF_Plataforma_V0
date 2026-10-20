@@ -44,6 +44,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<ProgramService>();
 builder.Services.AddScoped<ActivityService>();
+builder.Services.AddScoped<ActivityCommentService>();
 builder.Services.AddScoped<VolunteerService>();
 builder.Services.AddScoped<VolunteerStatusHistoryService>();
 builder.Services.AddScoped<IndicatorService>();

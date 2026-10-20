@@ -28,12 +28,41 @@ public record ActivityDto(
     // Resumo do que fica dentro da atividade (checklist e anexos), para os cards e a lista.
     int ChecklistTotal,
     int ChecklistDone,
-    int AttachmentsCount);
+    int AttachmentsCount,
+    int CommentsCount);
 
 public record ChecklistItemDto(Guid Id, string Text, bool Done, DateTime? DoneAt);
 
-/// <summary>O que fica dentro da atividade: checklist e anexos.</summary>
-public record ActivityDetailsDto(List<ChecklistItemDto> Checklist, List<ProjectFileDto> Attachments);
+/// <summary>O que fica dentro da atividade: checklist, anexos e comentarios.</summary>
+public record ActivityDetailsDto(List<ChecklistItemDto> Checklist, List<ProjectFileDto> Attachments, List<CommentDto> Comments);
+
+public record MentionDto(Guid VolunteerId, string Name);
+
+public record CommentDto(
+    Guid Id,
+    Guid? AuthorUserId,
+    string AuthorName,
+    string? AuthorPhotoUrl,
+    string Text,
+    List<MentionDto> Mentions,
+    DateTime CreatedAt,
+    DateTime? EditedAt,
+    // Editar: so quem escreveu. Apagar: quem escreveu e a coordenacao.
+    bool CanEdit,
+    bool CanDelete);
+
+/// <summary>Quem pode ser mencionado com @ (tem acesso a plataforma); InTeam: esta na equipe do projeto.</summary>
+public record MentionableDto(Guid VolunteerId, string Name, string? PhotoUrl, bool InTeam);
+
+public class SaveCommentRequest
+{
+    [Required(ErrorMessage = "Escreva o comentario.")]
+    [StringLength(2000, MinimumLength = 1, ErrorMessage = "O comentario deve ter ate 2000 caracteres.")]
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>Voluntarios mencionados com @ (recebem aviso).</summary>
+    public List<Guid>? MentionedVolunteerIds { get; set; }
+}
 
 public class SaveChecklistItemRequest
 {

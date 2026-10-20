@@ -2,6 +2,7 @@ import { shrinkImage } from '../utils/images';
 import { http } from './client';
 import type {
   Activity,
+  ActivityComment,
   ActivityDetails,
   AuditFilters,
   AuditPage,
@@ -10,6 +11,7 @@ import type {
   Dashboard,
   Indicator,
   LoginResponse,
+  Mentionable,
   NotificationList,
   Organization,
   Program,
@@ -22,6 +24,7 @@ import type {
   ProjectVolunteer,
   ReportPayload,
   SaveActivityPayload,
+  SaveCommentPayload,
   SaveIndicatorPayload,
   SaveProgramTemplatePayload,
   SaveOrganizationPayload,
@@ -118,7 +121,14 @@ export const activitiesApi = {
     http.request<ChecklistItem>(`/api/activities/${id}/checklist`, { method: 'POST', body: { text } }),
   updateChecklistItem: (itemId: string, changes: { text?: string; done?: boolean }) =>
     http.request<ChecklistItem>(`/api/checklist/${itemId}`, { method: 'PUT', body: changes }),
-  removeChecklistItem: (itemId: string) => http.request<void>(`/api/checklist/${itemId}`, { method: 'DELETE' })
+  removeChecklistItem: (itemId: string) => http.request<void>(`/api/checklist/${itemId}`, { method: 'DELETE' }),
+  /** Pessoas que podem ser mencionadas nos comentarios (a equipe do projeto primeiro). */
+  mentionable: (id: string) => http.request<Mentionable[]>(`/api/activities/${id}/mentionable`),
+  addComment: (id: string, payload: SaveCommentPayload) =>
+    http.request<ActivityComment>(`/api/activities/${id}/comments`, { method: 'POST', body: payload }),
+  updateComment: (commentId: string, payload: SaveCommentPayload) =>
+    http.request<ActivityComment>(`/api/comments/${commentId}`, { method: 'PUT', body: payload }),
+  removeComment: (commentId: string) => http.request<void>(`/api/comments/${commentId}`, { method: 'DELETE' })
 };
 
 export const volunteersApi = {

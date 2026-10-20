@@ -60,7 +60,8 @@ public static class Mapping
             a.Project?.Program?.Name,
             counts?.ChecklistTotal ?? 0,
             counts?.ChecklistDone ?? 0,
-            counts?.Attachments ?? 0);
+            counts?.Attachments ?? 0,
+            counts?.Comments ?? 0);
 
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);

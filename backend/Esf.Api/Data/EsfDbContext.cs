@@ -24,6 +24,7 @@ public class EsfDbContext : DbContext
     public DbSet<VolunteerStatusChange> VolunteerStatusChanges => Set<VolunteerStatusChange>();
     public DbSet<ProgramTemplateActivity> ProgramTemplateActivities => Set<ProgramTemplateActivity>();
     public DbSet<ActivityChecklistItem> ActivityChecklistItems => Set<ActivityChecklistItem>();
+    public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -125,6 +126,16 @@ public class EsfDbContext : DbContext
             e.HasIndex(x => new { x.ActivityId, x.Position });
             e.HasOne(x => x.Activity).WithMany(a => a.ChecklistItems).HasForeignKey(x => x.ActivityId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<ActivityComment>(e =>
+        {
+            e.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+            e.HasIndex(x => new { x.ActivityId, x.CreatedAt });
+            e.HasOne(x => x.Activity).WithMany(a => a.Comments).HasForeignKey(x => x.ActivityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.AuthorUser).WithMany().HasForeignKey(x => x.AuthorUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<Indicator>(e =>

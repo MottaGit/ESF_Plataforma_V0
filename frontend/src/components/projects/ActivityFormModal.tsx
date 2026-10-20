@@ -135,7 +135,7 @@ export function ActivityFormModal({
       title={activity ? 'Editar atividade' : 'Nova atividade'}
       subtitle={
         activity
-          ? 'Checklist e anexos são gravados na hora; os demais campos, ao salvar.'
+          ? 'Checklist, anexos e comentários são gravados na hora; os demais campos, ao salvar.'
           : 'Atividades organizam a execução do projeto no dia a dia.'
       }
       size={activity ? 'wide' : 'default'}
@@ -299,7 +299,7 @@ export function ActivityFormModal({
           <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
         </form>
 
-        {/* Atividade ja criada: checklist e anexos ao lado do formulario (embaixo, no celular). */}
+        {/* Atividade ja criada: checklist, anexos e comentarios ao lado do formulario (embaixo, no celular). */}
         {activity ? (
           <ActivityExtras activity={activity} onChanged={() => (extrasChanged.current = true)} />
         ) : null}

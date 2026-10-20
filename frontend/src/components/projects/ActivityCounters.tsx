@@ -1,5 +1,5 @@
 import type { Activity } from '../../types/api';
-import { IconChecklist, IconPaperclip } from '../ui/Icons';
+import { IconChecklist, IconComment, IconPaperclip } from '../ui/Icons';
 
 interface ActivityCountersProps {
   activity: Activity;
@@ -7,7 +7,7 @@ interface ActivityCountersProps {
   onClick?: () => void;
 }
 
-/** Resumo do que fica dentro da atividade: checklist (3/5) e anexos. Nada aparece quando esta tudo vazio. */
+/** Resumo do que fica dentro da atividade: checklist (3/5), anexos e comentarios. Nada aparece quando esta tudo vazio. */
 export function ActivityCounters({ activity, onClick }: ActivityCountersProps) {
   const items = [];
   if (activity.checklistTotal > 0) {
@@ -31,13 +31,21 @@ export function ActivityCounters({ activity, onClick }: ActivityCountersProps) {
       </span>
     );
   }
+  if (activity.commentsCount > 0) {
+    items.push(
+      <span key="comments" className="activity-counters__item" title={`${activity.commentsCount} comentário(s)`}>
+        <IconComment size={14} />
+        {activity.commentsCount}
+      </span>
+    );
+  }
   if (items.length === 0) return null;
 
   return onClick ? (
     <button
       type="button"
       className="activity-counters activity-counters--button"
-      aria-label={`Abrir "${activity.title}" (checklist e anexos)`}
+      aria-label={`Abrir "${activity.title}" (checklist, anexos e comentários)`}
       onClick={(event) => {
         event.stopPropagation();
         onClick();

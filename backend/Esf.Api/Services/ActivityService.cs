@@ -11,11 +11,13 @@ public class ActivityService
 {
     private readonly EsfDbContext _db;
     private readonly NotificationService _notifications;
+    private readonly ActivityCommentService _comments;
 
-    public ActivityService(EsfDbContext db, NotificationService notifications)
+    public ActivityService(EsfDbContext db, NotificationService notifications, ActivityCommentService comments)
     {
         _db = db;
         _notifications = notifications;
+        _comments = comments;
     }
 
     public async Task<List<ActivityDto>> ListByProjectAsync(Guid projectId)
@@ -196,7 +198,7 @@ public class ActivityService
             .OrderBy(f => f.UploadedAt)
             .ToListAsync();
 
-        return new ActivityDetailsDto(checklist, attachments.Select(Mapping.ToDto).ToList());
+        return new ActivityDetailsDto(checklist, attachments.Select(Mapping.ToDto).ToList(), await _comments.ListAsync(id));
     }
 
     public async Task<ChecklistItemDto> AddChecklistItemAsync(Guid activityId, SaveChecklistItemRequest request)

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
@@ -59,6 +60,26 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
   const [blocking, setBlocking] = useState<Activity | null>(null);
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  // Link direto para uma atividade (aviso do sininho, busca): abre a janela dela e tira o parametro da URL.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const linkedActivityId = searchParams.get('atividade');
+  useEffect(() => {
+    if (!linkedActivityId) return;
+    const linked = project.activities.find((activity) => activity.id === linkedActivityId);
+    if (linked) {
+      setEditing(linked);
+      setFormOpen(true);
+    }
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete('atividade');
+        return next;
+      },
+      { replace: true }
+    );
+  }, [linkedActivityId, project.activities, setSearchParams]);
 
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
   const [assigneeFilter, setAssigneeFilter] = useState('');

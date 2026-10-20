@@ -12,11 +12,13 @@ namespace Esf.Api.Controllers;
 public class ActivitiesController : ControllerBase
 {
     private readonly ActivityService _activities;
+    private readonly ActivityCommentService _comments;
     private readonly ICurrentUser _currentUser;
 
-    public ActivitiesController(ActivityService activities, ICurrentUser currentUser)
+    public ActivitiesController(ActivityService activities, ActivityCommentService comments, ICurrentUser currentUser)
     {
         _activities = activities;
+        _comments = comments;
         _currentUser = currentUser;
     }
 
@@ -74,6 +76,27 @@ public class ActivitiesController : ControllerBase
     public async Task<IActionResult> DeleteChecklistItem(Guid itemId)
     {
         await _activities.DeleteChecklistItemAsync(itemId);
+        return NoContent();
+    }
+
+    /// <summary>Quem pode ser mencionado com @ nos comentarios desta atividade (a equipe vem primeiro).</summary>
+    [HttpGet("activities/{id:guid}/mentionable")]
+    public async Task<ActionResult<List<MentionableDto>>> Mentionable(Guid id) => Ok(await _comments.MentionableAsync(id));
+
+    [HttpPost("activities/{id:guid}/comments")]
+    public async Task<ActionResult<CommentDto>> AddComment(Guid id, SaveCommentRequest request)
+        => Ok(await _comments.AddAsync(id, request));
+
+    /// <summary>So quem escreveu.</summary>
+    [HttpPut("comments/{commentId:guid}")]
+    public async Task<ActionResult<CommentDto>> UpdateComment(Guid commentId, SaveCommentRequest request)
+        => Ok(await _comments.UpdateAsync(commentId, request));
+
+    /// <summary>Quem escreveu ou a coordenacao.</summary>
+    [HttpDelete("comments/{commentId:guid}")]
+    public async Task<IActionResult> DeleteComment(Guid commentId)
+    {
+        await _comments.DeleteAsync(commentId);
         return NoContent();
     }
 }

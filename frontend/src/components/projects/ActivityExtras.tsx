@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
 import { ConfirmDialog, Loading } from '../ui/Feedback';
 import { IconClose, IconPaperclip, IconUpload } from '../ui/Icons';
+import { ActivityComments } from './ActivityComments';
 
 interface ActivityExtrasProps {
   activity: Activity;
@@ -16,8 +17,8 @@ interface ActivityExtrasProps {
 }
 
 /**
- * Coluna da direita da janela da atividade: checklist e anexos. Cada mudanca grava na hora, sem depender do
- * "Salvar" do formulario.
+ * Coluna da direita da janela da atividade: checklist, anexos e comentarios. Cada mudanca grava na hora, sem
+ * depender do "Salvar" do formulario.
  */
 export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
   const { notifyError } = useToast();
@@ -211,6 +212,8 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
         </Button>
         <p className="field__hint extras__hint">Os anexos também aparecem na aba Arquivos do projeto.</p>
       </section>
+
+      <ActivityComments activityId={activity.id} initial={details.comments} onChanged={onChanged} />
 
       {removingFile ? (
         <ConfirmDialog

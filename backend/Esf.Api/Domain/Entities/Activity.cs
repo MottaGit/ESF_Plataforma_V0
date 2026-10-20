@@ -27,4 +27,6 @@ public class Activity
 
     /// <summary>Arquivos anexados na atividade (tambem aparecem na aba Arquivos do projeto).</summary>
     public ICollection<ProjectFile> Attachments { get; set; } = new List<ProjectFile>();
+
+    public ICollection<ActivityComment> Comments { get; set; } = new List<ActivityComment>();
 }
