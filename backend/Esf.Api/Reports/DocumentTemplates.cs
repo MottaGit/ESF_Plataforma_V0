@@ -86,6 +86,56 @@ public static class DocumentTemplates
             Closing(col, org, ("VOLUNTÁRIO(A)", volunteer.Name), ("ORGANIZAÇÃO", OrgSignatory(org)));
         });
 
+    /// <summary>
+    /// Autorizacao de uso de imagem para uma familia atendida pelo projeto (uma por familia): quem autoriza
+    /// preenche os proprios dados e, se houver, os das criancas e adolescentes de quem e responsavel.
+    /// </summary>
+    public static byte[] BeneficiaryImageAuthorization(Organization org, Project project) =>
+        Build(org, "TERMO DE AUTORIZAÇÃO DE USO DE IMAGEM", col =>
+        {
+            col.Item().Text(text =>
+            {
+                text.Span("Projeto: ");
+                text.Span(project.Name).SemiBold();
+            });
+            var place = string.Join(", ", new[] { project.Address, project.District, project.City }
+                .Where(part => !string.IsNullOrWhiteSpace(part)));
+            if (place.Length > 0) col.Item().Text($"Local: {place}");
+
+            col.Item().PaddingTop(4).Column(person =>
+            {
+                person.Spacing(9);
+                person.Item().Text("Eu, __________________________________________________________________________,");
+                person.Item().Text("CPF: ________________________________     RG: ________________________________");
+                person.Item().Text("residente em: ________________________________________________________________,");
+            });
+
+            col.Item().Text(text =>
+            {
+                text.Justify();
+                text.Span("autorizo, de forma gratuita, a ");
+                text.Span(org.Name).SemiBold();
+                if (!string.IsNullOrWhiteSpace(org.Cnpj)) text.Span($", CNPJ {org.Cnpj}");
+                text.Span(
+                    ", a usar a minha imagem e voz e as das pessoas de quem sou responsável legal, listadas abaixo, " +
+                    "captadas em fotos e vídeos durante o projeto acima, em relatórios de prestação de contas a " +
+                    "parceiros e financiadores, em materiais institucionais, no site e nas redes sociais da " +
+                    "organização, sem finalidade comercial.");
+            });
+
+            col.Item().PaddingTop(2).Text("Crianças e adolescentes de quem sou responsável (nome e idade):").SemiBold();
+            for (var i = 0; i < 3; i++)
+                col.Item().Text("______________________________________________________________   Idade: ______");
+
+            Clause(col, "Condições.",
+                "A autorização não envolve pagamento de qualquer natureza e vale enquanto as imagens forem usadas " +
+                "para os fins acima. Pode ser revogada a qualquer tempo, por comunicação à organização, sem efeito " +
+                "sobre materiais já publicados. Os dados deste termo são tratados conforme a Lei nº 13.709/2018 " +
+                "(LGPD) e o Estatuto da Criança e do Adolescente.");
+
+            Closing(col, org, ("QUEM AUTORIZA", null), ("ORGANIZAÇÃO", OrgSignatory(org)));
+        });
+
     // ---------- estrutura comum ----------
 
     private static byte[] Build(Organization org, string title, Action<ColumnDescriptor> body) =>

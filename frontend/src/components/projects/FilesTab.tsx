@@ -7,7 +7,7 @@ import { emptyToNull, fileExtension, formatDate, formatDateTime, formatFileSize 
 import { NeutralBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
-import { ConfirmDialog, EmptyState } from '../ui/Feedback';
+import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconDownload, IconEdit, IconTrash, IconUpload } from '../ui/Icons';
 import { Lightbox } from '../ui/Lightbox';
 
@@ -79,6 +79,15 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
 
   return (
     <>
+      {!project.imageAuthorizedOn && project.files.some((file) => file.isImage) ? (
+        <div style={{ marginBottom: 16 }}>
+          <Alert kind="warning">
+            Sem autorização de uso de imagem dos beneficiários registrada. Antes de usar estas fotos em relatórios ou
+            redes sociais, registre a autorização assinada na aba Sobre.
+          </Alert>
+        </div>
+      ) : null}
+
       <div
         className={`dropzone${dragging ? ' dropzone--active' : ''}`}
         style={{ marginBottom: 16 }}

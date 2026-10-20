@@ -4,6 +4,7 @@ import { indicatorsApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Indicator, ProjectDetail, SaveIndicatorPayload } from '../../types/api';
 import { emptyToNull, formatDate, formatDateTime, formatNumber } from '../../utils/format';
+import { SignedDocumentsPanel } from '../documents/SignedDocumentsPanel';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
@@ -134,7 +135,8 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
           </section>
         </div>
 
-        <section className="panel" style={{ alignSelf: 'start' }}>
+        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+        <section className="panel">
           <div className="panel__head">
             <h2>Informações gerais</h2>
           </div>
@@ -159,6 +161,17 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
             </div>
           </div>
         </section>
+
+        {canManage ? (
+          <SignedDocumentsPanel
+            owner={{ type: 'project', id: project.id }}
+            title="Autorização de imagem dos beneficiários"
+            description="Necessária para usar fotos que mostram as famílias atendidas em relatórios e redes. Gere o termo, colha a assinatura de cada família e envie as cópias."
+            templateLabel="Gerar autorização para assinar"
+            onChanged={onChanged}
+          />
+        ) : null}
+        </div>
       </div>
 
       {formOpen ? (

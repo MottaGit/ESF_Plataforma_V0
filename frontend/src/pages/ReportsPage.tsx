@@ -46,6 +46,11 @@ export function ReportsPage() {
     });
   }, [projects, search, status]);
 
+  // Selecionados sem autorizacao de uso de imagem dos beneficiarios: so um aviso, o PDF nao muda.
+  const withoutImageAuthorization = projects.filter(
+    (project) => selected.includes(project.id) && !project.imageAuthorizedOn
+  );
+
   function toggle(id: string) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   }
@@ -188,6 +193,19 @@ export function ReportsPage() {
                 Registro fotográfico
               </label>
             </div>
+
+            {includePhotos && withoutImageAuthorization.length > 0 ? (
+              <div style={{ marginBottom: 16 }}>
+                <Alert kind="warning">
+                  {withoutImageAuthorization.length === 1
+                    ? '1 projeto selecionado não tem'
+                    : `${withoutImageAuthorization.length} projetos selecionados não têm`}{' '}
+                  autorização de uso de imagem dos beneficiários registrada:{' '}
+                  {withoutImageAuthorization.map((project) => project.name).join(', ')}. As fotos entram no relatório;
+                  confira se podem ser usadas.
+                </Alert>
+              </div>
+            ) : null}
 
             <Field
               label="Observação do relatório"

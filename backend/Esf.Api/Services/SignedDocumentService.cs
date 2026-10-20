@@ -75,6 +75,15 @@ public class SignedDocumentService
         return (DocumentTemplates.VolunteerTerm(org, volunteer), $"termo-de-adesao-{Slug(volunteer.Name)}.pdf");
     }
 
+    /// <summary>Autorizacao de uso de imagem para as familias do projeto assinarem (uma por familia).</summary>
+    public async Task<(byte[] Content, string FileName)> ImageAuthorizationTemplateAsync(Guid projectId)
+    {
+        var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == projectId)
+                      ?? throw AppException.NotFound("Projeto");
+        var org = await OrganizationAsync();
+        return (DocumentTemplates.BeneficiaryImageAuthorization(org, project), $"autorizacao-de-imagem-{Slug(project.Name)}.pdf");
+    }
+
     /// <summary>Remove os arquivos dos documentos de um voluntario ou projeto que esta sendo excluido.</summary>
     public static async Task<List<string>> StoredNamesAsync(EsfDbContext db, Guid? volunteerId, Guid? projectId) =>
         await db.SignedDocuments

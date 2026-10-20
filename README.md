@@ -197,6 +197,12 @@ arquivo (é ela que aparece embaixo da foto no relatório), visualizador de foto
 Os arquivos ficam guardados no próprio banco (tabela `StoredFiles`), então não se perdem quando o servidor é recriado
 a cada deploy. Fotos grandes são reduzidas no navegador antes do envio (JPEG com o maior lado em 2048 px).
 
+**Autorização de imagem dos beneficiários** — na aba Sobre de cada projeto, a coordenação gera o termo de autorização
+de uso de imagem em PDF (com o nome e o local do projeto e espaço para os dados de quem autoriza e das crianças e
+adolescentes de quem é responsável), colhe a assinatura de cada família e envia as cópias, que ficam privadas como os
+termos de adesão. Enquanto não houver autorização registrada, a aba Arquivos de um projeto com fotos e a tela de
+Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o PDF do relatório não muda.
+
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
 **Relatórios** — seleção de um ou vários projetos, observação livre e geração de um **PDF consolidado** com
@@ -333,6 +339,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
 | PUT/DELETE | `/api/programs/{id}` | renomeia e arquiva/reativa; exclui só programa sem projetos |
 | GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
+| GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
 | GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
 | PATCH | `/api/projects/{id}/status` | mudança de status |

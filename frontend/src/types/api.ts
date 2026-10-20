@@ -67,6 +67,8 @@ export interface ProjectListItem {
   updatedAt: string;
   /** Data da atualizacao de andamento mais recente (null se nunca houve). */
   lastUpdateAt: string | null;
+  /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
+  imageAuthorizedOn: string | null;
 }
 
 export interface Activity {
@@ -200,6 +202,8 @@ export interface ProjectDetail {
   indicators: Indicator[];
   files: ProjectFile[];
   updates: ProjectUpdate[];
+  /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
+  imageAuthorizedOn: string | null;
 }
 
 export interface DashboardTotals {

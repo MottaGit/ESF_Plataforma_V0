@@ -36,6 +36,23 @@ public class SignedDocumentsController : ControllerBase
         return File(content, "application/pdf", fileName);
     }
 
+    [HttpGet("projects/{projectId:guid}/documents")]
+    public async Task<ActionResult<List<SignedDocumentDto>>> ListForProject(Guid projectId)
+        => Ok(await _documents.ListForProjectAsync(projectId));
+
+    [HttpPost("projects/{projectId:guid}/documents")]
+    [RequestSizeLimit(20 * 1024 * 1024)]
+    public async Task<ActionResult<SignedDocumentDto>> UploadForProject(Guid projectId, [FromForm] UploadSignedDocumentRequest request)
+        => Ok(await _documents.UploadForProjectAsync(projectId, request));
+
+    /// <summary>Autorizacao de uso de imagem em PDF, com o nome do projeto, para as familias assinarem.</summary>
+    [HttpGet("projects/{projectId:guid}/documents/template")]
+    public async Task<IActionResult> ImageAuthorizationTemplate(Guid projectId)
+    {
+        var (content, fileName) = await _documents.ImageAuthorizationTemplateAsync(projectId);
+        return File(content, "application/pdf", fileName);
+    }
+
     [HttpGet("documents/{id:guid}/download")]
     public async Task<IActionResult> Download(Guid id)
     {

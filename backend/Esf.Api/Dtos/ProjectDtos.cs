@@ -23,7 +23,9 @@ public record ProjectListItemDto(
     int VolunteersCount,
     DateTime UpdatedAt,
     // Data da atualizacao de andamento mais recente (null se o projeto nunca teve uma).
-    DateTime? LastUpdateAt)
+    DateTime? LastUpdateAt,
+    // Data da autorizacao de uso de imagem dos beneficiarios mais recente (null: nao registrada).
+    DateOnly? ImageAuthorizedOn)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(Status, ActivitiesTotal, ActivitiesDone);
@@ -58,7 +60,9 @@ public record ProjectDetailDto(
     IReadOnlyList<ProjectVolunteerDto> Volunteers,
     IReadOnlyList<IndicatorDto> Indicators,
     IReadOnlyList<ProjectFileDto> Files,
-    IReadOnlyList<ProjectUpdateDto> Updates)
+    IReadOnlyList<ProjectUpdateDto> Updates,
+    // Data da autorizacao de uso de imagem dos beneficiarios mais recente (null: nao registrada).
+    DateOnly? ImageAuthorizedOn)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(

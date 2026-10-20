@@ -84,7 +84,10 @@ public class ProjectService
                 p.Activities.Count(a => a.Status == ActivityStatus.Concluida),
                 p.Volunteers.Count,
                 p.UpdatedAt,
-                p.Updates.Max(u => (DateTime?)u.CreatedAt)))
+                p.Updates.Max(u => (DateTime?)u.CreatedAt),
+                _db.SignedDocuments
+                    .Where(d => d.ProjectId == p.Id && d.Kind == SignedDocumentKind.BeneficiaryImageAuthorization)
+                    .Max(d => (DateOnly?)d.SignedOn)))
             .ToListAsync();
 
         // O progresso e calculado em memoria, entao a ordenacao por ele tambem (a lista ja vem por nome).
@@ -96,7 +99,10 @@ public class ProjectService
     public async Task<ProjectDetailDto> GetDetailAsync(Guid id)
     {
         var project = await LoadFullAsync(id) ?? throw AppException.NotFound("Projeto");
-        return Mapping.ToDetailDto(project);
+        var imageAuthorizedOn = await _db.SignedDocuments
+            .Where(d => d.ProjectId == id && d.Kind == SignedDocumentKind.BeneficiaryImageAuthorization)
+            .MaxAsync(d => (DateOnly?)d.SignedOn);
+        return Mapping.ToDetailDto(project, imageAuthorizedOn);
     }
 
     /// <summary>Carrega o projeto com todas as colecoes (usado no detalhe e no relatorio).</summary>

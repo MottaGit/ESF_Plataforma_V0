@@ -120,7 +120,7 @@ public static class Mapping
             o.UpdatedAt, o.SignatoryName, o.SignatoryRole);
 
     /// <summary>Detalhe completo do projeto, com as colecoes ja carregadas.</summary>
-    public static ProjectDetailDto ToDetailDto(Project p) =>
+    public static ProjectDetailDto ToDetailDto(Project p, DateOnly? imageAuthorizedOn = null) =>
         new(p.Id,
             p.Name,
             p.Description,
@@ -154,5 +154,6 @@ public static class Mapping
             p.Indicators.OrderBy(i => i.CreatedAt).Select(ToDto).ToList(),
             // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.
             p.Files.OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
-            p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList());
+            p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList(),
+            imageAuthorizedOn);
 }
