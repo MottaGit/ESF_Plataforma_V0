@@ -81,3 +81,11 @@ public enum SignedDocumentKind
     /// <summary>Autorizacao de uso de imagem dos beneficiarios de um projeto.</summary>
     BeneficiaryImageAuthorization = 1
 }
+
+/// <summary>O que aconteceu com o registro, no historico de alteracoes.</summary>
+public enum AuditAction
+{
+    Created = 0,
+    Updated = 1,
+    Deleted = 2
+}

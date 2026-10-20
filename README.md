@@ -233,6 +233,15 @@ formulário de projeto, o botão "Novo" ao lado do Programa cria um programa num
 a plataforma; a data e a versão aceita ficam registradas. Para publicar uma nova versão, atualize o texto em
 `pages/PrivacyPage.tsx` e a data em `PrivacyTerms.CurrentVersion` (API).
 
+**Histórico de alterações** — toda criação, alteração ou exclusão feita por uma pessoa logada (projetos, atividades,
+relatos, arquivos, indicadores, equipe, voluntários, documentos assinados, programas, usuários e dados da organização)
+fica registrada automaticamente, com quem fez, quando e o valor antes e depois de cada campo. Em Configurações ›
+Histórico (só administradores) a lista aparece em frases ("Ana alterou a atividade…"), com filtros por projeto, pessoa,
+tipo e período, 50 por vez. Dados pessoais do cadastro de voluntário (nome, contatos, aniversário, observações, foto) só
+registram que mudaram, sem o valor, e nomes de voluntários são resolvidos na hora de exibir — quem for anonimizado
+aparece como "Voluntário removido" também no histórico. Senhas nunca entram. O que não vem de uma pessoa (dados de
+demonstração, rotinas internas) não é registrado.
+
 **Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
 acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
 de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes
@@ -330,6 +339,7 @@ ESF_Plataforma_V0/
 | `Organizations` | dados institucionais (registro único) |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
+| `AuditEntries` | histórico de alterações: quem fez, quando, o quê e os campos alterados (antes e depois) |
 | `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável e prazos de hoje/amanhã), com data de leitura; os lidos são apagados após 30 dias e os não lidos após 60 |
 
 Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
@@ -356,6 +366,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
 | POST | `/api/volunteers/{id}/certificate` | certificado de voluntariado em PDF (período, horas por semana e CPF opcional, que não é guardado) |
 | POST/DELETE | `/api/organization/signature` | imagem da assinatura usada nos certificados (privada) |
+| GET | `/api/audit` | histórico de alterações (só administradores), com filtros por projeto, pessoa, tipo e período |
 | GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
 | PATCH | `/api/projects/{id}/status` | mudança de status |

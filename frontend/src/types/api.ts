@@ -426,3 +426,42 @@ export interface ProjectFilters {
   includeArchived?: boolean;
   sort?: string;
 }
+
+/* ---------- historico de alteracoes ---------- */
+
+export type AuditAction = 'Created' | 'Updated' | 'Deleted';
+
+export interface AuditChange {
+  field: string;
+  before: string;
+  after: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  at: string;
+  userId: string | null;
+  userName: string;
+  action: AuditAction;
+  /** Tipo do registro, em portugues (Projeto, Atividade, Voluntario...). */
+  entityType: string;
+  entityId: string;
+  entityLabel: string;
+  projectId: string | null;
+  projectName: string | null;
+  changes: AuditChange[];
+}
+
+export interface AuditPage {
+  items: AuditEntry[];
+  hasMore: boolean;
+}
+
+export interface AuditFilters {
+  projectId?: string;
+  userId?: string;
+  entityType?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+}

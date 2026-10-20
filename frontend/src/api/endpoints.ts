@@ -2,6 +2,8 @@ import { shrinkImage } from '../utils/images';
 import { http } from './client';
 import type {
   Activity,
+  AuditFilters,
+  AuditPage,
   CertificatePayload,
   Dashboard,
   Indicator,
@@ -224,6 +226,21 @@ export const documentsApi = {
   download: (document: SignedDocument) =>
     http.download(`/api/documents/${document.id}/download`, undefined, document.fileName),
   remove: (id: string) => http.request<void>(`/api/documents/${id}`, { method: 'DELETE' })
+};
+
+/** Historico de alteracoes (so administradores). */
+export const auditApi = {
+  list: (filters: AuditFilters) =>
+    http.request<AuditPage>('/api/audit', {
+      query: {
+        projectId: filters.projectId,
+        userId: filters.userId,
+        entityType: filters.entityType,
+        from: filters.from,
+        to: filters.to,
+        page: filters.page
+      }
+    })
 };
 
 export const notificationsApi = {

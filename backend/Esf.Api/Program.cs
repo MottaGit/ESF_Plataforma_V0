@@ -28,8 +28,11 @@ if (jwtOptions.Key.Length < 32)
     throw new InvalidOperationException("Jwt:Key deve ter ao menos 32 caracteres. Ajuste appsettings.json ou a variavel de ambiente Jwt__Key.");
 
 // ---------- persistencia ----------
-builder.Services.AddDbContext<EsfDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+// O interceptador grava o historico de alteracoes (quem mudou o que) no mesmo SaveChanges da alteracao.
+builder.Services.AddSingleton<AuditInterceptor>();
+builder.Services.AddDbContext<EsfDbContext>((services, options) =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+        .AddInterceptors(services.GetRequiredService<AuditInterceptor>()));
 
 // ---------- servicos de aplicacao ----------
 builder.Services.AddHttpContextAccessor();
@@ -51,6 +54,7 @@ builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<SignedDocumentService>();
 builder.Services.AddScoped<CertificateService>();
+builder.Services.AddScoped<AuditService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

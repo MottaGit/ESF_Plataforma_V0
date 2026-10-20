@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ApiError, assetUrl } from '../api/client';
 import { authApi, organizationApi, programsApi, usersApi, volunteersApi } from '../api/endpoints';
 import { ProgramFormModal } from '../components/projects/ProgramFormModal';
+import { AuditSection } from '../components/settings/AuditSection';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
@@ -22,20 +23,22 @@ import type {
 } from '../types/api';
 import { USER_ROLES, emptyToNull, formatDate, roleDescription, roleLabel } from '../utils/format';
 
-type TabKey = 'organization' | 'programs' | 'users' | 'account';
+type TabKey = 'organization' | 'programs' | 'users' | 'history' | 'account';
 
 // A aba aberta fica na URL (?aba=conta), para o menu da conta e links diretos cairem no lugar certo.
-const tabs: Array<{ key: TabKey; label: string; slug: string }> = [
+const tabs: Array<{ key: TabKey; label: string; slug: string; adminOnly?: boolean }> = [
   { key: 'organization', label: 'Organização', slug: 'organizacao' },
   { key: 'programs', label: 'Programas', slug: 'programas' },
   { key: 'users', label: 'Usuários', slug: 'usuarios' },
+  { key: 'history', label: 'Histórico', slug: 'historico', adminOnly: true },
   { key: 'account', label: 'Minha conta', slug: 'conta' }
 ];
 
 export function SettingsPage() {
   const { isAdmin, canManage } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = tabs.find((item) => item.slug === searchParams.get('aba'))?.key ?? 'organization';
+  const visibleTabs = tabs.filter((item) => !item.adminOnly || isAdmin);
+  const tab = visibleTabs.find((item) => item.slug === searchParams.get('aba'))?.key ?? 'organization';
 
   function setTab(key: TabKey) {
     setSearchParams(key === 'organization' ? {} : { aba: tabs.find((item) => item.key === key)!.slug }, { replace: true });
@@ -46,12 +49,12 @@ export function SettingsPage() {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Configurações</h1>
-          <p className="page-head__desc">Dados institucionais, programas, acessos e sua própria conta.</p>
+          <p className="page-head__desc">Dados institucionais, programas, acessos, histórico de alterações e sua própria conta.</p>
         </div>
       </div>
 
       <div className="tabs">
-        {tabs.map((item) => (
+        {visibleTabs.map((item) => (
           <button
             key={item.key}
             type="button"
@@ -66,6 +69,7 @@ export function SettingsPage() {
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
       {tab === 'programs' ? <ProgramsSection canEdit={canManage} /> : null}
       {tab === 'users' ? <UsersSection canEdit={isAdmin} /> : null}
+      {tab === 'history' ? <AuditSection /> : null}
       {tab === 'account' ? <AccountSection /> : null}
     </>
   );

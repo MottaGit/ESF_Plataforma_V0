@@ -20,6 +20,7 @@ public class EsfDbContext : DbContext
     public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<SignedDocument> SignedDocuments => Set<SignedDocument>();
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -120,6 +121,16 @@ public class EsfDbContext : DbContext
                 .WithMany(v => v.Projects)
                 .HasForeignKey(x => x.VolunteerId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<AuditEntry>(e =>
+        {
+            e.Property(x => x.UserName).HasMaxLength(160).IsRequired();
+            e.Property(x => x.EntityType).HasMaxLength(40).IsRequired();
+            e.Property(x => x.EntityLabel).HasMaxLength(300).IsRequired();
+            e.HasIndex(x => x.At);
+            e.HasIndex(x => x.ProjectId);
+            e.HasIndex(x => x.UserId);
         });
 
         b.Entity<SignedDocument>(e =>
