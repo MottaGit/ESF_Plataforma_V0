@@ -25,6 +25,11 @@ import {
   volunteerStatusLabel
 } from '../utils/format';
 
+/** Ativos e afastados precisam do termo de adesao assinado (Lei 9.608/98). */
+function needsTerm(volunteer: Volunteer) {
+  return (volunteer.status === 'Ativo' || volunteer.status === 'Afastado') && !volunteer.termSignedOn;
+}
+
 export function VolunteersPage() {
   const { canManage } = useAuth();
   const { notify, notifyError } = useToast();
@@ -34,6 +39,7 @@ export function VolunteersPage() {
   const [debounced, setDebounced] = useState('');
   const [onlyActive, setOnlyActive] = useState(false);
   const [sectorFilter, setSectorFilter] = useState<VolunteerSector | ''>('');
+  const [onlyPendingTerm, setOnlyPendingTerm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +69,7 @@ export function VolunteersPage() {
     void load();
   }, [load]);
 
+  const shown = onlyPendingTerm ? volunteers.filter(needsTerm) : volunteers;
   const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
 
   async function handleDelete() {
@@ -132,6 +139,16 @@ export function VolunteersPage() {
             <input type="checkbox" checked={onlyActive} onChange={(event) => setOnlyActive(event.target.checked)} />
             Só ativos
           </label>
+          {canManage ? (
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={onlyPendingTerm}
+                onChange={(event) => setOnlyPendingTerm(event.target.checked)}
+              />
+              Só com termo pendente
+            </label>
+          ) : null}
         </div>
       </div>
 
@@ -182,7 +199,14 @@ export function VolunteersPage() {
                 </tr>
               </thead>
               <tbody>
-                {volunteers.map((volunteer) => {
+                {shown.length === 0 ? (
+                  <tr>
+                    <td colSpan={canManage ? 5 : 4} className="table__secondary">
+                      Todos os voluntários ativos e afastados já têm o termo de adesão assinado.
+                    </td>
+                  </tr>
+                ) : null}
+                {shown.map((volunteer) => {
                   const currentPrograms = [
                     ...new Set(
                       volunteer.projects
@@ -212,6 +236,13 @@ export function VolunteersPage() {
                       <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
                       <td>
                         <VolunteerStatusBadge status={volunteer.status} />
+                        {canManage && needsTerm(volunteer) ? (
+                          <div style={{ marginTop: 4 }}>
+                            <span className="badge badge--pause" title="Sem termo de adesão assinado">
+                              Termo pendente
+                            </span>
+                          </div>
+                        ) : null}
                       </td>
                       {canManage ? (
                         <td>

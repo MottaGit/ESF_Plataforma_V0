@@ -15,7 +15,10 @@ public record OrganizationDto(
     string? City,
     string? State,
     string? LogoUrl,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    // Quem assina pela organizacao nos termos e certificados.
+    string? SignatoryName,
+    string? SignatoryRole);
 
 public class SaveOrganizationRequest
 {
@@ -47,4 +50,10 @@ public class SaveOrganizationRequest
 
     [StringLength(60)]
     public string? State { get; set; }
+
+    [StringLength(160)]
+    public string? SignatoryName { get; set; }
+
+    [StringLength(120)]
+    public string? SignatoryRole { get; set; }
 }

@@ -124,6 +124,8 @@ export interface Volunteer {
   birthMonth: number | null;
   /** Foto (quadrada, exibida em circulo); null quando nao ha. */
   photoUrl: string | null;
+  /** Data do termo de adesao assinado mais recente; null quando esta pendente. */
+  termSignedOn: string | null;
 }
 
 export interface ProjectVolunteer {
@@ -235,6 +237,19 @@ export interface Dashboard {
   myUpcoming: Activity[];
 }
 
+export type SignedDocumentKind = 'VolunteerTerm' | 'BeneficiaryImageAuthorization';
+
+/** Termo de adesao ou autorizacao de uso de imagem assinado (so a coordenacao ve). */
+export interface SignedDocument {
+  id: string;
+  kind: SignedDocumentKind;
+  fileName: string;
+  sizeBytes: number;
+  signedOn: string;
+  uploadedAt: string;
+  uploadedByName: string | null;
+}
+
 /** O que gerou o aviso do sininho. */
 export type NotificationType =
   | 'ActivityAssigned'
@@ -284,6 +299,9 @@ export interface Organization {
   state: string | null;
   logoUrl: string | null;
   updatedAt: string;
+  /** Quem assina pela organizacao nos termos e certificados. */
+  signatoryName: string | null;
+  signatoryRole: string | null;
 }
 
 /* ---------- payloads de escrita ---------- */
@@ -367,6 +385,8 @@ export interface SaveOrganizationPayload {
   website: string | null;
   city: string | null;
   state: string | null;
+  signatoryName: string | null;
+  signatoryRole: string | null;
 }
 
 export interface ReportPayload {

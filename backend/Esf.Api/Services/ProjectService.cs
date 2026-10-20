@@ -186,6 +186,7 @@ public class ProjectService
 
         var storedNames = project.Files.Select(f => f.StoredName)
             .Concat(project.Updates.SelectMany(u => u.Attachments).Select(f => f.StoredName))
+            .Concat(await SignedDocumentService.StoredNamesAsync(_db, null, id))
             .ToList();
 
         _db.Projects.Remove(project);

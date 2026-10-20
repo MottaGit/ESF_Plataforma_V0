@@ -36,7 +36,9 @@ public class FileStorageService
     /// Valida o arquivo e o registra no contexto. Ele e gravado no SaveChanges de quem chamou, junto com o
     /// registro que aponta para ele: os dois entram (ou nao) juntos.
     /// </summary>
-    public async Task<(string StoredName, string ContentType, long Size, string OriginalName)> SaveAsync(IFormFile file)
+    /// <param name="isPrivate">Documentos assinados: nao saem por /uploads, so pelo download com login.</param>
+    public async Task<(string StoredName, string ContentType, long Size, string OriginalName)> SaveAsync(IFormFile file,
+        bool isPrivate = false)
     {
         if (file is null || file.Length == 0)
             throw new AppException("Selecione um arquivo para enviar.");
@@ -63,6 +65,7 @@ public class FileStorageService
             ContentType = contentType,
             SizeBytes = buffer.Length,
             Content = buffer.ToArray(),
+            IsPrivate = isPrivate,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -100,7 +103,11 @@ public class FileStorageService
     /// </summary>
     public async Task<(byte[] Content, string ContentType)?> FindAsync(string storedName)
     {
-        var content = await TryReadAsync(storedName);
+        var name = Path.GetFileName(storedName);
+        var content = await _db.StoredFiles.AsNoTracking()
+            .Where(f => f.StoredName == name && !f.IsPrivate)
+            .Select(f => f.Content)
+            .FirstOrDefaultAsync();
         return content is null ? null : (content, ContentTypeFor(storedName));
     }
 

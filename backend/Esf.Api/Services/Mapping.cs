@@ -59,9 +59,9 @@ public static class Mapping
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);
 
-    public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects) =>
+    public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects, DateOnly? termSignedOn = null) =>
         new(v.Id, v.Name, v.Email, v.Phone, v.Sector, v.Skills, v.Notes, v.Status, projects, v.CreatedAt,
-            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName));
+            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName), termSignedOn);
 
     /// <summary>Endereco publico da foto de um voluntario (null quando nao ha foto).</summary>
     public static string? PhotoUrl(string? storedName) =>
@@ -116,7 +116,8 @@ public static class Mapping
     public static string? PersonName(User? user) => user?.Volunteer?.Name ?? user?.Name;
 
     public static OrganizationDto ToDto(Organization o) =>
-        new(o.Id, o.Name, o.LegalName, o.Cnpj, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl, o.UpdatedAt);
+        new(o.Id, o.Name, o.LegalName, o.Cnpj, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl,
+            o.UpdatedAt, o.SignatoryName, o.SignatoryRole);
 
     /// <summary>Detalhe completo do projeto, com as colecoes ja carregadas.</summary>
     public static ProjectDetailDto ToDetailDto(Project p) =>

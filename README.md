@@ -179,6 +179,15 @@ lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superio
 nome e a foto desse voluntário no topo, na barra lateral, no "Olá" da visão geral, como autor dos relatos de andamento
 e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
+**Termo de adesão e uso de imagem** — na página do voluntário, a coordenação (administrador e coordenador) gera o
+termo em PDF, num documento só: adesão ao serviço voluntário (Lei 9.608/98) e autorização de uso de imagem, já com o
+nome do voluntário e os dados da organização (CPF, RG e endereço ficam em branco, para preencher à mão — a plataforma
+não guarda esses dados). Depois de assinado, envia a cópia (PDF, JPG ou PNG) com a data da assinatura, e a página
+mostra "Assinado em dd/mm/aaaa". Na lista de voluntários, ativos e afastados sem termo ganham o selo "Termo
+pendente", com o filtro "Só com termo pendente". Os documentos assinados não ficam em `/uploads`: só abrem pelo
+download com login da coordenação. Quem assina pela organização (nome e cargo) é configurado em Configurações ›
+Organização.
+
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
 consolidado por nome no dashboard geral.
 
@@ -299,7 +308,8 @@ ESF_Plataforma_V0/
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a uma atualização |
 | `ProjectUpdates` | relatos de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | dados institucionais (registro único) |
-| `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}` |
+| `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
+| `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
 | `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável e prazos de hoje/amanhã), com data de leitura; os lidos são apagados após 30 dias e os não lidos após 60 |
 
 Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
@@ -322,6 +332,8 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
 | PUT/DELETE | `/api/programs/{id}` | renomeia e arquiva/reativa; exclui só programa sem projetos |
+| GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
+| GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos |
 | PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |

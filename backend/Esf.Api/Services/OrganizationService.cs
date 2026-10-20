@@ -37,6 +37,8 @@ public class OrganizationService
         org.Website = Clean(request.Website);
         org.City = Clean(request.City);
         org.State = Clean(request.State);
+        org.SignatoryName = Clean(request.SignatoryName);
+        org.SignatoryRole = Clean(request.SignatoryRole);
         org.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();

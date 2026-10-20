@@ -89,7 +89,9 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
     phone: null,
     website: null,
     city: null,
-    state: null
+    state: null,
+    signatoryName: null,
+    signatoryRole: null
   });
 
   useEffect(() => {
@@ -107,7 +109,9 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
           phone: data.phone,
           website: data.website,
           city: data.city,
-          state: data.state
+          state: data.state,
+          signatoryName: data.signatoryName,
+          signatoryRole: data.signatoryRole
         });
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os dados.'))
@@ -129,7 +133,9 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         phone: emptyToNull(form.phone),
         website: emptyToNull(form.website),
         city: emptyToNull(form.city),
-        state: emptyToNull(form.state)
+        state: emptyToNull(form.state),
+        signatoryName: emptyToNull(form.signatoryName),
+        signatoryRole: emptyToNull(form.signatoryRole)
       });
       setOrganization(saved);
       notify('Dados da organização salvos.');
@@ -243,6 +249,30 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
                 value={form.state ?? ''}
                 disabled={!canEdit}
                 onChange={(event) => setForm({ ...form, state: event.target.value })}
+              />
+            </Field>
+
+            <Field
+              label="Quem assina pela organização"
+              htmlFor="org-signatory"
+              hint="Aparece nos termos de adesão e nos certificados de voluntariado."
+            >
+              <TextInput
+                id="org-signatory"
+                value={form.signatoryName ?? ''}
+                disabled={!canEdit}
+                placeholder="Ex.: Clívia Kellen Almeida Silva"
+                onChange={(event) => setForm({ ...form, signatoryName: event.target.value })}
+              />
+            </Field>
+
+            <Field label="Cargo de quem assina" htmlFor="org-signatory-role">
+              <TextInput
+                id="org-signatory-role"
+                value={form.signatoryRole ?? ''}
+                disabled={!canEdit}
+                placeholder="Ex.: Diretora Geral"
+                onChange={(event) => setForm({ ...form, signatoryRole: event.target.value })}
               />
             </Field>
 

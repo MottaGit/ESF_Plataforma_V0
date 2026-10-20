@@ -19,6 +19,7 @@ public class EsfDbContext : DbContext
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<SignedDocument> SignedDocuments => Set<SignedDocument>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -121,6 +122,18 @@ public class EsfDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        b.Entity<SignedDocument>(e =>
+        {
+            e.Property(x => x.FileName).HasMaxLength(260).IsRequired();
+            e.Property(x => x.StoredName).HasMaxLength(160).IsRequired();
+            e.Property(x => x.ContentType).HasMaxLength(160).IsRequired();
+            e.HasIndex(x => x.VolunteerId);
+            e.HasIndex(x => x.ProjectId);
+
+            e.HasOne(x => x.Volunteer).WithMany().HasForeignKey(x => x.VolunteerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Project).WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<Notification>(e =>
         {
             e.Property(x => x.Message).HasMaxLength(400).IsRequired();
@@ -192,6 +205,8 @@ public class EsfDbContext : DbContext
             e.Property(x => x.City).HasMaxLength(120);
             e.Property(x => x.State).HasMaxLength(60);
             e.Property(x => x.LogoUrl).HasMaxLength(500);
+            e.Property(x => x.SignatoryName).HasMaxLength(160);
+            e.Property(x => x.SignatoryRole).HasMaxLength(120);
         });
     }
 }

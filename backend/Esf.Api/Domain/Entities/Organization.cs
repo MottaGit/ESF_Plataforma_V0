@@ -16,5 +16,9 @@ public class Organization
     public string? State { get; set; }
     /// <summary>Caminho relativo do logo enviado (ex.: /uploads/logo.png).</summary>
     public string? LogoUrl { get; set; }
+
+    /// <summary>Quem assina pela organizacao nos termos e certificados (ex.: Diretora Geral).</summary>
+    public string? SignatoryName { get; set; }
+    public string? SignatoryRole { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

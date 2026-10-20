@@ -71,3 +71,13 @@ public enum NotificationType
     ActivityDueTomorrow = 6,
     ActivityDueToday = 7
 }
+
+/// <summary>Documentos assinados guardados na plataforma.</summary>
+public enum SignedDocumentKind
+{
+    /// <summary>Termo de adesao ao servico voluntario, com a autorizacao de uso de imagem do voluntario.</summary>
+    VolunteerTerm = 0,
+
+    /// <summary>Autorizacao de uso de imagem dos beneficiarios de um projeto.</summary>
+    BeneficiaryImageAuthorization = 1
+}

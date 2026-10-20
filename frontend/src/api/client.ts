@@ -108,19 +108,31 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return (await response.text()) as unknown as T;
 }
 
-/** Faz o download de um arquivo gerado pela API (relatorio em PDF). */
+/**
+ * Faz o download de um arquivo da API com o login junto (relatorio em PDF, documentos assinados). Com body,
+ * usa POST; sem body, GET.
+ */
 async function download(path: string, body: unknown, fallbackName: string) {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = {};
   const token = tokenStore.get();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(buildUrl(path), { method: 'POST', headers, body: JSON.stringify(body) });
+  const response =
+    body === undefined
+      ? await fetch(buildUrl(path), { headers })
+      : await fetch(buildUrl(path), {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
   if (!response.ok) throw await parseError(response);
 
+  // filename* traz o nome com acentos (UTF-8); filename e a versao simples.
   const disposition = response.headers.get('Content-Disposition') ?? '';
-  const match = /filename="?([^";]+)"?/i.exec(disposition);
-  const fileName = match?.[1] ?? fallbackName;
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  const plain = /filename="?([^";]+)"?/i.exec(disposition);
+  const fileName = encoded ? decodeURIComponent(encoded[1]) : (plain?.[1] ?? fallbackName);
 
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);

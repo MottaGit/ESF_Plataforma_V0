@@ -23,7 +23,9 @@ public record VolunteerDto(
     DateTime CreatedAt,
     int? BirthDay,
     int? BirthMonth,
-    string? PhotoUrl);
+    string? PhotoUrl,
+    // Data do termo de adesao assinado mais recente (null: termo pendente).
+    DateOnly? TermSignedOn);
 
 public record ProjectVolunteerDto(
     Guid VolunteerId,

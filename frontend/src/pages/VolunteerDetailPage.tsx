@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { projectsApi, volunteersApi } from '../api/endpoints';
+import { SignedDocumentsPanel } from '../components/documents/SignedDocumentsPanel';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -143,6 +144,16 @@ export function VolunteerDetailPage() {
               </div>
             </div>
           </section>
+
+          {canManage ? (
+            <SignedDocumentsPanel
+              owner={{ type: 'volunteer', id: volunteer.id }}
+              title="Termo de adesão e uso de imagem"
+              description="Exigido pela Lei do Voluntariado (9.608/98). Gere o termo com os dados do voluntário, colha a assinatura e envie a cópia assinada."
+              templateLabel="Gerar termo para assinar"
+              onChanged={() => void load()}
+            />
+          ) : null}
         </div>
 
         <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>

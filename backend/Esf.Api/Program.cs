@@ -49,6 +49,7 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<OrganizationService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<SignedDocumentService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

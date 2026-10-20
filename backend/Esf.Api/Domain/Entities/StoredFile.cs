@@ -11,5 +11,11 @@ public class StoredFile
     public string ContentType { get; set; } = string.Empty;
     public long SizeBytes { get; set; }
     public byte[] Content { get; set; } = Array.Empty<byte>();
+
+    /// <summary>
+    /// Documentos assinados (termos, autorizacoes): nao saem por /uploads, so pelo download com login da
+    /// coordenacao, porque trazem CPF, endereco e assinatura.
+    /// </summary>
+    public bool IsPrivate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

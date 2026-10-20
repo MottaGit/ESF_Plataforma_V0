@@ -22,6 +22,7 @@ import type {
   SaveProjectPayload,
   SaveUserPayload,
   SaveVolunteerPayload,
+  SignedDocument,
   UnreadNotifications,
   UpdateProgramPayload,
   User,
@@ -199,6 +200,27 @@ export const usersApi = {
       }
     }),
   remove: (id: string) => http.request<void>(`/api/users/${id}`, { method: 'DELETE' })
+};
+
+/** Dono dos documentos assinados: um voluntario (termo de adesao) ou um projeto (autorizacao de imagem). */
+export type DocumentOwner = { type: 'volunteer' | 'project'; id: string };
+
+const documentsBase = (owner: DocumentOwner) =>
+  `/api/${owner.type === 'volunteer' ? 'volunteers' : 'projects'}/${owner.id}/documents`;
+
+/** Documentos assinados (so a coordenacao): modelo em PDF, envio do arquivo assinado e download com login. */
+export const documentsApi = {
+  list: (owner: DocumentOwner) => http.request<SignedDocument[]>(documentsBase(owner)),
+  upload: (owner: DocumentOwner, file: File, signedOn: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('signedOn', signedOn);
+    return http.request<SignedDocument>(documentsBase(owner), { method: 'POST', formData });
+  },
+  downloadTemplate: (owner: DocumentOwner) => http.download(`${documentsBase(owner)}/template`, undefined, 'modelo.pdf'),
+  download: (document: SignedDocument) =>
+    http.download(`/api/documents/${document.id}/download`, undefined, document.fileName),
+  remove: (id: string) => http.request<void>(`/api/documents/${id}`, { method: 'DELETE' })
 };
 
 export const notificationsApi = {

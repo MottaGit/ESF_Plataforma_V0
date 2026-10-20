@@ -63,7 +63,10 @@ public class VolunteerService
                 v.CreatedAt,
                 v.BirthDay,
                 v.BirthMonth,
-                v.PhotoStoredName != null ? Mapping.UploadsUrlPrefix + "/" + v.PhotoStoredName : null))
+                v.PhotoStoredName != null ? Mapping.UploadsUrlPrefix + "/" + v.PhotoStoredName : null,
+                _db.SignedDocuments
+                    .Where(d => d.VolunteerId == v.Id && d.Kind == SignedDocumentKind.VolunteerTerm)
+                    .Max(d => (DateOnly?)d.SignedOn)))
             .ToListAsync();
     }
 
@@ -75,8 +78,14 @@ public class VolunteerService
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
-        return Mapping.ToDto(volunteer, projects);
+        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id));
     }
+
+    /// <summary>Data do termo de adesao assinado mais recente (null: pendente).</summary>
+    private Task<DateOnly?> TermSignedOnAsync(Guid volunteerId) =>
+        _db.SignedDocuments
+            .Where(d => d.VolunteerId == volunteerId && d.Kind == SignedDocumentKind.VolunteerTerm)
+            .MaxAsync(d => (DateOnly?)d.SignedOn);
 
     public async Task<VolunteerDto> CreateAsync(SaveVolunteerRequest request)
     {
@@ -102,17 +111,21 @@ public class VolunteerService
         await _db.SaveChangesAsync();
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
-        return Mapping.ToDto(volunteer, projects);
+        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id));
     }
 
     public async Task DeleteAsync(Guid id)
     {
         var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
+        // Os documentos assinados saem junto (cascata); os arquivos deles sao apagados depois.
+        var documentFiles = await SignedDocumentService.StoredNamesAsync(_db, id, null);
+
         _db.Volunteers.Remove(volunteer);
         await _db.SaveChangesAsync();
 
         if (volunteer.PhotoStoredName is not null) await _storage.DeleteAsync(volunteer.PhotoStoredName);
+        await _storage.DeleteManyAsync(documentFiles);
     }
 
     /// <summary>Troca a foto do voluntario (a imagem ja chega recortada pelo navegador).</summary>
