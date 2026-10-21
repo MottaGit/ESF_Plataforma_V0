@@ -2249,3 +2249,14 @@ button.program-card { font: inherit; text-align: left; cursor: pointer; }
   /* Os avisos de confirmacao sobem acima da barra de baixo. */
   .toast-stack { bottom: calc(76px + env(safe-area-inset-bottom)); left: 12px; right: 12px; max-width: none; }
 }
+
+/* Tarefas: no computador os filtros ficam na barra; no celular, recolhidos no botao "Filtros". */
+.tasks-filters { display: contents; }
+.tasks-filters__toggle { display: none; }
+@media (max-width: 760px) {
+  .tasks-filters__toggle { display: inline-flex; }
+  .tasks-filters__toggle--on { border-color: var(--accent); color: var(--accent-text); }
+  .tasks-filters { display: none; }
+  .tasks-filters--open { display: grid; gap: 8px; width: 100%; }
+  .tasks-filters--open .search, .tasks-filters--open .select { max-width: none; width: 100%; }
+}

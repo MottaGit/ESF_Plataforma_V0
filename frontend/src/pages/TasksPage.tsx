@@ -61,6 +61,8 @@ export function TasksPage() {
   const [creating, setCreating] = useState(false);
   /** Tarefa esperando o motivo do bloqueio. */
   const [blocking, setBlocking] = useState<Activity | null>(null);
+  /** No celular, busca e filtros ficam recolhidos num botao. */
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const updateParams = useCallback(
     (changes: Record<string, string | null>) => {
@@ -165,6 +167,7 @@ export function TasksPage() {
   const visible = cut ? filtered.filter((activity) => matchesCut(activity, cut)) : filtered;
 
   const hasFilters = Boolean(term || scopeParam || programFilter || projectFilter || assigneeFilter || cut);
+  const activeFilters = [term, programFilter, projectFilter, assigneeFilter].filter(Boolean).length;
   const openCount = filtered.filter((activity) => activity.status !== 'Concluida').length;
   const lateCount = filtered.filter((activity) => isOverdue(activity)).length;
 
@@ -253,6 +256,16 @@ export function TasksPage() {
           </button>
         </div>
 
+        <button
+          type="button"
+          className={`btn tasks-filters__toggle${activeFilters > 0 ? ' tasks-filters__toggle--on' : ''}`}
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          Filtros{activeFilters > 0 ? ` (${activeFilters})` : ''}
+        </button>
+
+        <div className={`tasks-filters${filtersOpen ? ' tasks-filters--open' : ''}`}>
         <span className="search">
           <IconSearch className="search__icon" />
           <TextInput
@@ -304,6 +317,7 @@ export function TasksPage() {
             <option value={UNASSIGNED}>Sem responsável</option>
           </Select>
         ) : null}
+        </div>
 
         {hasFilters ? (
           <div className="toolbar__right">

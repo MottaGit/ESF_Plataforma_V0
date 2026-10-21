@@ -167,7 +167,7 @@ no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmaç�
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 vencidas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
 abaixo). **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), busca e filtros de programa,
-projeto e responsável, todos na URL. Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
+projeto e responsável, todos na URL. No celular, busca e filtros ficam recolhidos no botão "Filtros". Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
 últimos 30 dias. Links antigos do quadro (`/projetos?visao=quadro`) levam para cá com os mesmos filtros.
 
 **Quadro (em Tarefas)** — kanban com as tarefas de todos os projetos em planejamento ou em andamento (não
