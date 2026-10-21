@@ -578,7 +578,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
       {removing ? (
         <ConfirmDialog
           title="Excluir usuário"
-          message={`${removing.name} perderá o acesso à plataforma. Projetos e atividades sob responsabilidade dele ficam sem responsável.`}
+          message={`${removing.name} perderá o acesso à plataforma. Projetos e tarefas sob responsabilidade dele ficam sem responsável.`}
           confirmLabel="Excluir"
           destructive
           busy={busy}
@@ -708,7 +708,7 @@ function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
           <Field
             label="Voluntário vinculado"
             htmlFor="user-volunteer"
-            hint="Quem é esta pessoa no cadastro de voluntários. Assim a plataforma sabe quais atividades são dela."
+            hint="Quem é esta pessoa no cadastro de voluntários. Assim a plataforma sabe quais tarefas são dela."
             span
           >
             <Select id="user-volunteer" value={volunteerId} onChange={(event) => setVolunteerId(event.target.value)}>

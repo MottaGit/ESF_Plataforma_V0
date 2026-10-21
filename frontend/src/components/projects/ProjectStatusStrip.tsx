@@ -33,7 +33,7 @@ export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripPro
         <span className="status-tile__label">Progresso</span>
         <Progress value={project.progress} />
         <span className="status-tile__hint num">
-          {total === 0 ? 'Nenhuma atividade cadastrada' : `${done} de ${total} atividades concluídas`}
+          {total === 0 ? 'Nenhuma tarefa cadastrada' : `${done} de ${total} tarefas concluídas`}
         </span>
       </button>
 
@@ -46,7 +46,7 @@ export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripPro
         <span className="status-tile__value num">{late.length}</span>
         <span className="status-tile__hint">
           {late.length === 0
-            ? 'Nenhuma atividade atrasada'
+            ? 'Nenhuma tarefa atrasada'
             : `${late[0].title}${late.length > 1 ? ` e mais ${late.length - 1}` : ''}`}
         </span>
       </button>
@@ -56,7 +56,7 @@ export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripPro
         <span className="status-tile__value num">{blocked.length}</span>
         <span className="status-tile__hint">
           {!firstBlocked
-            ? 'Nenhuma atividade travada'
+            ? 'Nenhuma tarefa travada'
             : `${firstBlocked.title}${firstBlocked.blockedReason ? `: ${firstBlocked.blockedReason}` : ''}${blocked.length > 1 ? ` e mais ${blocked.length - 1}` : ''}`}
         </span>
       </button>

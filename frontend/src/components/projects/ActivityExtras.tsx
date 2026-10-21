@@ -218,7 +218,7 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
       {removingFile ? (
         <ConfirmDialog
           title="Remover anexo"
-          message={`"${removingFile.fileName}" será apagado da atividade e da aba Arquivos do projeto.`}
+          message={`"${removingFile.fileName}" será apagado da tarefa e da aba Arquivos do projeto.`}
           confirmLabel="Remover"
           destructive
           busy={busy}

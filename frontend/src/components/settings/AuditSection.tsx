@@ -11,7 +11,7 @@ import { Alert, EmptyState, Loading } from '../ui/Feedback';
 /** Tipos de registro do historico, como a API grava. */
 const ENTITY_TYPES = [
   'Projeto',
-  'Atividade',
+  'Tarefa',
   'Checklist',
   'Comentário',
   'Relato',
@@ -55,7 +55,7 @@ function describe(entry: AuditEntry) {
     return `alterou no histórico de status: ${entry.entityLabel}`;
   }
   const verb = entry.action === 'Created' ? 'criou' : entry.action === 'Deleted' ? 'excluiu' : 'alterou';
-  const feminine = ['Atividade', 'Organização'].includes(entry.entityType);
+  const feminine = ['Tarefa', 'Organização'].includes(entry.entityType);
   if (entry.entityType === 'Organização') return `${verb} os dados da organização`;
   return `${verb} ${feminine ? 'a' : 'o'} ${entry.entityType.toLowerCase()} "${entry.entityLabel}"`;
 }

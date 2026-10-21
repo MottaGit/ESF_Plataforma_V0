@@ -83,7 +83,7 @@ export const volunteerStatusLabel = (status: VolunteerStatus) => volunteerStatus
 export const roleDescription: Record<UserRole, string> = {
   Administrador: 'Acesso completo, incluindo usuários e dados da organização.',
   Coordenador: 'Cria e gerencia projetos, voluntários e indicadores.',
-  Usuario: 'Participa dos projetos e atualiza a execução das atividades.'
+  Usuario: 'Participa dos projetos e atualiza a execução das tarefas.'
 };
 
 /** "2026-03-14" -> "14/03/2026" (sem conversao de fuso). */
@@ -250,7 +250,7 @@ export function emptyToNull(value: string | null | undefined) {
 
 /** Quando o acesso nao esta vinculado a um voluntario, nao ha como saber quais atividades sao da pessoa. */
 export const UNLINKED_MESSAGE =
-  'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais atividades são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';
+  'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais tarefas são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';
 
 /** Quando algo aconteceu, em texto curto: "agora", "há 5 min", "há 2 h", "ontem", "há 3 dias" ou a data. */
 export function timeAgo(value: string) {

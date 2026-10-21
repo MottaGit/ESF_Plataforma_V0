@@ -115,7 +115,7 @@ public class ActivityService
 
     public async Task<ActivityDto> UpdateAsync(Guid id, SaveActivityRequest request)
     {
-        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
+        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Tarefa", feminine: true);
         await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
 
         var previousAssignee = activity.AssignedVolunteerId;
@@ -137,7 +137,7 @@ public class ActivityService
 
     public async Task<ActivityDto> UpdateStatusAsync(Guid id, ActivityStatus status, string? blockedReason = null)
     {
-        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
+        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Tarefa", feminine: true);
 
         var previousStatus = activity.Status;
         activity.Status = status;
@@ -153,7 +153,7 @@ public class ActivityService
 
     public async Task DeleteAsync(Guid id)
     {
-        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
+        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Tarefa", feminine: true);
 
         _db.Activities.Remove(activity);
         await TouchProjectAsync(activity.ProjectId);
@@ -166,7 +166,7 @@ public class ActivityService
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
             .Include(a => a.Project).ThenInclude(p => p!.Program)
-            .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Atividade");
+            .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Tarefa", feminine: true);
 
         return (await WithCountsAsync(new List<Activity> { activity }))[0];
     }
@@ -183,7 +183,7 @@ public class ActivityService
     public async Task<ActivityDetailsDto> GetDetailsAsync(Guid id)
     {
         if (!await _db.Activities.AnyAsync(a => a.Id == id))
-            throw AppException.NotFound("Atividade");
+            throw AppException.NotFound("Tarefa", feminine: true);
 
         var checklist = await _db.ActivityChecklistItems.AsNoTracking()
             .Where(i => i.ActivityId == id)
@@ -204,7 +204,7 @@ public class ActivityService
     public async Task<ChecklistItemDto> AddChecklistItemAsync(Guid activityId, SaveChecklistItemRequest request)
     {
         var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == activityId)
-                       ?? throw AppException.NotFound("Atividade");
+                       ?? throw AppException.NotFound("Tarefa", feminine: true);
 
         var position = await _db.ActivityChecklistItems
             .Where(i => i.ActivityId == activityId)

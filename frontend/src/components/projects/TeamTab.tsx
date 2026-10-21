@@ -73,7 +73,7 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
     <>
       <div className="toolbar">
         <p className="field__hint" style={{ maxWidth: 560 }}>
-          Quem participa do projeto e o papel de cada um. O responsável pelo projeto e quem recebe uma atividade entram
+          Quem participa do projeto e o papel de cada um. O responsável pelo projeto e quem recebe uma tarefa entram
           aqui automaticamente.
         </p>
         <div className="toolbar__right">
@@ -104,7 +104,7 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                 <tr>
                   <th>Voluntário</th>
                   <th>Papel no projeto</th>
-                  <th>Atividades</th>
+                  <th>Tarefas</th>
                   <th>Contato</th>
                   <th className="tight">Desde</th>
                   <th className="right">Ações</th>

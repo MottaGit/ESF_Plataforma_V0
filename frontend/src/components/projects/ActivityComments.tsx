@@ -136,7 +136,7 @@ export function ActivityComments({ activityId, initial, onChanged }: ActivityCom
       {removing ? (
         <ConfirmDialog
           title="Apagar comentário"
-          message="O comentário sai da atividade. Essa ação não pode ser desfeita."
+          message="O comentário sai da tarefa. Essa ação não pode ser desfeita."
           confirmLabel="Apagar"
           destructive
           busy={busy}

@@ -45,7 +45,7 @@ export function LoginPage() {
           <h1 className="login__headline">Gerencie os projetos da sua organização em um só lugar.</h1>
           <ul className="login__points">
             <li>Acompanhe o andamento de cada projeto e o que está atrasado</li>
-            <li>Registre atividades, voluntários e resultados alcançados</li>
+            <li>Organize tarefas, voluntários e resultados alcançados</li>
             <li>Gere relatórios em PDF para parceiros e prestação de contas</li>
           </ul>
         </div>

@@ -46,7 +46,7 @@ public class ActivityCommentService
     public async Task<List<MentionableDto>> MentionableAsync(Guid activityId)
     {
         var projectId = await _db.Activities.Where(a => a.Id == activityId).Select(a => (Guid?)a.ProjectId).FirstOrDefaultAsync()
-                        ?? throw AppException.NotFound("Atividade");
+                        ?? throw AppException.NotFound("Tarefa", feminine: true);
 
         var team = await _db.ProjectVolunteers.Where(pv => pv.ProjectId == projectId).Select(pv => pv.VolunteerId).ToListAsync();
 
@@ -63,7 +63,7 @@ public class ActivityCommentService
 
     public async Task<CommentDto> AddAsync(Guid activityId, SaveCommentRequest request)
     {
-        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == activityId) ?? throw AppException.NotFound("Atividade");
+        var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == activityId) ?? throw AppException.NotFound("Tarefa", feminine: true);
         var mentions = await ValidMentionsAsync(request.MentionedVolunteerIds);
 
         var comment = new ActivityComment

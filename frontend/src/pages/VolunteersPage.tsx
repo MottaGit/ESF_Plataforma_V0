@@ -299,7 +299,7 @@ export function VolunteersPage() {
       {removing ? (
         <ConfirmDialog
           title="Anonimizar voluntário"
-          message={`Os dados pessoais de ${removing.name} (nome, contatos, aniversário, foto e observações) serão apagados de vez. O histórico de projetos e atividades continua, como "Voluntário removido", e os documentos assinados ficam guardados. Use quando a pessoa sair da organização ou pedir a exclusão dos dados. Não dá para desfazer.`}
+          message={`Os dados pessoais de ${removing.name} (nome, contatos, aniversário, foto e observações) serão apagados de vez. O histórico de projetos e tarefas continua, como "Voluntário removido", e os documentos assinados ficam guardados. Use quando a pessoa sair da organização ou pedir a exclusão dos dados. Não dá para desfazer.`}
           confirmLabel="Anonimizar"
           destructive
           busy={busy}

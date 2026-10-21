@@ -85,7 +85,7 @@ public class UpdateChecklistItemRequest
 
 public class SaveActivityRequest
 {
-    [Required(ErrorMessage = "Informe o titulo da atividade.")]
+    [Required(ErrorMessage = "Informe o titulo da tarefa.")]
     [StringLength(200, MinimumLength = 3, ErrorMessage = "O titulo deve ter entre 3 e 200 caracteres.")]
     public string Title { get; set; } = string.Empty;
 

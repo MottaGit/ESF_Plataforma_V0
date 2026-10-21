@@ -10,8 +10,8 @@ public class AppException : Exception
         StatusCode = statusCode;
     }
 
-    public static AppException NotFound(string what) =>
-        new($"{what} nao encontrado.", StatusCodes.Status404NotFound);
+    public static AppException NotFound(string what, bool feminine = false) =>
+        new($"{what} nao encontrad{(feminine ? "a" : "o")}.", StatusCodes.Status404NotFound);
 
     public static AppException Conflict(string message) =>
         new(message, StatusCodes.Status409Conflict);

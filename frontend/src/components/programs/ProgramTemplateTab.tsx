@@ -112,7 +112,7 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
   return (
     <>
       <p className="field__hint template__intro">
-        Ao criar um projeto deste programa, deixe marcado "Usar o modelo do programa": as atividades (sem responsável) e
+        Ao criar um projeto deste programa, deixe marcado "Usar o modelo do programa": as tarefas (sem responsável) e
         os indicadores (zerados) abaixo entram no projeto, e os textos sugeridos preenchem o que ficar em branco. Mudar o
         modelo não altera os projetos que já existem.
       </p>
@@ -120,19 +120,19 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
       <div className="template-grid">
         <section className="panel">
           <div className="panel__head">
-            <h2>Atividades padrão</h2>
+            <h2>Tarefas padrão</h2>
             <span className="tab__count num">{activities.length}</span>
             {canEdit ? (
               <div className="panel__actions">
                 <Button small icon={<IconPlus size={15} />} onClick={() => setEditingActivity({ index: -1, item: null })}>
-                  Atividade
+                  Tarefa
                 </Button>
               </div>
             ) : null}
           </div>
           {activities.length === 0 ? (
             <EmptyState
-              title="Nenhuma atividade padrão"
+              title="Nenhuma tarefa padrão"
               description="Inclua as etapas que todo projeto deste programa costuma ter."
             />
           ) : (
@@ -279,7 +279,7 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
               editingActivity.index < 0
                 ? [...activities, { ...values, id: NEW_ID }]
                 : activities.map((item, i) => (i === editingActivity.index ? { ...item, ...values } : item));
-            await save({ ...template, activities: list }, editingActivity.item ? 'Atividade atualizada.' : 'Atividade incluída.');
+            await save({ ...template, activities: list }, editingActivity.item ? 'Tarefa atualizada.' : 'Tarefa incluída.');
             setEditingActivity(null);
           }}
         />
@@ -313,7 +313,7 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
 
       {removing ? (
         <ConfirmDialog
-          title={removing.kind === 'activity' ? 'Remover atividade padrão' : 'Remover indicador padrão'}
+          title={removing.kind === 'activity' ? 'Remover tarefa padrão' : 'Remover indicador padrão'}
           message={`"${removing.label}" sai do modelo. Os projetos que já existem não mudam.`}
           confirmLabel="Remover"
           destructive
@@ -378,7 +378,7 @@ function TemplateActivityModal({
 
   return (
     <Modal
-      title={activity ? 'Editar atividade padrão' : 'Nova atividade padrão'}
+      title={activity ? 'Editar tarefa padrão' : 'Nova tarefa padrão'}
       subtitle="Entra em cada projeto novo do programa, sem responsável."
       size="narrow"
       onClose={onClose}
@@ -422,7 +422,7 @@ function TemplateActivityModal({
         <Field
           label="Prazo (dias após o início do projeto)"
           htmlFor="template-activity-due"
-          hint="Deixe em branco para a atividade nascer sem prazo."
+          hint="Deixe em branco para a tarefa nascer sem prazo."
         >
           <TextInput
             id="template-activity-due"

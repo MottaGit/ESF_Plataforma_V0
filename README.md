@@ -4,7 +4,7 @@ Primeira versão funcional de uma aplicação web para o **Engenheiros Sem Front
 seus projetos sociais: o programa de banheiros Direito da Gente e as hortas comunitárias.
 
 Hoje essas informações costumam ficar espalhadas entre planilhas, documentos e fotos. Aqui elas ficam no mesmo lugar,
-com andamento, responsáveis, atividades, voluntários, indicadores, arquivos, localização e relatórios em PDF.
+com andamento, responsáveis, tarefas, voluntários, indicadores, arquivos, localização e relatórios em PDF.
 
 > Esta é uma **V0**: pequena, funcional e organizada o suficiente para ser usada por uma equipe real e evoluir depois
 > conforme os problemas encontrados no uso.
@@ -94,7 +94,7 @@ dotnet ef migrations add NomeDaMigration      # criar a próxima
 ## Acessos de demonstração
 
 O seed cria a organização (Porto Alegre/RS), 3 usuários, 19 voluntários e 15 projetos (10 do programa Banheiro
-Direito da Gente, baseados em registros reais, e 5 de horta comunitária) com atividades, indicadores, vínculos e
+Direito da Gente, baseados em registros reais, e 5 de horta comunitária) com tarefas, indicadores, vínculos e
 atualizações de andamento — o suficiente para navegar pela aplicação já na primeira execução.
 
 | E-mail | Perfil | Senha |
@@ -147,13 +147,13 @@ embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com el
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
 programa abre a aba dele.
 
-**Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **atividades padrão** (título, prioridade, descrição e
+**Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **tarefas padrão** (título, prioridade, descrição e
 prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
 **textos sugeridos** (descrição, objetivo e público beneficiado). A coordenação inclui, edita, reordena e remove; cada
 mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
-mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado): as atividades entram sem responsável,
+mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado): as tarefas entram sem responsável,
 com o prazo contado da data de início, os indicadores entram zerados e os textos preenchem o que ficou em branco. Os
-cards dos programas mostram o resumo do modelo ("Modelo: 5 atividades · 2 indicadores" ou "Sem modelo").
+cards dos programas mostram o resumo do modelo ("Modelo: 5 tarefas · 2 indicadores" ou "Sem modelo").
 
 **Menu** — Início · Projetos · Tarefas · Voluntários · Relatórios · Configurações. Configurações aparece só para a
 coordenação; o voluntário comum chega na própria conta pelo menu do avatar (e a lista de acessos, com e-mails, deixou
@@ -170,20 +170,18 @@ abaixo). **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em
 projeto e responsável, todos na URL. Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
 últimos 30 dias. Links antigos do quadro (`/projetos?visao=quadro`) levam para cá com os mesmos filtros.
 
-**Quadro (em Tarefas)** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
+**Quadro (em Tarefas)** — kanban com as tarefas de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
 dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
 colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais
-recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Atividades dele),
+recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Tarefas dele),
 responsável com foto (ou "Sem responsável" em destaque) e prazo como data curta ("até 14/07"); quando o prazo venceu,
 só o texto fica vermelho, e o detalhe ("atrasada 3 dias") fica na dica do mouse. O mesmo vale para a lista da aba
-Atividades e para a Visão geral. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
+Tarefas e para o Início. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
 segure o card um instante e arraste, e o quadro rola sozinho ao chegar na borda) ou, no celular, use o selo de status
-do card. Clicar no card abre a atividade para editar, e o botão "Nova atividade" cria uma pelo próprio quadro,
+do card. Clicar no card abre a janela da tarefa, e o botão "Nova tarefa" cria uma pelo próprio quadro,
 escolhendo o projeto no formulário (filtrando por um programa, só os projetos dele aparecem); o responsável é
-escolhido depois do projeto, entre a equipe dele. O quadro é carregado só quando a aba é aberta. Filtros: busca por
-atividade ou projeto, Todas/Minhas (sem voluntário vinculado, "Minhas" explica como pedir o vínculo), programa,
-responsável, prioridade e só atrasadas, todos na URL. No celular as colunas ficam lado a lado e o quadro rola na
+escolhido depois do projeto, entre a equipe dele. O quadro só é baixado quando a visão Quadro é aberta. Os filtros e atalhos são os da tela Tarefas. No celular as colunas ficam lado a lado e o quadro rola na
 horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
 
@@ -197,32 +195,32 @@ também aparecem na aba Arquivos do projeto, com o selo "da tarefa …"; excluir
 card do quadro e as listas mostram o resumo (`☑ 3/5 · 📎 1 · 💬 2`), verde quando o checklist está completo. Links
 antigos (`?aba=atividades&atividade=…`) continuam abrindo a tarefa.
 
-**Comentários nas atividades** — na mesma janela, abaixo do checklist e dos anexos: a conversa do dia a dia sobre a
-atividade (não vai para o relatório, ao contrário dos relatos de Andamento). Digitar **@** abre a lista de pessoas com
+**Comentários nas tarefas** — na mesma janela, abaixo do checklist e dos anexos: a conversa do dia a dia sobre a
+tarefa (não vai para o relatório, ao contrário dos relatos de Andamento). Digitar **@** abre a lista de pessoas com
 acesso (a equipe do projeto primeiro, sem diferenciar acentos) e escolher insere o nome; Ctrl+Enter envia. Quem
 escreveu edita (aparece "(editado)") e apaga o próprio comentário; a coordenação também apaga os dos outros. Avisos no
-sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário novo, o responsável pela atividade ("Ana
-comentou em…"); na edição, só quem foi mencionado agora. Todo aviso de atividade (atribuição, bloqueio, prazo,
-comentário) abre direto a janela daquela atividade. O resumo nos cards ganha o contador de comentários.
+sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário novo, o responsável pela tarefa ("Ana
+comentou em…"); na edição, só quem foi mencionado agora. Todo aviso de tarefa (atribuição, bloqueio, prazo,
+comentário) abre direto a janela daquela tarefa. O resumo nos cards ganha o contador de comentários.
 
 **Busca geral** — campo fixo no topo de todas as telas (no celular, a lupa abre a busca ocupando a largura da tela);
 **Ctrl+K** (⌘K no Mac) leva o cursor até ele. Procura ao mesmo tempo em projetos (nome, comunidade, bairro, cidade),
-atividades (título e descrição), voluntários, programas e relatos de andamento, sem diferenciar maiúsculas nem acentos
-("joao" acha "João"), e mostra até 5 de cada tipo, agrupados. Setas escolhem e Enter abre; uma atividade abre direto
+tarefas (título e descrição), voluntários, programas e relatos de andamento, sem diferenciar maiúsculas nem acentos
+("joao" acha "João"), e mostra até 5 de cada tipo, agrupados. Setas escolhem e Enter abre; uma tarefa abre direto
 na janela dela. Voluntários anonimizados, documentos assinados e o histórico de alterações ficam de fora. No banco, a
 comparação usa a função `esf_fold` (criada pela migração, sem depender de extensão do Postgres).
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
-"atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, atividades atrasadas,
-bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Atividades**, **Equipe**, **Arquivos** e **Sobre**
-(descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=atividades`, `?aba=equipe`…),
+"atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, tarefas atrasadas,
+bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre**
+(descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
 
-**Atividades** — título, descrição, responsável, status (não iniciada / em andamento / bloqueada / concluída; ao bloquear, um motivo opcional), prioridade
+**Tarefas** — título, descrição, responsável, status (não iniciada / em andamento / bloqueada / concluída; ao bloquear, um motivo opcional), prioridade
 (baixa / média / alta), prazo e observações. A lista tem duas seções sempre visíveis: **Em aberto** (não iniciadas
 primeiro, depois em andamento e bloqueadas, reordenando na hora quando o status muda) e **Concluídas**. Há caixinha para concluir em
-um clique e "Desfazer" logo em seguida; a atividade concluída fica riscada no lugar e só passa para "Concluídas" quando
-a aba é aberta de novo. O botão "Nova atividade" abre o
+um clique e "Desfazer" logo em seguida; a tarefa concluída fica riscada no lugar e só passa para "Concluídas" quando
+a aba é aberta de novo. O botão "Nova tarefa" abre o
 formulário com título, responsável, prazo, prioridade e descrição. O responsável é escolhido entre a
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado).
@@ -246,7 +244,7 @@ item do formulário: escolhida do computador e enquadrada num círculo (arrastar
 envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário. A foto aparece como uma bolinha na
 lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superior direito (para o voluntário vinculado
 à conta logada); sem foto, aparecem as iniciais. Quando o acesso está vinculado a um voluntário, a plataforma mostra o
-nome e a foto desse voluntário no topo, na barra lateral, no "Olá" da visão geral, como autor dos relatos de andamento
+nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos relatos de andamento
 e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
 **Termo de adesão e uso de imagem** — na página do voluntário, a coordenação (administrador e coordenador) gera o
@@ -261,7 +259,7 @@ Organização.
 **Anonimizar voluntário** — na lista, a coordenação usa "Anonimizar" no lugar de excluir (quando a pessoa sai da
 organização ou pede a exclusão dos dados): nome vira "Voluntário removido", saem e-mail, telefone, habilidades,
 observações, aniversário e foto, a situação passa a ex-membro, o acesso vinculado é desfeito e os avisos da pessoa
-são apagados. Projetos, atividades e documentos assinados continuam, sem identificar a pessoa, e o cadastro não pode
+são apagados. Projetos, tarefas e documentos assinados continuam, sem identificar a pessoa, e o cadastro não pode
 mais ser editado. A exclusão definitiva continua na API, só para administrador.
 
 **Certificado de voluntariado** — na página do voluntário, "Gerar certificado" (coordenação) pede o período, as horas
@@ -300,7 +298,7 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
 **Relatórios** — seleção de um ou vários projetos, observação livre e geração de um **PDF consolidado** com
-identificação, descrição, objetivo, período, status, responsável, localização, atividades, voluntários e
+identificação, descrição, objetivo, período, status, responsável, localização, tarefas, voluntários e
 indicadores (sempre incluídos) e fotos (opcional).
 
 **Configurações** — dados institucionais, logo, gestão de usuários e troca da própria senha. No formulário de
@@ -312,10 +310,10 @@ aberta fica na URL (`?aba=organizacao`, `usuarios`, `historico` ou `conta`).
 a plataforma; a data e a versão aceita ficam registradas. Para publicar uma nova versão, atualize o texto em
 `pages/PrivacyPage.tsx` e a data em `PrivacyTerms.CurrentVersion` (API).
 
-**Histórico de alterações** — toda criação, alteração ou exclusão feita por uma pessoa logada (projetos, atividades,
+**Histórico de alterações** — toda criação, alteração ou exclusão feita por uma pessoa logada (projetos, tarefas,
 relatos, arquivos, indicadores, equipe, voluntários, histórico de status, documentos assinados, programas, usuários e dados da organização)
 fica registrada automaticamente, com quem fez, quando e o valor antes e depois de cada campo. Em Configurações ›
-Histórico (só administradores) a lista aparece em frases ("Ana alterou a atividade…"), com filtros por projeto, pessoa,
+Histórico (só administradores) a lista aparece em frases ("Ana alterou a tarefa…"), com filtros por projeto, pessoa,
 tipo e período, 50 por vez. Dados pessoais do cadastro de voluntário (nome, contatos, aniversário, observações, foto) só
 registram que mudaram, sem o valor, e nomes de voluntários são resolvidos na hora de exibir — quem for anonimizado
 aparece como "Voluntário removido" também no histórico. Senhas nunca entram. O que não vem de uma pessoa (dados de
@@ -330,10 +328,10 @@ de não registrar dados sensíveis (saúde, religião, origem, opinião polític
 acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
 de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes
 completando 15 itens; cada aviso com o projeto e há quanto tempo), e abrir um aviso o marca como lido e leva à aba
-Atividades do projeto (ou ao projeto); há também "Marcar todas como lidas". Avisos lidos somem depois de 30 dias; os não
-lidos ficam até 60, para quem passou um tempo sem entrar não perder nada. Os avisos são do voluntário vinculado ao acesso: atividade atribuída a você; sua atividade
+Tarefas do projeto (ou ao projeto); há também "Marcar todas como lidas". Avisos lidos somem depois de 30 dias; os não
+lidos ficam até 60, para quem passou um tempo sem entrar não perder nada. Os avisos são do voluntário vinculado ao acesso: tarefa atribuída a você; sua tarefa
 bloqueada (com o motivo), concluída ou reaberta por outra pessoa; entrada na equipe de um projeto; definição como
-responsável por um projeto; e atividade sua que vence amanhã ou hoje (o lembrete some quando ela é concluída). Ninguém
+responsável por um projeto; e tarefa sua que vence amanhã ou hoje (o lembrete some quando ela é concluída). Ninguém
 recebe aviso do que ele mesmo fez. O contador é conferido a cada minuto, ao trocar de tela e ao voltar para a aba do
 navegador. Sem voluntário vinculado, o painel explica como pedir o vínculo. Não há e-mail nem notificação no celular.
 
@@ -415,10 +413,10 @@ ESF_Plataforma_V0/
 | `Users` | acesso à plataforma (nome, e-mail, hash da senha, perfil, ativo, voluntário vinculado) |
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
 | `Programs` | programas (nome, situação, ícone, cor e os textos sugeridos do modelo) |
-| `ProgramTemplateActivities` / `ProgramTemplateIndicators` | atividades e indicadores padrão do modelo de cada programa |
-| `Activities` | atividades do projeto (FK `ProjectId`, responsável opcional) |
-| `ActivityChecklistItems` | itens do checklist de cada atividade (texto, feito, ordem) |
-| `ActivityComments` | comentários das atividades (autor, texto, voluntários mencionados, edição) |
+| `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa |
+| `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
+| `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
+| `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
 | `Indicators` | indicadores do projeto (nome, valor e unidade) |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
@@ -431,7 +429,7 @@ ESF_Plataforma_V0/
 | `AuditEntries` | histórico de alterações: quem fez, quando, o quê e os campos alterados (antes e depois) |
 | `Notifications` | avisos do sininho para cada voluntário (atribuição, bloqueio, conclusão, reabertura, equipe, responsável, prazos de hoje/amanhã, menção e comentário), com data de leitura; os lidos são apagados após 30 dias e os não lidos após 60 |
 
-Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (atividades, indicadores, vínculos, arquivos)
+Chaves estrangeiras com `ON DELETE CASCADE` para o que pertence ao projeto (tarefas, indicadores, vínculos, arquivos)
 e `SET NULL` para referências a usuários (excluir um usuário não apaga o projeto dele).
 
 ---
@@ -447,7 +445,7 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/auth/me` | usuário da sessão |
 | POST | `/api/auth/change-password` | troca a própria senha |
 | POST | `/api/auth/accept-terms` | registra o aceite da política de privacidade e dos termos de uso (versão vigente) |
-| GET | `/api/dashboard` | números e listas da visão geral |
+| GET | `/api/dashboard` | dados do Início (minhas tarefas, meus projetos, resumo da organização e carga da equipe) |
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `onlyStale`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
 | GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos e resultados somados; edita nome, ícone e cor e arquiva/reativa; exclui só programa sem projetos |
@@ -461,14 +459,14 @@ A documentação interativa fica em `/swagger`.
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos (na criação, `useTemplate` aplica o modelo do programa) |
 | PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |
-| GET/POST | `/api/projects/{id}/activities` | atividades do projeto |
+| GET/POST | `/api/projects/{id}/activities` | tarefas do projeto |
 | PUT/PATCH/DELETE | `/api/activities/{id}[/status]` | edição, status e exclusão |
 | GET | `/api/activities/upcoming` | próximos prazos pendentes (`mine=true`: só os do usuário logado) |
-| GET | `/api/activities/board` | quadro de atividades: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
-| GET | `/api/activities/{id}/details` | checklist, anexos e comentários da atividade |
+| GET | `/api/activities/board` | quadro de tarefas: projetos em planejamento ou em andamento, concluídas dos últimos 30 dias |
+| GET | `/api/activities/{id}/details` | checklist, anexos e comentários da tarefa |
 | POST · PUT/DELETE | `/api/activities/{id}/checklist` · `/api/checklist/{itemId}` | inclui, marca/reescreve e remove itens do checklist |
 | GET | `/api/activities/{id}/mentionable` | quem pode ser mencionado com @ (equipe primeiro) |
-| GET | `/api/search?q=` | busca geral (projetos, atividades, voluntários, programas e relatos; mínimo 2 letras) |
+| GET | `/api/search?q=` | busca geral (projetos, tarefas, voluntários, programas e relatos; mínimo 2 letras) |
 | POST · PUT/DELETE | `/api/activities/{id}/comments` · `/api/comments/{commentId}` | comenta; edita (autor) e apaga (autor ou coordenação) |
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
@@ -480,7 +478,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |
 | GET/POST | `/api/projects/{id}/indicators` | indicadores do projeto |
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |
-| GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart; com `activityId`, anexo de uma atividade) |
+| GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart; com `activityId`, anexo de uma tarefa) |
 | GET/PUT/DELETE | `/api/files/{id}[/download]` | download, edição da legenda e exclusão |
 | GET/POST | `/api/projects/{id}/updates` | relatos de andamento (texto + fotos, multipart) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do relato |
@@ -503,7 +501,7 @@ Erros seguem sempre o mesmo formato:
 | --- | --- |
 | **Administrador** | tudo, incluindo usuários, dados institucionais e exclusão de projetos |
 | **Coordenador** | criar e editar projetos, voluntários e indicadores; arquivar projetos |
-| **Usuário** | consultar tudo, criar e atualizar atividades, indicadores, arquivos, relatos de andamento e status |
+| **Usuário** | consultar tudo, criar e atualizar tarefas, indicadores, arquivos, relatos de andamento e status |
 
 Autenticação por JWT (HS256), senha com BCrypt. As regras ficam em `Common/Policies.cs` e nos atributos
 `[Authorize(Policy = ...)]` dos controllers.

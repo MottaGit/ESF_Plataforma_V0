@@ -111,7 +111,7 @@ export function VolunteerDetailPage() {
       {volunteer.anonymized ? (
         <div style={{ marginBottom: 16 }}>
           <Alert kind="info">
-            Os dados pessoais deste voluntário foram anonimizados. O histórico de projetos e atividades continua, sem
+            Os dados pessoais deste voluntário foram anonimizados. O histórico de projetos e tarefas continua, sem
             identificar a pessoa.
           </Alert>
         </div>

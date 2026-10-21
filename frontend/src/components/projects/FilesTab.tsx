@@ -251,7 +251,7 @@ function FileCard({ file, onChanged, onRemove, onView }: FileCardProps) {
         ) : null}
         {file.activityId ? (
           <span>
-            <NeutralBadge>da atividade "{file.activityTitle}"</NeutralBadge>
+            <NeutralBadge>da tarefa "{file.activityTitle}"</NeutralBadge>
           </span>
         ) : null}
         <span className="file-card__meta">

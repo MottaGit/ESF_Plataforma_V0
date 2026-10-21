@@ -79,7 +79,7 @@ export function ActivityStatusSelect({
   onChange: (status: ActivityStatus) => void;
 }) {
   return (
-    <label className={`badge badge--select ${activityStatusClass[status]}`} title="Alterar status da atividade">
+    <label className={`badge badge--select ${activityStatusClass[status]}`} title="Alterar status da tarefa">
       <select value={status} aria-label={label} onChange={(event) => onChange(event.target.value as ActivityStatus)}>
         {ACTIVITY_STATUSES.map((value) => (
           <option key={value} value={value}>

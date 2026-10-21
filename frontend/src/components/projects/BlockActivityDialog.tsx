@@ -21,7 +21,7 @@ export function BlockActivityDialog({ title, onCancel, onConfirm }: BlockActivit
 
   return (
     <Modal
-      title="Bloquear atividade"
+      title="Bloquear tarefa"
       subtitle={title}
       size="narrow"
       onClose={onCancel}

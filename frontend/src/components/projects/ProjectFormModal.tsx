@@ -77,7 +77,7 @@ function initialState(project: ProjectDetail | null, fallbackProgramId: string):
 function templateDescription(program: Program) {
   const created = [
     program.templateActivitiesCount > 0
-      ? `${program.templateActivitiesCount} atividade${program.templateActivitiesCount === 1 ? '' : 's'}`
+      ? `${program.templateActivitiesCount} tarefa${program.templateActivitiesCount === 1 ? '' : 's'}`
       : null,
     program.templateIndicatorsCount > 0
       ? `${program.templateIndicatorsCount} indicador${program.templateIndicatorsCount === 1 ? '' : 'es'}`

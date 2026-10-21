@@ -161,7 +161,7 @@ public static class AuditTrail
     private static (string Type, string Label, Guid Id, Guid? ProjectId) Describe(object entity) => entity switch
     {
         Project p => ("Projeto", p.Name, p.Id, p.Id),
-        Activity a => ("Atividade", a.Title, a.Id, a.ProjectId),
+        Activity a => ("Tarefa", a.Title, a.Id, a.ProjectId),
         Volunteer v => ("Voluntário", VolunteerRef(v.Id), v.Id, null),
         User u => ("Usuário", u.Name, u.Id, null),
         Indicator i => ("Indicador", i.Name, i.Id, i.ProjectId),
@@ -177,10 +177,10 @@ public static class AuditTrail
         VolunteerStatusChange c => ("Histórico de status",
             $"{VolunteerRef(c.VolunteerId)}: {(c.Status.HasValue ? Format(typeof(VolunteerStatusChange), "Status", c.Status) : "sem registro")} a partir de {c.StartsOn:dd/MM/yyyy}",
             c.Id, null),
-        ProgramTemplateActivity a => ("Modelo do programa", $"{a.Program?.Name ?? "Programa"}: atividade \"{a.Title}\"", a.Id, null),
+        ProgramTemplateActivity a => ("Modelo do programa", $"{a.Program?.Name ?? "Programa"}: tarefa \"{a.Title}\"", a.Id, null),
         ProgramTemplateIndicator i => ("Modelo do programa", $"{i.Program?.Name ?? "Programa"}: indicador \"{i.Name}\"", i.Id, null),
-        ActivityChecklistItem c => ("Checklist", $"{c.Activity?.Title ?? "Atividade"}: {c.Text}", c.Id, c.Activity?.ProjectId),
-        ActivityComment c => ("Comentário", $"{c.Activity?.Title ?? "Atividade"}: {Truncate(c.Text, 80)}", c.Id, c.Activity?.ProjectId),
+        ActivityChecklistItem c => ("Checklist", $"{c.Activity?.Title ?? "Tarefa"}: {c.Text}", c.Id, c.Activity?.ProjectId),
+        ActivityComment c => ("Comentário", $"{c.Activity?.Title ?? "Tarefa"}: {Truncate(c.Text, 80)}", c.Id, c.Activity?.ProjectId),
         Organization o => ("Organização", o.Name, o.Id, null),
         _ => ("Registro", entity.GetType().Name, Guid.Empty, null)
     };

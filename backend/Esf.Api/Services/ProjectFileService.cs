@@ -57,7 +57,7 @@ public class ProjectFileService
             throw AppException.NotFound("Projeto");
 
         if (activityId.HasValue && !await _db.Activities.AnyAsync(a => a.Id == activityId.Value && a.ProjectId == projectId))
-            throw AppException.NotFound("Atividade");
+            throw AppException.NotFound("Tarefa", feminine: true);
 
         var saved = await _storage.SaveAsync(file);
 
