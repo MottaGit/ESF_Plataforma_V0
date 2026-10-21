@@ -168,6 +168,8 @@ export const IconChevronDown = (p: IconProps) => svg(<path d="m6 10 6 6 6-6" />,
 
 export const IconChevronUp = (p: IconProps) => svg(<path d="m6 14 6-6 6 6" />, p);
 
+export const IconHome = (p: IconProps) => svg(<path d="M4 11.5 12 5l8 6.5V20h-5v-5h-6v5H4z" />, p);
+
 export const IconChecklist = (p: IconProps) =>
   svg(
     <>

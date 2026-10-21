@@ -12,6 +12,7 @@ import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { TasksPage } from './pages/TasksPage';
 import { VolunteerDetailPage } from './pages/VolunteerDetailPage';
 import { VolunteersPage } from './pages/VolunteersPage';
 
@@ -33,6 +34,7 @@ export function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/projetos" element={<ProjectsPage />} />
               <Route path="/projetos/:id" element={<ProjectDetailPage />} />
+              <Route path="/tarefas" element={<TasksPage />} />
               <Route path="/programas" element={<ProgramsPage />} />
               <Route path="/programas/:id" element={<ProgramDetailPage />} />
               <Route path="/voluntarios" element={<VolunteersPage />} />

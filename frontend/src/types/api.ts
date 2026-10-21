@@ -144,6 +144,9 @@ export interface Activity {
   checklistDone: number;
   attachmentsCount: number;
   commentsCount: number;
+  /** Icone e cor do programa do projeto. */
+  programIcon: string | null;
+  programColor: string | null;
 }
 
 export interface ChecklistItem {

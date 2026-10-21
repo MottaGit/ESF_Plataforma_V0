@@ -21,7 +21,9 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>Lista usada tambem para selecionar responsaveis por projetos e atividades.</summary>
+    // A lista de acessos (com e-mails) e da coordenacao; o voluntario comum ve so a propria conta.
     [HttpGet]
+    [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<List<UserDto>>> List([FromQuery] bool onlyActive = false)
         => Ok(await _users.ListAsync(onlyActive));
 

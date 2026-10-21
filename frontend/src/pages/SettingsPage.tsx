@@ -24,24 +24,25 @@ import { USER_ROLES, emptyToNull, formatDate, roleDescription, roleLabel } from 
 type TabKey = 'organization' | 'users' | 'history' | 'account';
 
 // A aba aberta fica na URL (?aba=conta), para o menu da conta e links diretos cairem no lugar certo.
-const tabs: Array<{ key: TabKey; label: string; slug: string; adminOnly?: boolean }> = [
-  { key: 'organization', label: 'Organização', slug: 'organizacao' },
-  { key: 'users', label: 'Usuários', slug: 'usuarios' },
+const tabs: Array<{ key: TabKey; label: string; slug: string; adminOnly?: boolean; manageOnly?: boolean }> = [
+  { key: 'organization', label: 'Organização', slug: 'organizacao', manageOnly: true },
+  { key: 'users', label: 'Usuários', slug: 'usuarios', manageOnly: true },
   { key: 'history', label: 'Histórico', slug: 'historico', adminOnly: true },
   { key: 'account', label: 'Minha conta', slug: 'conta' }
 ];
 
 export function SettingsPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, canManage } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const visibleTabs = tabs.filter((item) => !item.adminOnly || isAdmin);
-  const tab = visibleTabs.find((item) => item.slug === searchParams.get('aba'))?.key ?? 'organization';
+  // Coordenacao ve tudo (o historico so a administracao); o voluntario comum, so a propria conta.
+  const visibleTabs = tabs.filter((item) => (!item.adminOnly || isAdmin) && (!item.manageOnly || canManage));
+  const tab = visibleTabs.find((item) => item.slug === searchParams.get('aba'))?.key ?? visibleTabs[0].key;
 
   // Os programas sairam daqui e foram para Projetos › Programas; links antigos continuam funcionando.
   if (searchParams.get('aba') === 'programas') return <Navigate to="/programas" replace />;
 
   function setTab(key: TabKey) {
-    setSearchParams(key === 'organization' ? {} : { aba: tabs.find((item) => item.key === key)!.slug }, { replace: true });
+    setSearchParams(key === visibleTabs[0].key ? {} : { aba: tabs.find((item) => item.key === key)!.slug }, { replace: true });
   }
 
   return (

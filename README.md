@@ -152,7 +152,17 @@ mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criad
 com o prazo contado da data de início, os indicadores entram zerados e os textos preenchem o que ficou em branco. Os
 cards dos programas mostram o resumo do modelo ("Modelo: 5 atividades · 2 indicadores" ou "Sem modelo").
 
-**Quadro de atividades** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
+**Menu** — Início · Projetos · Tarefas · Voluntários · Relatórios · Configurações. Configurações aparece só para a
+coordenação; o voluntário comum chega na própria conta pelo menu do avatar (e a lista de acessos, com e-mails, deixou
+de ser visível para ele).
+
+**Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
+vencidas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
+abaixo). **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), busca e filtros de programa,
+projeto e responsável, todos na URL. Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
+últimos 30 dias. Links antigos do quadro (`/projetos?visao=quadro`) levam para cá com os mesmos filtros.
+
+**Quadro (em Tarefas)** — kanban com as atividades de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
 dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
 colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais

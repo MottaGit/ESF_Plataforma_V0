@@ -29,7 +29,10 @@ public record ActivityDto(
     int ChecklistTotal,
     int ChecklistDone,
     int AttachmentsCount,
-    int CommentsCount);
+    int CommentsCount,
+    // Icone e cor do programa (preenchidos quando o projeto e seu programa foram carregados).
+    string? ProgramIcon,
+    string? ProgramColor);
 
 public record ChecklistItemDto(Guid Id, string Text, bool Done, DateTime? DoneAt);
 

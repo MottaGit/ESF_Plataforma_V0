@@ -1,5 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
@@ -23,30 +23,14 @@ const sortOptions = [
   { value: 'progress', label: 'Maior progresso' }
 ];
 
-// O quadro (e a biblioteca de arrastar e soltar) so e baixado quando a aba e aberta.
-const ActivityBoard = lazy(() =>
-  import('../components/projects/ActivityBoard').then((module) => ({ default: module.ActivityBoard }))
-);
-
 // O mapa (Leaflet) tambem so e baixado quando alguem abre a visao de mapa.
 const ProjectsMap = lazy(() =>
   import('../components/map/ProjectsMap').then((module) => ({ default: module.ProjectsMap }))
 );
 
-type View = 'list' | 'board';
-
-const VIEWS: Array<{ key: View; label: string }> = [
-  { key: 'list', label: 'Projetos' },
-  { key: 'board', label: 'Quadro de atividades' }
-];
-
-/**
- * Tela de Projetos com duas visoes: a lista de projetos e o quadro com as atividades de todos os projetos
- * ativos. Visao e filtros vivem na URL: voltar de um projeto (ou recarregar) mantem a tela como estava.
- */
+/** Tela de Projetos. Filtros vivem na URL: voltar de um projeto (ou recarregar) mantem a tela como estava. */
 export function ProjectsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const view: View = searchParams.get('visao') === 'quadro' ? 'board' : 'list';
 
   const updateParams = useCallback(
     (changes: Record<string, string | null>) => {
@@ -69,55 +53,21 @@ export function ProjectsPage() {
     rememberProjectsQuery(searchParams.toString());
   }, [searchParams]);
 
-  // Cada visao tem os proprios filtros: trocar de visao comeca sem filtro (e entra no historico do navegador).
-  const switcher = (
-    <div className="tabs">
-      {VIEWS.map((item) => (
-        <button
-          key={item.key}
-          type="button"
-          className={`tab${view === item.key ? ' tab--active' : ''}`}
-          aria-pressed={view === item.key}
-          onClick={() => {
-            if (item.key !== view) setSearchParams(item.key === 'board' ? { visao: 'quadro' } : {});
-          }}
-        >
-          {item.label}
-        </button>
-      ))}
-    </div>
-  );
+  // O quadro de tarefas mudou para Tarefas: links antigos (?visao=quadro) vao para la com os mesmos filtros.
+  if (searchParams.get('visao') === 'quadro') {
+    const next = new URLSearchParams(searchParams);
+    return <Navigate to={`/tarefas?${next.toString()}`} replace />;
+  }
 
-  return view === 'board' ? (
-    <Suspense
-      fallback={
-        <>
-          <div className="page-head">
-            <div className="page-head__text">
-              <h1>Projetos</h1>
-            </div>
-          </div>
-          {switcher}
-          <section className="panel">
-            <Loading label="Carregando atividades…" />
-          </section>
-        </>
-      }
-    >
-      <ActivityBoard searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
-    </Suspense>
-  ) : (
-    <ProjectList searchParams={searchParams} updateParams={updateParams} switcher={switcher} />
-  );
+  return <ProjectList searchParams={searchParams} updateParams={updateParams} />;
 }
 
 interface ProjectListProps {
   searchParams: URLSearchParams;
   updateParams: (changes: Record<string, string | null>) => void;
-  switcher: ReactNode;
 }
 
-function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps) {
+function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const { canManage, isAdmin } = useAuth();
   const { notify, notifyError } = useToast();
   const navigate = useNavigate();
@@ -261,8 +211,6 @@ function ProjectList({ searchParams, updateParams, switcher }: ProjectListProps)
           ) : null}
         </div>
       </div>
-
-      {switcher}
 
       <div className="toolbar">
         <span className="search">
