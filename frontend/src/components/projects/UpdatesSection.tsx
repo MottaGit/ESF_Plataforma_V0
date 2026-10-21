@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { projectUpdatesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
@@ -17,9 +17,16 @@ const ACCEPTED_FILES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,
 interface UpdatesSectionProps {
   project: ProjectDetail;
   onChanged: () => void;
+  /** Veio de um "Registrar": rola ate o campo e ja deixa o cursor nele. */
+  focusComposer?: boolean;
 }
 
-export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
+export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSectionProps) {
+  const composerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusComposer) composerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [focusComposer]);
+
   const { notify, notifyError } = useToast();
   const [text, setText] = useState('');
   const [plainText, setPlainText] = useState('');
@@ -79,7 +86,7 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
 
   return (
     <div>
-      <div className="panel" style={{ marginBottom: 16 }}>
+      <div className="panel composer-panel" style={{ marginBottom: 16 }} ref={composerRef}>
         <div className="panel__body">
           <form onSubmit={handlePost}>
             {formError ? (
@@ -93,6 +100,7 @@ export function UpdatesSection({ project, onChanged }: UpdatesSectionProps) {
             </div>
             <RichTextField
               value={text}
+              autoFocus={focusComposer}
               ariaLabel="Registrar andamento"
               placeholder="Conte o que foi feito, o que foi decidido ou o que mudou no projeto…"
               onChange={(html, plain) => {

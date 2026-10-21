@@ -159,6 +159,11 @@ cards dos programas mostram o resumo do modelo ("Modelo: 5 atividades · 2 indic
 coordenação; o voluntário comum chega na própria conta pelo menu do avatar (e a lista de acessos, com e-mails, deixou
 de ser visível para ele).
 
+**No celular** — uma barra fixa embaixo com **Início · Projetos · Tarefas · + Registrar** (o menu lateral continua no
+botão do topo, para Voluntários, Relatórios e Configurações). **Registrar** pergunta o projeto (os da pessoa primeiro,
+com busca) e abre o projeto já no registro de andamento, com o cursor no campo; o botão "Registrar" de Meus projetos,
+no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmação aparecem acima da barra.
+
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 vencidas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
 abaixo). **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), busca e filtros de programa,

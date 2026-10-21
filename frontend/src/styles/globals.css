@@ -2174,3 +2174,78 @@ button.program-card { font: inherit; text-align: left; cursor: pointer; }
 @media (max-width: 560px) {
   .task-view__facts { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------------------------------------------------------
+   Barra fixa embaixo (celular) e "Registrar"
+   --------------------------------------------------------- */
+
+.bottom-bar { display: none; }
+@media (max-width: 760px) {
+  .bottom-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    height: 64px;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 10px rgba(16, 24, 40, 0.05);
+  }
+  .content { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
+.bottom-bar__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 11.5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.bottom-bar__tab--active { color: var(--accent-text); font-weight: 600; }
+.bottom-bar__ring {
+  width: 40px;
+  height: 40px;
+  margin-top: -8px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(16, 86, 74, 0.35);
+}
+.register-picker__search { max-width: none; width: 100%; margin-bottom: 12px; }
+.register-picker { display: grid; gap: 4px; max-height: 60vh; overflow-y: auto; }
+.register-picker__title { margin: 8px 0 4px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+.register-picker ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.register-picker button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+.register-picker button:hover { background: var(--surface-soft); }
+.composer-panel { scroll-margin-top: 76px; }
+@media (max-width: 760px) {
+  /* Os avisos de confirmacao sobem acima da barra de baixo. */
+  .toast-stack { bottom: calc(76px + env(safe-area-inset-bottom)); left: 12px; right: 12px; max-width: none; }
+}

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
+import { BottomBar } from './BottomBar';
 import { GlobalSearch } from './GlobalSearch';
 import { NotificationBell } from './NotificationBell';
 import { TermsGate } from './TermsGate';
@@ -65,6 +66,8 @@ export function AppLayout() {
         <main className="content">
           <Outlet />
         </main>
+
+        <BottomBar />
 
         <TermsGate />
       </div>

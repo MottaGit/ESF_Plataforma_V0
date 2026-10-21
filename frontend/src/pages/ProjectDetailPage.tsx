@@ -45,6 +45,8 @@ export function ProjectDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tab = tabFromParam(searchParams.get('aba'));
+  // "Registrar" (Inicio, barra do celular): abre no Andamento com o cursor no campo de registro.
+  const [registering] = useState(() => searchParams.get('registrar') === '1');
   const onlyLateActivities = searchParams.get('filtro') === 'atrasadas';
 
   function openTab(key: TabKey, filter?: 'atrasadas') {
@@ -189,7 +191,7 @@ export function ProjectDetailPage() {
       </div>
 
       {tab === 'updates' ? (
-        <AndamentoTab project={project} onChanged={() => void load()} />
+        <AndamentoTab project={project} onChanged={() => void load()} focusComposer={registering} />
       ) : null}
       {tab === 'activities' ? (
         <ActivitiesTab
