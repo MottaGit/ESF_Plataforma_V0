@@ -32,10 +32,10 @@ function flatten(results: SearchResults): ResultItem[] {
     })),
     ...results.activities.map((a) => ({
       key: `a-${a.id}`,
-      group: 'Atividades',
+      group: 'Tarefas',
       label: a.title,
       meta: `${a.projectName} · ${activityStatusLabel(a.status)}`,
-      to: `/projetos/${a.projectId}?aba=atividades&atividade=${a.id}`,
+      to: `/projetos/${a.projectId}?aba=tarefas&tarefa=${a.id}`,
       icon: <span className="global-search__glyph">✓</span>
     })),
     ...results.volunteers.map((v) => ({
@@ -175,7 +175,7 @@ export function GlobalSearch() {
           className="input global-search__input"
           type="search"
           value={query}
-          placeholder="Buscar projetos, atividades, pessoas…"
+          placeholder="Buscar projetos, tarefas, pessoas…"
           aria-label="Busca geral"
           aria-expanded={showPanel}
           aria-controls="global-search-results"

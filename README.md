@@ -182,13 +182,15 @@ responsável, prioridade e só atrasadas, todos na URL. No celular as colunas fi
 horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
 
-**Dentro da atividade: checklist e anexos** — ao abrir uma atividade existente (clicar no card do quadro, ou Editar /
-o resumo na lista do projeto), a janela fica em duas colunas (uma embaixo da outra no celular): à esquerda o formulário
-de sempre; à direita o **checklist** (itens para marcar, com barra de progresso; incluir com Enter, remover no ×) e os
-**anexos** (vários arquivos de uma vez; imagens aparecem em miniatura). Checklist e anexos gravam na hora, sem depender
-do "Salvar". Os anexos também aparecem na aba Arquivos do projeto, com o selo "da atividade …"; excluir a atividade
-mantém o arquivo no projeto. O card do quadro e a linha da lista mostram o resumo (`☑ 3/5 · 📎 1`), que fica verde
-quando o checklist está completo.
+**Janela da tarefa** — clicar numa tarefa, em qualquer lugar (Início, Tarefas, quadro, aba Tarefas do projeto,
+avisos, busca), abre a janela dela **para ler**: status (muda na hora; bloquear pergunta o motivo), prioridade,
+responsável, prazo, projeto, descrição e observações; ao lado (embaixo, no celular), **checklist** (itens para marcar,
+com barra de progresso; incluir com Enter, remover no ×), **anexos** (vários arquivos de uma vez; imagens em miniatura)
+e comentários. **Editar** troca para o formulário (Cancelar volta para a leitura); "Editar" no menu ⋯ da aba do projeto
+abre direto no formulário. Status, checklist, anexos e comentários gravam na hora, sem depender do "Salvar". Os anexos
+também aparecem na aba Arquivos do projeto, com o selo "da tarefa …"; excluir a tarefa mantém o arquivo no projeto. O
+card do quadro e as listas mostram o resumo (`☑ 3/5 · 📎 1 · 💬 2`), verde quando o checklist está completo. Links
+antigos (`?aba=atividades&atividade=…`) continuam abrindo a tarefa.
 
 **Comentários nas atividades** — na mesma janela, abaixo do checklist e dos anexos: a conversa do dia a dia sobre a
 atividade (não vai para o relatório, ao contrário dos relatos de Andamento). Digitar **@** abre a lista de pessoas com

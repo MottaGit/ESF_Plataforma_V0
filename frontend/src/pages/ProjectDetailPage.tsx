@@ -24,13 +24,15 @@ type TabKey = 'updates' | 'activities' | 'team' | 'files' | 'about';
 /** Nome de cada aba na URL (?aba=...), para links diretos e para recarregar sem perder a aba. */
 const TAB_PARAMS: Record<TabKey, string> = {
   updates: 'andamento',
-  activities: 'atividades',
+  activities: 'tarefas',
   team: 'equipe',
   files: 'arquivos',
   about: 'sobre'
 };
 
 function tabFromParam(value: string | null): TabKey {
+  // "atividades" e o nome antigo da aba, que links ja enviados ainda usam.
+  if (value === 'atividades') return 'activities';
   const found = (Object.keys(TAB_PARAMS) as TabKey[]).find((key) => TAB_PARAMS[key] === value);
   return found ?? 'updates';
 }
@@ -123,7 +125,7 @@ export function ProjectDetailPage() {
 
   const tabs: Array<{ key: TabKey; label: string; count?: number }> = [
     { key: 'updates', label: 'Andamento', count: project.updates.length },
-    { key: 'activities', label: 'Atividades', count: project.activities.length },
+    { key: 'activities', label: 'Tarefas', count: project.activities.length },
     { key: 'team', label: 'Equipe', count: project.volunteers.length },
     { key: 'files', label: 'Arquivos', count: project.files.length },
     { key: 'about', label: 'Sobre' }

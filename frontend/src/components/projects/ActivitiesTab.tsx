@@ -4,14 +4,7 @@ import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
-import {
-  ACTIVITY_STATUSES,
-  activityStatusLabel,
-  dueDateLabel,
-  dueDateTitle,
-  formatDate,
-  formatDateTime
-} from '../../utils/format';
+import { ACTIVITY_STATUSES, activityStatusLabel, dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
 import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Field';
@@ -56,24 +49,28 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
   const { notify, notifyError } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
+  /** A tarefa abre para ler; "Editar" no menu abre direto no formulario. */
+  const [formMode, setFormMode] = useState<'view' | 'edit'>('view');
   const [removing, setRemoving] = useState<Activity | null>(null);
   const [blocking, setBlocking] = useState<Activity | null>(null);
   const [busy, setBusy] = useState(false);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  // Link direto para uma atividade (aviso do sininho, busca): abre a janela dela e tira o parametro da URL.
+  // Link direto para uma tarefa (aviso do sininho, busca): abre a janela dela e tira o parametro da URL.
+  // "atividade" e o nome antigo do parametro, que links ja enviados ainda usam.
   const [searchParams, setSearchParams] = useSearchParams();
-  const linkedActivityId = searchParams.get('atividade');
+  const linkedActivityId = searchParams.get('tarefa') ?? searchParams.get('atividade');
   useEffect(() => {
     if (!linkedActivityId) return;
     const linked = project.activities.find((activity) => activity.id === linkedActivityId);
     if (linked) {
       setEditing(linked);
+      setFormMode('view');
       setFormOpen(true);
     }
     setSearchParams(
       (current) => {
         const next = new URLSearchParams(current);
+        next.delete('tarefa');
         next.delete('atividade');
         return next;
       },
@@ -136,15 +133,6 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     onOnlyLateChange(false);
   }
 
-  function toggleExpanded(id: string) {
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
   function forgetUndo(id: string) {
     setUndo((current) => {
       if (!current.has(id)) return current;
@@ -154,8 +142,9 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     });
   }
 
-  function openForm(activity: Activity | null) {
+  function openForm(activity: Activity | null, mode: 'view' | 'edit' = 'view') {
     setEditing(activity);
+    setFormMode(mode);
     setFormOpen(true);
   }
 
@@ -166,7 +155,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
       onChanged();
       return true;
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a atividade.');
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a tarefa.');
       return false;
     }
   }
@@ -191,11 +180,11 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
     setBusy(true);
     try {
       await activitiesApi.remove(removing.id);
-      notify('Atividade excluída.');
+      notify('Tarefa excluída.');
       setRemoving(null);
       onChanged();
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir a atividade.');
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir a tarefa.');
     } finally {
       setBusy(false);
     }
@@ -250,7 +239,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
             </span>
           ) : null}
           <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => openForm(null)}>
-            Nova atividade
+            Nova tarefa
           </Button>
         </div>
       </div>
@@ -258,11 +247,11 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
       {activities.length === 0 ? (
         <div className="panel">
           <EmptyState
-            title="Nenhuma atividade registrada"
-            description="Quebre o projeto em atividades para acompanhar a execução e distribuir responsáveis."
+            title="Nenhuma tarefa registrada"
+            description="Quebre o projeto em tarefas para acompanhar a execução e distribuir responsáveis."
             action={
               <Button variant="primary" onClick={() => openForm(null)}>
-                Criar primeira atividade
+                Criar primeira tarefa
               </Button>
             }
           />
@@ -270,8 +259,8 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
       ) : visible.length === 0 ? (
         <div className="panel">
           <EmptyState
-            title="Nenhuma atividade com esses filtros"
-            description="Ajuste os filtros para ver as demais atividades do projeto."
+            title="Nenhuma tarefa com esses filtros"
+            description="Ajuste os filtros para ver as demais tarefas do projeto."
             action={<Button onClick={clearFilters}>Limpar filtros</Button>}
           />
         </div>
@@ -294,8 +283,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
                     key={activity.id}
                     activity={activity}
                     canUndo={undo.has(activity.id) && activity.status === 'Concluida'}
-                    expanded={expanded.has(activity.id)}
-                    onToggleExpanded={() => toggleExpanded(activity.id)}
+                    onOpen={() => openForm(activity)}
                     onToggleDone={(done) => toggleDone(activity, done)}
                     onStatusChange={(status) => {
                       forgetUndo(activity.id);
@@ -303,7 +291,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
                       if (status === 'Bloqueada') setBlocking(activity);
                       else void changeStatus(activity, status);
                     }}
-                    onEdit={() => openForm(activity)}
+                    onEdit={() => openForm(activity, 'edit')}
                     onRemove={() => setRemoving(activity)}
                   />
                 ))}
@@ -317,12 +305,13 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
         <ActivityFormModal
           projectId={project.id}
           activity={editing}
+          initialMode={formMode}
           team={project.volunteers}
           volunteers={volunteers}
           onClose={() => setFormOpen(false)}
           onSaved={() => {
             setFormOpen(false);
-            notify(editing ? 'Atividade atualizada.' : 'Atividade criada.');
+            notify(editing ? 'Tarefa atualizada.' : 'Tarefa criada.');
             onChanged();
           }}
           onExtrasChanged={onChanged}
@@ -342,8 +331,8 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
 
       {removing ? (
         <ConfirmDialog
-          title="Excluir atividade"
-          message={`A atividade "${removing.title}" será removida do projeto.`}
+          title="Excluir tarefa"
+          message={`A tarefa "${removing.title}" será removida do projeto.`}
           confirmLabel="Excluir"
           destructive
           busy={busy}
@@ -359,8 +348,8 @@ interface ActivityRowProps {
   activity: Activity;
   /** Concluida nesta visita a aba: mostra o "Desfazer". */
   canUndo: boolean;
-  expanded: boolean;
-  onToggleExpanded: () => void;
+  /** Abre a janela da tarefa. */
+  onOpen: () => void;
   /** Resolve com false quando a alteracao nao foi salva. */
   onToggleDone: (done: boolean) => Promise<boolean>;
   onStatusChange: (status: ActivityStatus) => void;
@@ -371,8 +360,7 @@ interface ActivityRowProps {
 function ActivityRow({
   activity,
   canUndo,
-  expanded,
-  onToggleExpanded,
+  onOpen,
   onToggleDone,
   onStatusChange,
   onEdit,
@@ -398,12 +386,12 @@ function ActivityRow({
         className="act-row__check"
         checked={checked}
         aria-label={checked ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
-        title={checked ? 'Reabrir atividade' : 'Marcar como concluída'}
+        title={checked ? 'Reabrir tarefa' : 'Marcar como concluída'}
         onChange={(event) => void toggle(event.target.checked)}
       />
 
       <div className="act-row__main">
-        <button type="button" className="act-row__title" aria-expanded={expanded} onClick={onToggleExpanded}>
+        <button type="button" className="act-row__title" onClick={onOpen}>
           {activity.title}
         </button>
         <div className="act-row__meta">
@@ -419,7 +407,7 @@ function ActivityRow({
               : dueDateLabel(activity.dueDate)}
           </span>
           {!done ? <PriorityBadge priority={activity.priority} /> : null}
-          <ActivityCounters activity={activity} onClick={onEdit} />
+          <ActivityCounters activity={activity} onClick={onOpen} />
           {canUndo ? (
             <button type="button" className="act-row__undo" onClick={() => void toggle(false)}>
               Desfazer
@@ -429,13 +417,12 @@ function ActivityRow({
         {activity.status === 'Bloqueada' && activity.blockedReason ? (
           <p className="act-row__blocked">{activity.blockedReason}</p>
         ) : null}
-        {expanded ? <ActivityDetails activity={activity} /> : null}
       </div>
 
       <div className="act-row__side">
         <ActivityStatusSelect status={activity.status} label={`Status de ${activity.title}`} onChange={onStatusChange} />
         <Menu
-          label="Ações da atividade"
+          label="Ações da tarefa"
           items={[
             { label: 'Editar', icon: <IconEdit size={14} />, onSelect: onEdit },
             { label: 'Excluir', icon: <IconTrash size={14} />, danger: true, onSelect: onRemove }
@@ -443,24 +430,5 @@ function ActivityRow({
         />
       </div>
     </li>
-  );
-}
-
-function ActivityDetails({ activity }: { activity: Activity }) {
-  return (
-    <div className="activity-detail">
-      <div>
-        <div className="meta__label">Descrição</div>
-        <p className="meta__value activity-detail__text">{activity.description ?? 'Sem descrição.'}</p>
-      </div>
-      <div>
-        <div className="meta__label">Observações</div>
-        <p className="meta__value activity-detail__text">{activity.notes ?? 'Sem observações.'}</p>
-      </div>
-      <div className="activity-detail__dates">
-        <span>Criada em {formatDateTime(activity.createdAt)}</span>
-        {activity.completedAt ? <span>Concluída em {formatDateTime(activity.completedAt)}</span> : null}
-      </div>
-    </div>
   );
 }

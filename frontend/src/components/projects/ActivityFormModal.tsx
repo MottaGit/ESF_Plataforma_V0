@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { activitiesApi, volunteersApi } from '../../api/endpoints';
 import type {
@@ -14,47 +15,68 @@ import {
   ACTIVITY_STATUSES,
   SENSITIVE_DATA_HINT,
   activityStatusLabel,
+  daysFromToday,
   emptyToNull,
+  formatDate,
+  formatDateTime,
   priorityLabel
 } from '../../utils/format';
+import { Avatar } from '../ui/Avatar';
+import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
+import { IconEdit } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 import { ActivityExtras } from './ActivityExtras';
+import { BlockActivityDialog } from './BlockActivityDialog';
 
 interface ActivityFormModalProps {
-  /** Projeto da atividade; vazio quando ele e escolhido no proprio formulario (ver `projects`). */
+  /** Projeto da tarefa; vazio quando ele e escolhido no proprio formulario (ver `projects`). */
   projectId: string;
-  /** Com esta lista, uma atividade nova ganha o campo "Projeto" (criada fora da pagina do projeto). */
+  /** Com esta lista, uma tarefa nova ganha o campo "Projeto" (criada fora da pagina do projeto). */
   projects?: Array<{ id: string; name: string }>;
   activity: Activity | null;
-  /** Equipe do projeto: primeira opcao para atribuir a atividade. Sem ela, o formulario busca a equipe. */
+  /** Tarefa existente: abre para ler (padrao) ou ja no formulario de edicao. */
+  initialMode?: 'view' | 'edit';
+  /** Equipe do projeto: primeira opcao para atribuir a tarefa. Sem ela, o formulario busca a equipe. */
   team?: ProjectVolunteer[];
-  /** Voluntarios ativos da organizacao. Quem estiver fora da equipe entra nela ao salvar. */
-  volunteers: Volunteer[];
+  /** Voluntarios ativos da organizacao (sem a lista, o formulario busca quando for editar). */
+  volunteers?: Volunteer[];
   onClose: () => void;
   onSaved: () => void;
-  /** Checklist ou anexos mudaram (chamado ao fechar): quem abriu atualiza os contadores. */
+  /** Status, checklist, anexos ou comentarios mudaram (chamado ao fechar): quem abriu atualiza a lista. */
   onExtrasChanged?: () => void;
 }
 
+/**
+ * Janela da tarefa. Uma tarefa existente abre para ler: status (muda na hora), responsavel, prazo, descricao e, ao
+ * lado, checklist, anexos e comentarios; "Editar" troca para o formulario. Tarefa nova abre direto no formulario.
+ */
 export function ActivityFormModal({
   projectId,
   projects,
   activity,
+  initialMode,
   team,
   volunteers,
   onClose,
   onSaved,
   onExtrasChanged
 }: ActivityFormModalProps) {
-  // Checklist e anexos gravam na hora; ao fechar sem salvar, quem abriu ainda precisa saber.
+  // Status, checklist, anexos e comentarios gravam na hora; ao fechar sem salvar, quem abriu ainda precisa saber.
   const extrasChanged = useRef(false);
   function close() {
     if (extrasChanged.current) onExtrasChanged?.();
     onClose();
   }
+
+  const openedToRead = Boolean(activity) && initialMode !== 'edit';
+  const [mode, setMode] = useState<'view' | 'edit'>(openedToRead ? 'view' : 'edit');
+  /** Copia da tarefa que a leitura mostra (o status muda na hora, sem salvar o formulario). */
+  const [current, setCurrent] = useState<Activity | null>(activity);
+  const [viewError, setViewError] = useState<string | null>(null);
+  const [blocking, setBlocking] = useState(false);
 
   const chooseProject = !activity && Boolean(projects);
   const [selectedProjectId, setSelectedProjectId] = useState(projectId);
@@ -67,10 +89,21 @@ export function ActivityFormModal({
   const [notes, setNotes] = useState(activity?.notes ?? '');
   const [blockedReason, setBlockedReason] = useState(activity?.blockedReason ?? '');
 
-  // Aberto fora da pagina do projeto (quadro de atividades), a equipe vem da API.
+  // Sem a lista de voluntarios de quem abriu, busca so quando for editar.
+  const [loadedVolunteers, setLoadedVolunteers] = useState<Volunteer[] | null>(null);
+  useEffect(() => {
+    if (volunteers || mode !== 'edit' || loadedVolunteers) return;
+    volunteersApi
+      .list(undefined, true)
+      .then(setLoadedVolunteers)
+      .catch(() => setLoadedVolunteers([]));
+  }, [volunteers, mode, loadedVolunteers]);
+  const allVolunteers = volunteers ?? loadedVolunteers ?? [];
+
+  // Aberto fora da pagina do projeto, a equipe vem da API (so para o formulario).
   const [loadedTeam, setLoadedTeam] = useState<ProjectVolunteer[] | null>(null);
   useEffect(() => {
-    if (team) return;
+    if (team || mode !== 'edit') return;
     if (!selectedProjectId) {
       setLoadedTeam([]);
       return;
@@ -84,12 +117,12 @@ export function ActivityFormModal({
     return () => {
       active = false;
     };
-  }, [team, selectedProjectId]);
+  }, [team, selectedProjectId, mode]);
 
   const teamLoading = !team && loadedTeam === null;
   const currentTeam = team ?? loadedTeam ?? [];
   const teamIds = new Set(currentTeam.map((member) => member.volunteerId));
-  const others = volunteers.filter((volunteer) => !teamIds.has(volunteer.id));
+  const others = allVolunteers.filter((volunteer) => !teamIds.has(volunteer.id));
   const outsiderSelected = !teamLoading && Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
 
   const [projectError, setProjectError] = useState<string | null>(null);
@@ -97,13 +130,33 @@ export function ActivityFormModal({
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  function startEditing() {
+    // O formulario parte do que a leitura mostra (o status pode ter mudado na hora).
+    if (current) {
+      setStatus(current.status);
+      setBlockedReason(current.blockedReason ?? '');
+    }
+    setMode('edit');
+  }
+
+  async function changeStatus(next: ActivityStatus, reason: string | null = null) {
+    if (!current || next === current.status) return;
+    setViewError(null);
+    try {
+      setCurrent(await activitiesApi.updateStatus(current.id, next, reason));
+      extrasChanged.current = true;
+    } catch (err) {
+      setViewError(err instanceof ApiError ? err.message : 'Não foi possível mudar o status.');
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setFormError(null);
 
     const missingProject = chooseProject && !selectedProjectId;
     const shortTitle = title.trim().length < 3;
-    setProjectError(missingProject ? 'Selecione o projeto da atividade.' : null);
+    setProjectError(missingProject ? 'Selecione o projeto da tarefa.' : null);
     setTitleError(shortTitle ? 'Informe um título com ao menos 3 caracteres.' : null);
     if (missingProject || shortTitle) return;
 
@@ -124,27 +177,140 @@ export function ActivityFormModal({
       else await activitiesApi.create(selectedProjectId, payload);
       onSaved();
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar a atividade.');
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar a tarefa.');
     } finally {
       setSaving(false);
     }
   }
 
+  // ---------- leitura ----------
+  if (mode === 'view' && current) {
+    const done = current.status === 'Concluida';
+    const late = !done && Boolean(current.dueDate) && daysFromToday(current.dueDate!) < 0;
+
+    return (
+      <>
+        <Modal
+          title={current.title}
+          subtitle={current.projectName ?? undefined}
+          size="wide"
+          onClose={close}
+          footer={
+            <>
+              <Button icon={<IconEdit size={15} />} onClick={startEditing}>
+                Editar
+              </Button>
+              <Button variant="primary" onClick={close}>
+                Fechar
+              </Button>
+            </>
+          }
+        >
+          <div className="activity-modal">
+            <div className="task-view">
+              {viewError ? <Alert kind="error">{viewError}</Alert> : null}
+
+              <div className="task-view__status">
+                <ActivityStatusSelect
+                  status={current.status}
+                  label="Status da tarefa"
+                  onChange={(next) => (next === 'Bloqueada' ? setBlocking(true) : void changeStatus(next))}
+                />
+                {!done ? <PriorityBadge priority={current.priority} /> : null}
+              </div>
+
+              {current.status === 'Bloqueada' && current.blockedReason ? (
+                <p className="task-view__blocked">
+                  <strong>O que está travando:</strong> {current.blockedReason}
+                </p>
+              ) : null}
+
+              <dl className="task-view__facts">
+                <div>
+                  <dt>Responsável</dt>
+                  <dd>
+                    {current.assignedVolunteerName ? (
+                      <span className="task-view__person">
+                        <Avatar name={current.assignedVolunteerName} photoUrl={current.assignedVolunteerPhotoUrl} size={22} />
+                        {current.assignedVolunteerName}
+                      </span>
+                    ) : (
+                      <span className="task-view__none">Sem responsável</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Prazo</dt>
+                  <dd className={late ? 'task-view__late' : undefined}>
+                    {current.dueDate ? `${formatDate(current.dueDate)}${late ? ' · vencido' : ''}` : 'Sem prazo'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Projeto</dt>
+                  <dd>
+                    <Link to={`/projetos/${current.projectId}?aba=tarefas`} onClick={close}>
+                      {current.projectName ?? 'Abrir o projeto'}
+                    </Link>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Prioridade</dt>
+                  <dd>{priorityLabel(current.priority)}</dd>
+                </div>
+              </dl>
+
+              <div className="task-view__text">
+                <h3>Descrição</h3>
+                <p>{current.description ?? 'Sem descrição.'}</p>
+              </div>
+              {current.notes ? (
+                <div className="task-view__text">
+                  <h3>Observações</h3>
+                  <p>{current.notes}</p>
+                </div>
+              ) : null}
+
+              <p className="field__hint">
+                Criada em {formatDateTime(current.createdAt)}
+                {current.completedAt ? ` · concluída em ${formatDateTime(current.completedAt)}` : ''}
+              </p>
+            </div>
+
+            <ActivityExtras activity={current} onChanged={() => (extrasChanged.current = true)} />
+          </div>
+        </Modal>
+
+        {blocking ? (
+          <BlockActivityDialog
+            title={current.title}
+            onCancel={() => setBlocking(false)}
+            onConfirm={(reason) => {
+              setBlocking(false);
+              void changeStatus('Bloqueada', reason);
+            }}
+          />
+        ) : null}
+      </>
+    );
+  }
+
+  // ---------- formulario (nova tarefa ou edicao) ----------
   return (
     <Modal
-      title={activity ? 'Editar atividade' : 'Nova atividade'}
+      title={activity ? 'Editar tarefa' : 'Nova tarefa'}
       subtitle={
         activity
           ? 'Checklist, anexos e comentários são gravados na hora; os demais campos, ao salvar.'
-          : 'Atividades organizam a execução do projeto no dia a dia.'
+          : 'Tarefas organizam a execução do projeto no dia a dia.'
       }
       size={activity ? 'wide' : 'default'}
       onClose={close}
       footer={
         <>
-          <Button onClick={close}>Cancelar</Button>
+          {/* Aberta para ler, "Cancelar" volta para a leitura; aberta direto na edicao, fecha. */}
+          <Button onClick={openedToRead ? () => setMode('view') : close}>Cancelar</Button>
           <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
-            {activity ? 'Salvar alterações' : 'Criar atividade'}
+            {activity ? 'Salvar alterações' : 'Criar tarefa'}
           </Button>
         </>
       }
@@ -254,7 +420,7 @@ export function ActivityFormModal({
               </Select>
             </Field>
 
-            {/* Atividade nova sempre comeca sem iniciar; o status so aparece ao editar. */}
+            {/* Tarefa nova sempre comeca sem iniciar; o status so aparece ao editar. */}
             {activity ? (
               <Field label="Status" htmlFor="activity-status" required>
                 <Select
@@ -272,7 +438,7 @@ export function ActivityFormModal({
             ) : null}
 
             {status === 'Bloqueada' ? (
-              <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece no card e no Precisa de atenção.">
+              <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece no card e nos atalhos de Tarefas.">
                 <TextInput
                   id="activity-blocked"
                   maxLength={300}
@@ -299,10 +465,8 @@ export function ActivityFormModal({
           <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
         </form>
 
-        {/* Atividade ja criada: checklist, anexos e comentarios ao lado do formulario (embaixo, no celular). */}
-        {activity ? (
-          <ActivityExtras activity={activity} onChanged={() => (extrasChanged.current = true)} />
-        ) : null}
+        {/* Tarefa ja criada: checklist, anexos e comentarios ao lado do formulario (embaixo, no celular). */}
+        {current ? <ActivityExtras activity={current} onChanged={() => (extrasChanged.current = true)} /> : null}
       </div>
     </Modal>
   );

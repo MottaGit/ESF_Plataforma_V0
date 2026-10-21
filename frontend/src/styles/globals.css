@@ -2158,3 +2158,19 @@ button.program-card { font: inherit; text-align: left; cursor: pointer; }
 
 .project-cell { display: flex; align-items: center; gap: 10px; }
 .table-foot { margin: 0; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-muted); }
+
+/* Janela da tarefa: modo leitura */
+.task-view { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.task-view__status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.task-view__blocked { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--st-blocked-bg); color: #4a2a8a; font-size: 13px; }
+.task-view__facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+.task-view__facts dt { font-size: 12px; color: var(--text-muted); }
+.task-view__facts dd { margin: 3px 0 0; font-size: 13.5px; }
+.task-view__person { display: inline-flex; align-items: center; gap: 7px; }
+.task-view__none { color: var(--warning); font-weight: 500; }
+.task-view__late { color: var(--danger); font-weight: 600; }
+.task-view__text h3 { margin: 0 0 4px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.task-view__text p { margin: 0; font-size: 13.5px; white-space: pre-line; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .task-view__facts { grid-template-columns: minmax(0, 1fr); }
+}

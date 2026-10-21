@@ -15,7 +15,7 @@ const POLL_MS = 60_000;
 export function linkFor(notification: AppNotification) {
   if (!notification.projectId) return null;
   return notification.activityId
-    ? `/projetos/${notification.projectId}?aba=atividades&atividade=${notification.activityId}`
+    ? `/projetos/${notification.projectId}?aba=tarefas&tarefa=${notification.activityId}`
     : `/projetos/${notification.projectId}`;
 }
 
