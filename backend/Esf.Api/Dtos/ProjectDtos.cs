@@ -147,6 +147,8 @@ public class ProjectQuery
     public Guid? ProgramId { get; set; }
     public Guid? OwnerVolunteerId { get; set; }
     public bool OnlyLate { get; set; }
+    /// <summary>So os parados: em andamento e sem relato ha mais de 30 dias.</summary>
+    public bool OnlyStale { get; set; }
     public bool IncludeArchived { get; set; }
     /// <summary>recent | name | status | deadline | progress</summary>
     public string? Sort { get; set; }

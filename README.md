@@ -110,15 +110,15 @@ e já vem preenchida com o do administrador, para facilitar a demonstração.
 
 ## O que a aplicação faz
 
-**Visão geral (dashboard)** — focada no trabalho do dia a dia: atividades e voluntários. Abaixo do "Olá", uma linha
-resume as suas atividades (em aberto, atrasadas, bloqueadas) ou, sem voluntário vinculado, as da organização. No topo,
-quatro números: atividades atrasadas, concluídas no mês (últimos 30 dias, levando ao quadro), em andamento e voluntários
-ativos (com quantos estão sem atividade em aberto). O bloco **Precisa de atenção** lista as atividades atrasadas,
-bloqueadas (com o motivo) ou sem responsável, com filtros e link para o projeto; **Equipe** mostra quem está com mais
-atividades em aberto. À direita, **Minhas atividades** (as próximas em aberto de quem está logado, com atalho para o
-quadro; sem voluntário vinculado, explica como pedir o vínculo) e os **aniversariantes** dos últimos 10 dias e dos
-próximos 30, atravessando viradas de mês e de ano (voluntários ativos e afastados): quem já fez aparece esmaecido com
-"há 3 dias", o do dia fica destacado e os próximos mostram a data e a distância ("3 de novembro · em 15 dias").
+**Início** — o que a pessoa logada tem para fazer. Abaixo do "Olá", uma linha com as tarefas dela (em aberto,
+atrasadas, bloqueadas). **Minhas tarefas** agrupa por prazo (atrasadas, próximos 7 dias, depois, sem prazo; até 8, o
+resto em Tarefas): a caixinha conclui na hora e clicar abre a tarefa ali mesmo. Ao lado, **Meus projetos** (os em
+planejamento ou andamento em que a pessoa é responsável ou está na equipe, com progresso, último relato e o botão
+**Registrar**, que abre o projeto já no registro de andamento), **Avisos recentes** (os 3 últimos do sininho) e os
+**aniversariantes** dos últimos 10 dias e dos próximos 30. Sem voluntário vinculado, explica como pedir o vínculo. Para
+a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, bloqueadas, sem responsável e projetos
+parados, isto é, em andamento sem relato há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
+carregado** (cada pessoa leva às tarefas dela).
 
 **Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
 edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um

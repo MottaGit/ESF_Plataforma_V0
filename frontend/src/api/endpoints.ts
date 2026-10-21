@@ -69,6 +69,7 @@ export const projectsApi = {
         programId: filters.programId,
         ownerVolunteerId: filters.ownerVolunteerId,
         onlyLate: filters.onlyLate,
+        onlyStale: filters.onlyStale,
         includeArchived: filters.includeArchived,
         sort: filters.sort
       }

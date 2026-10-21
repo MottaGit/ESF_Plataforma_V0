@@ -84,6 +84,8 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const sort = searchParams.get('ordem') ?? 'recent';
   const onlyLate = searchParams.get('atrasados') === '1';
   const includeArchived = searchParams.get('arquivados') === '1';
+  // Vindo do Inicio: so os projetos em andamento sem relato ha mais de 30 dias.
+  const onlyStale = searchParams.get('parados') === '1';
   // Lista ou mapa: os mesmos filtros valem para os dois.
   const showMap = searchParams.get('exibir') === 'mapa';
   const focusId = searchParams.get('foco');
@@ -110,6 +112,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         programId,
         sort,
         onlyLate,
+        onlyStale,
         includeArchived
       });
       setProjects(list);
@@ -118,7 +121,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, status, programId, sort, onlyLate, includeArchived]);
+  }, [debouncedSearch, status, programId, sort, onlyLate, onlyStale, includeArchived]);
 
   useEffect(() => {
     void load();
@@ -298,6 +301,16 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           </div>
         </div>
       </div>
+
+      {onlyStale ? (
+        <div className="chip-group" style={{ margin: '-4px 0 14px' }}>
+          <button type="button" className="chip chip--active" onClick={() => updateParams({ parados: null })}>
+            Só os parados (em andamento, sem relato há 30 dias)
+            <span aria-hidden="true">×</span>
+            <span className="sr-only">Tirar este filtro</span>
+          </button>
+        </div>
+      ) : null}
 
       {error ? <Alert kind="error">{error}</Alert> : null}
 

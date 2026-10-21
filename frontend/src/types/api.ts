@@ -338,16 +338,6 @@ export interface ProjectDetail {
   programColor: string;
 }
 
-export interface DashboardTotals {
-  lateActivities: number;
-  blockedActivities: number;
-  /** Concluidas nos ultimos 30 dias. */
-  completedLast30Days: number;
-  inProgressActivities: number;
-  activeVolunteers: number;
-  activeVolunteersWithoutOpenActivities: number;
-}
-
 export interface VolunteerWorkload {
   volunteerId: string;
   name: string;
@@ -363,14 +353,35 @@ export interface MyActivities {
   blocked: number;
 }
 
+/** Um projeto da pessoa logada no Inicio. */
+export interface HomeProject {
+  id: string;
+  name: string;
+  programIcon: string;
+  programColor: string;
+  status: ProjectStatus;
+  progress: number;
+  /** Ultimo relato de andamento (null: nunca houve). */
+  lastUpdateAt: string | null;
+}
+
+/** Resumo da organizacao (mostrado para a coordenacao). */
+export interface OrgSummary {
+  lateTasks: number;
+  blockedTasks: number;
+  unassignedTasks: number;
+  /** Projetos em andamento sem relato ha mais de 30 dias. */
+  staleProjects: number;
+}
+
+/** Tela Inicio. */
 export interface Dashboard {
-  totals: DashboardTotals;
-  /** Atividades atrasadas, bloqueadas ou sem responsavel, mais urgentes primeiro. */
-  attention: Activity[];
-  workload: VolunteerWorkload[];
   mine: MyActivities | null;
-  /** Proximas atividades em aberto do usuario logado (vazio sem voluntario vinculado). */
-  myUpcoming: Activity[];
+  /** Tarefas em aberto da pessoa logada (vazio sem voluntario vinculado). */
+  myTasks: Activity[];
+  myProjects: HomeProject[];
+  org: OrgSummary;
+  workload: VolunteerWorkload[];
 }
 
 export type SignedDocumentKind = 'VolunteerTerm' | 'BeneficiaryImageAuthorization';
@@ -561,6 +572,8 @@ export interface ProjectFilters {
   programId?: string;
   ownerVolunteerId?: string;
   onlyLate?: boolean;
+  /** So os parados (em andamento, sem relato ha mais de 30 dias). */
+  onlyStale?: boolean;
   includeArchived?: boolean;
   sort?: string;
 }

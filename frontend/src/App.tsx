@@ -3,7 +3,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
-import { DashboardPage } from './pages/DashboardPage';
+import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ProgramDetailPage } from './pages/ProgramDetailPage';
@@ -31,7 +31,7 @@ export function App() {
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<DashboardPage />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/projetos" element={<ProjectsPage />} />
               <Route path="/projetos/:id" element={<ProjectDetailPage />} />
               <Route path="/tarefas" element={<TasksPage />} />

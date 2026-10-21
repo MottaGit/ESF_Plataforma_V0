@@ -41,6 +41,13 @@ public class ProjectService
                                      && p.Status != ProjectStatus.Concluido
                                      && p.Status != ProjectStatus.Cancelado);
 
+        if (q.OnlyStale)
+        {
+            var staleIds = DashboardService.StaleProjectsQuery(_db, DateTime.UtcNow.AddDays(-DashboardService.StaleDays))
+                .Select(p => p.Id);
+            query = query.Where(p => staleIds.Contains(p.Id));
+        }
+
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var pattern = $"%{q.Search.Trim()}%";

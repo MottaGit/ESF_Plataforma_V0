@@ -8,16 +8,13 @@ namespace Esf.Api.Services;
 
 public class DashboardService
 {
-    /// <summary>Janela do numero "concluidas no mes", em dias.</summary>
-    private const int CompletedWindowDays = 30;
-
-    /// <summary>Limite de itens devolvidos em "precisa de atencao" (a tela mostra os primeiros e expande).</summary>
-    private const int AttentionLimit = 50;
+    /// <summary>Projeto em andamento sem relato ha mais que isso aparece como "parado".</summary>
+    public const int StaleDays = 30;
 
     private const int WorkloadLimit = 6;
 
-    /// <summary>Quantas atividades aparecem em "Minhas atividades".</summary>
-    private const int MyUpcomingLimit = 6;
+    /// <summary>Limite de "Minhas tarefas" (a tela agrupa por prazo e mostra as primeiras).</summary>
+    private const int MyTasksLimit = 50;
 
     private readonly EsfDbContext _db;
 
@@ -27,11 +24,11 @@ public class DashboardService
     {
         var today = Mapping.Today;
 
-        // Atividades em aberto de projetos que estao acontecendo (planejamento ou andamento, nao arquivados).
+        // Tarefas em aberto de projetos que estao acontecendo (planejamento ou andamento, nao arquivados).
         // O volume de uma organizacao como esta e pequeno, entao o resto e calculado em memoria.
         var open = await _db.Activities
             .AsNoTracking()
-            .Include(a => a.Project)
+            .Include(a => a.Project).ThenInclude(p => p!.Program)
             .Include(a => a.AssignedVolunteer)
             .Where(a => a.Status != ActivityStatus.Concluida
                         && !a.Project!.IsArchived
@@ -41,19 +38,7 @@ public class DashboardService
         bool IsLate(Activity a) => a.DueDate.HasValue && a.DueDate.Value < today;
         bool IsBlocked(Activity a) => a.Status == ActivityStatus.Bloqueada;
 
-        // Mais urgente primeiro: atrasadas (as mais antigas antes), depois bloqueadas, depois sem responsavel.
-        int Urgency(Activity a) => IsLate(a) ? 0 : IsBlocked(a) ? 1 : 2;
-        var attention = open
-            .Where(a => IsLate(a) || IsBlocked(a) || a.AssignedVolunteerId == null)
-            .OrderBy(Urgency)
-            .ThenBy(a => a.DueDate ?? DateOnly.MaxValue)
-            .ThenByDescending(a => a.Priority)
-            .ThenBy(a => a.Title)
-            .Take(AttentionLimit)
-            .Select(Mapping.ToDto)
-            .ToList();
-
-        // Agrupa pelo Id: sem rastreamento, cada atividade traz sua propria instancia do voluntario.
+        // Agrupa pelo Id: sem rastreamento, cada tarefa traz sua propria instancia do voluntario.
         var workload = open
             .Where(a => a.AssignedVolunteer is not null)
             .GroupBy(a => a.AssignedVolunteerId!.Value)
@@ -69,55 +54,73 @@ public class DashboardService
             .Take(WorkloadLimit)
             .ToList();
 
-        var busyVolunteers = open
-            .Where(a => a.AssignedVolunteerId.HasValue)
-            .Select(a => a.AssignedVolunteerId!.Value)
-            .ToHashSet();
+        var staleSince = DateTime.UtcNow.AddDays(-StaleDays);
+        var staleProjects = await StaleProjectsQuery(_db, staleSince).CountAsync();
 
-        var activeVolunteerIds = await _db.Volunteers
-            .AsNoTracking()
-            .Where(v => v.Status == VolunteerStatus.Ativo)
-            .Select(v => v.Id)
-            .ToListAsync();
-
-        var completedSince = DateTime.UtcNow.AddDays(-CompletedWindowDays);
-        var completedRecently = await _db.Activities
-            .AsNoTracking()
-            .CountAsync(a => a.Status == ActivityStatus.Concluida
-                             && a.CompletedAt >= completedSince
-                             && !a.Project!.IsArchived);
-
-        var totals = new DashboardTotalsDto(
+        var org = new OrgSummaryDto(
             open.Count(IsLate),
             open.Count(IsBlocked),
-            completedRecently,
-            open.Count(a => a.Status == ActivityStatus.EmAndamento),
-            activeVolunteerIds.Count,
-            activeVolunteerIds.Count(id => !busyVolunteers.Contains(id)));
+            open.Count(a => a.AssignedVolunteerId == null),
+            staleProjects);
 
         MyActivitiesDto? mine = null;
-        var myUpcoming = new List<ActivityDto>();
-        if (currentUserId.HasValue)
-        {
-            var myVolunteerId = await _db.Users
-                .Where(u => u.Id == currentUserId.Value)
-                .Select(u => u.VolunteerId)
-                .FirstOrDefaultAsync();
+        var myTasks = new List<ActivityDto>();
+        var myProjects = new List<HomeProjectDto>();
+        var myVolunteerId = currentUserId.HasValue
+            ? await _db.Users.Where(u => u.Id == currentUserId.Value).Select(u => u.VolunteerId).FirstOrDefaultAsync()
+            : null;
 
-            if (myVolunteerId.HasValue)
-            {
-                var myOpen = open.Where(a => a.AssignedVolunteerId == myVolunteerId.Value).ToList();
-                mine = new MyActivitiesDto(myOpen.Count, myOpen.Count(IsLate), myOpen.Count(IsBlocked));
-                myUpcoming = myOpen
-                    .OrderBy(a => a.DueDate ?? DateOnly.MaxValue)
-                    .ThenByDescending(a => a.Priority)
-                    .ThenBy(a => a.Title)
-                    .Take(MyUpcomingLimit)
-                    .Select(Mapping.ToDto)
-                    .ToList();
-            }
+        if (myVolunteerId.HasValue)
+        {
+            var volunteerId = myVolunteerId.Value;
+            var myOpen = open.Where(a => a.AssignedVolunteerId == volunteerId).ToList();
+            mine = new MyActivitiesDto(myOpen.Count, myOpen.Count(IsLate), myOpen.Count(IsBlocked));
+
+            var tasks = myOpen
+                .OrderBy(a => a.DueDate ?? DateOnly.MaxValue)
+                .ThenByDescending(a => a.Priority)
+                .ThenBy(a => a.Title)
+                .Take(MyTasksLimit)
+                .ToList();
+            var counts = await ActivityCounts.ForAsync(_db, tasks.Select(a => a.Id).ToList());
+            myTasks = tasks.Select(a => Mapping.ToDto(a, counts.GetValueOrDefault(a.Id))).ToList();
+
+            var projects = await _db.Projects
+                .AsNoTracking()
+                .Where(p => !p.IsArchived
+                            && (p.Status == ProjectStatus.Planejamento || p.Status == ProjectStatus.EmAndamento)
+                            && (p.OwnerVolunteerId == volunteerId || p.Volunteers.Any(v => v.VolunteerId == volunteerId)))
+                .OrderBy(p => p.Name)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Program!.Icon,
+                    p.Program.Color,
+                    p.Status,
+                    Total = p.Activities.Count,
+                    Done = p.Activities.Count(a => a.Status == ActivityStatus.Concluida),
+                    LastUpdateAt = p.Updates.Max(u => (DateTime?)u.CreatedAt)
+                })
+                .ToListAsync();
+
+            myProjects = projects
+                .Select(p => new HomeProjectDto(p.Id, p.Name, p.Icon, p.Color, p.Status,
+                    Mapping.ProjectProgress(p.Status, p.Total, p.Done), p.LastUpdateAt))
+                .ToList();
         }
 
-        return new DashboardDto(totals, attention, workload, mine, myUpcoming);
+        return new DashboardDto(mine, myTasks, myProjects, org, workload);
     }
+
+    /// <summary>
+    /// Projetos parados: em andamento, nao arquivados, criados ha mais de 30 dias e sem relato desde entao
+    /// (o ultimo relato, ou a criacao quando nunca houve um, e anterior ao corte).
+    /// </summary>
+    public static IQueryable<Project> StaleProjectsQuery(EsfDbContext db, DateTime since) =>
+        db.Projects.AsNoTracking().Where(p =>
+            p.Status == ProjectStatus.EmAndamento
+            && !p.IsArchived
+            && p.CreatedAt < since
+            && (p.Updates.Max(u => (DateTime?)u.CreatedAt) ?? p.CreatedAt) < since);
 }
