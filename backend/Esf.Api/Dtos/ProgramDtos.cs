@@ -18,7 +18,11 @@ public record ProgramDto(
     // Resumo do modelo (atividades e indicadores padrao; textos sugeridos preenchidos).
     int TemplateActivitiesCount,
     int TemplateIndicatorsCount,
-    bool HasTemplateTexts);
+    bool HasTemplateTexts,
+    // Resultados do programa: cada indicador padrao do modelo somado nos projetos (nao arquivados) do programa.
+    List<ProgramResultDto> Results);
+
+public record ProgramResultDto(string Name, string? Unit, decimal Total);
 
 public record TemplateActivityDto(Guid Id, string Title, string? Description, ActivityPriority Priority, int? DueDays);
 

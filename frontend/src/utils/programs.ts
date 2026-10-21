@@ -1,3 +1,5 @@
+import type { Program } from '../types/api';
+
 /**
  * Icones e cores dos programas. As chaves sao as mesmas da API (Common/ProgramAppearance.cs); uma chave
  * desconhecida cai no padrao.
@@ -37,4 +39,21 @@ export function programEmoji(icon: string | null | undefined) {
 
 export function programHex(color: string | null | undefined) {
   return (PROGRAM_COLORS.find((item) => item.key === color) ?? PROGRAM_COLORS[0]).hex;
+}
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+/** "3 em andamento · 9 concluídos" */
+export function programProjectsSummary(program: Program) {
+  return `${program.activeProjectsCount} em andamento · ${plural(program.doneProjectsCount, 'concluído', 'concluídos')}`;
+}
+
+/** "5 tarefas · 2 indicadores · textos sugeridos"; null quando o programa nao tem modelo. */
+export function programTemplateSummary(program: Program) {
+  const parts = [
+    program.templateActivitiesCount > 0 ? plural(program.templateActivitiesCount, 'tarefa', 'tarefas') : null,
+    program.templateIndicatorsCount > 0 ? plural(program.templateIndicatorsCount, 'indicador', 'indicadores') : null,
+    program.hasTemplateTexts ? 'textos sugeridos' : null
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : null;
 }

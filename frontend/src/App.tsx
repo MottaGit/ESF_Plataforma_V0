@@ -6,8 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { PrivacyPage } from './pages/PrivacyPage';
-import { ProgramDetailPage } from './pages/ProgramDetailPage';
-import { ProgramsPage } from './pages/ProgramsPage';
+import { ProgramRedirect, ProgramTemplatePage } from './pages/ProgramTemplatePage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -35,8 +34,9 @@ export function App() {
               <Route path="/projetos" element={<ProjectsPage />} />
               <Route path="/projetos/:id" element={<ProjectDetailPage />} />
               <Route path="/tarefas" element={<TasksPage />} />
-              <Route path="/programas" element={<ProgramsPage />} />
-              <Route path="/programas/:id" element={<ProgramDetailPage />} />
+              <Route path="/programas" element={<Navigate to="/projetos" replace />} />
+              <Route path="/programas/:id" element={<ProgramRedirect />} />
+              <Route path="/programas/:id/modelo" element={<ProgramTemplatePage />} />
               <Route path="/voluntarios" element={<VolunteersPage />} />
               <Route path="/voluntarios/:id" element={<VolunteerDetailPage />} />
               <Route path="/relatorios" element={<ReportsPage />} />

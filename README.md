@@ -120,10 +120,11 @@ a coordenação, entram também a faixa **Na organização** (tarefas atrasadas,
 parados, isto é, em andamento sem relato há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
 carregado** (cada pessoa leva às tarefas dela).
 
-**Projetos** — listagem com busca, filtros (status, programa, só atrasados, incluir arquivados) e ordenação; criação,
-edição, mudança de status, arquivamento e exclusão. Busca, filtros, ordenação e visão ficam na URL, então voltar de um
-projeto (ou recarregar) mantém a lista como estava. O **progresso** é calculado pelas atividades concluídas (projeto
-concluído conta como 100%). A tela tem duas abas: **Projetos** (a tabela) e **Quadro de atividades**. O **novo
+**Projetos** — listagem com busca, filtros (status, só atrasados, incluir arquivados; o programa é a aba escolhida)
+e ordenação. Cada linha mostra programa, status, responsável, progresso e **último relato**; editar, arquivar/reativar
+e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem relato há
+mais de 30 dias. Busca, filtros, ordenação e visão ficam na URL, então voltar de um projeto (ou recarregar) mantém a
+lista como estava. O **progresso** é calculado pelas tarefas concluídas (projeto concluído conta como 100%). O **novo
 projeto** pede só o essencial (nome, programa, responsável, data de início e endereço; começa em planejamento); o resto
 (descrição, objetivo, comunidade, público, previsão de término, status, observações) fica em Editar projeto.
 
@@ -136,15 +137,17 @@ só quando a pessoa clica em Buscar), aceita um clique no lugar certo e o pino p
 apaga o ponto. Em Sobre, "Ver no mapa" abre o mapa já centrado no projeto. O mapa (Leaflet) só é baixado quando é
 aberto.
 
-**Programas** — ficam em Projetos › botão "Programas" (não mais em Configurações; o link antigo
-`/configuracoes?aba=programas` leva para lá). A página mostra um card por programa, com ícone, cor e quantos projetos
-estão em andamento e concluídos; "Mostrar arquivados" inclui os arquivados. O card abre a página do programa, com os
-projetos dele e, para a coordenação, "Editar" (nome, ícone e cor, de listas fixas — o ícone e a cor aparecem nos cards
-e nos pinos do mapa), "Novo projeto" (já dentro do programa) e arquivar/reativar ou excluir (só sem projetos). No topo
-de cada projeto, o nome do programa leva à página dele. Programas que já existiam ganharam ícone pelo nome (banheiro,
-horta, evento).
+**Programas** — a tela Projetos é organizada por programa: no topo, uma aba para **Todos** e uma por programa (com
+ícone, cor e número de projetos) e, para a coordenação, **+ Novo programa**. Em **Todos** aparece um cartão por
+programa (projetos em andamento e concluídos e os resultados); escolhendo um programa aparece a **visão do programa**:
+números (em andamento, concluídos) e os **resultados somados** — cada indicador padrão do modelo somado nos projetos
+não arquivados do programa, comparando os nomes sem diferenciar maiúsculas nem acentos —, mais, para a coordenação,
+**Modelo do programa**, **Editar** (nome, ícone e cor) e arquivar/reativar ou excluir (só sem projetos). A lista
+embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com ele escolhido. Os endereços antigos
+(`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
+programa abre a aba dele.
 
-**Modelo do programa** — aba "Modelo" na página do programa: **atividades padrão** (título, prioridade, descrição e
+**Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **atividades padrão** (título, prioridade, descrição e
 prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
 **textos sugeridos** (descrição, objetivo e público beneficiado). A coordenação inclui, edita, reordena e remove; cada
 mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
@@ -438,9 +441,9 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/auth/change-password` | troca a própria senha |
 | POST | `/api/auth/accept-terms` | registra o aceite da política de privacidade e dos termos de uso (versão vigente) |
 | GET | `/api/dashboard` | números e listas da visão geral |
-| GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `includeArchived`, `sort` |
+| GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `onlyStale`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
-| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos; edita nome, ícone e cor e arquiva/reativa; exclui só programa sem projetos |
+| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos e resultados somados; edita nome, ícone e cor e arquiva/reativa; exclui só programa sem projetos |
 | GET/PUT | `/api/programs/{id}/template` | modelo do programa (PUT grava o modelo inteiro; coordenação) |
 | GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |

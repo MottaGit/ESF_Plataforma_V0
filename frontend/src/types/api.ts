@@ -53,6 +53,14 @@ export interface Program {
   templateActivitiesCount: number;
   templateIndicatorsCount: number;
   hasTemplateTexts: boolean;
+  /** Indicadores padrao do modelo somados nos projetos do programa. */
+  results: ProgramResult[];
+}
+
+export interface ProgramResult {
+  name: string;
+  unit: string | null;
+  total: number;
 }
 
 export interface TemplateActivity {

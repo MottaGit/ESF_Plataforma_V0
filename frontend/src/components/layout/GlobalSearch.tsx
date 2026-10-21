@@ -51,7 +51,7 @@ function flatten(results: SearchResults): ResultItem[] {
       group: 'Programas',
       label: g.name,
       meta: g.isArchived ? 'Programa arquivado' : 'Programa',
-      to: `/programas/${g.id}`,
+      to: `/projetos?programa=${g.id}`,
       icon: <ProgramMark icon={g.icon} color={g.color} size={26} />
     })),
     ...results.updates.map((u) => ({

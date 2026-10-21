@@ -28,7 +28,8 @@ public class ProgramService
         p.Color,
         p.TemplateActivities.Count,
         p.TemplateIndicators.Count,
-        p.TemplateDescription != null || p.TemplateObjective != null || p.TemplateTargetAudience != null);
+        p.TemplateDescription != null || p.TemplateObjective != null || p.TemplateTargetAudience != null,
+        new List<ProgramResultDto>());
 
     public async Task<List<ProgramDto>> ListAsync(bool onlyActive)
     {
@@ -37,15 +38,50 @@ public class ProgramService
         if (onlyActive)
             query = query.Where(p => p.Status == ProgramStatus.Ativo);
 
-        return await query
+        return await WithResultsAsync(await query
             .OrderBy(p => p.Name)
             .Select(ToDto)
-            .ToListAsync();
+            .ToListAsync());
     }
 
-    public async Task<ProgramDto> GetAsync(Guid id) =>
-        await _db.Programs.AsNoTracking().Where(p => p.Id == id).Select(ToDto).FirstOrDefaultAsync()
-        ?? throw AppException.NotFound("Programa");
+    public async Task<ProgramDto> GetAsync(Guid id)
+    {
+        var program = await _db.Programs.AsNoTracking().Where(p => p.Id == id).Select(ToDto).FirstOrDefaultAsync()
+                      ?? throw AppException.NotFound("Programa");
+        return (await WithResultsAsync(new List<ProgramDto> { program }))[0];
+    }
+
+    /// <summary>
+    /// Resultados de cada programa: os indicadores padrao do modelo, cada um somado nos projetos nao arquivados do
+    /// programa (pelo nome, sem diferenciar maiusculas nem acentos). Programa sem indicadores padrao fica sem resultados.
+    /// </summary>
+    private async Task<List<ProgramDto>> WithResultsAsync(List<ProgramDto> programs)
+    {
+        var ids = programs.Select(p => p.Id).ToList();
+        var templates = await _db.ProgramTemplateIndicators.AsNoTracking()
+            .Where(t => ids.Contains(t.ProgramId))
+            .OrderBy(t => t.Position)
+            .Select(t => new { t.ProgramId, t.Name, t.Unit })
+            .ToListAsync();
+        if (templates.Count == 0) return programs;
+
+        var sums = await _db.Indicators.AsNoTracking()
+            .Where(i => ids.Contains(i.Project!.ProgramId) && !i.Project.IsArchived)
+            .GroupBy(i => new { i.Project!.ProgramId, Name = EsfDbContext.Fold(i.Name.Trim()) })
+            .Select(g => new { g.Key.ProgramId, g.Key.Name, Total = g.Sum(i => i.Value) })
+            .ToListAsync();
+
+        return programs
+            .Select(p => p with
+            {
+                Results = templates
+                    .Where(t => t.ProgramId == p.Id)
+                    .Select(t => new ProgramResultDto(t.Name, t.Unit,
+                        sums.FirstOrDefault(s => s.ProgramId == p.Id && s.Name == SearchText.Fold(t.Name.Trim()))?.Total ?? 0))
+                    .ToList()
+            })
+            .ToList();
+    }
 
     public async Task<ProgramDto> CreateAsync(SaveProgramRequest request)
     {

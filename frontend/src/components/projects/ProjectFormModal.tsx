@@ -122,7 +122,8 @@ export function ProjectFormModal({
             color: project.programColor,
             templateActivitiesCount: 0,
             templateIndicatorsCount: 0,
-            hasTemplateTexts: false
+            hasTemplateTexts: false,
+            results: []
           }
         ]
       : programs
@@ -279,7 +280,7 @@ export function ProjectFormModal({
               htmlFor="program"
               required
               error={errors.programId}
-              hint="Para editar ou arquivar programas, use Projetos › Programas."
+              hint="Para editar programas e modelos, escolha o programa na tela Projetos."
             >
               <div className="select-with-action">
                 <Select

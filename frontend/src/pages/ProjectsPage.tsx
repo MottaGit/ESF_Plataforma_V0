@@ -2,18 +2,22 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
+import { ProgramFormModal } from '../components/programs/ProgramFormModal';
+import { ProgramMark } from '../components/programs/ProgramMark';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconEdit, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { Menu } from '../components/ui/Menu';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
-import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
+import { PROJECT_STATUSES, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
 import { rememberProjectsQuery } from '../utils/listState';
+import { programProjectsSummary } from '../utils/programs';
 
 const sortOptions = [
   { value: 'recent', label: 'Atualizados recentemente' },
@@ -23,12 +27,16 @@ const sortOptions = [
   { value: 'progress', label: 'Maior progresso' }
 ];
 
-// O mapa (Leaflet) tambem so e baixado quando alguem abre a visao de mapa.
+// O mapa (Leaflet) so e baixado quando alguem abre a visao de mapa.
 const ProjectsMap = lazy(() =>
   import('../components/map/ProjectsMap').then((module) => ({ default: module.ProjectsMap }))
 );
 
-/** Tela de Projetos. Filtros vivem na URL: voltar de um projeto (ou recarregar) mantem a tela como estava. */
+/**
+ * Tela de Projetos, organizada por programa: "Todos" mostra um cartao por programa; cada programa mostra a visao
+ * geral dele (resultados somados, modelo) e os projetos. Filtros vivem na URL: voltar de um projeto (ou recarregar)
+ * mantem a tela como estava.
+ */
 export function ProjectsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -55,8 +63,7 @@ export function ProjectsPage() {
 
   // O quadro de tarefas mudou para Tarefas: links antigos (?visao=quadro) vao para la com os mesmos filtros.
   if (searchParams.get('visao') === 'quadro') {
-    const next = new URLSearchParams(searchParams);
-    return <Navigate to={`/tarefas?${next.toString()}`} replace />;
+    return <Navigate to={`/tarefas?${searchParams.toString()}`} replace />;
   }
 
   return <ProjectList searchParams={searchParams} updateParams={updateParams} />;
@@ -96,6 +103,8 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [removing, setRemoving] = useState<ProjectListItem | null>(null);
   const [busy, setBusy] = useState(false);
+  const [programForm, setProgramForm] = useState<Program | 'new' | null>(null);
+  const [removingProgram, setRemovingProgram] = useState<Program | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => updateParams({ busca: search.trim() || null }), 300);
@@ -123,16 +132,23 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
     }
   }, [debouncedSearch, status, programId, sort, onlyLate, onlyStale, includeArchived]);
 
+  const loadPrograms = useCallback(() => {
+    programsApi
+      .list(false)
+      .then(setPrograms)
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     void load();
   }, [load]);
 
   useEffect(() => {
-    programsApi.list().then(setPrograms).catch(() => undefined);
+    loadPrograms();
     volunteersApi.list(undefined, true).then(setVolunteers).catch(() => undefined);
-  }, []);
+  }, [loadPrograms]);
 
-  // Abre o formulario quando a rota recebe ?novo=1 (atalho vindo do dashboard).
+  // Abre o formulario quando a rota recebe ?novo=1.
   useEffect(() => {
     if (searchParams.get('novo') === '1' && canManage) {
       setFormProject(null);
@@ -140,6 +156,11 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       updateParams({ novo: null });
     }
   }, [searchParams, updateParams, canManage]);
+
+  const activePrograms = programs.filter((program) => program.status === 'Ativo');
+  const selected = programs.find((program) => program.id === programId) ?? null;
+  // Programas nas abas: os ativos e, se for o escolhido, um arquivado.
+  const tabs = selected && selected.status === 'Arquivado' ? [...activePrograms, selected] : activePrograms;
 
   const summary = useMemo(() => {
     const late = projects.filter((project) => project.isLate).length;
@@ -179,11 +200,49 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       notify('Projeto excluído.');
       setRemoving(null);
       void load();
+      loadPrograms();
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o projeto.');
     } finally {
       setBusy(false);
     }
+  }
+
+  async function toggleProgramArchived(program: Program) {
+    const archive = program.status === 'Ativo';
+    try {
+      await programsApi.update(program.id, {
+        name: program.name,
+        status: archive ? 'Arquivado' : 'Ativo',
+        icon: program.icon,
+        color: program.color
+      });
+      notify(archive ? 'Programa arquivado.' : 'Programa reativado.');
+      loadPrograms();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível alterar o programa.');
+    }
+  }
+
+  async function handleDeleteProgram() {
+    if (!removingProgram) return;
+    setBusy(true);
+    try {
+      await programsApi.remove(removingProgram.id);
+      notify('Programa excluído.');
+      setRemovingProgram(null);
+      updateParams({ programa: null });
+      loadPrograms();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o programa.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openNewProject() {
+    setFormProject(null);
+    setFormOpen(true);
   }
 
   return (
@@ -192,34 +251,65 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         <div className="page-head__text">
           <h1>Projetos</h1>
           <p className="page-head__desc">
-            {summary.total} projeto(s) na listagem
-            {summary.late > 0 ? ` · ${summary.late} com prazo vencido` : ''}
+            {selected ? 'A visão do programa e os projetos dele.' : 'Escolha um programa para ver os números e os projetos dele.'}
           </p>
         </div>
-        <div className="page-head__actions">
-          <Link to="/programas" className="btn">
-            Programas
-          </Link>
-          {canManage ? (
-            <Button
-              variant="primary"
-              icon={<IconPlus size={15} />}
-              onClick={() => {
-                setFormProject(null);
-                setFormOpen(true);
-              }}
-            >
+        {canManage ? (
+          <div className="page-head__actions">
+            <Button variant="primary" icon={<IconPlus size={15} />} onClick={openNewProject}>
               Novo projeto
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
+
+      <nav className="program-tabs" aria-label="Programas">
+        <button
+          type="button"
+          className={`program-tab${selected ? '' : ' program-tab--active'}`}
+          aria-pressed={!selected}
+          onClick={() => updateParams({ programa: null })}
+        >
+          Todos
+        </button>
+        {tabs.map((program) => (
+          <button
+            key={program.id}
+            type="button"
+            className={`program-tab${program.id === programId ? ' program-tab--active' : ''}`}
+            aria-pressed={program.id === programId}
+            onClick={() => updateParams({ programa: program.id })}
+          >
+            <ProgramMark icon={program.icon} color={program.color} size={22} />
+            {program.name}
+            <span className="program-tab__count num">{program.projectsCount}</span>
+          </button>
+        ))}
+        {canManage ? (
+          <button type="button" className="program-tab program-tab--add" onClick={() => setProgramForm('new')}>
+            <IconPlus size={14} />
+            Novo programa
+          </button>
+        ) : null}
+      </nav>
+
+      {selected ? (
+        <ProgramOverview
+          program={selected}
+          canManage={canManage}
+          onEdit={() => setProgramForm(selected)}
+          onToggleArchived={() => void toggleProgramArchived(selected)}
+          onDelete={() => setRemovingProgram(selected)}
+        />
+      ) : (
+        <ProgramCards programs={activePrograms} onSelect={(id) => updateParams({ programa: id })} />
+      )}
 
       <div className="toolbar">
         <span className="search">
           <IconSearch className="search__icon" />
           <TextInput
-            placeholder="Buscar por nome, comunidade ou cidade"
+            placeholder={selected ? 'Buscar neste programa' : 'Buscar por nome, comunidade ou cidade'}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             aria-label="Buscar projetos"
@@ -231,19 +321,6 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           {PROJECT_STATUSES.map((value) => (
             <option key={value} value={value}>
               {projectStatusLabel(value)}
-            </option>
-          ))}
-        </Select>
-
-        <Select
-          value={programId}
-          onChange={(event) => updateParams({ programa: event.target.value || null })}
-          aria-label="Programa"
-        >
-          <option value="">Todos os programas</option>
-          {programs.map((program) => (
-            <option key={program.id} value={program.id}>
-              {program.name}
             </option>
           ))}
         </Select>
@@ -262,23 +339,24 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           </Select>
         ) : null}
 
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={onlyLate}
+            onChange={(event) => updateParams({ atrasados: event.target.checked ? '1' : null })}
+          />
+          Só atrasados
+        </label>
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={includeArchived}
+            onChange={(event) => updateParams({ arquivados: event.target.checked ? '1' : null })}
+          />
+          Incluir arquivados
+        </label>
+
         <div className="toolbar__right">
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={onlyLate}
-              onChange={(event) => updateParams({ atrasados: event.target.checked ? '1' : null })}
-            />
-            Só atrasados
-          </label>
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={includeArchived}
-              onChange={(event) => updateParams({ arquivados: event.target.checked ? '1' : null })}
-            />
-            Incluir arquivados
-          </label>
           <div className="segmented" role="group" aria-label="Exibir como">
             <button
               type="button"
@@ -334,101 +412,105 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
               description="Ajuste a busca e os filtros, ou cadastre um novo projeto para começar."
               action={
                 canManage ? (
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setFormProject(null);
-                      setFormOpen(true);
-                    }}
-                  >
+                  <Button variant="primary" onClick={openNewProject}>
                     Cadastrar projeto
                   </Button>
                 ) : undefined
               }
             />
           ) : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Projeto</th>
-                    <th>Status</th>
-                    <th>Responsável</th>
-                    <th>Local</th>
-                    <th>Progresso</th>
-                    <th className="tight">Período</th>
-                    <th className="right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projects.map((project) => (
-                    <tr key={project.id}>
-                      <td style={{ minWidth: 210 }}>
-                        <Link className="row-link" to={`/projetos/${project.id}`}>
-                          {project.name}
-                        </Link>
-                        <div className="table__secondary">
-                          {project.programName}
-                          {project.isArchived ? ' · arquivado' : ''}
-                          {project.activitiesTotal > 0
-                            ? ` · ${project.activitiesDone}/${project.activitiesTotal} atividades`
-                            : ''}
-                        </div>
-                      </td>
-                      <td>
-                        <StatusBadge status={project.status} />
-                        {project.isLate ? (
-                          <div style={{ marginTop: 4 }}>
-                            <LateBadge />
-                          </div>
-                        ) : null}
-                      </td>
-                      <td>{project.ownerName ?? '—'}</td>
-                      <td>
-                        {project.district ?? '—'}
-                        <div className="table__secondary">{project.city ?? ''}</div>
-                      </td>
-                      <td style={{ minWidth: 120 }}>
-                        <Progress value={project.progress} />
-                      </td>
-                      <td className="tight">
-                        {formatDate(project.startDate)}
-                        <div className="table__secondary">até {formatDate(project.endDateForecast)}</div>
-                      </td>
-                      <td>
-                        <div className="row-actions">
-                          {canManage ? (
-                            <>
-                              <Button
-                                small
-                                variant="ghost"
-                                icon={<IconEdit size={15} />}
-                                title="Editar projeto"
-                                aria-label="Editar projeto"
-                                onClick={() => void openEdit(project)}
-                              />
-                              <Button small variant="ghost" onClick={() => void handleArchiveToggle(project)}>
-                                {project.isArchived ? 'Reativar' : 'Arquivar'}
-                              </Button>
-                            </>
-                          ) : null}
-                          {isAdmin ? (
-                            <Button
-                              small
-                              variant="ghost"
-                              icon={<IconTrash size={15} />}
-                              title="Excluir projeto"
-                              aria-label="Excluir projeto"
-                              onClick={() => setRemoving(project)}
-                            />
-                          ) : null}
-                        </div>
-                      </td>
+            <>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Projeto</th>
+                      <th>Status</th>
+                      <th>Responsável</th>
+                      <th>Progresso</th>
+                      <th>Último relato</th>
+                      {canManage ? (
+                        <th className="right">
+                          <span className="sr-only">Ações</span>
+                        </th>
+                      ) : null}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {projects.map((project) => (
+                      <tr key={project.id}>
+                        <td style={{ minWidth: 220 }}>
+                          <div className="project-cell">
+                            {!selected ? (
+                              <ProgramMark icon={project.programIcon} color={project.programColor} size={24} />
+                            ) : null}
+                            <div>
+                              <Link className="row-link" to={`/projetos/${project.id}`}>
+                                {project.name}
+                              </Link>
+                              <div className="table__secondary">
+                                {[!selected ? project.programName : null, project.district, project.isArchived ? 'arquivado' : null]
+                                  .filter(Boolean)
+                                  .join(' · ')}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <StatusBadge status={project.status} />
+                          {project.isLate ? (
+                            <div style={{ marginTop: 4 }}>
+                              <LateBadge />
+                            </div>
+                          ) : null}
+                        </td>
+                        <td>{project.ownerName ?? '—'}</td>
+                        <td style={{ minWidth: 120 }}>
+                          <Progress value={project.progress} />
+                        </td>
+                        <td className="tight">
+                          {project.lastUpdateAt ? (
+                            timeAgo(project.lastUpdateAt)
+                          ) : (
+                            <span className="table__secondary">sem relato</span>
+                          )}
+                        </td>
+                        {canManage ? (
+                          <td>
+                            <div className="row-actions">
+                              <Menu
+                                label={`Ações de ${project.name}`}
+                                items={[
+                                  { label: 'Editar', icon: <IconEdit size={14} />, onSelect: () => void openEdit(project) },
+                                  {
+                                    label: project.isArchived ? 'Reativar' : 'Arquivar',
+                                    onSelect: () => void handleArchiveToggle(project)
+                                  },
+                                  ...(isAdmin
+                                    ? [
+                                        {
+                                          label: 'Excluir',
+                                          icon: <IconTrash size={14} />,
+                                          danger: true,
+                                          onSelect: () => setRemoving(project)
+                                        }
+                                      ]
+                                    : [])
+                                ]}
+                              />
+                            </div>
+                          </td>
+                        ) : null}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="table-foot">
+                {summary.total} {summary.total === 1 ? 'projeto' : 'projetos'}
+                {summary.late > 0 ? ` · ${summary.late} com prazo vencido` : ''}
+              </p>
+            </>
           )}
         </section>
       )}
@@ -436,8 +518,9 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       {formOpen ? (
         <ProjectFormModal
           project={formProject}
+          initialProgramId={!formProject && selected?.status === 'Ativo' ? selected.id : undefined}
           volunteers={volunteers}
-          programs={programs}
+          programs={activePrograms}
           onClose={() => setFormOpen(false)}
           onSaved={(saved) => {
             setFormOpen(false);
@@ -448,10 +531,23 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         />
       ) : null}
 
+      {programForm ? (
+        <ProgramFormModal
+          program={programForm === 'new' ? null : programForm}
+          onClose={() => setProgramForm(null)}
+          onSaved={(saved) => {
+            setProgramForm(null);
+            notify(programForm === 'new' ? 'Programa criado.' : 'Programa atualizado.');
+            loadPrograms();
+            updateParams({ programa: saved.id });
+          }}
+        />
+      ) : null}
+
       {removing ? (
         <ConfirmDialog
           title="Excluir projeto"
-          message={`Excluir "${removing.name}" remove também atividades, indicadores, vínculos e arquivos. Essa ação não pode ser desfeita.`}
+          message={`Excluir "${removing.name}" remove também tarefas, indicadores, vínculos e arquivos. Essa ação não pode ser desfeita.`}
           confirmLabel="Excluir"
           destructive
           busy={busy}
@@ -459,6 +555,124 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           onConfirm={() => void handleDelete()}
         />
       ) : null}
+
+      {removingProgram ? (
+        <ConfirmDialog
+          title="Excluir programa"
+          message={`O programa "${removingProgram.name}" não tem projetos e será removido.`}
+          confirmLabel="Excluir"
+          destructive
+          busy={busy}
+          onCancel={() => setRemovingProgram(null)}
+          onConfirm={() => void handleDeleteProgram()}
+        />
+      ) : null}
     </>
+  );
+}
+
+/** "Todos": um cartao por programa, com os numeros e os resultados dele. */
+function ProgramCards({ programs, onSelect }: { programs: Program[]; onSelect: (id: string) => void }) {
+  if (programs.length === 0) return null;
+  return (
+    <div className="program-grid program-grid--overview">
+      {programs.map((program) => (
+        <button key={program.id} type="button" className="program-card" onClick={() => onSelect(program.id)}>
+          <ProgramMark icon={program.icon} color={program.color} size={40} />
+          <span className="program-card__body">
+            <span className="program-card__name">{program.name}</span>
+            <span className="program-card__meta">{programProjectsSummary(program)}</span>
+            {program.results.length > 0 ? (
+              <span className="program-card__results">
+                {program.results.slice(0, 2).map((result) => (
+                  <span key={result.name}>
+                    <b className="num">{formatNumber(result.total)}</b> {result.name.toLowerCase()}
+                  </span>
+                ))}
+              </span>
+            ) : null}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface ProgramOverviewProps {
+  program: Program;
+  canManage: boolean;
+  onEdit: () => void;
+  onToggleArchived: () => void;
+  onDelete: () => void;
+}
+
+/** Visao do programa escolhido: numeros, resultados somados e (para a coordenacao) modelo e edicao. */
+function ProgramOverview({ program, canManage, onEdit, onToggleArchived, onDelete }: ProgramOverviewProps) {
+  const archived = program.status === 'Arquivado';
+  const numbers = [
+    { key: 'active', value: String(program.activeProjectsCount), label: 'em andamento', title: undefined as string | undefined },
+    {
+      key: 'done',
+      value: String(program.doneProjectsCount),
+      label: program.doneProjectsCount === 1 ? 'concluído' : 'concluídos',
+      title: undefined as string | undefined
+    },
+    ...program.results.map((result) => ({
+      key: `r-${result.name}`,
+      value: formatNumber(result.total),
+      label: result.name,
+      title: result.name as string | undefined
+    }))
+  ];
+
+  return (
+    <section className="panel program-overview" aria-label={program.name}>
+      <div className="program-overview__head">
+        <ProgramMark icon={program.icon} color={program.color} size={44} />
+        <div className="program-overview__title">
+          <h2>{program.name}</h2>
+          <span className="field__hint">
+            {archived
+              ? 'Programa arquivado: não aparece em novos projetos.'
+              : `${program.projectsCount} ${program.projectsCount === 1 ? 'projeto' : 'projetos'} no programa`}
+          </span>
+        </div>
+        {canManage ? (
+          <div className="program-overview__actions">
+            <Link className="btn" to={`/programas/${program.id}/modelo`}>
+              Modelo do programa
+            </Link>
+            <Button icon={<IconEdit size={15} />} onClick={onEdit}>
+              Editar
+            </Button>
+            <Menu
+              label="Mais ações do programa"
+              items={[
+                { label: archived ? 'Reativar programa' : 'Arquivar programa', onSelect: onToggleArchived },
+                ...(program.projectsCount === 0 ? [{ label: 'Excluir programa', danger: true, onSelect: onDelete }] : [])
+              ]}
+            />
+          </div>
+        ) : null}
+      </div>
+      <div className="program-overview__numbers">
+        {numbers.map((item) => (
+          <div key={item.key} className="program-overview__number" title={item.title}>
+            <b className="num">{item.value}</b>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+      {program.results.length > 0 ? (
+        <p className="field__hint program-overview__note">
+          Resultados: os indicadores padrão do modelo somados nos projetos do programa.
+        </p>
+      ) : canManage ? (
+        <p className="field__hint program-overview__note">
+          Para ver resultados somados aqui, inclua indicadores padrão no{' '}
+          <Link to={`/programas/${program.id}/modelo`}>modelo do programa</Link>.
+        </p>
+      ) : null}
+    </section>
   );
 }
