@@ -252,7 +252,10 @@ export function emptyToNull(value: string | null | undefined) {
 export const UNLINKED_MESSAGE =
   'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais tarefas são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';
 
-/** Quando algo aconteceu, em texto curto: "agora", "há 5 min", "há 2 h", "ontem", "há 3 dias" ou a data. */
+/**
+ * Quando algo aconteceu, em texto curto: "agora", "há 5 min", "há 2 h", "ontem", "há 3 dias" e, a partir de uma semana,
+ * a data ("09/10"; com o ano so quando nao e o ano atual).
+ */
 export function timeAgo(value: string) {
   const date = new Date(value);
   const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
@@ -267,7 +270,14 @@ export function timeAgo(value: string) {
   const days = Math.round((today.getTime() - day.getTime()) / 86400000);
   if (days <= 1) return 'ontem';
   if (days < 7) return `há ${days} dias`;
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: sameYear ? undefined : 'numeric' });
+}
+
+/** timeAgo no meio de uma frase: "último registro há 3 dias", "último registro em 09/10". */
+export function timeAgoPhrase(value: string) {
+  const text = timeAgo(value);
+  return /^\d/.test(text) ? `em ${text}` : text;
 }
 
 /** Dica dos campos de texto livre: a plataforma nao deve guardar dados sensiveis (LGPD). */

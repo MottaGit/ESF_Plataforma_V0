@@ -15,7 +15,7 @@ import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
-import { PROJECT_STATUSES, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
+import { PROJECT_STATUSES, formatDateTime, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
 import { rememberProjectsQuery } from '../utils/listState';
 import { programProjectsSummary } from '../utils/programs';
 
@@ -470,7 +470,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                         </td>
                         <td className="tight">
                           {project.lastUpdateAt ? (
-                            timeAgo(project.lastUpdateAt)
+                            <span title={formatDateTime(project.lastUpdateAt)}>{timeAgo(project.lastUpdateAt)}</span>
                           ) : (
                             <span className="table__secondary">sem registro</span>
                           )}

@@ -22,7 +22,8 @@ import {
   displayName,
   dueDateLabel,
   dueDateTitle,
-  timeAgo
+  timeAgo,
+  timeAgoPhrase
 } from '../utils/format';
 
 /** Quantas das minhas tarefas aparecem no Inicio (o resto fica em Tarefas). */
@@ -300,9 +301,9 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
   );
 }
 
-/** "último registro há 3 dias" / "nenhum registro ainda". */
+/** "último registro há 3 dias" / "último registro em 09/10" / "nenhum registro ainda". */
 function lastUpdateLabel(project: HomeProject) {
-  return project.lastUpdateAt ? `último registro ${timeAgo(project.lastUpdateAt)}` : 'nenhum registro ainda';
+  return project.lastUpdateAt ? `último registro ${timeAgoPhrase(project.lastUpdateAt)}` : 'nenhum registro ainda';
 }
 
 /** Projetos da pessoa (responsavel ou na equipe), com atalho para registrar o andamento. */

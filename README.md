@@ -115,7 +115,9 @@ atrasadas, bloqueadas). **Minhas tarefas** agrupa por prazo (atrasadas, próximo
 resto em Tarefas): a caixinha conclui na hora e clicar abre a tarefa ali mesmo. Ao lado, **Meus projetos** (os em
 planejamento ou andamento em que a pessoa é responsável ou está na equipe, com progresso, último registro e o botão
 **Registrar**, que abre o projeto já no registro de andamento), **Avisos recentes** (os 3 últimos do sininho) e os
-**aniversariantes** dos últimos 10 dias e dos próximos 30. Sem voluntário vinculado, explica como pedir o vínculo. Para
+**aniversariantes** dos últimos 10 dias e dos próximos 30. Sem voluntário vinculado, explica como pedir o vínculo.
+Datas recentes aparecem em tempo relativo até uma semana ("há 3 dias", "ontem") e, depois disso, como data curta
+("último registro em 09/10"; o ano só aparece quando não é o atual), igual em todas as telas. Para
 a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, bloqueadas, sem responsável e projetos
 parados, isto é, em andamento sem registro há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
 carregado** (cada pessoa leva às tarefas dela).
