@@ -327,8 +327,10 @@ certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acer
 senha redefinida por um administrador libera o acesso na hora. Os campos de texto livre (observações e relatos) lembram
 de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
 
-**Topo da tela** — clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
-acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta) e **Sair**. Ao lado fica o **sininho**
+**Topo da tela** — mostra o nome da seção, igual ao item marcado no menu ("Projetos" também dentro de um projeto),
+sempre numa linha só. Clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
+acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta; para o perfil Usuário, a página se chama
+só "Minha conta", sem abas) e **Sair**. Ao lado fica o **sininho**
 de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes
 completando 15 itens; cada aviso com o projeto e há quanto tempo), e abrir um aviso o marca como lido e leva à aba
 Tarefas do projeto (ou ao projeto); há também "Marcar todas como lidas". Avisos lidos somem depois de 30 dias; os não

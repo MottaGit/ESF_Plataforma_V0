@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
 import { BottomBar } from './BottomBar';
@@ -9,10 +10,10 @@ import { NotificationBell } from './NotificationBell';
 import { TermsGate } from './TermsGate';
 import { Sidebar } from './Sidebar';
 
+/** Nome da secao no topo, igual ao item marcado no menu (o nome do projeto ou da pessoa ja vem logo abaixo). */
 const titles: Array<{ match: RegExp; title: string }> = [
   { match: /^\/$/, title: 'Início' },
-  { match: /^\/projetos$/, title: 'Projetos' },
-  { match: /^\/projetos\/.+/, title: 'Detalhes do projeto' },
+  { match: /^\/projetos/, title: 'Projetos' },
   { match: /^\/programas/, title: 'Projetos' },
   { match: /^\/tarefas/, title: 'Tarefas' },
   { match: /^\/voluntarios/, title: 'Voluntários' },
@@ -22,6 +23,7 @@ const titles: Array<{ match: RegExp; title: string }> = [
 
 export function AppLayout() {
   const location = useLocation();
+  const { canManage } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [organizationName, setOrganizationName] = useState('Engenheiros Sem Fronteiras');
 
@@ -34,7 +36,11 @@ export function AppLayout() {
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
-  const title = titles.find((entry) => entry.match.test(location.pathname))?.title ?? 'Plataforma';
+  // Para o voluntario comum, Configuracoes e so a propria conta.
+  const title =
+    !canManage && location.pathname.startsWith('/configuracoes')
+      ? 'Minha conta'
+      : titles.find((entry) => entry.match.test(location.pathname))?.title ?? 'Plataforma';
 
   return (
     <div className="app">

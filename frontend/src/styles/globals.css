@@ -198,7 +198,15 @@ button { font: inherit; }
   z-index: 20;
 }
 
-.header__title { font-size: 15px; font-weight: 600; }
+.header__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .header__spacer { flex: 1; }
 
 .header__user {

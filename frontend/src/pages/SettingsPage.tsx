@@ -50,23 +50,34 @@ export function SettingsPage() {
     <>
       <div className="page-head">
         <div className="page-head__text">
-          <h1>Configurações</h1>
-          <p className="page-head__desc">Dados institucionais, acessos, histórico de alterações e sua própria conta.</p>
+          {canManage ? (
+            <>
+              <h1>Configurações</h1>
+              <p className="page-head__desc">Dados institucionais, acessos, histórico de alterações e sua própria conta.</p>
+            </>
+          ) : (
+            <>
+              <h1>Minha conta</h1>
+              <p className="page-head__desc">Seus dados de acesso e a troca de senha.</p>
+            </>
+          )}
         </div>
       </div>
 
-      <ScrollTabs activeKey={tab}>
-        {visibleTabs.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={`tab${tab === item.key ? ' tab--active' : ''}`}
-            onClick={() => setTab(item.key)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </ScrollTabs>
+      {visibleTabs.length > 1 ? (
+        <ScrollTabs activeKey={tab}>
+          {visibleTabs.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`tab${tab === item.key ? ' tab--active' : ''}`}
+              onClick={() => setTab(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </ScrollTabs>
+      ) : null}
 
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
       {tab === 'users' ? <UsersSection canEdit={isAdmin} /> : null}
