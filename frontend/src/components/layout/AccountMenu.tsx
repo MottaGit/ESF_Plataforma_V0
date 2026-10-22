@@ -2,11 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { displayName, roleLabel } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
-import { IconChevronDown, IconLogout, IconSettings, IconVolunteers } from '../ui/Icons';
+import { IconChevronDown, IconHelp, IconLogout, IconSettings, IconVolunteers } from '../ui/Icons';
 import { usePopover } from '../ui/usePopover';
 
 /**
- * Foto e nome no topo da tela: clicar abre o menu da conta (perfil de voluntario, dados de acesso e sair).
+ * Foto e nome no topo da tela: clicar abre o menu da conta (perfil de voluntario, dados de acesso, ajuda e sair).
  * "Meu perfil" so aparece quando o acesso esta vinculado a um voluntario.
  */
 export function AccountMenu() {
@@ -48,6 +48,10 @@ export function AccountMenu() {
           <button type="button" role="menuitem" className="menu__item" onClick={() => go('/configuracoes?aba=conta')}>
             <IconSettings size={15} />
             Minha conta
+          </button>
+          <button type="button" role="menuitem" className="menu__item" onClick={() => go('/ajuda')}>
+            <IconHelp size={15} />
+            Ajuda
           </button>
           <div className="menu__separator" role="separator" />
           <button

@@ -18,7 +18,8 @@ const titles: Array<{ match: RegExp; title: string }> = [
   { match: /^\/tarefas/, title: 'Tarefas' },
   { match: /^\/voluntarios/, title: 'Voluntários' },
   { match: /^\/relatorios/, title: 'Relatórios' },
-  { match: /^\/configuracoes/, title: 'Configurações' }
+  { match: /^\/configuracoes/, title: 'Configurações' },
+  { match: /^\/ajuda/, title: 'Ajuda' }
 ];
 
 export function AppLayout() {
