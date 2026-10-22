@@ -95,7 +95,7 @@ dotnet ef migrations add NomeDaMigration      # criar a próxima
 
 O seed cria a organização (Porto Alegre/RS), 3 usuários, 19 voluntários e 15 projetos (10 do programa Banheiro
 Direito da Gente, baseados em registros reais, e 5 de horta comunitária) com tarefas, indicadores, vínculos e
-atualizações de andamento — o suficiente para navegar pela aplicação já na primeira execução.
+registros de andamento — o suficiente para navegar pela aplicação já na primeira execução.
 
 | E-mail | Perfil | Senha |
 | --- | --- | --- |
@@ -113,16 +113,16 @@ e já vem preenchida com o do administrador, para facilitar a demonstração.
 **Início** — o que a pessoa logada tem para fazer. Abaixo do "Olá", uma linha com as tarefas dela (em aberto,
 atrasadas, bloqueadas). **Minhas tarefas** agrupa por prazo (atrasadas, próximos 7 dias, depois, sem prazo; até 8, o
 resto em Tarefas): a caixinha conclui na hora e clicar abre a tarefa ali mesmo. Ao lado, **Meus projetos** (os em
-planejamento ou andamento em que a pessoa é responsável ou está na equipe, com progresso, último relato e o botão
+planejamento ou andamento em que a pessoa é responsável ou está na equipe, com progresso, último registro e o botão
 **Registrar**, que abre o projeto já no registro de andamento), **Avisos recentes** (os 3 últimos do sininho) e os
 **aniversariantes** dos últimos 10 dias e dos próximos 30. Sem voluntário vinculado, explica como pedir o vínculo. Para
 a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, bloqueadas, sem responsável e projetos
-parados, isto é, em andamento sem relato há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
+parados, isto é, em andamento sem registro há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
 carregado** (cada pessoa leva às tarefas dela).
 
 **Projetos** — listagem com busca, filtros (status, só atrasados, incluir arquivados; o programa é a aba escolhida)
-e ordenação. Cada linha mostra programa, status, responsável, progresso e **último relato**; editar, arquivar/reativar
-e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem relato há
+e ordenação. Cada linha mostra programa, status, responsável, progresso e **último registro**; editar, arquivar/reativar
+e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem registro há
 mais de 30 dias. Busca, filtros, ordenação e visão ficam na URL, então voltar de um projeto (ou recarregar) mantém a
 lista como estava. O **progresso** é calculado pelas tarefas concluídas (projeto concluído conta como 100%). O **novo
 projeto** pede só o essencial (nome, programa, responsável, data de início e endereço; começa em planejamento); o resto
@@ -196,7 +196,7 @@ card do quadro e as listas mostram o resumo (`☑ 3/5 · 📎 1 · 💬 2`), ver
 antigos (`?aba=atividades&atividade=…`) continuam abrindo a tarefa.
 
 **Comentários nas tarefas** — na mesma janela, abaixo do checklist e dos anexos: a conversa do dia a dia sobre a
-tarefa (não vai para o relatório, ao contrário dos relatos de Andamento). Digitar **@** abre a lista de pessoas com
+tarefa (não vai para o relatório, ao contrário dos registros de andamento). Digitar **@** abre a lista de pessoas com
 acesso (a equipe do projeto primeiro, sem diferenciar acentos) e escolher insere o nome; Ctrl+Enter envia. Quem
 escreveu edita (aparece "(editado)") e apaga o próprio comentário; a coordenação também apaga os dos outros. Avisos no
 sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário novo, o responsável pela tarefa ("Ana
@@ -205,7 +205,7 @@ comentário) abre direto a janela daquela tarefa. O resumo nos cards ganha o con
 
 **Busca geral** — campo fixo no topo de todas as telas (no celular, a lupa abre a busca ocupando a largura da tela);
 **Ctrl+K** (⌘K no Mac) leva o cursor até ele. Procura ao mesmo tempo em projetos (nome, comunidade, bairro, cidade),
-tarefas (título e descrição), voluntários, programas e relatos de andamento, sem diferenciar maiúsculas nem acentos
+tarefas (título e descrição), voluntários, programas e registros de andamento, sem diferenciar maiúsculas nem acentos
 ("joao" acha "João"), e mostra até 5 de cada tipo, agrupados. Setas escolhem e Enter abre; uma tarefa abre direto
 na janela dela. Voluntários anonimizados, documentos assinados e o histórico de alterações ficam de fora. No banco, a
 comparação usa a função `esf_fold` (criada pela migração, sem depender de extensão do Postgres).
@@ -226,14 +226,15 @@ formulário com título, responsável, prazo, prioridade e descrição. O respon
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado).
 
-**Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um relato com
+**Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um registro com
 formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
 servidor, só essas formatações são aceitas, e elas também aparecem no relatório PDF. Abaixo,
 o feed com data e autor, do mais recente para o mais antigo. Editável depois
-de publicado, e cada atualização pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
+de publicado, e cada registro pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
 largura confortável de leitura. Os anexos aparecem compactos (até 4 miniaturas, depois "+N"; documentos numa linha) e
 as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Editar, anexar e excluir ficam no menu
-"..." de cada atualização, e remover um anexo pede confirmação.
+"..." de cada registro, e remover um anexo pede confirmação. Os nomes são sempre os mesmos: **Andamento** é a aba,
+**Registrar andamento** é a ação e cada item publicado é um **registro** ("Publicar registro", "Último registro").
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está
@@ -245,7 +246,7 @@ item do formulário: escolhida do computador e enquadrada num círculo (arrastar
 envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário. A foto aparece como uma bolinha na
 lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superior direito (para o voluntário vinculado
 à conta logada); sem foto, aparecem as iniciais. Quando o acesso está vinculado a um voluntário, a plataforma mostra o
-nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos relatos de andamento
+nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos registros de andamento
 e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
 **Termo de adesão e uso de imagem** — na página do voluntário, a coordenação (administrador e coordenador) gera o
@@ -287,7 +288,7 @@ voluntário, e só a coordenação edita. O certificado já abre com o período 
 consolidado por nome no dashboard geral.
 
 **Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
-a data da atualização). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
+a data do registro). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
 arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
 Os arquivos ficam guardados no próprio banco (tabela `StoredFiles`), então não se perdem quando o servidor é recriado
 a cada deploy. Fotos grandes são reduzidas no navegador antes do envio (JPEG com o maior lado em 2048 px).
@@ -314,7 +315,7 @@ a plataforma; a data e a versão aceita ficam registradas. Para publicar uma nov
 `pages/PrivacyPage.tsx` e a data em `PrivacyTerms.CurrentVersion` (API).
 
 **Histórico de alterações** — toda criação, alteração ou exclusão feita por uma pessoa logada (projetos, tarefas,
-relatos, arquivos, indicadores, equipe, voluntários, histórico de status, documentos assinados, programas, usuários e dados da organização)
+registros de andamento, arquivos, indicadores, equipe, voluntários, histórico de status, documentos assinados, programas, usuários e dados da organização)
 fica registrada automaticamente, com quem fez, quando e o valor antes e depois de cada campo. Em Configurações ›
 Histórico (só administradores) a lista aparece em frases ("Ana alterou a tarefa…"), com filtros por projeto, pessoa,
 tipo e período, 50 por vez. Dados pessoais do cadastro de voluntário (nome, contatos, aniversário, observações, foto) só
@@ -324,7 +325,7 @@ demonstração, rotinas internas) não é registrado.
 
 **Proteção do login** — depois de 10 senhas erradas seguidas, o acesso fica bloqueado por 15 minutos (nem a senha
 certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acerto antes disso zera a contagem, e a
-senha redefinida por um administrador libera o acesso na hora. Os campos de texto livre (observações e relatos) lembram
+senha redefinida por um administrador libera o acesso na hora. Os campos de texto livre (observações e registros de andamento) lembram
 de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
 
 **Topo da tela** — mostra o nome da seção, igual ao item marcado no menu ("Projetos" também dentro de um projeto),
@@ -426,8 +427,8 @@ ESF_Plataforma_V0/
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com papel no projeto |
-| `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a uma atualização |
-| `ProjectUpdates` | relatos de andamento do projeto (texto, autor, data, editável) |
+| `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento |
+| `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | dados institucionais (registro único) |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
@@ -471,7 +472,7 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/activities/{id}/details` | checklist, anexos e comentários da tarefa |
 | POST · PUT/DELETE | `/api/activities/{id}/checklist` · `/api/checklist/{itemId}` | inclui, marca/reescreve e remove itens do checklist |
 | GET | `/api/activities/{id}/mentionable` | quem pode ser mencionado com @ (equipe primeiro) |
-| GET | `/api/search?q=` | busca geral (projetos, tarefas, voluntários, programas e relatos; mínimo 2 letras) |
+| GET | `/api/search?q=` | busca geral (projetos, tarefas, voluntários, programas e registros; mínimo 2 letras) |
 | POST · PUT/DELETE | `/api/activities/{id}/comments` · `/api/comments/{commentId}` | comenta; edita (autor) e apaga (autor ou coordenação) |
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
@@ -485,9 +486,9 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |
 | GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart; com `activityId`, anexo de uma tarefa) |
 | GET/PUT/DELETE | `/api/files/{id}[/download]` | download, edição da legenda e exclusão |
-| GET/POST | `/api/projects/{id}/updates` | relatos de andamento (texto + fotos, multipart) |
-| PUT/DELETE | `/api/updates/{id}` | edição e exclusão do relato |
-| POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do relato |
+| GET/POST | `/api/projects/{id}/updates` | registros de andamento (texto + fotos, multipart) |
+| PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
+| POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
 | POST | `/api/reports/projects` | gera o PDF consolidado |
 | GET/POST/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários |
 | GET/PUT | `/api/organization` · `POST /logo` | dados institucionais |
@@ -506,7 +507,7 @@ Erros seguem sempre o mesmo formato:
 | --- | --- |
 | **Administrador** | tudo, incluindo usuários, dados institucionais e exclusão de projetos |
 | **Coordenador** | criar e editar projetos, voluntários e indicadores; arquivar projetos |
-| **Usuário** | consultar tudo, criar e atualizar tarefas, indicadores, arquivos, relatos de andamento e status |
+| **Usuário** | consultar tudo, criar e atualizar tarefas, indicadores, arquivos, registros de andamento e status |
 
 Autenticação por JWT (HS256), senha com BCrypt. As regras ficam em `Common/Policies.cs` e nos atributos
 `[Authorize(Policy = ...)]` dos controllers.

@@ -153,7 +153,7 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
           title="Excluir arquivo"
           message={
             removing.projectUpdateId
-              ? `"${removing.fileName}" será removido do projeto e da atualização de andamento em que foi publicado.`
+              ? `"${removing.fileName}" será removido do projeto e do registro de andamento em que foi publicado.`
               : `"${removing.fileName}" será removido do projeto e do servidor.`
           }
           confirmLabel="Excluir"
@@ -245,7 +245,7 @@ function FileCard({ file, onChanged, onRemove, onView }: FileCardProps) {
         {file.projectUpdateId ? (
           <span>
             <NeutralBadge>
-              {file.updateCreatedAt ? `da atualização de ${formatDate(file.updateCreatedAt)}` : 'de uma atualização'}
+              {file.updateCreatedAt ? `do registro de ${formatDate(file.updateCreatedAt)}` : 'de um registro de andamento'}
             </NeutralBadge>
           </span>
         ) : null}

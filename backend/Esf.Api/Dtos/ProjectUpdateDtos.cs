@@ -17,14 +17,14 @@ public record ProjectUpdateDto(
 
 public class SaveProjectUpdateRequest
 {
-    [Required(ErrorMessage = "Escreva o relato da atualizacao.")]
+    [Required(ErrorMessage = "Escreva o registro de andamento.")]
     public string Text { get; set; } = string.Empty;
 }
 
 /// <summary>Texto + arquivos num unico objeto multipart (evita ambiguidade de binding com [FromForm]).</summary>
 public class CreateProjectUpdateRequest
 {
-    [Required(ErrorMessage = "Escreva o relato da atualizacao.")]
+    [Required(ErrorMessage = "Escreva o registro de andamento.")]
     public string Text { get; set; } = string.Empty;
 
     public List<IFormFile> Files { get; set; } = new();

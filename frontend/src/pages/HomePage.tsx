@@ -159,7 +159,7 @@ function OrgStrip({ data }: { data: Dashboard }) {
     { to: '/tarefas?de=todas&recorte=atrasadas', value: org.lateTasks, label: 'Tarefas atrasadas', alert: org.lateTasks > 0 },
     { to: '/tarefas?de=todas&recorte=bloqueadas', value: org.blockedTasks, label: 'Bloqueadas', alert: false },
     { to: '/tarefas?de=todas&recorte=sem-responsavel', value: org.unassignedTasks, label: 'Sem responsável', alert: false },
-    { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos parados', hint: 'sem relato há 30 dias', alert: false }
+    { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos parados', hint: 'sem registro há 30 dias', alert: false }
   ];
   return (
     <section className="section" aria-label="Na organização">
@@ -300,9 +300,9 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
   );
 }
 
-/** "atualizado há 3 dias" / "sem relato ainda". */
+/** "último registro há 3 dias" / "nenhum registro ainda". */
 function lastUpdateLabel(project: HomeProject) {
-  return project.lastUpdateAt ? `último relato ${timeAgo(project.lastUpdateAt)}` : 'sem relato ainda';
+  return project.lastUpdateAt ? `último registro ${timeAgo(project.lastUpdateAt)}` : 'nenhum registro ainda';
 }
 
 /** Projetos da pessoa (responsavel ou na equipe), com atalho para registrar o andamento. */

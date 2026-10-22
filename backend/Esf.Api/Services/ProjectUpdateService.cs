@@ -60,7 +60,7 @@ public class ProjectUpdateService
 
     public async Task<ProjectUpdateDto> UpdateAsync(Guid id, SaveProjectUpdateRequest request)
     {
-        var update = await _db.ProjectUpdates.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Atualizacao");
+        var update = await _db.ProjectUpdates.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Registro de andamento");
 
         update.Text = CleanText(request.Text);
         update.EditedAt = DateTime.UtcNow;
@@ -75,7 +75,7 @@ public class ProjectUpdateService
     {
         var update = await _db.ProjectUpdates
             .Include(u => u.Attachments)
-            .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Atualizacao");
+            .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Registro de andamento");
 
         var storedNames = update.Attachments.Select(f => f.StoredName).ToList();
 
@@ -89,7 +89,7 @@ public class ProjectUpdateService
     public async Task<ProjectFileDto> AddAttachmentAsync(Guid updateId, IFormFile file, Guid? uploadedByUserId)
     {
         var update = await _db.ProjectUpdates.FirstOrDefaultAsync(u => u.Id == updateId)
-                     ?? throw AppException.NotFound("Atualizacao");
+                     ?? throw AppException.NotFound("Registro de andamento");
 
         var attachment = await SaveAttachmentAsync(update.ProjectId, file, uploadedByUserId);
         attachment.ProjectUpdateId = updateId;
@@ -138,7 +138,7 @@ public class ProjectUpdateService
             .AsNoTracking()
             .Include(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(u => u.Attachments)
-            .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Atualizacao");
+            .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Registro de andamento");
 
         return Mapping.ToDto(update);
     }
@@ -148,7 +148,7 @@ public class ProjectUpdateService
     {
         var html = RichText.Sanitize(text);
         if (RichText.ToPlainText(html).Length < 3)
-            throw new AppException("Escreva um relato com pelo menos 3 caracteres.");
+            throw new AppException("O registro precisa ter pelo menos 3 caracteres.");
         return html;
     }
 

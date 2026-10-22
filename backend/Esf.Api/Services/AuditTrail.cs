@@ -166,7 +166,7 @@ public static class AuditTrail
         User u => ("Usuário", u.Name, u.Id, null),
         Indicator i => ("Indicador", i.Name, i.Id, i.ProjectId),
         ProjectFile f => ("Arquivo", f.FileName, f.Id, f.ProjectId),
-        ProjectUpdate u => ("Relato", Truncate(RichText.ToPlainText(u.Text), 80), u.Id, u.ProjectId),
+        ProjectUpdate u => ("Registro de andamento", Truncate(RichText.ToPlainText(u.Text), 80), u.Id, u.ProjectId),
         ProjectProgram g => ("Programa", g.Name, g.Id, null),
         ProjectVolunteer pv => ("Equipe", VolunteerRef(pv.VolunteerId), pv.VolunteerId, pv.ProjectId),
         SignedDocument d => ("Documento assinado",

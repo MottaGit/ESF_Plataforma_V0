@@ -14,7 +14,7 @@ const ENTITY_TYPES = [
   'Tarefa',
   'Checklist',
   'Comentário',
-  'Relato',
+  'Registro de andamento',
   'Arquivo',
   'Indicador',
   'Equipe',

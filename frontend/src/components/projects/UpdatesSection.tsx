@@ -49,7 +49,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
     event.preventDefault();
 
     if (plainText.trim().length < 3) {
-      setFormError('Escreva um relato com pelo menos 3 caracteres.');
+      setFormError('O registro precisa ter pelo menos 3 caracteres.');
       return;
     }
     setFormError(null);
@@ -60,10 +60,10 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
       setText('');
       setPlainText('');
       setStagedFiles([]);
-      notify('Atualização publicada.');
+      notify('Registro publicado.');
       onChanged();
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Não foi possível publicar a atualização.');
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível publicar o registro.');
     } finally {
       setPosting(false);
     }
@@ -74,11 +74,11 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
     setBusy(true);
     try {
       await projectUpdatesApi.remove(removing.id);
-      notify('Atualização excluída.');
+      notify('Registro excluído.');
       setRemoving(null);
       onChanged();
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir a atualização.');
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o registro.');
     } finally {
       setBusy(false);
     }
@@ -131,7 +131,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
                 accept={ACCEPTED_FILES}
               />
               <Button type="submit" variant="primary" small loading={posting}>
-                Publicar atualização
+                Publicar registro
               </Button>
             </div>
           </form>
@@ -141,7 +141,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
       {updates.length === 0 ? (
         <div className="panel">
           <EmptyState
-            title="Nenhuma atualização registrada"
+            title="Nenhum registro ainda"
             description="O andamento do projeto aparece aqui, do mais recente para o mais antigo."
           />
         </div>
@@ -155,8 +155,8 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
 
       {removing ? (
         <ConfirmDialog
-          title="Excluir atualização"
-          message="Esse relato e os arquivos anexados a ele serão removidos definitivamente."
+          title="Excluir registro"
+          message="Esse registro e os arquivos anexados a ele serão removidos definitivamente."
           confirmLabel="Excluir"
           destructive
           busy={busy}
@@ -187,7 +187,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
 
   async function handleSaveEdit() {
     if (draftPlain.trim().length < 3) {
-      notifyError('Escreva um relato com pelo menos 3 caracteres.');
+      notifyError('O registro precisa ter pelo menos 3 caracteres.');
       return;
     }
     setSaving(true);
@@ -252,7 +252,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
             </div>
           </div>
           <Menu
-            label="Ações da atualização"
+            label="Ações do registro"
             items={[
               { label: 'Editar', icon: <IconEdit size={14} />, onSelect: () => setEditing(true) },
               { label: 'Anexar fotos', icon: <IconUpload size={14} />, onSelect: () => attachInputRef.current?.click() },
@@ -266,7 +266,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
           <div style={{ marginTop: 10 }}>
             <RichTextField
               value={draft}
-              ariaLabel="Editar relato"
+              ariaLabel="Editar registro"
               autoFocus
               onChange={(html, plain) => {
                 setDraft(html);
@@ -301,7 +301,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
       {removingFile ? (
         <ConfirmDialog
           title="Remover anexo"
-          message={`"${removingFile.fileName}" será removido desta atualização e dos arquivos do projeto.`}
+          message={`"${removingFile.fileName}" será removido deste registro e dos arquivos do projeto.`}
           confirmLabel="Remover"
           destructive
           busy={busy}

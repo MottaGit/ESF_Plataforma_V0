@@ -91,7 +91,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const sort = searchParams.get('ordem') ?? 'recent';
   const onlyLate = searchParams.get('atrasados') === '1';
   const includeArchived = searchParams.get('arquivados') === '1';
-  // Vindo do Inicio: so os projetos em andamento sem relato ha mais de 30 dias.
+  // Vindo do Inicio: so os projetos em andamento sem registro ha mais de 30 dias.
   const onlyStale = searchParams.get('parados') === '1';
   // Lista ou mapa: os mesmos filtros valem para os dois.
   const showMap = searchParams.get('exibir') === 'mapa';
@@ -383,7 +383,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       {onlyStale ? (
         <div className="chip-group" style={{ margin: '-4px 0 14px' }}>
           <button type="button" className="chip chip--active" onClick={() => updateParams({ parados: null })}>
-            Só os parados (em andamento, sem relato há 30 dias)
+            Só os parados (em andamento, sem registro há 30 dias)
             <span aria-hidden="true">×</span>
             <span className="sr-only">Tirar este filtro</span>
           </button>
@@ -428,7 +428,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                       <th>Status</th>
                       <th>Responsável</th>
                       <th>Progresso</th>
-                      <th>Último relato</th>
+                      <th>Último registro</th>
                       {canManage ? (
                         <th className="right">
                           <span className="sr-only">Ações</span>
@@ -472,7 +472,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                           {project.lastUpdateAt ? (
                             timeAgo(project.lastUpdateAt)
                           ) : (
-                            <span className="table__secondary">sem relato</span>
+                            <span className="table__secondary">sem registro</span>
                           )}
                         </td>
                         {canManage ? (

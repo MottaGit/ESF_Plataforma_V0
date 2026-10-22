@@ -56,7 +56,7 @@ function flatten(results: SearchResults): ResultItem[] {
     })),
     ...results.updates.map((u) => ({
       key: `u-${u.id}`,
-      group: 'Relatos',
+      group: 'Registros de andamento',
       label: u.snippet,
       meta: `${u.projectName} · ${formatDate(u.createdAt)}`,
       to: `/projetos/${u.projectId}`,
@@ -70,7 +70,7 @@ function flatten(results: SearchResults): ResultItem[] {
 }
 
 /**
- * Busca geral do topo: projetos, atividades, voluntarios, programas e relatos ao mesmo tempo, sem diferenciar
+ * Busca geral do topo: projetos, atividades, voluntarios, programas e registros de andamento ao mesmo tempo, sem diferenciar
  * acentos. Ctrl+K (⌘K no Mac) leva o cursor ate ela; no celular, a lupa abre a busca em cima da tela.
  */
 export function GlobalSearch() {
