@@ -214,7 +214,8 @@ comparação usa a função `esf_fold` (criada pela migração, sem depender de 
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, tarefas atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre**
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
-então links diretos e recarregar a página caem no lugar certo. Relatório do projeto em um clique.
+então links diretos e recarregar a página caem no lugar certo. No celular, quando as abas não cabem, aparece uma seta
+com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. Relatório do projeto em um clique.
 
 **Tarefas** — título, descrição, responsável, status (não iniciada / em andamento / bloqueada / concluída; ao bloquear, um motivo opcional), prioridade
 (baixa / média / alta), prazo e observações. A lista tem duas seções sempre visíveis: **Em aberto** (não iniciadas

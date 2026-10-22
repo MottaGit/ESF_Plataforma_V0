@@ -9,6 +9,7 @@ import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconEdit, IconPlus, IconTrash, IconUpload } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
+import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type {
@@ -54,7 +55,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="tabs">
+      <ScrollTabs activeKey={tab}>
         {visibleTabs.map((item) => (
           <button
             key={item.key}
@@ -65,7 +66,7 @@ export function SettingsPage() {
             {item.label}
           </button>
         ))}
-      </div>
+      </ScrollTabs>
 
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
       {tab === 'users' ? <UsersSection canEdit={isAdmin} /> : null}

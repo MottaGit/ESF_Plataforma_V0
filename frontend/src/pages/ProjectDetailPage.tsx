@@ -13,6 +13,7 @@ import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, Loading } from '../components/ui/Feedback';
 import { IconCalendar, IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
+import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectStatus, Volunteer } from '../types/api';
@@ -176,7 +177,7 @@ export function ProjectDetailPage() {
 
       <ProjectStatusStrip project={project} onOpenTab={openTab} />
 
-      <div className="tabs">
+      <ScrollTabs activeKey={tab}>
         {tabs.map((item) => (
           <button
             key={item.key}
@@ -188,7 +189,7 @@ export function ProjectDetailPage() {
             {item.count !== undefined ? <span className="tab__count num">{item.count}</span> : null}
           </button>
         ))}
-      </div>
+      </ScrollTabs>
 
       {tab === 'updates' ? (
         <AndamentoTab project={project} onChanged={() => void load()} focusComposer={registering} />

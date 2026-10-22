@@ -1088,6 +1088,33 @@ button { font: inherit; }
   overflow-x: auto;
 }
 
+/* Abas que nao cabem: rolam para o lado, sem barra de rolagem, com seta e degrade onde ha mais abas. */
+.tabs-scroll { position: relative; margin-bottom: 16px; }
+.tabs-scroll > .tabs { margin-bottom: 0; scrollbar-width: none; }
+.tabs-scroll > .tabs::-webkit-scrollbar { display: none; }
+.tabs-scroll__arrow {
+  position: absolute;
+  top: 0;
+  bottom: 1px;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+}
+.tabs-scroll__arrow--right {
+  right: 0;
+  justify-content: flex-end;
+  background: linear-gradient(to right, rgba(246, 247, 249, 0), var(--bg) 60%);
+}
+.tabs-scroll__arrow--left {
+  left: 0;
+  justify-content: flex-start;
+  background: linear-gradient(to left, rgba(246, 247, 249, 0), var(--bg) 60%);
+}
+
 .tab {
   background: transparent;
   border: 0;
