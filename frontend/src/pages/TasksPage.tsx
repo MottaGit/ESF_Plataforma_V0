@@ -7,6 +7,7 @@ import { ActivityFormModal } from '../components/projects/ActivityFormModal';
 import { TaskList } from '../components/tasks/TaskList';
 import { isOverdue, normalize, withStatus } from '../components/tasks/taskUtils';
 import { Button } from '../components/ui/Button';
+import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
 import { Alert, Loading } from '../components/ui/Feedback';
 import { IconPlus, IconSearch } from '../components/ui/Icons';
@@ -61,8 +62,6 @@ export function TasksPage() {
   const [creating, setCreating] = useState(false);
   /** Tarefa esperando o motivo do bloqueio. */
   const [blocking, setBlocking] = useState<Activity | null>(null);
-  /** No celular, busca e filtros ficam recolhidos num botao. */
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const updateParams = useCallback(
     (changes: Record<string, string | null>) => {
@@ -256,71 +255,62 @@ export function TasksPage() {
           </button>
         </div>
 
-        <button
-          type="button"
-          className={`btn tasks-filters__toggle${activeFilters > 0 ? ' tasks-filters__toggle--on' : ''}`}
-          aria-expanded={filtersOpen}
-          onClick={() => setFiltersOpen((open) => !open)}
-        >
-          Filtros{activeFilters > 0 ? ` (${activeFilters})` : ''}
-        </button>
+        <CollapsibleFilters active={activeFilters}>
+          <span className="search">
+            <IconSearch className="search__icon" />
+            <TextInput
+              placeholder="Buscar tarefa ou projeto"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              aria-label="Buscar tarefas"
+            />
+          </span>
 
-        <div className={`tasks-filters${filtersOpen ? ' tasks-filters--open' : ''}`}>
-        <span className="search">
-          <IconSearch className="search__icon" />
-          <TextInput
-            placeholder="Buscar tarefa ou projeto"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label="Buscar tarefas"
-          />
-        </span>
-
-        <Select
-          value={programFilter}
-          onChange={(event) => updateParams({ programa: event.target.value || null, projeto: null })}
-          aria-label="Programa"
-        >
-          <option value="">Todos os programas</option>
-          {programOptions.map(([id, name]) => (
-            <option key={id} value={id}>
-              {name}
-            </option>
-          ))}
-        </Select>
-
-        <Select
-          value={projectFilter}
-          onChange={(event) => updateParams({ projeto: event.target.value || null })}
-          aria-label="Projeto"
-        >
-          <option value="">Todos os projetos</option>
-          {projectOptions.map(([id, name]) => (
-            <option key={id} value={id}>
-              {name}
-            </option>
-          ))}
-        </Select>
-
-        {!wantsMine ? (
           <Select
-            value={assigneeFilter}
-            onChange={(event) => updateParams({ responsavel: event.target.value || null })}
-            aria-label="Responsável"
+            value={programFilter}
+            onChange={(event) => updateParams({ programa: event.target.value || null, projeto: null })}
+            aria-label="Programa"
           >
-            <option value="">Todos os responsáveis</option>
-            {assigneeOptions.map(([id, name]) => (
+            <option value="">Todos os programas</option>
+            {programOptions.map(([id, name]) => (
               <option key={id} value={id}>
                 {name}
               </option>
             ))}
-            <option value={UNASSIGNED}>Sem responsável</option>
           </Select>
-        ) : null}
-        </div>
+
+          <Select
+            value={projectFilter}
+            onChange={(event) => updateParams({ projeto: event.target.value || null })}
+            aria-label="Projeto"
+          >
+            <option value="">Todos os projetos</option>
+            {projectOptions.map(([id, name]) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </Select>
+
+          {!wantsMine ? (
+            <Select
+              value={assigneeFilter}
+              onChange={(event) => updateParams({ responsavel: event.target.value || null })}
+              aria-label="Responsável"
+            >
+              <option value="">Todos os responsáveis</option>
+              {assigneeOptions.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+              <option value={UNASSIGNED}>Sem responsável</option>
+            </Select>
+          ) : null}
+        </CollapsibleFilters>
 
         {hasFilters ? (
-          <div className="toolbar__right">
+          <div className="toolbar__right toolbar__right--after-filters">
             <button type="button" className="link-button" onClick={clearFilters}>
               Limpar filtros
             </button>

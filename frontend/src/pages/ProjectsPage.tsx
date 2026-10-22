@@ -7,6 +7,7 @@ import { ProgramMark } from '../components/programs/ProgramMark';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconEdit, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
@@ -98,6 +99,8 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const focusId = searchParams.get('foco');
 
   const [search, setSearch] = useState(debouncedSearch);
+  // A ordenacao nao conta como filtro.
+  const activeFilters = [debouncedSearch, status, onlyLate, includeArchived].filter(Boolean).length;
 
   const [formProject, setFormProject] = useState<ProjectDetail | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -306,55 +309,57 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       )}
 
       <div className="toolbar">
-        <span className="search">
-          <IconSearch className="search__icon" />
-          <TextInput
-            placeholder={selected ? 'Buscar neste programa' : 'Buscar por nome, comunidade ou cidade'}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label="Buscar projetos"
-          />
-        </span>
+        <CollapsibleFilters active={activeFilters}>
+          <span className="search">
+            <IconSearch className="search__icon" />
+            <TextInput
+              placeholder={selected ? 'Buscar neste programa' : 'Buscar por nome, comunidade ou cidade'}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              aria-label="Buscar projetos"
+            />
+          </span>
 
-        <Select value={status} onChange={(event) => updateParams({ status: event.target.value || null })} aria-label="Status">
-          <option value="">Todos os status</option>
-          {PROJECT_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {projectStatusLabel(value)}
-            </option>
-          ))}
-        </Select>
-
-        {!showMap ? (
-          <Select
-            value={sort}
-            onChange={(event) => updateParams({ ordem: event.target.value === 'recent' ? null : event.target.value })}
-            aria-label="Ordenação"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+          <Select value={status} onChange={(event) => updateParams({ status: event.target.value || null })} aria-label="Status">
+            <option value="">Todos os status</option>
+            {PROJECT_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {projectStatusLabel(value)}
               </option>
             ))}
           </Select>
-        ) : null}
 
-        <label className="checkbox">
-          <input
-            type="checkbox"
-            checked={onlyLate}
-            onChange={(event) => updateParams({ atrasados: event.target.checked ? '1' : null })}
-          />
-          Só atrasados
-        </label>
-        <label className="checkbox">
-          <input
-            type="checkbox"
-            checked={includeArchived}
-            onChange={(event) => updateParams({ arquivados: event.target.checked ? '1' : null })}
-          />
-          Incluir arquivados
-        </label>
+          {!showMap ? (
+            <Select
+              value={sort}
+              onChange={(event) => updateParams({ ordem: event.target.value === 'recent' ? null : event.target.value })}
+              aria-label="Ordenação"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          ) : null}
+
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={onlyLate}
+              onChange={(event) => updateParams({ atrasados: event.target.checked ? '1' : null })}
+            />
+            Só atrasados
+          </label>
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={includeArchived}
+              onChange={(event) => updateParams({ arquivados: event.target.checked ? '1' : null })}
+            />
+            Incluir arquivados
+          </label>
+        </CollapsibleFilters>
 
         <div className="toolbar__right">
           <div className="segmented" role="group" aria-label="Exibir como">

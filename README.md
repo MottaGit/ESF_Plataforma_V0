@@ -123,7 +123,8 @@ parados, isto é, em andamento sem registro há mais de 30 dias; cada número ab
 carregado** (cada pessoa leva às tarefas dela).
 
 **Projetos** — listagem com busca, filtros (status, só atrasados, incluir arquivados; o programa é a aba escolhida)
-e ordenação. Cada linha mostra programa, status, responsável, progresso e **último registro**; editar, arquivar/reativar
+e ordenação. No celular, busca, filtros e ordenação ficam recolhidos no botão "Filtros", que mostra quantos estão
+ligados ("Filtros (2)"); o Lista|Mapa continua à mostra. Cada linha mostra programa, status, responsável, progresso e **último registro**; editar, arquivar/reativar
 e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem registro há
 mais de 30 dias. Busca, filtros, ordenação e visão ficam na URL, então voltar de um projeto (ou recarregar) mantém a
 lista como estava. O **progresso** é calculado pelas tarefas concluídas (projeto concluído conta como 100%). O **novo
@@ -240,7 +241,8 @@ as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Ed
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está
-vinculado, com filtro por setor e por situação. O vínculo com projetos (e o papel exercido em cada um) pode ser feito
+vinculado, com filtro por setor e por situação (no celular, busca e filtros ficam no botão "Filtros", como em
+Tarefas e Projetos). O vínculo com projetos (e o papel exercido em cada um) pode ser feito
 tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o voluntário, sempre entre projeto e
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
 hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro

@@ -504,7 +504,8 @@ button { font: inherit; }
    Tabelas
    --------------------------------------------------------- */
 
-.table-wrap { width: 100%; overflow-x: auto; }
+/* position: textos so para leitor de tela (sr-only, absolutos) ficam presos aqui, sem alargar a pagina no celular. */
+.table-wrap { position: relative; width: 100%; overflow-x: auto; }
 
 .table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
@@ -2317,15 +2318,18 @@ button.program-card { font: inherit; text-align: left; cursor: pointer; }
   .toast-stack { bottom: calc(76px + env(safe-area-inset-bottom)); left: 12px; right: 12px; max-width: none; }
 }
 
-/* Tarefas: no computador os filtros ficam na barra; no celular, recolhidos no botao "Filtros". */
-.tasks-filters { display: contents; }
-.tasks-filters__toggle { display: none; }
+/* Busca e filtros (Tarefas, Projetos, Voluntarios): no computador ficam na barra; no celular, recolhidos no botao
+   "Filtros", e o painel aberto vai para baixo de tudo o que esta na barra. */
+.filters-panel { display: contents; }
+.filters-toggle { display: none; }
 @media (max-width: 760px) {
-  .tasks-filters__toggle { display: inline-flex; }
-  .tasks-filters__toggle--on { border-color: var(--accent); color: var(--accent-text); }
-  .tasks-filters { display: none; }
-  .tasks-filters--open { display: grid; gap: 8px; width: 100%; }
-  .tasks-filters--open .search, .tasks-filters--open .select { max-width: none; width: 100%; }
+  .filters-toggle { display: inline-flex; }
+  .filters-toggle--on { border-color: var(--accent); color: var(--accent-text); }
+  .filters-panel { display: none; }
+  .filters-panel--open { display: grid; gap: 8px; width: 100%; order: 1; }
+  .filters-panel--open .search, .filters-panel--open .select { max-width: none; width: 100%; }
+  /* "Limpar filtros" das Tarefas vem depois do painel aberto (o Lista|Mapa de Projetos fica em cima). */
+  .toolbar__right--after-filters { order: 2; }
 }
 
 /* Ajuda: perguntas que abrem ao toque, agrupadas por assunto. */

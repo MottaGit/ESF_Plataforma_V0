@@ -5,6 +5,7 @@ import { volunteersApi } from '../api/endpoints';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconEdit, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
@@ -115,35 +116,35 @@ export function VolunteersPage() {
       </div>
 
       <div className="toolbar">
-        <span className="search">
-          <IconSearch className="search__icon" />
-          <TextInput
-            placeholder="Buscar por nome ou e-mail"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label="Buscar voluntários"
-          />
-        </span>
+        <CollapsibleFilters active={[search, sectorFilter, onlyActive].filter(Boolean).length}>
+          <span className="search">
+            <IconSearch className="search__icon" />
+            <TextInput
+              placeholder="Buscar por nome ou e-mail"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              aria-label="Buscar voluntários"
+            />
+          </span>
 
-        <Select
-          value={sectorFilter}
-          onChange={(event) => setSectorFilter(event.target.value as VolunteerSector | '')}
-          aria-label="Setor"
-        >
-          <option value="">Todos os setores</option>
-          {VOLUNTEER_SECTORS.map((value) => (
-            <option key={value} value={value}>
-              {sectorLabel(value)}
-            </option>
-          ))}
-        </Select>
+          <Select
+            value={sectorFilter}
+            onChange={(event) => setSectorFilter(event.target.value as VolunteerSector | '')}
+            aria-label="Setor"
+          >
+            <option value="">Todos os setores</option>
+            {VOLUNTEER_SECTORS.map((value) => (
+              <option key={value} value={value}>
+                {sectorLabel(value)}
+              </option>
+            ))}
+          </Select>
 
-        <div className="toolbar__right">
           <label className="checkbox">
             <input type="checkbox" checked={onlyActive} onChange={(event) => setOnlyActive(event.target.checked)} />
             Só ativos
           </label>
-        </div>
+        </CollapsibleFilters>
       </div>
 
       {error ? <Alert kind="error">{error}</Alert> : null}
