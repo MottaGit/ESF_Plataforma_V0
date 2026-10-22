@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconEdit, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
+import { Menu } from '../components/ui/Menu';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -71,6 +72,7 @@ export function VolunteersPage() {
   }, [load]);
 
   const shown = onlyPendingTerm ? volunteers.filter(needsTerm) : volunteers;
+  const pendingTerms = canManage ? volunteers.filter(needsTerm).length : 0;
   const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
 
   /** LGPD: no lugar da exclusao, apaga os dados pessoais e mantem o historico dos projetos. */
@@ -141,20 +143,28 @@ export function VolunteersPage() {
             <input type="checkbox" checked={onlyActive} onChange={(event) => setOnlyActive(event.target.checked)} />
             Só ativos
           </label>
-          {canManage ? (
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={onlyPendingTerm}
-                onChange={(event) => setOnlyPendingTerm(event.target.checked)}
-              />
-              Só com termo pendente
-            </label>
-          ) : null}
         </div>
       </div>
 
       {error ? <Alert kind="error">{error}</Alert> : null}
+
+      {pendingTerms > 0 || onlyPendingTerm ? (
+        <div className="term-notice" role="status">
+          <span className="avatar-flag avatar-flag--inline" aria-hidden="true">
+            !
+          </span>
+          <span className="term-notice__text">
+            {pendingTerms === 0
+              ? 'Todos os voluntários ativos e afastados já têm o termo de adesão assinado.'
+              : pendingTerms === 1
+                ? '1 voluntário ativo ou afastado está sem o termo de adesão assinado.'
+                : `${pendingTerms} voluntários ativos ou afastados estão sem o termo de adesão assinado.`}
+          </span>
+          <Button small variant="ghost" onClick={() => setOnlyPendingTerm((current) => !current)}>
+            {onlyPendingTerm ? 'Mostrar todos' : 'Ver quem falta'}
+          </Button>
+        </div>
+      ) : null}
 
       {birthdayPeople.length > 0 ? (
         <div className="birthday-notice" role="status">
@@ -221,7 +231,19 @@ export function VolunteersPage() {
                     <tr key={volunteer.id} className={birthday ? 'table__row--birthday' : undefined}>
                       <td>
                         <div className="person-cell">
-                          <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={32} />
+                          <span className="avatar-flagged">
+                            <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={32} />
+                            {canManage && needsTerm(volunteer) ? (
+                              <span
+                                className="avatar-flag"
+                                role="img"
+                                aria-label="Termo de adesão pendente"
+                                title="Termo de adesão pendente"
+                              >
+                                !
+                              </span>
+                            ) : null}
+                          </span>
                           <div>
                             <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
                               {volunteer.name}
@@ -238,13 +260,6 @@ export function VolunteersPage() {
                       <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
                       <td>
                         <VolunteerStatusBadge status={volunteer.status} />
-                        {canManage && needsTerm(volunteer) ? (
-                          <div style={{ marginTop: 4 }}>
-                            <span className="badge badge--pause" title="Sem termo de adesão assinado">
-                              Termo pendente
-                            </span>
-                          </div>
-                        ) : null}
                       </td>
                       {canManage ? (
                         <td>
@@ -252,25 +267,20 @@ export function VolunteersPage() {
                             <span className="table__secondary">dados anonimizados</span>
                           ) : (
                             <div className="row-actions">
-                              <Button
-                                small
-                                variant="ghost"
-                                icon={<IconEdit size={15} />}
-                                title="Editar voluntário"
-                                aria-label="Editar voluntário"
-                                onClick={() => {
-                                  setEditing(volunteer);
-                                  setFormOpen(true);
-                                }}
+                              <Menu
+                                label={`Ações de ${volunteer.name}`}
+                                items={[
+                                  {
+                                    label: 'Editar',
+                                    icon: <IconEdit size={14} />,
+                                    onSelect: () => {
+                                      setEditing(volunteer);
+                                      setFormOpen(true);
+                                    }
+                                  },
+                                  { label: 'Anonimizar', danger: true, onSelect: () => setRemoving(volunteer) }
+                                ]}
                               />
-                              <Button
-                                small
-                                variant="ghost"
-                                title="Apagar os dados pessoais e manter o histórico"
-                                onClick={() => setRemoving(volunteer)}
-                              >
-                                Anonimizar
-                              </Button>
                             </div>
                           )}
                         </td>

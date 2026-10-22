@@ -251,12 +251,14 @@ e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 termo em PDF, num documento só: adesão ao serviço voluntário (Lei 9.608/98) e autorização de uso de imagem, já com o
 nome do voluntário e os dados da organização (CPF, RG e endereço ficam em branco, para preencher à mão — a plataforma
 não guarda esses dados). Depois de assinado, envia a cópia (PDF, JPG ou PNG) com a data da assinatura, e a página
-mostra "Assinado em dd/mm/aaaa". Na lista de voluntários, ativos e afastados sem termo ganham o selo "Termo
-pendente", com o filtro "Só com termo pendente". Os documentos assinados não ficam em `/uploads`: só abrem pelo
+mostra "Assinado em dd/mm/aaaa". Na lista de voluntários, a coordenação vê no topo quantos ativos e afastados
+estão sem termo, com o botão "Ver quem falta" (filtra a lista), e cada um deles ganha um ponto vermelho com "!" no
+canto da foto. O status do termo só aparece por extenso na página do voluntário. Os documentos assinados não ficam em `/uploads`: só abrem pelo
 download com login da coordenação. Quem assina pela organização (nome e cargo) é configurado em Configurações ›
 Organização.
 
-**Anonimizar voluntário** — na lista, a coordenação usa "Anonimizar" no lugar de excluir (quando a pessoa sai da
+**Anonimizar voluntário** — na lista, a coordenação usa "Anonimizar" (no menu "⋯" da linha, junto com "Editar")
+no lugar de excluir (quando a pessoa sai da
 organização ou pede a exclusão dos dados): nome vira "Voluntário removido", saem e-mail, telefone, habilidades,
 observações, aniversário e foto, a situação passa a ex-membro, o acesso vinculado é desfeito e os avisos da pessoa
 são apagados. Projetos, tarefas e documentos assinados continuam, sem identificar a pessoa, e o cadastro não pode
