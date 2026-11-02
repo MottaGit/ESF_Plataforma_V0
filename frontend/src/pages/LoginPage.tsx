@@ -101,6 +101,14 @@ export function LoginPage() {
               <span>Usuário</span>
             </div>
             <div className="login__demo-row">
+              <span>marina.costa@esf.org.br</span>
+              <span>Administradora (Curitiba)</span>
+            </div>
+            <div className="login__demo-row">
+              <span>nacional@esf.org.br</span>
+              <span>Gestão nacional</span>
+            </div>
+            <div className="login__demo-row">
               <span>Senha para todos</span>
               <strong>Esf@2026</strong>
             </div>

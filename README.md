@@ -109,8 +109,12 @@ ficam de fora desses testes.
 
 ## Acessos de demonstração
 
-O seed cria a organização (Porto Alegre/RS, com quem assina os termos e certificados), 3 usuários, 13 voluntários e
-5 projetos.
+O seed cria **dois núcleos** — ESF Porto Alegre (o principal: 3 usuários, 13 voluntários e 5 projetos) e ESF Curitiba
+(menor: 1 administradora, 4 voluntários, o programa próprio "Reforma de moradias" e 2 projetos) —, dois **indicadores
+nacionais** (Famílias atendidas e Pessoas beneficiadas, com a regra de como contar) ligados aos indicadores dos dois
+núcleos, e uma **conta só da gestão nacional**. Assim dá para ver a separação (cada administrador só enxerga o próprio
+núcleo) e o painel nacional somando os dois. A horta de Porto Alegre chamava de "Famílias envolvidas" o mesmo
+resultado; ligada ao indicador nacional, ganha o nome dele.
 
 Os voluntários cobrem os seis setores e vêm com e-mail, telefone, competências, observações, aniversário e histórico
 de situação (as horas de voluntariado saem dele). Há um afastado, um ex-membro e um que já teve afastamento e voltou.
@@ -134,13 +138,15 @@ assinada em dois projetos. As datas contam a partir do dia em que o banco é cri
 concluídas, vencidas e próximas perto de "hoje". Os projetos de banheiro ficam sem ponto no mapa de propósito (são
 casas de famílias); as hortas marcam o bairro.
 
-Acessos (os três são voluntários cadastrados):
+Acessos (os de núcleo são voluntários cadastrados):
 
-| E-mail | Perfil | Senha |
-| --- | --- | --- |
-| leonardo.motta@esf.org.br | Administrador | `Esf@2026` |
-| ana.aumond@esf.org.br | Coordenador | `Esf@2026` |
-| fausto.silva@esf.org.br | Usuário | `Esf@2026` |
+| E-mail | Núcleo | Perfil | Senha |
+| --- | --- | --- | --- |
+| leonardo.motta@esf.org.br | Porto Alegre | Administrador | `Esf@2026` |
+| ana.aumond@esf.org.br | Porto Alegre | Coordenador | `Esf@2026` |
+| fausto.silva@esf.org.br | Porto Alegre | Usuário | `Esf@2026` |
+| marina.costa@esf.org.br | Curitiba | Administradora | `Esf@2026` |
+| nacional@esf.org.br | — (só gestão nacional) | Gestão nacional | `Esf@2026` |
 
 O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados reais. A tela de login lista esses acessos
 e já vem preenchida com o do administrador, para facilitar a demonstração.

@@ -25,7 +25,7 @@ public static class DbSeeder
         {
             db.Organizations.Add(new Organization
             {
-                Name = "Engenheiros Sem Fronteiras",
+                Name = "ESF Porto Alegre",
                 LegalName = "Engenheiros Sem Fronteiras - Núcleo Porto Alegre",
                 Mission = "Levar engenharia a comunidades em situação de vulnerabilidade, com projetos construídos junto das pessoas atendidas.",
                 About = "Organização formada por voluntários que constroem e reformam banheiros, cuidam de saneamento e implantam hortas comunitárias em Porto Alegre.",
@@ -104,9 +104,10 @@ public static class DbSeeder
                 CreatedAt = At(on)
             });
 
-        // Documento assinado de demonstracao: o proprio modelo em PDF, guardado como se a coordenacao o tivesse enviado.
+        // Documento assinado de demonstracao: o proprio modelo em PDF, guardado como se a coordenacao o tivesse enviado
+        // (por padrao a Ana; no outro nucleo, quem o administra).
         void SignedDocument(SignedDocumentKind kind, Volunteer? volunteer, Project? project, byte[] content,
-            string fileName, int signedOn)
+            string fileName, int signedOn, User? uploadedBy = null)
         {
             var storedName = $"{Guid.NewGuid():N}.pdf";
             db.StoredFiles.Add(new StoredFile
@@ -129,7 +130,7 @@ public static class DbSeeder
                 SizeBytes = content.Length,
                 SignedOn = Day(signedOn),
                 UploadedAt = At(signedOn),
-                UploadedByUserId = ana.Id
+                UploadedByUserId = (uploadedBy ?? ana).Id
             });
         }
 
@@ -713,9 +714,186 @@ public static class DbSeeder
         Record(hFarrapos, ana, -70, "Termo de cessão assinado com a associação de moradores. A análise mostrou solo pobre depois da enchente; vamos usar canteiros elevados com terra nova e composto.");
         Record(hFarrapos, ana, -14, "Cinco canteiros prontos e plantados com alface, couve e temperos. Faltam cinco e a irrigação.");
 
+        // ---------------------------------------------------------------
+        // Segundo nucleo, menor (Curitiba): mostra a separacao entre nucleos e da numeros ao painel nacional. Cada
+        // pessoa e de um nucleo so, e os programas sao do nucleo (este tem o proprio).
+        // ---------------------------------------------------------------
+        var curitiba = new Organization
+        {
+            Name = "ESF Curitiba",
+            LegalName = "Engenheiros Sem Fronteiras - Núcleo Curitiba",
+            Mission = "Engenharia a serviço de comunidades da Região Metropolitana de Curitiba, com obras feitas junto das famílias.",
+            Email = "contato@esf-curitiba.org.br",
+            City = "Curitiba",
+            State = "PR",
+            SignatoryName = "Marina Costa",
+            SignatoryRole = "Coordenadora do núcleo",
+            SignatoryNote = $"Gestão {today.Year}",
+            UpdatedAt = DateTime.UtcNow
+        };
+        db.Organizations.Add(curitiba);
+
+        Volunteer CuritibaVolunteer(string name, VolunteerSector sector, string phone, string skills) => new()
+        {
+            OrganizationId = curitiba.Id,
+            Name = name,
+            Sector = sector,
+            Email = $"{TextHelpers.Slug(name).Replace('-', '.')}@esf.org.br",
+            Phone = phone,
+            Skills = skills
+        };
+        var cMarina = CuritibaVolunteer("Marina Costa", VolunteerSector.Projetos, "(41) 99000-0201", "Engenharia civil, patologia das construções, gestão de obras");
+        var cPedro = CuritibaVolunteer("Pedro Alves", VolunteerSector.Projetos, "(41) 99000-0202", "Instalações elétricas e hidráulicas");
+        var cCamila = CuritibaVolunteer("Camila Rocha", VolunteerSector.Pessoas, "(41) 99000-0203", "Mobilização comunitária, conversa com as famílias");
+        var cRafael = CuritibaVolunteer("Rafael Lima", VolunteerSector.Financeiro, "(41) 99000-0204", "Orçamento, compras e prestação de contas");
+        db.Volunteers.AddRange(cMarina, cPedro, cCamila, cRafael);
+        Joined(cMarina, -420, false);
+        Joined(cPedro, -310, false);
+        Joined(cCamila, -150, false);
+        Joined(cRafael, -60, false);
+
+        var marina = new User
+        {
+            OrganizationId = curitiba.Id, Name = "Marina Costa", Email = cMarina.Email!, PasswordHash = hash,
+            Role = UserRole.Administrador, VolunteerId = cMarina.Id
+        };
+        db.Users.Add(marina);
+
+        // Termos do nucleo de Curitiba (com os dados dele); o do Rafael, que chegou ha pouco, ainda falta.
+        foreach (var (volunteer, on) in new[] { (cMarina, -420), (cPedro, -310), (cCamila, -150) })
+            SignedDocument(SignedDocumentKind.VolunteerTerm, volunteer, null, DocumentTemplates.VolunteerTerm(curitiba, volunteer),
+                $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}-assinado.pdf", on, marina);
+
+        var pReforma = new ProjectProgram
+        {
+            OrganizationId = curitiba.Id,
+            Name = "Reforma de moradias",
+            Icon = "casa",
+            Color = "orange",
+            TemplateDescription = "Reforma de moradias em situação de risco (cobertura, instalações elétricas, umidade), com mão de obra local e acompanhamento técnico dos voluntários.",
+            TemplateObjective = "Deixar a moradia segura e salubre para a família.",
+            TemplateTargetAudience = "1 família"
+        };
+        db.Programs.Add(pReforma);
+        db.ProgramTemplateActivities.AddRange(
+            new ProgramTemplateActivity { Program = pReforma, Position = 0, Title = "Vistoria da moradia", Priority = ActivityPriority.Alta, DueDays = 10 },
+            new ProgramTemplateActivity { Program = pReforma, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Alta, DueDays = 25 },
+            new ProgramTemplateActivity { Program = pReforma, Position = 2, Title = "Execução da reforma", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pReforma, Position = 3, Title = "Entrega à família", Priority = ActivityPriority.Media });
+        db.ProgramTemplateIndicators.AddRange(
+            new ProgramTemplateIndicator { Program = pReforma, Position = 0, Name = "Famílias atendidas", Unit = "famílias" },
+            new ProgramTemplateIndicator { Program = pReforma, Position = 1, Name = "Pessoas beneficiadas", Unit = "pessoas" },
+            new ProgramTemplateIndicator { Program = pReforma, Position = 2, Name = "Moradias reformadas", Unit = "un." });
+
+        var rLucia = new Project
+        {
+            OrganizationId = curitiba.Id,
+            Name = "Reforma - Casa da Dona Lúcia",
+            Program = pReforma,
+            Description = "Troca da cobertura com infiltração, refação da instalação elétrica e tratamento da umidade do quarto das crianças.",
+            Objective = "Acabar com as infiltrações e o risco de choque elétrico na casa.",
+            Beneficiaries = "Dona Lúcia e quatro netos",
+            TargetAudience = "5 pessoas, 4 crianças",
+            District = "Vila Torres",
+            City = "Curitiba",
+            State = "PR",
+            StartDate = Day(-180),
+            EndDateForecast = Day(-110),
+            Status = ProjectStatus.Concluido,
+            OwnerVolunteer = cMarina,
+            CreatedAt = At(-180),
+            UpdatedAt = At(-112)
+        };
+        var rJoaquim = new Project
+        {
+            OrganizationId = curitiba.Id,
+            Name = "Reforma - Casa do Sr. Joaquim",
+            Program = pReforma,
+            Description = "Reforço do telhado e instalação elétrica nova numa casa de madeira com fiação exposta.",
+            Objective = "Eliminar o risco de incêndio e as goteiras.",
+            Beneficiaries = "Sr. Joaquim e a esposa",
+            TargetAudience = "2 pessoas idosas",
+            District = "Cajuru",
+            City = "Curitiba",
+            State = "PR",
+            StartDate = Day(-45),
+            EndDateForecast = Day(30),
+            Status = ProjectStatus.EmAndamento,
+            OwnerVolunteer = cPedro,
+            CreatedAt = At(-45),
+            UpdatedAt = At(-6)
+        };
+        db.Projects.AddRange(rLucia, rJoaquim);
+        Team(rLucia, (cMarina, "Responsável pelo projeto"), (cPedro, "Instalação elétrica"), (cCamila, "Contato com a família"));
+        Team(rJoaquim, (cPedro, "Responsável pelo projeto"), (cMarina, "Responsável técnica"), (cRafael, "Compras"));
+        db.Activities.AddRange(
+            new Activity { Project = rLucia, Title = "Vistoria da moradia", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cMarina, DueDate = Day(-170), CompletedAt = At(-172) },
+            new Activity { Project = rLucia, Title = "Projeto e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cMarina, DueDate = Day(-155), CompletedAt = At(-158) },
+            new Activity { Project = rLucia, Title = "Execução da reforma", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cPedro, CompletedAt = At(-118) },
+            new Activity { Project = rLucia, Title = "Entrega à família", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cCamila, CompletedAt = At(-112) },
+            new Activity { Project = rJoaquim, Title = "Vistoria da moradia", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cPedro, DueDate = Day(-35), CompletedAt = At(-38) },
+            new Activity { Project = rJoaquim, Title = "Projeto e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cMarina, DueDate = Day(-20), CompletedAt = At(-22) },
+            new Activity { Project = rJoaquim, Title = "Execução da reforma", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = cPedro, DueDate = Day(20) },
+            new Activity { Project = rJoaquim, Title = "Compra do material elétrico", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = cRafael, DueDate = Day(5) },
+            new Activity { Project = rJoaquim, Title = "Entrega à família", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media });
+        Results(rLucia, ("Famílias atendidas", "famílias", 1), ("Pessoas beneficiadas", "pessoas", 5), ("Moradias reformadas", "un.", 1));
+        Results(rJoaquim, ("Famílias atendidas", "famílias", 1), ("Pessoas beneficiadas", "pessoas", 2), ("Moradias reformadas", "un.", 0));
+        Record(rLucia, marina, -165, "Vistoria feita com a Dona Lúcia: a infiltração vem das telhas quebradas e a fiação do quarto está sem proteção.");
+        Record(rLucia, marina, -112, "Reforma entregue: telhado novo, instalação elétrica refeita e quarto das crianças sem umidade.");
+        Record(rJoaquim, marina, -36, "Vistoria com o Sr. Joaquim: madeiramento do telhado comprometido e fiação exposta na cozinha.");
+        Record(rJoaquim, marina, -6, "Telhado reforçado. A instalação elétrica começa assim que o material chegar.");
+
+        // ---------------------------------------------------------------
+        // Gestao nacional: indicadores nacionais (com os indicadores dos nucleos ligados a eles) e uma conta so nacional.
+        // A horta de Porto Alegre chamava de "Famílias envolvidas" o mesmo resultado: ligada ao nacional, ganha o nome dele.
+        // ---------------------------------------------------------------
+        var nFamilias = new NationalIndicator
+        {
+            Name = "Famílias atendidas",
+            Unit = "famílias",
+            Description = "Cada família que usa a obra ou participa da atividade, contada uma vez por projeto."
+        };
+        var nPessoas = new NationalIndicator
+        {
+            Name = "Pessoas beneficiadas",
+            Unit = "pessoas",
+            Description = "Moradores que usam a obra no dia a dia; não conte visitantes nem quem só passou por uma oficina."
+        };
+        db.NationalIndicators.AddRange(nFamilias, nPessoas);
+
+        var nationalByName = new Dictionary<string, NationalIndicator>
+        {
+            ["Famílias atendidas"] = nFamilias,
+            ["Famílias envolvidas"] = nFamilias,
+            ["Pessoas beneficiadas"] = nPessoas
+        };
+        foreach (var item in db.ProgramTemplateIndicators.Local)
+        {
+            if (!nationalByName.TryGetValue(item.Name, out var national)) continue;
+            item.NationalIndicator = national;
+            item.Name = national.Name;
+            item.Unit = national.Unit;
+        }
+        foreach (var item in db.Indicators.Local)
+        {
+            if (!nationalByName.TryGetValue(item.Name, out var national)) continue;
+            item.NationalIndicator = national;
+            item.Name = national.Name;
+            item.Unit = national.Unit;
+        }
+
+        db.Users.Add(new User
+        {
+            Name = "Coordenação nacional",
+            Email = "nacional@esf.org.br",
+            PasswordHash = hash,
+            Role = UserRole.Usuario,
+            IsNational = true
+        });
+
         await db.SaveChangesAsync();
         await ProjectTeam.SyncAllAsync(db);
-        logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.",
-            db.Users.Local.Count, db.Volunteers.Local.Count, db.Projects.Local.Count);
+        logger.LogInformation("Dados iniciais criados: {Nucleos} nucleos, {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.",
+            db.Organizations.Local.Count, db.Users.Local.Count, db.Volunteers.Local.Count, db.Projects.Local.Count);
     }
 }
