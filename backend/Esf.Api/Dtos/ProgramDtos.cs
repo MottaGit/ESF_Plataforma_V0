@@ -26,7 +26,7 @@ public record ProgramResultDto(string Name, string? Unit, decimal Total);
 
 public record TemplateActivityDto(Guid Id, string Title, string? Description, ActivityPriority Priority, int? DueDays);
 
-public record TemplateIndicatorDto(Guid Id, string Name, string? Unit);
+public record TemplateIndicatorDto(Guid Id, string Name, string? Unit, Guid? NationalIndicatorId);
 
 /// <summary>Modelo do programa: o que um projeto novo dele ja recebe.</summary>
 public record ProgramTemplateDto(
@@ -79,6 +79,9 @@ public class SaveTemplateIndicatorRequest
 
     [StringLength(60, ErrorMessage = "A unidade deve ter no maximo 60 caracteres.")]
     public string? Unit { get; set; }
+
+    /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele.</summary>
+    public Guid? NationalIndicatorId { get; set; }
 }
 
 public class SaveProgramRequest

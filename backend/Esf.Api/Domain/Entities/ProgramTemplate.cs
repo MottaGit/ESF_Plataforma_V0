@@ -29,6 +29,10 @@ public class ProgramTemplateIndicator
 
     public int Position { get; set; }
 
+    /// <summary>Indicador nacional escolhido no modelo: os projetos novos ja nascem ligados a ele.</summary>
+    public Guid? NationalIndicatorId { get; set; }
+    public NationalIndicator? NationalIndicator { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string? Unit { get; set; }
 }

@@ -8,7 +8,9 @@ public record IndicatorDto(
     string Name,
     string? Unit,
     decimal Value,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    // Indicador nacional escolhido (null: especifico do projeto).
+    Guid? NationalIndicatorId);
 
 public class SaveIndicatorRequest
 {
@@ -22,4 +24,7 @@ public class SaveIndicatorRequest
     [Required(ErrorMessage = "Informe o valor.")]
     [Range(0, 999999999, ErrorMessage = "Valor invalido.")]
     public decimal? Value { get; set; }
+
+    /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele (o que vier em Name e Unit e ignorado).</summary>
+    public Guid? NationalIndicatorId { get; set; }
 }

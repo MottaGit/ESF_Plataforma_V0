@@ -10,6 +10,7 @@ import type {
   TemplateIndicator
 } from '../../types/api';
 import { ACTIVITY_PRIORITIES, emptyToNull, priorityLabel } from '../../utils/format';
+import { NationalIndicatorField, useNationalIndicators } from '../indicators/NationalIndicatorField';
 import { PriorityBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
@@ -216,7 +217,14 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
                 {indicators.map((indicator, index) => (
                   <li key={indicator.id} className="template-list__item">
                     <div className="template-list__main">
-                      <div className="template-list__title">{indicator.name}</div>
+                      <div className="template-list__title">
+                        {indicator.name}
+                        {indicator.nationalIndicatorId ? (
+                          <span className="national-mark" title="Indicador nacional: entra na soma de todos os núcleos">
+                            nacional
+                          </span>
+                        ) : null}
+                      </div>
                       {indicator.unit ? <div className="template-list__meta">{indicator.unit}</div> : null}
                     </div>
                     {canEdit ? (
@@ -456,14 +464,26 @@ function TemplateIndicatorModal({
   onClose: () => void;
   onSave: (values: Omit<TemplateIndicator, 'id'>) => Promise<void>;
 }) {
-  const [name, setName] = useState(indicator?.name ?? '');
-  const [unit, setUnit] = useState(indicator?.unit ?? '');
+  const nationals = useNationalIndicators();
+  const [nationalId, setNationalId] = useState(indicator?.nationalIndicatorId ?? '');
+  const [name, setName] = useState(indicator?.nationalIndicatorId ? '' : indicator?.name ?? '');
+  const [unit, setUnit] = useState(indicator?.nationalIndicatorId ? '' : indicator?.unit ?? '');
   const { error, setError, saving, run } = useModalSave(onSave);
 
   function submit(event?: FormEvent) {
     event?.preventDefault();
+    if (nationalId) {
+      // Nacional: nome e unidade vem dele (a API confere e grava os dele).
+      const national = nationals.find((item) => item.id === nationalId);
+      void run({
+        name: national?.name ?? indicator?.name ?? 'Indicador nacional',
+        unit: national?.unit ?? indicator?.unit ?? null,
+        nationalIndicatorId: nationalId
+      });
+      return;
+    }
     if (name.trim().length < 2) return setError('Informe o nome do indicador.');
-    void run({ name: name.trim(), unit: emptyToNull(unit) });
+    void run({ name: name.trim(), unit: emptyToNull(unit), nationalIndicatorId: null });
   }
 
   return (
@@ -487,24 +507,36 @@ function TemplateIndicatorModal({
         </div>
       ) : null}
       <form onSubmit={submit} className="form-grid form-grid--single">
-        <Field label="Nome" htmlFor="template-indicator-name" required>
-          <TextInput
-            id="template-indicator-name"
-            autoFocus
-            value={name}
-            placeholder="Ex.: Famílias atendidas"
-            onChange={(event) => setName(event.target.value)}
-          />
-        </Field>
-        <Field label="Unidade" htmlFor="template-indicator-unit">
-          <TextInput
-            id="template-indicator-unit"
-            maxLength={60}
-            value={unit}
-            placeholder="Ex.: famílias, m², un."
-            onChange={(event) => setUnit(event.target.value)}
-          />
-        </Field>
+        <NationalIndicatorField
+          id="template-indicator-national"
+          value={nationalId}
+          onChange={setNationalId}
+          options={nationals}
+          scope="programa"
+          linked={indicator?.nationalIndicatorId ? { id: indicator.nationalIndicatorId, name: indicator.name } : null}
+        />
+        {!nationalId ? (
+          <>
+            <Field label="Nome" htmlFor="template-indicator-name" required>
+              <TextInput
+                id="template-indicator-name"
+                autoFocus
+                value={name}
+                placeholder="Ex.: Famílias atendidas"
+                onChange={(event) => setName(event.target.value)}
+              />
+            </Field>
+            <Field label="Unidade" htmlFor="template-indicator-unit">
+              <TextInput
+                id="template-indicator-unit"
+                maxLength={60}
+                value={unit}
+                placeholder="Ex.: famílias, m², un."
+                onChange={(event) => setUnit(event.target.value)}
+              />
+            </Field>
+          </>
+        ) : null}
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
       </form>
     </Modal>

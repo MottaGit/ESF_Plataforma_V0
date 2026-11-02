@@ -168,6 +168,19 @@ public class ProgramService
                 ? found
                 : _db.ProgramTemplateIndicators.Add(new ProgramTemplateIndicator { ProgramId = id }).Entity;
             indicator.Position = i;
+
+            // Indicador nacional: nome e unidade vem dele (e os projetos novos nascem ligados).
+            if (item.NationalIndicatorId.HasValue)
+            {
+                var national = await NationalIndicatorService.FindForUseAsync(_db, item.NationalIndicatorId.Value,
+                    indicator.NationalIndicatorId);
+                indicator.NationalIndicatorId = national.Id;
+                indicator.Name = national.Name;
+                indicator.Unit = national.Unit;
+                continue;
+            }
+
+            indicator.NationalIndicatorId = null;
             indicator.Name = item.Name.Trim();
             indicator.Unit = Clean(item.Unit);
         }
@@ -186,7 +199,7 @@ public class ProgramService
         p.TemplateActivities.OrderBy(a => a.Position)
             .Select(a => new TemplateActivityDto(a.Id, a.Title, a.Description, a.Priority, a.DueDays)).ToList(),
         p.TemplateIndicators.OrderBy(x => x.Position)
-            .Select(x => new TemplateIndicatorDto(x.Id, x.Name, x.Unit)).ToList());
+            .Select(x => new TemplateIndicatorDto(x.Id, x.Name, x.Unit, x.NationalIndicatorId)).ToList());
 
     /// <summary>So exclui programa sem projetos (criado por engano, por exemplo); com projetos, arquive.</summary>
     public async Task DeleteAsync(Guid id)

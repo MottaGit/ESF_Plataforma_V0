@@ -62,6 +62,7 @@ builder.Services.AddScoped<CertificateService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<SearchService>();
 builder.Services.AddScoped<NationalService>();
+builder.Services.AddScoped<NationalIndicatorService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

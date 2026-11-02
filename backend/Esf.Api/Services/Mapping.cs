@@ -67,7 +67,7 @@ public static class Mapping
             a.Project?.Program?.Color);
 
     public static IndicatorDto ToDto(Indicator i) =>
-        new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);
+        new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt, i.NationalIndicatorId);
 
     public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects, DateOnly? termSignedOn = null,
         VolunteerAccessDto? access = null) =>

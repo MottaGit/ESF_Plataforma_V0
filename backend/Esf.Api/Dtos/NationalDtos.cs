@@ -69,3 +69,20 @@ public record NationalPersonDto(
 
 /// <summary>Resultado de incluir alguem na gestao nacional: o link, quando a conta e nova (null: ja tinha acesso).</summary>
 public record NationalPersonResultDto(NationalPersonDto Person, AccessLinkDto? Link);
+
+/// <summary>Indicador nacional: nome, unidade e como contar (comum a todos os nucleos).</summary>
+public record NationalIndicatorDto(Guid Id, string Name, string? Unit, string? Description, bool IsArchived);
+
+public class SaveNationalIndicatorRequest
+{
+    [Required(ErrorMessage = "Informe o nome do indicador.")]
+    [StringLength(200, MinimumLength = 2, ErrorMessage = "O nome deve ter entre 2 e 200 caracteres.")]
+    public string Name { get; set; } = string.Empty;
+
+    [StringLength(60, ErrorMessage = "A unidade deve ter no maximo 60 caracteres.")]
+    public string? Unit { get; set; }
+
+    /// <summary>Como contar, para todos os nucleos contarem do mesmo jeito.</summary>
+    [StringLength(600, ErrorMessage = "A explicacao deve ter no maximo 600 caracteres.")]
+    public string? Description { get; set; }
+}

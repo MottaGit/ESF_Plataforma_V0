@@ -398,6 +398,12 @@ voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha
   quem assina) ela completa em Configurações. No menu ⋯ do núcleo, **Editar núcleo** (nome e local) e **Novo
   administrador** (se a pessoa já for voluntária do núcleo, o acesso nasce do cadastro dela; se já tiver acesso, só
   passa a administradora). A chave ao lado de cada administrador gera um link novo.
+- **Indicadores nacionais**: os resultados comuns a todos os núcleos (nome, unidade e **como contar**). Ao incluir
+  um indicador no projeto (aba Sobre) ou no modelo do programa, o núcleo escolhe um nacional ou "Específico deste
+  projeto/programa": o nacional traz nome e unidade (o núcleo só informa o valor), aparece com a etiqueta "nacional",
+  vale uma vez por projeto (senão a soma contaria em dobro) e entra na soma do painel pelo vínculo, não pelo nome.
+  Projeto criado pelo modelo já nasce ligado. Mudar nome ou unidade de um nacional atualiza os indicadores ligados em
+  todos os núcleos; arquivar tira das opções para indicadores novos, e os já ligados continuam valendo.
 - **Pessoas da gestão nacional**: quem tem a permissão. **Incluir pessoa** dá a permissão a um login de núcleo (mesma
   senha; o menu Nacional aparece quando a pessoa entrar de novo) ou cria uma conta só nacional, com link. **Tirar**
   remove a permissão (a conta só nacional fica desativada); ninguém tira a própria.
@@ -546,7 +552,8 @@ ESF_Plataforma_V0/
 | `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
 | `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
-| `Indicators` | indicadores do projeto (nome, valor e unidade) |
+| `Indicators` | indicadores do projeto (nome, valor e unidade; `NationalIndicatorId` quando é um indicador nacional) |
+| `NationalIndicators` | indicadores nacionais da gestão nacional (nome, unidade, como contar, arquivado); sem núcleo |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com papel no projeto |
@@ -622,6 +629,9 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/national/nucleos/{id}/admins[/{userId}/access-link]` | gestão nacional: mais um administrador para o núcleo; link novo para um administrador |
 | GET/POST/DELETE | `/api/national/people[/{userId}]` | gestão nacional: quem faz parte, incluir (conta nova com link ou permissão para um login de núcleo) e tirar |
 | POST | `/api/national/people/{userId}/access-link` | gestão nacional: link novo para uma conta só nacional |
+| GET | `/api/national-indicators` | indicadores nacionais ativos (qualquer acesso, para escolher; `includeArchived` só para a gestão nacional) |
+| POST/PUT | `/api/national-indicators[/{id}]` | gestão nacional: cria e edita (nome e unidade novos atualizam os ligados em todos os núcleos) |
+| POST | `/api/national-indicators/{id}/archive` e `/unarchive` | gestão nacional: arquiva ou reativa |
 | GET/PUT | `/api/organization` · `POST /logo` | dados institucionais |
 
 Erros seguem sempre o mesmo formato:

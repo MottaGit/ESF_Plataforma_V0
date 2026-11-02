@@ -14,6 +14,7 @@ import type {
   Indicator,
   LoginResponse,
   Mentionable,
+  NationalIndicator,
   NationalPerson,
   NationalPersonResult,
   NotificationList,
@@ -32,6 +33,7 @@ import type {
   SaveActivityPayload,
   SaveCommentPayload,
   SaveIndicatorPayload,
+  SaveNationalIndicatorPayload,
   SaveNucleoPayload,
   SaveProgramTemplatePayload,
   SaveOrganizationPayload,
@@ -243,6 +245,20 @@ export const usersApi = {
       }
     }),
   remove: (id: string) => http.request<void>(`/api/users/${id}`, { method: 'DELETE' })
+};
+
+/** Indicadores nacionais: todos consultam (para escolher); so a gestao nacional altera. */
+export const nationalIndicatorsApi = {
+  list: (includeArchived = false) =>
+    http.request<NationalIndicator[]>('/api/national-indicators', { query: { includeArchived } }),
+  create: (payload: SaveNationalIndicatorPayload) =>
+    http.request<NationalIndicator>('/api/national-indicators', { method: 'POST', body: payload }),
+  update: (id: string, payload: SaveNationalIndicatorPayload) =>
+    http.request<NationalIndicator>(`/api/national-indicators/${id}`, { method: 'PUT', body: payload }),
+  setArchived: (id: string, archived: boolean) =>
+    http.request<NationalIndicator>(`/api/national-indicators/${id}/${archived ? 'archive' : 'unarchive'}`, {
+      method: 'POST'
+    })
 };
 
 /** Gestao nacional: nucleos, quem os administra e as pessoas da propria gestao nacional. */

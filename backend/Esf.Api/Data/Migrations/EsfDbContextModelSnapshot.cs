@@ -248,6 +248,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Guid?>("NationalIndicatorId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
@@ -261,9 +264,44 @@ namespace Esf.Api.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NationalIndicatorId");
+
                     b.HasIndex("ProjectId");
 
                     b.ToTable("Indicators");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.NationalIndicator", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("NationalIndicators");
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.Notification", b =>
@@ -438,6 +476,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Guid?>("NationalIndicatorId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Position")
                         .HasColumnType("integer");
 
@@ -449,6 +490,8 @@ namespace Esf.Api.Data.Migrations
                         .HasColumnType("character varying(60)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NationalIndicatorId");
 
                     b.HasIndex("ProgramId", "Position");
 
@@ -995,11 +1038,18 @@ namespace Esf.Api.Data.Migrations
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.Indicator", b =>
                 {
+                    b.HasOne("Esf.Api.Domain.Entities.NationalIndicator", "NationalIndicator")
+                        .WithMany()
+                        .HasForeignKey("NationalIndicatorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Esf.Api.Domain.Entities.Project", "Project")
                         .WithMany("Indicators")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("NationalIndicator");
 
                     b.Navigation("Project");
                 });
@@ -1042,11 +1092,18 @@ namespace Esf.Api.Data.Migrations
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateIndicator", b =>
                 {
+                    b.HasOne("Esf.Api.Domain.Entities.NationalIndicator", "NationalIndicator")
+                        .WithMany()
+                        .HasForeignKey("NationalIndicatorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Esf.Api.Domain.Entities.ProjectProgram", "Program")
                         .WithMany("TemplateIndicators")
                         .HasForeignKey("ProgramId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("NationalIndicator");
 
                     b.Navigation("Program");
                 });

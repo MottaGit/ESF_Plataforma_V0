@@ -32,7 +32,7 @@ public class IndicatorService
             throw AppException.NotFound("Projeto");
 
         var indicator = new Indicator { ProjectId = projectId, CreatedAt = DateTime.UtcNow };
-        Apply(indicator, request);
+        await ApplyAsync(indicator, request);
 
         _db.Indicators.Add(indicator);
         await _db.SaveChangesAsync();
@@ -44,7 +44,7 @@ public class IndicatorService
     {
         var indicator = await _db.Indicators.FirstOrDefaultAsync(i => i.Id == id) ?? throw AppException.NotFound("Indicador");
 
-        Apply(indicator, request);
+        await ApplyAsync(indicator, request);
         await _db.SaveChangesAsync();
 
         return Mapping.ToDto(indicator);
@@ -58,10 +58,29 @@ public class IndicatorService
         await _db.SaveChangesAsync();
     }
 
-    private static void Apply(Indicator indicator, SaveIndicatorRequest r)
+    /// <summary>
+    /// Indicador nacional escolhido: nome e unidade vem dele, e cada projeto o tem uma vez so (senao a soma nacional
+    /// contaria duas vezes). Sem nacional: indicador especifico do projeto, com o nome e a unidade informados.
+    /// </summary>
+    private async Task ApplyAsync(Indicator indicator, SaveIndicatorRequest r)
     {
+        indicator.Value = r.Value!.Value;
+
+        if (r.NationalIndicatorId.HasValue)
+        {
+            var national = await NationalIndicatorService.FindForUseAsync(_db, r.NationalIndicatorId.Value, indicator.NationalIndicatorId);
+            if (await _db.Indicators.AnyAsync(i =>
+                    i.ProjectId == indicator.ProjectId && i.NationalIndicatorId == national.Id && i.Id != indicator.Id))
+                throw AppException.Conflict("Este projeto ja tem este indicador nacional.");
+
+            indicator.NationalIndicatorId = national.Id;
+            indicator.Name = national.Name;
+            indicator.Unit = national.Unit;
+            return;
+        }
+
+        indicator.NationalIndicatorId = null;
         indicator.Name = r.Name.Trim();
         indicator.Unit = string.IsNullOrWhiteSpace(r.Unit) ? null : r.Unit.Trim();
-        indicator.Value = r.Value!.Value;
     }
 }

@@ -1,24 +1,25 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { nationalApi } from '../api/endpoints';
+import { nationalApi, nationalIndicatorsApi } from '../api/endpoints';
 import { AccessLinkResultModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Field, TextInput } from '../components/ui/Field';
+import { Field, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconKey, IconPlus } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { Modal } from '../components/ui/Modal';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useToast } from '../context/ToastContext';
-import type { AccessLink, NationalPerson, Nucleo, NucleoAdmin } from '../types/api';
+import type { AccessLink, NationalIndicator, NationalPerson, Nucleo, NucleoAdmin } from '../types/api';
 import { emptyToNull } from '../utils/format';
 
-type TabKey = 'nucleos' | 'people';
+type TabKey = 'nucleos' | 'indicators' | 'people';
 
 const tabs: Array<{ key: TabKey; label: string; slug: string }> = [
   { key: 'nucleos', label: 'Núcleos', slug: 'nucleos' },
+  { key: 'indicators', label: 'Indicadores nacionais', slug: 'indicadores' },
   { key: 'people', label: 'Pessoas da gestão nacional', slug: 'pessoas' }
 ];
 
@@ -64,6 +65,7 @@ export function NationalPage() {
       </ScrollTabs>
 
       {tab === 'nucleos' ? <NucleosSection /> : null}
+      {tab === 'indicators' ? <NationalIndicatorsSection /> : null}
       {tab === 'people' ? <PeopleSection /> : null}
     </>
   );
@@ -404,6 +406,214 @@ function PersonFormModal({
           <TextInput id="person-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </Field>
         <p className="field__hint">{hint}</p>
+        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+      </form>
+    </Modal>
+  );
+}
+
+/**
+ * Indicadores nacionais: a lista comum que os nucleos escolhem nos projetos e nos modelos de programa. O painel soma
+ * pelo vinculo; renomear vale para todos os nucleos; arquivar tira das opcoes sem apagar o que ja foi registrado.
+ */
+function NationalIndicatorsSection() {
+  const { notify, notifyError } = useToast();
+  const [indicators, setIndicators] = useState<NationalIndicator[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<NationalIndicator | 'new' | null>(null);
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      setIndicators(await nationalIndicatorsApi.list(true));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os indicadores nacionais.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function setArchived(indicator: NationalIndicator, archived: boolean) {
+    try {
+      await nationalIndicatorsApi.setArchived(indicator.id, archived);
+      notify(archived ? 'Indicador arquivado.' : 'Indicador reativado.');
+      void load();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível alterar o indicador.');
+    }
+  }
+
+  return (
+    <>
+      <div className="toolbar">
+        <p className="field__hint" style={{ maxWidth: 620 }}>
+          Os núcleos escolhem estes indicadores nos projetos e nos modelos de programa, no lugar de criar um com outro
+          nome; é o que permite somar os resultados de todos os núcleos. Diga como contar, para todos contarem do
+          mesmo jeito. Mudar o nome ou a unidade vale para todos os núcleos.
+        </p>
+        <div className="toolbar__right">
+          <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => setEditing('new')}>
+            Novo indicador nacional
+          </Button>
+        </div>
+      </div>
+
+      {error ? <Alert kind="error">{error}</Alert> : null}
+
+      <section className="panel">
+        {loading ? (
+          <Loading label="Carregando indicadores…" />
+        ) : indicators.length === 0 ? (
+          <EmptyState
+            title="Nenhum indicador nacional"
+            description="Cadastre os resultados que todos os núcleos acompanham (ex.: pessoas beneficiadas, famílias atendidas)."
+          />
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Indicador</th>
+                  <th>Unidade</th>
+                  <th>Como contar</th>
+                  <th>Situação</th>
+                  <th className="right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {indicators.map((indicator) => (
+                  <tr key={indicator.id}>
+                    <td className="table__primary">{indicator.name}</td>
+                    <td>{indicator.unit ?? '—'}</td>
+                    <td className="table__secondary">{indicator.description ?? '—'}</td>
+                    <td>
+                      <NeutralBadge>{indicator.isArchived ? 'Arquivado' : 'Ativo'}</NeutralBadge>
+                    </td>
+                    <td>
+                      <div className="row-actions">
+                        <Menu
+                          label={`Ações de ${indicator.name}`}
+                          items={[
+                            { label: 'Editar', onSelect: () => setEditing(indicator) },
+                            indicator.isArchived
+                              ? { label: 'Reativar', onSelect: () => void setArchived(indicator, false) }
+                              : { label: 'Arquivar', onSelect: () => void setArchived(indicator, true) }
+                          ]}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {editing ? (
+        <NationalIndicatorFormModal
+          indicator={editing === 'new' ? null : editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            notify(editing === 'new' ? 'Indicador nacional criado.' : 'Indicador nacional atualizado.');
+            setEditing(null);
+            void load();
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function NationalIndicatorFormModal({
+  indicator,
+  onClose,
+  onSaved
+}: {
+  indicator: NationalIndicator | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState(indicator?.name ?? '');
+  const [unit, setUnit] = useState(indicator?.unit ?? '');
+  const [description, setDescription] = useState(indicator?.description ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event?: FormEvent) {
+    event?.preventDefault();
+    if (name.trim().length < 2) {
+      setError('Informe o nome do indicador.');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const payload = { name: name.trim(), unit: emptyToNull(unit), description: emptyToNull(description) };
+      if (indicator) await nationalIndicatorsApi.update(indicator.id, payload);
+      else await nationalIndicatorsApi.create(payload);
+      onSaved();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível salvar o indicador.');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      title={indicator ? 'Editar indicador nacional' : 'Novo indicador nacional'}
+      subtitle={indicator ? 'Nome e unidade novos valem para todos os núcleos.' : 'Todos os núcleos poderão escolher este indicador.'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="primary" loading={saving} onClick={() => void handleSubmit()}>
+            Salvar
+          </Button>
+        </>
+      }
+    >
+      <form className="form-grid" onSubmit={handleSubmit}>
+        {error ? (
+          <div className="span-2">
+            <Alert kind="error">{error}</Alert>
+          </div>
+        ) : null}
+        <Field label="Nome" htmlFor="national-indicator-name" required>
+          <TextInput
+            id="national-indicator-name"
+            value={name}
+            placeholder="Ex.: Pessoas beneficiadas"
+            onChange={(event) => setName(event.target.value)}
+          />
+        </Field>
+        <Field label="Unidade" htmlFor="national-indicator-unit">
+          <TextInput
+            id="national-indicator-unit"
+            maxLength={60}
+            value={unit}
+            placeholder="Ex.: pessoas, famílias, m²"
+            onChange={(event) => setUnit(event.target.value)}
+          />
+        </Field>
+        <Field
+          label="Como contar"
+          htmlFor="national-indicator-description"
+          span
+          hint="Aparece para os núcleos ao escolher o indicador. Ex.: conte só quem usa a obra diretamente, não visitantes."
+        >
+          <TextArea
+            id="national-indicator-description"
+            maxLength={600}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </Field>
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
       </form>
     </Modal>

@@ -761,6 +761,20 @@ button { font: inherit; }
 .access-mark--pending { color: var(--text-soft); }
 .access-link { display: grid; gap: 12px; }
 
+/* Indicador ligado a um indicador nacional (entra na soma de todos os nucleos). */
+.national-mark {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  vertical-align: 1px;
+}
+
 /* Gestao nacional: administradores de cada nucleo, um por linha, com o botao do link ao lado. */
 .admin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .admin-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

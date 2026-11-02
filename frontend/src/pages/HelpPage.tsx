@@ -230,6 +230,17 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'O que é um indicador nacional?',
+        answer: (
+          <p>
+            É um indicador definido pela gestão nacional da ESF (por exemplo, "Pessoas beneficiadas"), com uma regra de
+            como contar. Ao incluir um indicador no projeto ou no modelo do programa, escolha um nacional quando houver:
+            o nome e a unidade vêm dele e o número entra na soma de todos os núcleos. Para o que é só do seu projeto,
+            escolha "Específico". Indicadores nacionais aparecem com a etiqueta "nacional".
+          </p>
+        )
+      },
+      {
         question: 'Como cadastro um voluntário e o termo de adesão?',
         answer: (
           <>
@@ -316,6 +327,17 @@ const NATIONAL_SECTION: HelpSection = {
         <p>
           No menu <strong>⋯</strong> do núcleo, <strong>Novo administrador</strong> inclui outra pessoa. Para quem
           perdeu o link ou esqueceu a senha, use a chave ao lado do nome dela: sai um link novo.
+        </p>
+      )
+    },
+    {
+      question: 'Para que servem os indicadores nacionais?',
+      answer: (
+        <p>
+          Cada núcleo tem os próprios programas e pode dar outro nome ao mesmo resultado. Em{' '}
+          <strong>Nacional › Indicadores nacionais</strong> você define os resultados comuns (nome, unidade e como
+          contar); os núcleos escolhem esses indicadores nos projetos, e o painel soma pelo vínculo. Mudar o nome ou a
+          unidade vale para todos os núcleos; arquivar tira das opções sem apagar o que já foi registrado.
         </p>
       )
     },

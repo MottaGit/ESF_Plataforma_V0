@@ -145,6 +145,24 @@ export interface TemplateIndicator {
   id: string;
   name: string;
   unit: string | null;
+  /** Indicador nacional escolhido no modelo (null: especifico do programa). */
+  nationalIndicatorId: string | null;
+}
+
+/** Indicador nacional: definido pela gestao nacional; os nucleos escolhem nos projetos e nos modelos. */
+export interface NationalIndicator {
+  id: string;
+  name: string;
+  unit: string | null;
+  /** Como contar (comum a todos os nucleos, para a soma valer). */
+  description: string | null;
+  isArchived: boolean;
+}
+
+export interface SaveNationalIndicatorPayload {
+  name: string;
+  unit: string | null;
+  description: string | null;
 }
 
 /** Modelo do programa: o que um projeto novo dele ja recebe. */
@@ -279,6 +297,8 @@ export interface Indicator {
   unit: string | null;
   value: number;
   createdAt: string;
+  /** Indicador nacional escolhido (null: especifico do projeto). */
+  nationalIndicatorId: string | null;
 }
 
 export interface VolunteerProject {
@@ -616,6 +636,8 @@ export interface SaveIndicatorPayload {
   name: string;
   unit: string | null;
   value: number;
+  /** Indicador nacional: nome e unidade passam a vir dele. */
+  nationalIndicatorId: string | null;
 }
 
 export interface SaveUserPayload {

@@ -251,6 +251,7 @@ public class ProjectService
             _db.Indicators.Add(new Indicator
             {
                 ProjectId = project.Id,
+                NationalIndicatorId = item.NationalIndicatorId,
                 Name = item.Name,
                 Unit = item.Unit,
                 Value = 0,

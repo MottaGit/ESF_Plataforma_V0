@@ -49,6 +49,7 @@ public class EsfDbContext : DbContext
     public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
     public DbSet<AccessLink> AccessLinks => Set<AccessLink>();
+    public DbSet<NationalIndicator> NationalIndicators => Set<NationalIndicator>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -171,6 +172,17 @@ public class EsfDbContext : DbContext
             e.HasIndex(x => new { x.ProgramId, x.Position });
             e.HasOne(x => x.Program).WithMany(p => p.TemplateIndicators).HasForeignKey(x => x.ProgramId)
                 .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.NationalIndicator).WithMany().HasForeignKey(x => x.NationalIndicatorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Indicadores nacionais: da gestao nacional, sem nucleo (todos os nucleos veem e escolhem).
+        b.Entity<NationalIndicator>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Unit).HasMaxLength(60);
+            e.Property(x => x.Description).HasMaxLength(600);
+            e.HasIndex(x => x.Name).IsUnique();
         });
 
         b.Entity<Activity>(e =>
@@ -217,6 +229,9 @@ public class EsfDbContext : DbContext
                 .WithMany(p => p.Indicators)
                 .HasForeignKey(x => x.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.NationalIndicator).WithMany().HasForeignKey(x => x.NationalIndicatorId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<ProjectVolunteer>(e =>

@@ -6,6 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import type { Indicator, ProjectDetail, SaveIndicatorPayload } from '../../types/api';
 import { emptyToNull, formatDate, formatDateTime, formatNumber } from '../../utils/format';
 import { SignedDocumentsPanel } from '../documents/SignedDocumentsPanel';
+import { NationalIndicatorField, useNationalIndicators } from '../indicators/NationalIndicatorField';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
@@ -100,7 +101,14 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                 project.indicators.map((indicator) => (
                   <div className="indicator" key={indicator.id}>
                     <div className="indicator__top">
-                      <span className="indicator__name">{indicator.name}</span>
+                      <span className="indicator__name">
+                        {indicator.name}
+                        {indicator.nationalIndicatorId ? (
+                          <span className="national-mark" title="Indicador nacional: entra na soma de todos os núcleos">
+                            nacional
+                          </span>
+                        ) : null}
+                      </span>
                       <span className="indicator__values num">
                         <strong>{formatNumber(indicator.value)}</strong>
                         {indicator.unit ? ` ${indicator.unit}` : ''}
@@ -227,29 +235,37 @@ interface IndicatorFormModalProps {
 }
 
 function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: IndicatorFormModalProps) {
-  const [name, setName] = useState(indicator?.name ?? '');
-  const [unit, setUnit] = useState(indicator?.unit ?? '');
+  const nationals = useNationalIndicators();
+  const [nationalId, setNationalId] = useState(indicator?.nationalIndicatorId ?? '');
+  const [name, setName] = useState(indicator?.nationalIndicatorId ? '' : indicator?.name ?? '');
+  const [unit, setUnit] = useState(indicator?.nationalIndicatorId ? '' : indicator?.unit ?? '');
   const [value, setValue] = useState(String(indicator?.value ?? ''));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const national = nationals.find((item) => item.id === nationalId);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setFormError(null);
 
     const found: Record<string, string> = {};
-    if (name.trim().length < 2) found.name = 'Informe o nome do indicador.';
+    if (!nationalId && name.trim().length < 2) found.name = 'Informe o nome do indicador.';
     if (value === '' || Number.isNaN(Number(value)) || Number(value) < 0) found.value = 'Informe um valor válido.';
 
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    const payload: SaveIndicatorPayload = {
-      name: name.trim(),
-      unit: emptyToNull(unit),
-      value: Number(value)
-    };
+    // Indicador nacional: o nome e a unidade vem dele (a API ignora os daqui).
+    const payload: SaveIndicatorPayload = nationalId
+      ? {
+          name: national?.name ?? indicator?.name ?? 'Indicador nacional',
+          unit: national?.unit ?? indicator?.unit ?? null,
+          value: Number(value),
+          nationalIndicatorId: nationalId
+        }
+      : { name: name.trim(), unit: emptyToNull(unit), value: Number(value), nationalIndicatorId: null };
 
     setSaving(true);
     try {
@@ -285,17 +301,34 @@ function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: Indicato
         ) : null}
 
         <div className="form-grid">
-          <Field label="Nome" htmlFor="indicator-name" required error={errors.name} span>
-            <TextInput
-              id="indicator-name"
-              value={name}
-              invalid={Boolean(errors.name)}
-              placeholder="Ex.: Pessoas beneficiadas"
-              onChange={(event) => setName(event.target.value)}
-            />
-          </Field>
+          <NationalIndicatorField
+            id="indicator-national"
+            value={nationalId}
+            onChange={setNationalId}
+            options={nationals}
+            scope="projeto"
+            linked={indicator?.nationalIndicatorId ? { id: indicator.nationalIndicatorId, name: indicator.name } : null}
+          />
 
-          <Field label="Valor" htmlFor="indicator-value" required error={errors.value}>
+          {!nationalId ? (
+            <Field label="Nome" htmlFor="indicator-name" required error={errors.name} span>
+              <TextInput
+                id="indicator-name"
+                value={name}
+                invalid={Boolean(errors.name)}
+                placeholder="Ex.: Pessoas beneficiadas"
+                onChange={(event) => setName(event.target.value)}
+              />
+            </Field>
+          ) : null}
+
+          <Field
+            label="Valor"
+            htmlFor="indicator-value"
+            required
+            error={errors.value}
+            hint={nationalId && national?.unit ? `Em ${national.unit}.` : undefined}
+          >
             <TextInput
               id="indicator-value"
               type="number"
@@ -307,9 +340,11 @@ function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: Indicato
             />
           </Field>
 
-          <Field label="Unidade" htmlFor="indicator-unit" hint="Ex.: pessoas, famílias, horas, unidades.">
-            <TextInput id="indicator-unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
-          </Field>
+          {!nationalId ? (
+            <Field label="Unidade" htmlFor="indicator-unit" hint="Ex.: pessoas, famílias, horas, unidades.">
+              <TextInput id="indicator-unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
+            </Field>
+          ) : null}
         </div>
 
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
