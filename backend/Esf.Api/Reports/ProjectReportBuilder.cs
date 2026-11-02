@@ -53,7 +53,7 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Column(col =>
                 {
                     col.Item().Text(model.Organization.Name).FontSize(14).SemiBold();
-                    col.Item().Text("Relatorio de projetos e resultados").FontSize(9).FontColor(Muted);
+                    col.Item().Text("Relatório de projetos e resultados").FontSize(9).FontColor(Muted);
                     if (model.HasPeriod)
                         col.Item().PaddingTop(2).Text($"Período de referência: {PeriodText(model)}")
                             .FontSize(9).SemiBold().FontColor(Accent);
@@ -81,7 +81,7 @@ public static class ProjectReportBuilder
 
                 row.ConstantItem(70).AlignRight().Text(text =>
                 {
-                    text.Span("Pagina ").FontSize(7.5f).FontColor(Muted);
+                    text.Span("Página ").FontSize(7.5f).FontColor(Muted);
                     text.CurrentPageNumber().FontSize(7.5f).FontColor(Muted);
                     text.Span(" de ").FontSize(7.5f).FontColor(Muted);
                     text.TotalPages().FontSize(7.5f).FontColor(Muted);
@@ -116,7 +116,7 @@ public static class ProjectReportBuilder
             {
                 col.Item().Background(SoftBg).Padding(10).Column(note =>
                 {
-                    note.Item().Text("Sobre este relatorio").FontSize(9).SemiBold();
+                    note.Item().Text("Sobre este relatório").FontSize(9).SemiBold();
                     note.Item().PaddingTop(2).Text(model.Note!).FontSize(9).FontColor(Muted);
                 });
             }
@@ -285,9 +285,9 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Column(left =>
                 {
                     left.Spacing(2);
-                    left.Item().Element(c => Field(c, "Responsavel", p.OwnerVolunteer?.Name ?? "Nao definido"));
-                    left.Item().Element(c => Field(c, "Periodo", PeriodLine(p)));
-                    left.Item().Element(c => Field(c, "Comunidade/beneficiarios", p.Beneficiaries ?? "-"));
+                    left.Item().Element(c => Field(c, "Responsável", p.OwnerVolunteer?.Name ?? "Não definido"));
+                    left.Item().Element(c => Field(c, "Período do projeto", PeriodLine(p)));
+                    left.Item().Element(c => Field(c, "Comunidade/beneficiários", p.Beneficiaries ?? "-"));
                 });
 
                 row.ConstantItem(16);
@@ -295,13 +295,13 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Column(right =>
                 {
                     right.Spacing(2);
-                    right.Item().Element(c => Field(c, "Publico beneficiado", p.TargetAudience ?? "-"));
-                    right.Item().Element(c => Field(c, "Localizacao", FullAddress(p)));
+                    right.Item().Element(c => Field(c, "Público beneficiado", p.TargetAudience ?? "-"));
+                    right.Item().Element(c => Field(c, "Localização", FullAddress(p)));
                 });
             });
 
             if (!string.IsNullOrWhiteSpace(p.Description))
-                col.Item().Element(c => Paragraph(c, "Descricao", p.Description!));
+                col.Item().Element(c => Paragraph(c, "Descrição", p.Description!));
 
             if (model.IncludeIndicators && p.Indicators.Count > 0)
                 col.Item().Element(c => ComposeIndicators(c, p));
@@ -318,7 +318,7 @@ public static class ProjectReportBuilder
                 col.Item().Text("Nenhum registro de andamento no período.").FontSize(9).FontColor(Muted);
 
             if (!string.IsNullOrWhiteSpace(p.Notes))
-                col.Item().Element(c => Paragraph(c, "Observacoes", p.Notes!));
+                col.Item().Element(c => Paragraph(c, "Observações", p.Notes!));
         });
     }
 
@@ -368,7 +368,7 @@ public static class ProjectReportBuilder
     {
         container.EnsureSpace(70).Column(col =>
         {
-            col.Item().Text($"Voluntarios envolvidos ({p.Volunteers.Count})").FontSize(10).SemiBold();
+            col.Item().Text($"Voluntários envolvidos ({p.Volunteers.Count})").FontSize(10).SemiBold();
             col.Item().PaddingTop(4).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
@@ -499,7 +499,7 @@ public static class ProjectReportBuilder
 
     private static void Paragraph(IContainer container, string label, string value)
     {
-        container.Column(col =>
+        container.EnsureSpace(50).Column(col =>
         {
             col.Item().Text(label).FontSize(10).SemiBold();
             col.Item().PaddingTop(2).Text(value).FontSize(9);
@@ -523,7 +523,7 @@ public static class ProjectReportBuilder
         ProjectStatus.Planejamento => "Planejamento",
         ProjectStatus.EmAndamento => "Em andamento",
         ProjectStatus.Pausado => "Pausado",
-        ProjectStatus.Concluido => "Concluido",
+        ProjectStatus.Concluido => "Concluído",
         ProjectStatus.Cancelado => "Cancelado",
         _ => status.ToString()
     };
@@ -550,7 +550,7 @@ public static class ProjectReportBuilder
     private static string PeriodLine(Project p)
     {
         var start = p.StartDate.ToString("dd/MM/yyyy");
-        var end = p.EndDateForecast?.ToString("dd/MM/yyyy") ?? "sem previsao";
+        var end = p.EndDateForecast?.ToString("dd/MM/yyyy") ?? "sem previsão";
         return $"{start} a {end}";
     }
 
@@ -558,7 +558,7 @@ public static class ProjectReportBuilder
     {
         var parts = new[] { p.District, p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x));
         var joined = string.Join(", ", parts);
-        return string.IsNullOrWhiteSpace(joined) ? "localizacao nao informada" : joined;
+        return string.IsNullOrWhiteSpace(joined) ? "localização não informada" : joined;
     }
 
     private static string FullAddress(Project p)

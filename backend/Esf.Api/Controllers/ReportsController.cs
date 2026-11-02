@@ -24,7 +24,7 @@ public class ReportsController : ControllerBase
     [HttpPost("projects")]
     public async Task<IActionResult> Projects(ReportRequest request)
     {
-        var (content, fileName) = await _reports.GenerateAsync(request, _currentUser.Name ?? "usuario da plataforma");
+        var (content, fileName) = await _reports.GenerateAsync(request, _currentUser.Name ?? "usuário da plataforma");
         return File(content, "application/pdf", fileName);
     }
 }
