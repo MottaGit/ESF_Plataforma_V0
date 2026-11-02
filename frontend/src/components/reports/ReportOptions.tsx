@@ -1,14 +1,31 @@
 import type { ReportPayload } from '../../types/api';
-import { Field, TextArea } from '../ui/Field';
+import { Field, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
 
 /** O que a pessoa escolhe sobre o conteudo do PDF (os projetos vem de quem abriu as opcoes). */
 export interface ReportOptions {
+  /** Periodo de referencia (aaaa-mm-dd); vazio nas duas pontas, todo o historico. */
+  from: string;
+  to: string;
+  includeTasks: boolean;
   includePhotos: boolean;
   note: string;
 }
 
-export const DEFAULT_REPORT_OPTIONS: ReportOptions = { includePhotos: true, note: '' };
+export const DEFAULT_REPORT_OPTIONS: ReportOptions = {
+  from: '',
+  to: '',
+  includeTasks: true,
+  includePhotos: true,
+  note: ''
+};
+
+/** Problema nas opcoes que impede gerar o PDF (null: pode gerar). */
+export function reportOptionsError(options: ReportOptions) {
+  return options.from && options.to && options.to < options.from
+    ? 'O fim do período não pode ser antes do início.'
+    : null;
+}
 
 /** Pedido do PDF: indicadores, voluntarios e linha do tempo sempre entram. */
 export function reportPayload(projectIds: string[], options: ReportOptions): ReportPayload {
@@ -18,6 +35,9 @@ export function reportPayload(projectIds: string[], options: ReportOptions): Rep
     includeIndicators: true,
     includeUpdates: true,
     includePhotos: options.includePhotos,
+    includeTasks: options.includeTasks,
+    from: options.from || null,
+    to: options.to || null,
     note: options.note.trim() || null
   };
 }
@@ -35,21 +55,61 @@ export function ReportOptionsFields({ value, onChange, withoutImageAuthorization
     onChange({ ...value, [key]: next });
   }
 
+  const periodError = reportOptionsError(value);
+
   return (
     <div className="report-options">
-      <p className="field__hint">
-        Indicadores, voluntários e linha do tempo sempre entram no PDF. Só as fotos anexadas aos registros de andamento
-        são opcionais.
-      </p>
+      <div className="field">
+        <label className="field__label" htmlFor="report-from">
+          Período de referência
+        </label>
+        <div className="report-period">
+          <TextInput
+            id="report-from"
+            type="date"
+            aria-label="Início do período"
+            value={value.from}
+            invalid={Boolean(periodError)}
+            onChange={(event) => set('from', event.target.value)}
+          />
+          <span className="report-period__sep">a</span>
+          <TextInput
+            type="date"
+            aria-label="Fim do período"
+            value={value.to}
+            invalid={Boolean(periodError)}
+            onChange={(event) => set('to', event.target.value)}
+          />
+        </div>
+        {periodError ? (
+          <span className="field__error">{periodError}</span>
+        ) : (
+          <span className="field__hint">
+            Em branco, todo o histórico. Com período, entram só os registros (com as fotos) e as tarefas concluídas
+            dentro dele; indicadores e equipe saem como estão hoje.
+          </span>
+        )}
+      </div>
 
-      <label className="checkbox">
-        <input
-          type="checkbox"
-          checked={value.includePhotos}
-          onChange={(event) => set('includePhotos', event.target.checked)}
-        />
-        Registro fotográfico
-      </label>
+      <div className="report-options__checks">
+        <span className="field__hint">Indicadores, voluntários e linha do tempo sempre entram. Também incluir:</span>
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={value.includeTasks}
+            onChange={(event) => set('includeTasks', event.target.checked)}
+          />
+          Tarefas concluídas
+        </label>
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={value.includePhotos}
+            onChange={(event) => set('includePhotos', event.target.checked)}
+          />
+          Registro fotográfico
+        </label>
+      </div>
 
       {value.includePhotos && withoutImageAuthorization.length > 0 ? (
         <Alert kind="warning">
@@ -65,7 +125,7 @@ export function ReportOptionsFields({ value, onChange, withoutImageAuthorization
       <Field
         label="Observação do relatório"
         htmlFor="report-note"
-        hint="Aparece no início do documento. Ex.: finalidade, parceiro ou período de referência."
+        hint="Aparece no início do documento. Ex.: finalidade ou parceiro."
       >
         <TextArea id="report-note" value={value.note} onChange={(event) => set('note', event.target.value)} />
       </Field>

@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 import { Alert } from '../ui/Feedback';
 import { IconDownload } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
-import { DEFAULT_REPORT_OPTIONS, ReportOptionsFields, reportPayload } from './ReportOptions';
+import { DEFAULT_REPORT_OPTIONS, ReportOptionsFields, reportOptionsError, reportPayload } from './ReportOptions';
 
 interface ReportDialogProps {
   project: { id: string; name: string; imageAuthorizedOn: string | null };
@@ -45,6 +45,7 @@ export function ReportDialog({ project, onClose }: ReportDialogProps) {
             variant="primary"
             icon={<IconDownload size={15} />}
             loading={generating}
+            disabled={Boolean(reportOptionsError(options))}
             onClick={() => void generate()}
           >
             Gerar PDF

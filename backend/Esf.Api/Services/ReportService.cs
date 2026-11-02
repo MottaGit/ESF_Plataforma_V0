@@ -27,14 +27,18 @@ public class ReportService
         var ids = request.ProjectIds.Distinct().ToList();
         if (ids.Count == 0)
             throw new AppException("Selecione ao menos um projeto para gerar o relatorio.");
+        if (request.From.HasValue && request.To.HasValue && request.To < request.From)
+            throw new AppException("O fim do periodo nao pode ser antes do inicio.");
 
         var projects = await _db.Projects
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Program)
             .Include(p => p.OwnerVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
             .Include(p => p.Updates).ThenInclude(u => u.Attachments)
+            .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Where(p => ids.Contains(p.Id))
             .ToListAsync();
 
@@ -46,12 +50,28 @@ public class ReportService
         var organization = await _db.Organizations.AsNoTracking().FirstOrDefaultAsync()
                            ?? new Organization { Name = "Engenheiros Sem Fronteiras" };
 
+        var model = new ReportModel
+        {
+            Organization = organization,
+            Projects = projects,
+            Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
+            GeneratedBy = generatedBy,
+            GeneratedAt = DateTime.UtcNow,
+            IncludeVolunteers = request.IncludeVolunteers,
+            IncludeIndicators = request.IncludeIndicators,
+            IncludeUpdates = request.IncludeUpdates,
+            IncludePhotos = request.IncludePhotos,
+            IncludeTasks = request.IncludeTasks,
+            From = request.From,
+            To = request.To
+        };
+
         // Fotos ficam atreladas a atualizacao (ProjectUpdate) que as recebeu, nao ao projeto todo -
         // assim cada entrada da linha do tempo mostra exatamente as fotos daquele evento.
-        var photos = new Dictionary<Guid, List<ReportPhoto>>();
+        var photos = model.Photos;
         if (request.IncludePhotos)
         {
-            foreach (var update in projects.SelectMany(p => p.Updates))
+            foreach (var update in projects.SelectMany(p => p.Updates).Where(u => model.InPeriod(u.CreatedAt)))
             {
                 var images = update.Attachments
                     .Where(f => f.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
@@ -75,20 +95,6 @@ public class ReportService
             }
         }
 
-        var model = new ReportModel
-        {
-            Organization = organization,
-            Projects = projects,
-            Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
-            GeneratedBy = generatedBy,
-            GeneratedAt = DateTime.UtcNow,
-            IncludeVolunteers = request.IncludeVolunteers,
-            IncludeIndicators = request.IncludeIndicators,
-            IncludeUpdates = request.IncludeUpdates,
-            IncludePhotos = request.IncludePhotos,
-            Photos = photos
-        };
-
         byte[] content;
         try
         {
@@ -99,20 +105,7 @@ public class ReportService
             // Uma imagem invalida nao deve impedir a prestacao de contas: refaz sem fotos.
             _logger.LogWarning(ex, "Falha ao gerar o relatorio com fotos. Gerando versao sem imagens.");
 
-            var fallback = new ReportModel
-            {
-                Organization = model.Organization,
-                Projects = model.Projects,
-                Note = model.Note,
-                GeneratedBy = model.GeneratedBy,
-                GeneratedAt = model.GeneratedAt,
-                IncludeVolunteers = model.IncludeVolunteers,
-                IncludeIndicators = model.IncludeIndicators,
-                IncludeUpdates = model.IncludeUpdates,
-                IncludePhotos = false
-            };
-
-            content = ProjectReportBuilder.Build(fallback);
+            content = ProjectReportBuilder.Build(model with { IncludePhotos = false, Photos = new() });
         }
 
         var fileName = projects.Count == 1

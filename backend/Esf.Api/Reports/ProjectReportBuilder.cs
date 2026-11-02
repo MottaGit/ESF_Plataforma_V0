@@ -54,6 +54,9 @@ public static class ProjectReportBuilder
                 {
                     col.Item().Text(model.Organization.Name).FontSize(14).SemiBold();
                     col.Item().Text("Relatorio de projetos e resultados").FontSize(9).FontColor(Muted);
+                    if (model.HasPeriod)
+                        col.Item().PaddingTop(2).Text($"Período de referência: {PeriodText(model)}")
+                            .FontSize(9).SemiBold().FontColor(Accent);
                 });
 
                 row.ConstantItem(180).AlignRight().Column(col =>
@@ -159,6 +162,13 @@ public static class ProjectReportBuilder
 
     private static void ComposeProject(IContainer container, ReportModel model, Project p)
     {
+        // Com periodo de referencia, so os registros e as tarefas concluidas dentro dele.
+        var updates = p.Updates.Where(u => model.InPeriod(u.CreatedAt)).OrderBy(u => u.CreatedAt).ToList();
+        var doneTasks = p.Activities
+            .Where(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value))
+            .OrderBy(a => a.CompletedAt)
+            .ToList();
+
         container.Column(col =>
         {
             col.Spacing(8);
@@ -208,8 +218,13 @@ public static class ProjectReportBuilder
             if (model.IncludeVolunteers && p.Volunteers.Count > 0)
                 col.Item().Element(c => ComposeVolunteers(c, p));
 
-            if (model.IncludeUpdates && p.Updates.Count > 0)
-                col.Item().Element(c => ComposeUpdates(c, model, p));
+            if (model.IncludeTasks && doneTasks.Count > 0)
+                col.Item().Element(c => ComposeTasks(c, model, doneTasks));
+
+            if (model.IncludeUpdates && updates.Count > 0)
+                col.Item().Element(c => ComposeUpdates(c, model, updates));
+            else if (model.IncludeUpdates && model.HasPeriod)
+                col.Item().Text("Nenhum registro de andamento no período.").FontSize(9).FontColor(Muted);
 
             if (!string.IsNullOrWhiteSpace(p.Notes))
                 col.Item().Element(c => Paragraph(c, "Observacoes", p.Notes!));
@@ -287,14 +302,45 @@ public static class ProjectReportBuilder
         });
     }
 
-    /// <summary>Historico cronologico do projeto: cada atualizacao com seu texto e as fotos anexadas a ela.</summary>
-    private static void ComposeUpdates(IContainer container, ReportModel model, Project p)
+    /// <summary>O que foi entregue: tarefas concluidas (no periodo, quando ha), com responsavel e data.</summary>
+    private static void ComposeTasks(IContainer container, ReportModel model, List<Activity> tasks)
     {
         container.Column(col =>
         {
-            col.Item().Text("Linha do tempo").FontSize(10).SemiBold();
+            var title = model.HasPeriod ? "Tarefas concluídas no período" : "Tarefas concluídas";
+            col.Item().Text($"{title} ({tasks.Count})").FontSize(10).SemiBold();
+            col.Item().PaddingTop(4).Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn(5);
+                    columns.RelativeColumn(3);
+                    columns.ConstantColumn(72);
+                });
 
-            var updates = p.Updates.OrderBy(u => u.CreatedAt).ToList();
+                table.Header(header =>
+                {
+                    header.Cell().Element(HeadCell).Text("Tarefa");
+                    header.Cell().Element(HeadCell).Text("Responsável");
+                    header.Cell().Element(HeadCell).Text("Concluída em");
+                });
+
+                foreach (var task in tasks)
+                {
+                    table.Cell().Element(BodyCell).Text(task.Title);
+                    table.Cell().Element(BodyCell).Text(task.AssignedVolunteer?.Name ?? "-");
+                    table.Cell().Element(BodyCell).Text(task.CompletedAt!.Value.ToLocalTime().ToString("dd/MM/yyyy"));
+                }
+            });
+        });
+    }
+
+    /// <summary>Historico cronologico do projeto: cada atualizacao com seu texto e as fotos anexadas a ela.</summary>
+    private static void ComposeUpdates(IContainer container, ReportModel model, List<ProjectUpdate> updates)
+    {
+        container.Column(col =>
+        {
+            col.Item().Text(model.HasPeriod ? "Linha do tempo no período" : "Linha do tempo").FontSize(10).SemiBold();
 
             col.Item().PaddingTop(6).Column(inner =>
             {
@@ -398,6 +444,15 @@ public static class ProjectReportBuilder
         var local = value.ToLocalTime();
         return $"{local.Day:00} {MonthAbbreviations[local.Month - 1]} {local.Year}";
     }
+
+    /// <summary>Periodo de referencia por extenso: "01/07/2026 a 30/09/2026", "a partir de ..." ou "até ...".</summary>
+    private static string PeriodText(ReportModel model) => (model.From, model.To) switch
+    {
+        ({ } from, { } to) => $"{from:dd/MM/yyyy} a {to:dd/MM/yyyy}",
+        ({ } from, null) => $"a partir de {from:dd/MM/yyyy}",
+        (null, { } to) => $"até {to:dd/MM/yyyy}",
+        _ => "todo o histórico"
+    };
 
     private static string PeriodLine(Project p)
     {

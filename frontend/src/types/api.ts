@@ -579,6 +579,10 @@ export interface ReportPayload {
   includeIndicators: boolean;
   includeUpdates: boolean;
   includePhotos: boolean;
+  includeTasks: boolean;
+  /** Periodo de referencia (aaaa-mm-dd); null numa ponta deixa aquele lado aberto. */
+  from: string | null;
+  to: string | null;
   note: string | null;
 }
 

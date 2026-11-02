@@ -350,8 +350,12 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
 **Relatórios** — seleção de um ou vários projetos, observação livre e geração de um **PDF consolidado** com
-identificação, descrição, objetivo, período, status, responsável, localização, tarefas, voluntários e
-indicadores (sempre incluídos) e fotos (opcional).
+identificação, descrição, objetivo, período, status, responsável, localização, voluntários e
+indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
+referência** (De/Até, cada ponta pode ficar em branco) aparece no topo de todas as páginas e filtra a linha do
+tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
+andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico). As datas
+seguem o fuso do servidor, o mesmo usado para imprimir as datas no PDF.
 
 **Configurações** — dados institucionais, logo, gestão de usuários e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
@@ -544,7 +548,7 @@ A documentação interativa fica em `/swagger`.
 | GET/POST | `/api/projects/{id}/updates` | registros de andamento (texto + fotos, multipart) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
-| POST | `/api/reports/projects` | gera o PDF consolidado |
+| POST | `/api/reports/projects` | gera o PDF consolidado (projetos, partes incluídas e período de referência `from`/`to`, opcional) |
 | GET/POST/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários |
 | GET/PUT | `/api/organization` · `POST /logo` | dados institucionais |
 

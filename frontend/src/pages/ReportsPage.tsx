@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError } from '../api/client';
 import { projectsApi, reportsApi } from '../api/endpoints';
-import { DEFAULT_REPORT_OPTIONS, ReportOptionsFields, reportPayload } from '../components/reports/ReportOptions';
+import {
+  DEFAULT_REPORT_OPTIONS,
+  ReportOptionsFields,
+  reportOptionsError,
+  reportPayload
+} from '../components/reports/ReportOptions';
 import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Select, TextInput } from '../components/ui/Field';
@@ -188,7 +193,7 @@ export function ReportsPage() {
                 block
                 icon={<IconDownload size={15} />}
                 loading={generating}
-                disabled={selected.length === 0}
+                disabled={selected.length === 0 || Boolean(reportOptionsError(options))}
                 onClick={() => void handleGenerate()}
               >
                 Gerar PDF ({selected.length})
