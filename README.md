@@ -93,9 +93,23 @@ dotnet ef migrations add NomeDaMigration      # criar a próxima
 
 ## Acessos de demonstração
 
-O seed cria a organização (Porto Alegre/RS), 3 usuários, 19 voluntários e 15 projetos (10 do programa Banheiro
-Direito da Gente, baseados em registros reais, e 5 de horta comunitária) com tarefas, indicadores, vínculos e
-registros de andamento — o suficiente para navegar pela aplicação já na primeira execução.
+O seed cria a organização (Porto Alegre/RS), 3 usuários, 20 voluntários e 5 projetos, um de cada situação que a
+aplicação mostra:
+
+| Projeto | Programa | Situação |
+| --- | --- | --- |
+| Sra. Julia (banheiro acessível) | Banheiro Direito da Gente | Concluído |
+| Sra. Beatriz (módulo sanitário, troca de construtor) | Banheiro Direito da Gente | Em andamento, com tarefa bloqueada |
+| Sra. Rosangela (banheiro com caixa d'água) | Banheiro Direito da Gente | Planejamento, com tarefa vencida |
+| Horta Comunitária do Cristal | Horta comunitária | Concluído |
+| Horta Comunitária Vila Farrapos | Horta comunitária | Em andamento |
+
+Os de banheiro vêm dos registros reais do programa (INFOBANs); os de horta são estimados. Cada projeto tem equipe
+com papéis, tarefas com checklist, registros de andamento e indicadores com os mesmos nomes do modelo do programa,
+para a página do programa somar os resultados. Há comentários com menção em duas tarefas e autorização de imagem
+assinada em dois projetos. As datas contam a partir do dia em que o banco é criado, então sempre há tarefas
+concluídas, vencidas e próximas perto de "hoje". Os projetos de banheiro ficam sem ponto no mapa de propósito (são
+casas de famílias); as hortas marcam o bairro.
 
 | E-mail | Perfil | Senha |
 | --- | --- | --- |

@@ -1,5 +1,7 @@
+using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Reports;
 using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -96,492 +98,513 @@ public static class DbSeeder
         ana.Volunteer = vAna;
         fausto.Volunteer = vFausto;
 
-        var pBanheiro = new ProjectProgram { Name = "Banheiro Direito da Gente", Icon = "banheiro", Color = "blue" };
-        var pHorta = new ProjectProgram { Name = "Horta comunitaria", Icon = "horta", Color = "green" };
+        var org = db.Organizations.Local.FirstOrDefault() ?? await db.Organizations.FirstAsync();
+
+        // Datas relativas ao dia em que o banco e criado, para a demonstracao nao envelhecer: tarefas vencidas,
+        // proximas e concluidas aparecem sempre perto de "hoje".
+        var today = Mapping.Today;
+        DateOnly Day(int offset) => today.AddDays(offset);
+        DateTime At(int offset) => Day(offset).ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc);
+
+        // Checklist da tarefa: (texto, dia em que foi feito; vazio = pendente).
+        List<ActivityChecklistItem> Checklist(params (string Text, int? DoneOn)[] items) =>
+            items.Select((item, index) => new ActivityChecklistItem
+            {
+                Position = index,
+                Text = item.Text,
+                Done = item.DoneOn.HasValue,
+                DoneAt = item.DoneOn.HasValue ? At(item.DoneOn.Value) : null
+            }).ToList();
+
+        void Team(Project project, params (Volunteer Volunteer, string Role)[] members) =>
+            db.ProjectVolunteers.AddRange(members.Select(m => new ProjectVolunteer
+            {
+                Project = project,
+                Volunteer = m.Volunteer,
+                RoleInProject = m.Role,
+                JoinedAt = project.CreatedAt
+            }));
+
+        void Results(Project project, params (string Name, string Unit, decimal Value)[] indicators) =>
+            db.Indicators.AddRange(indicators.Select(i => new Indicator
+            {
+                Project = project,
+                Name = i.Name,
+                Unit = i.Unit,
+                Value = i.Value
+            }));
+
+        // Registros de andamento sao texto formatado (HTML); os de demonstracao estao escritos como texto puro.
+        void Record(Project project, User author, int on, string text) =>
+            db.ProjectUpdates.Add(new ProjectUpdate
+            {
+                Project = project,
+                AuthorUser = author,
+                Text = RichText.FromPlainText(text),
+                CreatedAt = At(on)
+            });
+
+        // Documento assinado de demonstracao: o proprio modelo em PDF, guardado como se a coordenacao o tivesse enviado.
+        void SignedDocument(SignedDocumentKind kind, Volunteer? volunteer, Project? project, byte[] content,
+            string fileName, int signedOn)
+        {
+            var storedName = $"{Guid.NewGuid():N}.pdf";
+            db.StoredFiles.Add(new StoredFile
+            {
+                StoredName = storedName,
+                ContentType = "application/pdf",
+                SizeBytes = content.Length,
+                Content = content,
+                IsPrivate = true,
+                CreatedAt = At(signedOn)
+            });
+            db.SignedDocuments.Add(new SignedDocument
+            {
+                Kind = kind,
+                VolunteerId = volunteer?.Id,
+                ProjectId = project?.Id,
+                FileName = fileName,
+                StoredName = storedName,
+                ContentType = "application/pdf",
+                SizeBytes = content.Length,
+                SignedOn = Day(signedOn),
+                UploadedAt = At(signedOn),
+                UploadedByUserId = ana.Id
+            });
+        }
+
+        void ImageAuthorization(Project project, int signedOn) =>
+            SignedDocument(SignedDocumentKind.BeneficiaryImageAuthorization, null, project,
+                DocumentTemplates.BeneficiaryImageAuthorization(org, project),
+                $"autorizacao-de-imagem-{TextHelpers.Slug(project.Name)}-assinada.pdf", signedOn);
+
+        // ---------------------------------------------------------------
+        // Programas e modelos (o que um projeto novo de cada programa ja recebe)
+        // ---------------------------------------------------------------
+
+        var pBanheiro = new ProjectProgram
+        {
+            Name = "Banheiro Direito da Gente",
+            Icon = "banheiro",
+            Color = "blue",
+            TemplateDescription = "Construção ou reforma do banheiro da família, com redes de água, esgoto e elétrica, louças, metais e chuveiro. A obra é feita por construtor local, com acompanhamento técnico dos voluntários e indicação da família por uma gestora local.",
+            TemplateObjective = "Garantir acesso a saneamento digno com a construção ou reforma do banheiro da família.",
+            TemplateTargetAudience = "1 família"
+        };
+        var pHorta = new ProjectProgram
+        {
+            Name = "Horta comunitária",
+            Icon = "horta",
+            Color = "green",
+            TemplateDescription = "Horta em terreno cedido pela comunidade, com canteiros elevados, irrigação simples e oficinas de manejo agroecológico e compostagem.",
+            TemplateObjective = "Fortalecer a segurança alimentar das famílias com uma horta mantida pela própria comunidade.",
+            TemplateTargetAudience = "Famílias do entorno"
+        };
         db.Programs.AddRange(pBanheiro, pHorta);
 
-        // Modelos de demonstracao: o que um projeto novo de cada programa ja recebe.
-        pBanheiro.TemplateObjective = "Garantir acesso a saneamento digno com a construção ou reforma do banheiro da família.";
-        pBanheiro.TemplateTargetAudience = "1 família";
         db.ProgramTemplateActivities.AddRange(
             new ProgramTemplateActivity { Program = pBanheiro, Position = 0, Title = "Visita técnica e levantamento", Priority = ActivityPriority.Alta, DueDays = 7 },
             new ProgramTemplateActivity { Program = pBanheiro, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Alta, DueDays = 20 },
-            new ProgramTemplateActivity { Program = pBanheiro, Position = 2, Title = "Compra de material", Priority = ActivityPriority.Media, DueDays = 30 },
-            new ProgramTemplateActivity { Program = pBanheiro, Position = 3, Title = "Mutirão de obra", Priority = ActivityPriority.Media },
-            new ProgramTemplateActivity { Program = pBanheiro, Position = 4, Title = "Entrega e registro final", Priority = ActivityPriority.Baixa });
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 2, Title = "Contratação do construtor local", Priority = ActivityPriority.Media, DueDays = 30 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 3, Title = "Compra de material", Priority = ActivityPriority.Media, DueDays = 35 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 4, Title = "Execução da obra", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 5, Title = "Vistoria final e entrega", Priority = ActivityPriority.Media },
+            new ProgramTemplateActivity { Program = pHorta, Position = 0, Title = "Cessão e preparo do terreno", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pHorta, Position = 1, Title = "Implantação dos canteiros e irrigação", Priority = ActivityPriority.Media },
+            new ProgramTemplateActivity { Program = pHorta, Position = 2, Title = "Plantio com a comunidade", Priority = ActivityPriority.Media },
+            new ProgramTemplateActivity { Program = pHorta, Position = 3, Title = "Oficina de manejo e compostagem", Priority = ActivityPriority.Baixa });
+
+        // Os indicadores do modelo sao os que a pagina do programa soma; os projetos abaixo usam os mesmos nomes.
         db.ProgramTemplateIndicators.AddRange(
             new ProgramTemplateIndicator { Program = pBanheiro, Position = 0, Name = "Famílias atendidas", Unit = "famílias" },
-            new ProgramTemplateIndicator { Program = pBanheiro, Position = 1, Name = "Banheiros construídos", Unit = "un." });
-        db.ProgramTemplateActivities.AddRange(
-            new ProgramTemplateActivity { Program = pHorta, Position = 0, Title = "Preparo do terreno", Priority = ActivityPriority.Alta },
-            new ProgramTemplateActivity { Program = pHorta, Position = 1, Title = "Plantio com a comunidade", Priority = ActivityPriority.Media },
-            new ProgramTemplateActivity { Program = pHorta, Position = 2, Title = "Oficina de manejo", Priority = ActivityPriority.Baixa });
-        db.ProgramTemplateIndicators.AddRange(
-            new ProgramTemplateIndicator { Program = pHorta, Position = 0, Name = "Canteiros", Unit = "un." },
-            new ProgramTemplateIndicator { Program = pHorta, Position = 1, Name = "Famílias envolvidas", Unit = "famílias" });
+            new ProgramTemplateIndicator { Program = pBanheiro, Position = 1, Name = "Pessoas beneficiadas", Unit = "pessoas" },
+            new ProgramTemplateIndicator { Program = pBanheiro, Position = 2, Name = "Banheiros construídos", Unit = "un." },
+            new ProgramTemplateIndicator { Program = pHorta, Position = 0, Name = "Famílias envolvidas", Unit = "famílias" },
+            new ProgramTemplateIndicator { Program = pHorta, Position = 1, Name = "Canteiros", Unit = "un." },
+            new ProgramTemplateIndicator { Program = pHorta, Position = 2, Name = "Oficinas realizadas", Unit = "oficinas" });
 
         const string cidade = "Porto Alegre";
         const string estado = "RS";
 
-        DateTime Dt(int y, int m, int d) => new(y, m, d, 12, 0, 0, DateTimeKind.Utc);
-        DateOnly Do(int y, int m, int d) => new(y, m, d);
-
         // ---------------------------------------------------------------
-        // Projetos de banheiro (Direito da Gente) - baseados em registros reais
+        // Banheiro Direito da Gente: baseados nos registros reais (INFOBANs).
+        // Sem ponto no mapa de proposito: sao casas de familias.
         // ---------------------------------------------------------------
 
-        var b1 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Dona Cinara",
-            Program = pBanheiro,
-            Description = "Reforma completa do banheiro interno: reconstrucao de paredes, aberturas, forro, ceramica, loucas e metais, chuveiro e redes hidraulica e eletrica.",
-            Objective = "Reformar o banheiro interno da residencia, comprometido pela enchente, garantindo instalacao segura e digna.",
-            Beneficiaries = "Dona Cinara e filha adolescente",
-            TargetAudience = "2 pessoas (1 adolescente)",
-            Address = "Rua 4, Loteamento A. J. Renner",
-            District = "Vila Pirulito",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2025, 8, 1),
-            EndDateForecast = Do(2025, 9, 6),
-            Status = ProjectStatus.Concluido,
-            OwnerVolunteer = vAna,
-            Notes = "Execucao pelo construtor local Sr. Gabriel. Fonte: registros INFOBAN 08 e 11."
-        };
-
-        var b2 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Dona Solange e Dona Michele",
-            Program = pBanheiro,
-            Description = "Construcao nova completa para duas familias: alicerce, paredes, telhado, aberturas, forro, ceramica, box, loucas e metais, hidraulica, esgoto completo, eletrica, chuveiro e pintura; obra comunitaria de rede de esgoto no beco.",
-            Objective = "Construir banheiro novo para duas familias no mesmo terreno, com acessibilidade para moradora idosa com baixa visao.",
-            Beneficiaries = "Solange, Michele e familia",
-            TargetAudience = "9 pessoas, 5 criancas/adolescentes, 1 idosa",
-            Address = "Beco D",
-            District = "Vila Nossa Senhora das Gracas",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2025, 11, 1),
-            EndDateForecast = Do(2026, 1, 11),
-            Status = ProjectStatus.Concluido,
-            OwnerVolunteer = vAna,
-            Notes = "Gestora local: Casa de Nazare. Fonte: INFOBAN 23-27, 39."
-        };
-
-        var b3 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Sra. Carla",
-            Program = pBanheiro,
-            Description = "Construcao totalmente nova de casa com banheiro, cozinha e quarto/sala; alicerces, colunas, alvenaria, telhado, ceramica, redes cloacal, pluvial, agua e eletrica, canal de drenagem.",
-            Objective = "Reconstruir moradia em situacao de risco, incluindo banheiro completo, apos demolicao necessaria.",
-            Beneficiaries = "Sra. Carla",
-            TargetAudience = "1 pessoa",
-            District = "Vila Alta Tensao",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 5, 19),
-            EndDateForecast = Do(2026, 8, 30),
-            Status = ProjectStatus.EmAndamento,
-            OwnerVolunteer = vAna,
-            Notes = "Casa em situacao de risco; demolicao e reconstrucao total. Construtor Solano. Fonte: INFOBAN 43-44."
-        };
-
-        var b4 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Dona Patricia (Vila Jardim)",
-            Program = pBanheiro,
-            Description = "Construcao praticamente integral de nova moradia: ampliacao de area, dormitorio, sala/cozinha, banheiro amplo acessivel, piso, paredes, telhado, hidraulica, esgoto e eletrica.",
-            Objective = "Reconstruir quase integralmente a moradia, incluindo banheiro amplo e acessivel.",
-            Beneficiaries = "Dona Patricia e familiares",
-            TargetAudience = "Familia com pessoas com mobilidade reduzida",
-            Address = "Rua Souza Lobo (escadaria)",
-            District = "Vila Jardim",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2025, 9, 15),
-            EndDateForecast = Do(2025, 12, 14),
-            Status = ProjectStatus.Concluido,
-            OwnerVolunteer = vLeonardo,
-            Notes = "Parceria: Cozinha Solidaria Compartilhando Sabores + Levante. Construtores Paulo e Alexandre. Fonte: INFOBAN 12-26."
-        };
-
-        var b5 = new Project
+        // Concluido: banheiro acessivel para moradora cadeirante.
+        var bJulia = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Julia",
             Program = pBanheiro,
-            Description = "Construcao de banheiro em alvenaria com acessibilidade plena (area interna 4,94 m2 e externa 5,63 m2), dimensionado para cadeira de rodas, barras de apoio, ceramica, loucas, chuveiro, hidraulica, esgoto e eletrica.",
-            Objective = "Construir banheiro com acessibilidade plena (NBR 9050) para moradora cadeirante.",
+            Description = "Construção de banheiro em alvenaria com acessibilidade plena: 4,94 m² de área interna e 5,63 m² de área externa, área de giro para cadeira de rodas, porta de 90 cm, barras de apoio na bacia e no chuveiro, piso antiderrapante, louças, chuveiro e redes de água, esgoto e elétrica.",
+            Objective = "Construir banheiro com acessibilidade plena (NBR 9050) para a moradora cadeirante, com autonomia e segurança no uso diário.",
             Beneficiaries = "Julia, Michel e Maria",
             TargetAudience = "3 pessoas, 1 idosa, 1 cadeirante",
             District = "Vila Nossa Senhora Aparecida",
             City = cidade,
             State = estado,
-            StartDate = Do(2026, 4, 1),
-            EndDateForecast = Do(2026, 5, 20),
+            StartDate = Day(-215),
+            EndDateForecast = Day(-165),
             Status = ProjectStatus.Concluido,
             OwnerVolunteer = vAna,
-            Notes = "Gestora local: ACONVI / Banco Comunitario Justa Troca. Construtor: equipe Josimar. Fonte: INFOBAN 37-43."
+            Notes = "Gestora local: ACONVI / Banco Comunitário Justa Troca. Obra feita pela equipe do construtor Josimar. Fonte: registros INFOBAN 37 a 43.",
+            CreatedAt = At(-215),
+            UpdatedAt = At(-165)
         };
+        db.Projects.Add(bJulia);
+        Team(bJulia,
+            (vAna, "Responsável pelo projeto"),
+            (vAdriano, "Projeto de acessibilidade"),
+            (vLeonardo, "Acompanhamento da obra"),
+            (vGuilherme, "Contrato com o construtor"),
+            (vFrancielly, "Compras"),
+            (vMariaAntonia, "Vistoria de qualidade"),
+            (vAlice, "Registro fotográfico"));
+        db.Activities.AddRange(
+            new Activity
+            {
+                Project = bJulia, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vAna, DueDate = Day(-208), CompletedAt = At(-211),
+                ChecklistItems = Checklist(("Medir o espaço disponível ao lado do quarto", -211), ("Localizar o ponto de água e a saída de esgoto", -211), ("Entender com a família a rotina de uso", -211))
+            },
+            new Activity
+            {
+                Project = bJulia, Title = "Projeto de acessibilidade (NBR 9050) e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vAdriano, DueDate = Day(-195), CompletedAt = At(-197),
+                Description = "Área de giro de 1,50 m para a cadeira de rodas, porta de 90 cm abrindo para fora e barras de apoio na bacia e no chuveiro.",
+                ChecklistItems = Checklist(("Planta com a área de giro", -200), ("Lista de material com três cotações", -198), ("Aprovação do projeto com a família", -197))
+            },
+            new Activity
+            {
+                Project = bJulia, Title = "Contratação do construtor local", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vGuilherme, DueDate = Day(-190), CompletedAt = At(-192),
+                Description = "Contrato com a equipe do Josimar, indicada pela ACONVI."
+            },
+            new Activity
+            {
+                Project = bJulia, Title = "Compra de material", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vFrancielly, DueDate = Day(-188), CompletedAt = At(-189)
+            },
+            new Activity
+            {
+                Project = bJulia, Title = "Execução da obra", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vLeonardo, DueDate = Day(-170), CompletedAt = At(-168),
+                ChecklistItems = Checklist(("Fundação e alvenaria", -185), ("Telhado", -180), ("Redes de água, esgoto e elétrica", -176), ("Revestimento e piso antiderrapante", -172), ("Louças, metais e barras de apoio", -168))
+            },
+            new Activity
+            {
+                Project = bJulia, Title = "Vistoria final e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vMariaAntonia, DueDate = Day(-165), CompletedAt = At(-165),
+                ChecklistItems = Checklist(("Testar as barras de apoio", -165), ("Conferir o caimento do piso para o ralo", -165), ("Fotos de antes e depois", -165), ("Termo de entrega assinado pela família", -165))
+            });
+        Results(bJulia,
+            ("Famílias atendidas", "famílias", 1),
+            ("Pessoas beneficiadas", "pessoas", 3),
+            ("Banheiros construídos", "un.", 1),
+            ("Área construída", "m²", 10.57m));
+        Record(bJulia, ana, -211, "Visita técnica na casa da Sra. Julia, com a ACONVI. O banheiro novo precisa de área de giro para a cadeira de rodas e barras de apoio; o projeto vai seguir a NBR 9050.");
+        Record(bJulia, leonardo, -180, "Alvenaria e telhado concluídos pela equipe do Josimar. Redes de água e esgoto ligadas; o revestimento começa na semana que vem.");
+        Record(bJulia, ana, -165, "Banheiro entregue e vistoriado: 4,94 m² internos e 5,63 m² de área externa, com barras de apoio, piso antiderrapante e espaço para a cadeira de rodas.");
+        ImageAuthorization(bJulia, -205);
 
-        var b6 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Yasmin",
-            Program = pBanheiro,
-            Description = "Construcao de banheiro acoplado a moradia e area de servico; projeto ampliado para reforco de telhado, construcao de cozinha e demolicao da cozinha atual em risco.",
-            Objective = "Construir banheiro e area de servico, com reforco estrutural e nova cozinha apos risco de colapso.",
-            Beneficiaries = "Yasmin, companheiro e quatro filhos",
-            TargetAudience = "6 pessoas, 4 criancas pequenas",
-            District = "Vila Nossa Senhora Aparecida",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 5, 1),
-            EndDateForecast = Do(2026, 7, 31),
-            Status = ProjectStatus.EmAndamento,
-            OwnerVolunteer = vFausto,
-            Notes = "Gestora local: ACONVI. Equipe Silvio e Igor. Fonte: INFOBAN 41-44."
-        };
-
-        var b7 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Elisa e Marcelo",
-            Program = pBanheiro,
-            Description = "Construcao de casa pre-fabricada de madeira com banheiro completo em alvenaria, apos demolicao da casa original; alicerces, banheiro, estrutura, piso e telhado.",
-            Objective = "Construir casa pre-fabricada com banheiro completo apos demolicao da moradia anterior, atingida por queda de arvore.",
-            Beneficiaries = "Elisa e Marcelo, casal de idosos",
-            TargetAudience = "2 pessoas idosas, catadores",
-            District = "Vila Pinheirinho",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2025, 11, 17),
-            EndDateForecast = Do(2026, 1, 20),
-            Status = ProjectStatus.Concluido,
-            OwnerVolunteer = vAna,
-            Notes = "Gestora local: CPCA. Apoio de madeireira parceira. Fonte: INFOBAN 18-32."
-        };
-
-        var b8 = new Project
+        // Em andamento: mudou de reforma para modulo novo e teve troca de construtor.
+        var bBeatriz = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Beatriz",
             Program = pBanheiro,
-            Description = "Projeto originalmente de reforma, alterado para construcao de modulo sanitario em alvenaria acoplado a moradia; baldrame, paredes, telhado, ceramica, loucas, chuveiro, redes hidraulica/esgoto/eletrica e lavanderia.",
-            Objective = "Construir modulo sanitario em alvenaria para familia extensa, apos mudanca de escopo de reforma para construcao nova.",
-            Beneficiaries = "Sra. Beatriz e familia",
-            TargetAudience = "8 pessoas, criancas/adolescentes assistidos pela Casa de Santa Clara",
+            Description = "Módulo sanitário em alvenaria acoplado à moradia: baldrame, paredes, telhado, cerâmica, louças, chuveiro, redes de água, esgoto e elétrica, e lavanderia. O projeto começou como reforma e passou a construção nova.",
+            Objective = "Construir módulo sanitário com lavanderia para a família extensa, depois que a reforma do banheiro antigo se mostrou inviável.",
+            Beneficiaries = "Sra. Beatriz e família",
+            TargetAudience = "8 pessoas, com crianças e adolescentes atendidos pela Casa de Santa Clara",
             District = "Beco dos Herdeiros",
             City = cidade,
             State = estado,
-            StartDate = Do(2026, 1, 10),
-            EndDateForecast = Do(2026, 9, 30),
+            StartDate = Day(-140),
+            EndDateForecast = Day(40),
             Status = ProjectStatus.EmAndamento,
-            OwnerVolunteer = vAna,
-            Notes = "Projeto teve paralisacoes e troca de construtores; retomado em 15/05/2026 pela equipe de Flavio e Rita. Gestora local: CPCA. Fonte: INFOBAN 31, 42-44."
+            OwnerVolunteer = vFausto,
+            Notes = "A obra parou com a saída do primeiro construtor e foi retomada pela equipe de Flávio e Rita. Gestora local: CPCA. Fonte: registros INFOBAN 31 e 42 a 44.",
+            CreatedAt = At(-140),
+            UpdatedAt = At(-3)
         };
+        db.Projects.Add(bBeatriz);
+        Team(bBeatriz,
+            (vFausto, "Responsável pelo projeto"),
+            (vLeonardo, "Responsável técnico"),
+            (vAdriano, "Estrutura"),
+            (vEdu, "Instalações elétricas"),
+            (vFrancielly, "Compras"),
+            (vMariaAntonia, "Vistoria de qualidade"));
+        var beatrizObra = new Activity
+        {
+            Project = bBeatriz, Title = "Execução da obra", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta,
+            AssignedVolunteer = vFausto, DueDate = Day(30),
+            ChecklistItems = Checklist(("Baldrame", -100), ("Alvenaria", -50), ("Telhado", -10), ("Redes de água e esgoto", null), ("Instalação elétrica", null), ("Revestimento cerâmico", null), ("Lavanderia", null))
+        };
+        db.Activities.AddRange(
+            new Activity
+            {
+                Project = bBeatriz, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vFausto, DueDate = Day(-133), CompletedAt = At(-135),
+                Description = "As paredes do banheiro antigo não têm condição de reforma."
+            },
+            new Activity
+            {
+                Project = bBeatriz, Title = "Projeto e orçamento do módulo sanitário", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vLeonardo, DueDate = Day(-120), CompletedAt = At(-121),
+                Description = "Escopo mudou de reforma para construção nova: módulo em alvenaria acoplado à casa, com lavanderia."
+            },
+            new Activity
+            {
+                Project = bBeatriz, Title = "Contratação do construtor local", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vFausto, DueDate = Day(-60), CompletedAt = At(-58),
+                Description = "O primeiro construtor saiu depois do baldrame. A CPCA indicou a equipe de Flávio e Rita para retomar."
+            },
+            new Activity
+            {
+                Project = bBeatriz, Title = "Compra de material: louças e revestimento", Status = ActivityStatus.Bloqueada, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vFrancielly, DueDate = Day(5),
+                BlockedReason = "O fornecedor do primeiro lote parou de entregar no beco; aguardando cotação de outra loja."
+            },
+            beatrizObra,
+            new Activity
+            {
+                Project = bBeatriz, Title = "Vistoria final e entrega", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vMariaAntonia, DueDate = Day(40)
+            });
+        db.ActivityComments.AddRange(
+            new ActivityComment
+            {
+                Activity = beatrizObra, AuthorUser = fausto, CreatedAt = At(-3),
+                Text = "Telhado fechado. @Leonardo Motta consegue passar na quinta para conferir o caimento do esgoto antes de fecharmos o piso?",
+                MentionedVolunteerIds = [vLeonardo.Id]
+            },
+            new ActivityComment
+            {
+                Activity = beatrizObra, AuthorUser = leonardo, CreatedAt = At(-2),
+                Text = "Consigo, passo na quinta de manhã. Peço para não concretar o piso antes disso."
+            });
+        Results(bBeatriz,
+            ("Famílias atendidas", "famílias", 1),
+            ("Pessoas beneficiadas", "pessoas", 8),
+            ("Banheiros construídos", "un.", 0));
+        Record(bBeatriz, ana, -121, "Na visita, as paredes do banheiro antigo não tinham condição de reforma. O projeto passou a ser um módulo sanitário novo acoplado à casa, com lavanderia.");
+        Record(bBeatriz, fausto, -80, "Obra parada: o construtor contratado saiu depois do baldrame e de parte da alvenaria. A CPCA está buscando outra equipe na comunidade.");
+        Record(bBeatriz, fausto, -55, "Obra retomada com a equipe de Flávio e Rita. Alvenaria concluída nesta semana.");
+        Record(bBeatriz, fausto, -10, "Telhado pronto. Próximas etapas: redes de água e esgoto e instalação elétrica.");
+        ImageAuthorization(bBeatriz, -130);
 
-        var b9 = new Project
+        // Planejamento: banheiro sobre alicerce existente, com caixa d'agua.
+        var bRosangela = new Project
         {
             Name = "Banheiro Direito da Gente - Sra. Rosangela",
             Program = pBanheiro,
-            Description = "Construcao de banheiro completo sobre alicerce ja existente da futura casa e parede sanitaria para iniciar cozinha; caixa d'agua prevista devido a desabastecimento frequente.",
-            Objective = "Construir banheiro completo sobre alicerce ja existente, com caixa d'agua devido a desabastecimento frequente.",
-            Beneficiaries = "Rosangela e cinco filhos",
+            Description = "Construção de banheiro completo sobre o alicerce já existente da futura casa, com parede hidráulica preparada para a cozinha e caixa d'água de 500 litros por causa da falta frequente de água.",
+            Objective = "Construir banheiro completo sobre o alicerce existente, com reserva de água para os dias de desabastecimento.",
+            Beneficiaries = "Sra. Rosangela e cinco filhos",
             TargetAudience = "6 pessoas, filhos de 1 a 18 anos",
             District = "Beco dos Herdeiros",
             City = cidade,
             State = estado,
-            StartDate = Do(2026, 1, 15),
-            EndDateForecast = Do(2026, 10, 15),
+            StartDate = Day(-25),
+            EndDateForecast = Day(110),
             Status = ProjectStatus.Planejamento,
             OwnerVolunteer = vFausto,
-            Notes = "CPCA contratou construtor local Flavio para retomada. Fonte: INFOBAN 14, 30-31."
+            Notes = "A CPCA indicou o construtor local Flávio, que já está na obra da Sra. Beatriz. Fonte: registros INFOBAN 14, 30 e 31.",
+            CreatedAt = At(-25),
+            UpdatedAt = At(-8)
         };
-
-        var b10 = new Project
-        {
-            Name = "Banheiro Direito da Gente - Sra. Marcelina",
-            Program = pBanheiro,
-            Description = "Construcao de modulo sanitario acoplado a moradia, com padrao BDG; reconstrucao de redes de agua e esgoto da cozinha e pavimentacao do acesso.",
-            Objective = "Construir modulo sanitario acoplado a moradia atingida por incendio, padrao BDG.",
-            Beneficiaries = "Marcelina, irma Salete e filhos",
-            TargetAudience = "4 pessoas, filhos adolescentes, irma idosa",
-            District = "Vila Sao Pedro / Vicosa",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 4, 18),
-            EndDateForecast = Do(2026, 6, 20),
-            Status = ProjectStatus.EmAndamento,
-            OwnerVolunteer = vAna,
-            Notes = "Casa afetada por incendio. Construtor Ivo, da comunidade. Aguardando vistoria final desde 07/05/2026. Gestora local: CPCA. Fonte: INFOBAN 38-41."
-        };
+        db.Projects.Add(bRosangela);
+        Team(bRosangela,
+            (vFausto, "Responsável pelo projeto"),
+            (vAdriano, "Levantamento técnico"),
+            (vLeonardo, "Projeto e orçamento"),
+            (vJulia, "Cadastro da família"),
+            (vFrancielly, "Compras"));
+        db.Activities.AddRange(
+            new Activity
+            {
+                Project = bRosangela, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vAdriano, DueDate = Day(-18), CompletedAt = At(-20),
+                ChecklistItems = Checklist(("Conferir o alicerce existente", -20), ("Registrar com a família os dias sem água", -20))
+            },
+            new Activity
+            {
+                Project = bRosangela, Title = "Projeto e orçamento", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vLeonardo, DueDate = Day(-3),
+                ChecklistItems = Checklist(("Planta do banheiro sobre o alicerce", -8), ("Detalhe da caixa d'água de 500 litros", null), ("Orçamento com três cotações", null))
+            },
+            new Activity
+            {
+                Project = bRosangela, Title = "Termo e autorização de imagem com a família", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vJulia, DueDate = Day(7),
+                Description = "Levar a autorização de uso de imagem para a família assinar na próxima visita."
+            },
+            new Activity
+            {
+                Project = bRosangela, Title = "Contratação do construtor local", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vFausto, DueDate = Day(20)
+            },
+            new Activity
+            {
+                Project = bRosangela, Title = "Compra de material", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vFrancielly, DueDate = Day(30)
+            },
+            new Activity { Project = bRosangela, Title = "Execução da obra", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta },
+            new Activity { Project = bRosangela, Title = "Vistoria final e entrega", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media });
+        Results(bRosangela,
+            ("Famílias atendidas", "famílias", 1),
+            ("Pessoas beneficiadas", "pessoas", 6),
+            ("Banheiros construídos", "un.", 0));
+        Record(bRosangela, fausto, -20, "Visita com a CPCA. O alicerce da futura casa está em bom estado e aguenta o banheiro. A falta de água é frequente, então o projeto vai incluir caixa d'água.");
 
         // ---------------------------------------------------------------
-        // Projetos de horta comunitaria - estimados
+        // Horta comunitaria: dados estimados. O ponto no mapa marca o bairro, nao o terreno.
         // ---------------------------------------------------------------
 
-        var h1 = new Project
+        // Concluida: horta entregue a comunidade.
+        var hCristal = new Project
         {
-            Name = "Horta Comunitaria Vila Farrapos",
+            Name = "Horta Comunitária do Cristal",
             Program = pHorta,
-            Description = "Preparacao de canteiros, sistema de irrigacao simples e oficinas de manejo agroecologico em terreno cedido pela comunidade.",
-            Objective = "Implantar horta comunitaria para seguranca alimentar e geracao de renda complementar.",
-            Beneficiaries = "Moradores da Vila Farrapos",
-            TargetAudience = "Cerca de 25 familias",
-            District = "Bairro Farrapos",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 3, 1),
-            EndDateForecast = Do(2026, 8, 1),
-            Status = ProjectStatus.EmAndamento,
-            OwnerVolunteer = vAna
-        };
-
-        var h2 = new Project
-        {
-            Name = "Horta Comunitaria Sarandi",
-            Program = pHorta,
-            Description = "Levantamento de terreno disponivel e articulacao com associacao de moradores para implantacao de horta comunitaria.",
-            Objective = "Iniciar horta comunitaria junto a familias ja atendidas pelo programa de banheiros, ampliando seguranca alimentar.",
-            Beneficiaries = "Familias do Sarandi",
-            TargetAudience = "A definir",
-            District = "Sarandi",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 7, 1),
-            EndDateForecast = Do(2027, 1, 15),
-            Status = ProjectStatus.Planejamento,
-            OwnerVolunteer = vFausto
-        };
-
-        var h3 = new Project
-        {
-            Name = "Horta Comunitaria Cristal",
-            Program = pHorta,
-            Description = "Canteiros implantados, sistema de irrigacao por gotejamento e oficinas mensais de compostagem e manejo.",
-            Objective = "Entregar horta comunitaria funcional com oficinas periodicas de manejo.",
-            Beneficiaries = "Comunidade do Cristal",
-            TargetAudience = "18 familias participantes",
+            Description = "12 canteiros elevados em terreno cedido pela associação de moradores, irrigação por gotejamento ligada a um reservatório de água da chuva, composteira coletiva e oficinas mensais de manejo e compostagem.",
+            Objective = "Entregar uma horta comunitária funcionando, mantida pelas famílias, com oficinas periódicas de manejo.",
+            Beneficiaries = "Famílias do Cristal",
+            TargetAudience = "18 famílias participantes",
             District = "Cristal",
             City = cidade,
             State = estado,
-            StartDate = Do(2025, 6, 1),
-            EndDateForecast = Do(2025, 11, 15),
+            Latitude = -30.0915,
+            Longitude = -51.2400,
+            StartDate = Day(-520),
+            EndDateForecast = Day(-350),
             Status = ProjectStatus.Concluido,
-            OwnerVolunteer = vLeonardo
+            OwnerVolunteer = vLeonardo,
+            Notes = "Terreno cedido pela associação de moradores por cinco anos. A colheita é dividida entre as famílias que cuidam dos canteiros.",
+            CreatedAt = At(-520),
+            UpdatedAt = At(-352)
         };
-
-        var h4 = new Project
-        {
-            Name = "Horta Comunitaria Lomba do Pinheiro",
-            Program = pHorta,
-            Description = "Preparacao de canteiros e capacitacao de familias em cultivo de hortalicas para consumo proprio.",
-            Objective = "Implantar horta comunitaria integrada as familias ja atendidas pelo programa de banheiros na regiao.",
-            Beneficiaries = "Familias da Lomba do Pinheiro",
-            TargetAudience = "15 familias",
-            District = "Lomba do Pinheiro",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 2, 1),
-            EndDateForecast = Do(2026, 9, 1),
-            Status = ProjectStatus.EmAndamento,
-            OwnerVolunteer = vAna
-        };
-
-        var h5 = new Project
-        {
-            Name = "Horta Comunitaria Vila Jardim",
-            Program = pHorta,
-            Description = "Estudo de viabilidade e articulacao com parceiros locais para futura implantacao de horta comunitaria.",
-            Objective = "Avaliar viabilidade de horta comunitaria junto a parceiros locais (Cozinha Solidaria).",
-            Beneficiaries = "Comunidade da Vila Jardim",
-            TargetAudience = "A definir",
-            District = "Bom Jesus / Vila Jardim",
-            City = cidade,
-            State = estado,
-            StartDate = Do(2026, 8, 1),
-            EndDateForecast = Do(2027, 2, 1),
-            Status = ProjectStatus.Planejamento,
-            OwnerVolunteer = vFausto
-        };
-
-        db.Projects.AddRange(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, h1, h2, h3, h4, h5);
-
+        db.Projects.Add(hCristal);
+        Team(hCristal,
+            (vLeonardo, "Responsável pelo projeto"),
+            (vLuca, "Irrigação e compostagem"),
+            (vJulia, "Mobilização comunitária"),
+            (vYasminM, "Comunicação"));
         db.Activities.AddRange(
-            new Activity { Project = b1, Title = "Visita tecnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 8, 1), CompletedAt = Dt(2025, 8, 1) },
-            new Activity { Project = b1, Title = "Reconstrucao de paredes e revestimento ceramico", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 8, 25), CompletedAt = Dt(2025, 8, 24) },
-            new Activity { Project = b1, Title = "Instalacao de loucas, metais e chuveiro", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 9, 5), CompletedAt = Dt(2025, 9, 5) },
-            new Activity { Project = b1, Title = "Entrega e vistoria final", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2025, 9, 6), CompletedAt = Dt(2025, 9, 6) },
+            new Activity
+            {
+                Project = hCristal, Title = "Cessão e preparo do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vLeonardo, DueDate = Day(-500), CompletedAt = At(-505),
+                ChecklistItems = Checklist(("Termo de cessão com a associação de moradores", -515), ("Limpeza e correção do solo", -505))
+            },
+            new Activity
+            {
+                Project = hCristal, Title = "Implantação dos canteiros e irrigação", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vLuca, DueDate = Day(-460), CompletedAt = At(-462),
+                ChecklistItems = Checklist(("12 canteiros elevados", -480), ("Reservatório de água da chuva (1.000 litros)", -470), ("Mangueiras de gotejamento", -462))
+            },
+            new Activity
+            {
+                Project = hCristal, Title = "Plantio com a comunidade", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vJulia, DueDate = Day(-455), CompletedAt = At(-455),
+                Description = "Mutirão de plantio com as famílias: alface, couve, rúcula, temperos e chás."
+            },
+            new Activity
+            {
+                Project = hCristal, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Baixa,
+                AssignedVolunteer = vLuca, DueDate = Day(-350), CompletedAt = At(-352),
+                Description = "Seis oficinas mensais; na última, a composteira passou para o cuidado das famílias."
+            });
+        Results(hCristal,
+            ("Famílias envolvidas", "famílias", 18),
+            ("Canteiros", "un.", 12),
+            ("Oficinas realizadas", "oficinas", 6));
+        Record(hCristal, leonardo, -505, "Terreno cedido pela associação de moradores e limpo em mutirão. O solo recebeu calcário e composto antes dos canteiros.");
+        Record(hCristal, leonardo, -462, "12 canteiros prontos e irrigação por gotejamento funcionando com o reservatório de água da chuva.");
+        Record(hCristal, leonardo, -352, "Horta entregue às 18 famílias. Na última oficina, a composteira passou para o cuidado da comunidade.");
 
-            new Activity { Project = b2, Title = "Levantamento e projeto para duas familias", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 11, 5), CompletedAt = Dt(2025, 11, 5) },
-            new Activity { Project = b2, Title = "Fundacao e alvenaria", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 12, 5), CompletedAt = Dt(2025, 12, 5) },
-            new Activity { Project = b2, Title = "Rede de esgoto do beco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 12, 20), CompletedAt = Dt(2025, 12, 20) },
-            new Activity { Project = b2, Title = "Acabamento, barras de apoio e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 11), CompletedAt = Dt(2026, 1, 11) },
-
-            new Activity { Project = b3, Title = "Demolicao da casa em risco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
-            new Activity { Project = b3, Title = "Fundacao e alvenaria da nova casa", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 1) },
-            new Activity { Project = b3, Title = "Redes hidrossanitarias e eletrica", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 8, 1) },
-            new Activity { Project = b3, Title = "Acabamento e entrega", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 8, 30) },
-
-            new Activity { Project = b4, Title = "Levantamento e projeto de acessibilidade", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 9, 20), CompletedAt = Dt(2025, 9, 20) },
-            new Activity { Project = b4, Title = "Ampliacao e fundacao", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 10, 20), CompletedAt = Dt(2025, 10, 20) },
-            new Activity { Project = b4, Title = "Banheiro acessivel e instalacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 11, 25), CompletedAt = Dt(2025, 11, 25) },
-            new Activity { Project = b4, Title = "Acabamento e entrega", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 12, 14), CompletedAt = Dt(2025, 12, 14) },
-
-            new Activity { Project = b5, Title = "Projeto de acessibilidade NBR 9050", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 4, 5), CompletedAt = Dt(2026, 4, 5) },
-            new Activity { Project = b5, Title = "Fundacao e alvenaria ampliada", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 4, 25), CompletedAt = Dt(2026, 4, 25) },
-            new Activity { Project = b5, Title = "Instalacao de barras e adaptacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 10), CompletedAt = Dt(2026, 5, 10) },
-            new Activity { Project = b5, Title = "Entrega e vistoria", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
-
-            new Activity { Project = b6, Title = "Demolicao da cozinha em risco", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 5, 10), CompletedAt = Dt(2026, 5, 10) },
-            new Activity { Project = b6, Title = "Fundacao do banheiro e area de servico", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 6, 15) },
-            new Activity { Project = b6, Title = "Reforco de telhado e nova cozinha", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 7, 15) },
-            new Activity { Project = b6, Title = "Instalacoes hidrossanitarias", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 7, 31) },
-
-            new Activity { Project = b7, Title = "Demolicao da casa atingida", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 11, 20), CompletedAt = Dt(2025, 11, 20) },
-            new Activity { Project = b7, Title = "Montagem da casa pre-fabricada", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2025, 12, 15), CompletedAt = Dt(2025, 12, 15) },
-            new Activity { Project = b7, Title = "Banheiro em alvenaria e instalacoes", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 10), CompletedAt = Dt(2026, 1, 10) },
-            new Activity { Project = b7, Title = "Entrega com mobiliario basico", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 20), CompletedAt = Dt(2026, 1, 20) },
-
-            new Activity { Project = b8, Title = "Levantamento e mudanca de escopo do projeto", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 1, 15), CompletedAt = Dt(2026, 1, 15) },
-            new Activity { Project = b8, Title = "Baldrame e alvenaria (1a fase, paralisada)", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 3, 1), CompletedAt = Dt(2026, 3, 1) },
-            new Activity { Project = b8, Title = "Retomada da obra com nova equipe", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 1) },
-            new Activity { Project = b8, Title = "Instalacoes e lavanderia", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 9, 1) },
-
-            new Activity { Project = b9, Title = "Levantamento tecnico sobre alicerce existente", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 1, 20), CompletedAt = Dt(2026, 1, 20) },
-            new Activity { Project = b9, Title = "Contratacao de construtor local para retomada", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 6, 1) },
-            new Activity { Project = b9, Title = "Construcao do banheiro e caixa d'agua", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta, AssignedVolunteer = vFausto, DueDate = Do(2026, 9, 15) },
-
-            new Activity { Project = b10, Title = "Levantamento pos-incendio", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 4, 20), CompletedAt = Dt(2026, 4, 20) },
-            new Activity { Project = b10, Title = "Construcao do modulo sanitario", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = vAna, DueDate = Do(2026, 5, 20), CompletedAt = Dt(2026, 5, 20) },
-            new Activity { Project = b10, Title = "Pavimentacao do acesso e redes da cozinha", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 6, 1), CompletedAt = Dt(2026, 6, 1) },
-            new Activity { Project = b10, Title = "Vistoria final", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 6, 20) },
-
-            new Activity { Project = h1, Title = "Cessao e preparacao do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 3, 15), CompletedAt = Dt(2026, 3, 15) },
-            new Activity { Project = h1, Title = "Implantacao dos canteiros", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 6, 1) },
-            new Activity { Project = h1, Title = "Oficina de manejo agroecologico", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 15) },
-
-            new Activity { Project = h2, Title = "Articulacao com associacao de moradores", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 8, 1) },
-            new Activity { Project = h2, Title = "Definicao do terreno", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 9, 15) },
-
-            new Activity { Project = h3, Title = "Preparacao do solo e canteiros", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 6, 20), CompletedAt = Dt(2025, 6, 20) },
-            new Activity { Project = h3, Title = "Sistema de irrigacao por gotejamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 8, 10), CompletedAt = Dt(2025, 8, 10) },
-            new Activity { Project = h3, Title = "Primeira oficina de manejo", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Baixa, AssignedVolunteer = vLeonardo, DueDate = Do(2025, 11, 15), CompletedAt = Dt(2025, 11, 15) },
-
-            new Activity { Project = h4, Title = "Preparacao dos canteiros", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 3, 1), CompletedAt = Dt(2026, 3, 1) },
-            new Activity { Project = h4, Title = "Capacitacao em cultivo de hortalicas", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = vAna, DueDate = Do(2026, 7, 1) },
-            new Activity { Project = h4, Title = "Colheita e avaliacao", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa, AssignedVolunteer = vAna, DueDate = Do(2026, 9, 1) },
-
-            new Activity { Project = h5, Title = "Estudo de viabilidade", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = vFausto, DueDate = Do(2026, 10, 1) }
-        );
-
-        db.Indicators.AddRange(
-            new Indicator { Project = b1, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 2 },
-            new Indicator { Project = b2, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 9 },
-            new Indicator { Project = b3, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 1 },
-            new Indicator { Project = b4, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 4 },
-            new Indicator { Project = b5, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 3 },
-            new Indicator { Project = b6, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 6 },
-            new Indicator { Project = b7, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 2 },
-            new Indicator { Project = b8, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 8 },
-            new Indicator { Project = b9, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 6 },
-            new Indicator { Project = b10, Name = "Pessoas beneficiadas", Unit = "pessoas", Value = 4 },
-
-            new Indicator { Project = h1, Name = "Familias participantes", Unit = "familias", Value = 25 },
-            new Indicator { Project = h2, Name = "Familias participantes", Unit = "familias", Value = 0 },
-            new Indicator { Project = h3, Name = "Familias participantes", Unit = "familias", Value = 18 },
-            new Indicator { Project = h3, Name = "Canteiros implantados", Unit = "canteiros", Value = 12 },
-            new Indicator { Project = h4, Name = "Familias participantes", Unit = "familias", Value = 15 }
-        );
-
-        db.ProjectVolunteers.AddRange(
-            new ProjectVolunteer { Project = b1, Volunteer = vLeonardo, RoleInProject = "Responsavel tecnico" },
-            new ProjectVolunteer { Project = b1, Volunteer = vClivia, RoleInProject = "Acompanhamento" },
-
-            new ProjectVolunteer { Project = b2, Volunteer = vSandra, RoleInProject = "Responsavel tecnico" },
-            new ProjectVolunteer { Project = b2, Volunteer = vAdriano, RoleInProject = "Instalacoes" },
-
-            new ProjectVolunteer { Project = b3, Volunteer = vFelipe, RoleInProject = "Acompanhamento tecnico" },
-            new ProjectVolunteer { Project = b3, Volunteer = vEdu, RoleInProject = "Instalacoes" },
-
-            new ProjectVolunteer { Project = b4, Volunteer = vLuca, RoleInProject = "Responsavel tecnico" },
-            new ProjectVolunteer { Project = b4, Volunteer = vGiovani, RoleInProject = "Acompanhamento" },
-
-            new ProjectVolunteer { Project = b5, Volunteer = vAdriano, RoleInProject = "Projeto de acessibilidade" },
-            new ProjectVolunteer { Project = b5, Volunteer = vMariaAntonia, RoleInProject = "Padrao e qualidade" },
-
-            new ProjectVolunteer { Project = b6, Volunteer = vEdu, RoleInProject = "Responsavel tecnico" },
-            new ProjectVolunteer { Project = b6, Volunteer = vSandra, RoleInProject = "Acompanhamento" },
-
-            new ProjectVolunteer { Project = b7, Volunteer = vGuilherme, RoleInProject = "Acompanhamento" },
-            new ProjectVolunteer { Project = b7, Volunteer = vCarol, RoleInProject = "Apoio social" },
-
-            new ProjectVolunteer { Project = b8, Volunteer = vLuca, RoleInProject = "Responsavel tecnico" },
-            new ProjectVolunteer { Project = b8, Volunteer = vFelipe, RoleInProject = "Acompanhamento" },
-
-            new ProjectVolunteer { Project = b9, Volunteer = vClivia, RoleInProject = "Levantamento tecnico" },
-            new ProjectVolunteer { Project = b9, Volunteer = vAna, RoleInProject = "Acompanhamento" },
-
-            new ProjectVolunteer { Project = b10, Volunteer = vGiovani, RoleInProject = "Responsavel tecnico" },
-            new ProjectVolunteer { Project = b10, Volunteer = vSandra, RoleInProject = "Acompanhamento" },
-
-            new ProjectVolunteer { Project = h1, Volunteer = vJulia, RoleInProject = "Mobilizacao comunitaria" },
-            new ProjectVolunteer { Project = h1, Volunteer = vMarcosHeitor, RoleInProject = "Apoio social" },
-
-            new ProjectVolunteer { Project = h2, Volunteer = vAlisson, RoleInProject = "Articulacao local" },
-            new ProjectVolunteer { Project = h2, Volunteer = vFelipe, RoleInProject = "Levantamento" },
-
-            new ProjectVolunteer { Project = h3, Volunteer = vMariaAntonia, RoleInProject = "Coordenacao das oficinas" },
-            new ProjectVolunteer { Project = h3, Volunteer = vYasminM, RoleInProject = "Comunicacao e mobilizacao" },
-
-            new ProjectVolunteer { Project = h4, Volunteer = vAlice, RoleInProject = "Comunicacao e mobilizacao" },
-            new ProjectVolunteer { Project = h4, Volunteer = vLuca, RoleInProject = "Capacitacao" },
-
-            new ProjectVolunteer { Project = h5, Volunteer = vFrancielly, RoleInProject = "Viabilidade orcamentaria" },
-            new ProjectVolunteer { Project = h5, Volunteer = vTanea, RoleInProject = "Articulacao com parceiros" }
-        );
-
-        db.ProjectUpdates.AddRange(
-            new ProjectUpdate { Project = b1, AuthorUser = ana, Text = "Visita tecnica realizada na casa da Dona Cinara. Banheiro interno com paredes comprometidas pela enchente, reforma completa necessaria.", CreatedAt = Dt(2025, 8, 1) },
-            new ProjectUpdate { Project = b1, AuthorUser = leonardo, Text = "Obra entregue e vistoriada. Banheiro reformado com sucesso, familia muito satisfeita com o resultado.", CreatedAt = Dt(2025, 9, 6) },
-
-            new ProjectUpdate { Project = b2, AuthorUser = ana, Text = "Iniciada obra do banheiro comunitario para as familias de Solange e Michele. Projeto contempla rede de esgoto para todo o beco.", CreatedAt = Dt(2025, 11, 5) },
-            new ProjectUpdate { Project = b2, AuthorUser = ana, Text = "Banheiro entregue com barras de apoio para a moradora idosa com dificuldade de visao. Rede de esgoto do beco concluida, beneficiando a vizinhanca.", CreatedAt = Dt(2026, 1, 11) },
-
-            new ProjectUpdate { Project = b3, AuthorUser = ana, Text = "Demolicao da casa em risco realizada com seguranca. Inicio da reconstrucao completa, incluindo banheiro.", CreatedAt = Dt(2026, 5, 20) },
-
-            new ProjectUpdate { Project = b4, AuthorUser = leonardo, Text = "Iniciada reconstrucao quase integral da moradia da Dona Patricia, com banheiro acessivel para atender as necessidades de mobilidade da familia.", CreatedAt = Dt(2025, 9, 20) },
-            new ProjectUpdate { Project = b4, AuthorUser = leonardo, Text = "Casa entregue com banheiro acessivel concluido. Familia com mobilidade reduzida ja usufruindo da nova estrutura.", CreatedAt = Dt(2025, 12, 14) },
-
-            new ProjectUpdate { Project = b5, AuthorUser = ana, Text = "Projeto de acessibilidade definido conforme NBR 9050, atendendo necessidade de moradora cadeirante.", CreatedAt = Dt(2026, 4, 5) },
-            new ProjectUpdate { Project = b5, AuthorUser = ana, Text = "Banheiro acessivel entregue, com dimensoes e barras de apoio adequadas para cadeira de rodas.", CreatedAt = Dt(2026, 5, 20) },
-
-            new ProjectUpdate { Project = b6, AuthorUser = fausto, Text = "Demolicao da cozinha em risco concluida com seguranca, apesar da casa ter quatro criancas pequenas no nucleo familiar. Obra do banheiro iniciada.", CreatedAt = Dt(2026, 5, 10) },
-
-            new ProjectUpdate { Project = b7, AuthorUser = ana, Text = "Demolicao da casa do casal de idosos, atingida por queda de arvore. Inicio da montagem de nova moradia pre-fabricada com banheiro.", CreatedAt = Dt(2025, 11, 20) },
-            new ProjectUpdate { Project = b7, AuthorUser = ana, Text = "Casa entregue com banheiro completo, mobiliario basico e remocao dos escombros. Casal de idosos catadores ja instalado.", CreatedAt = Dt(2026, 1, 20) },
-
-            new ProjectUpdate { Project = b8, AuthorUser = ana, Text = "Obra paralisada apos problemas com a equipe de construcao contratada inicialmente. Necessario buscar novos profissionais.", CreatedAt = Dt(2026, 3, 1) },
-            new ProjectUpdate { Project = b8, AuthorUser = ana, Text = "Obra retomada com a equipe de Flavio e Rita. Modulo sanitario em andamento para atender familia de 8 pessoas.", CreatedAt = Dt(2026, 5, 15) },
-
-            new ProjectUpdate { Project = b9, AuthorUser = fausto, Text = "Levantamento realizado sobre o alicerce ja existente. Familia enfrenta desabastecimento de agua frequente; caixa d'agua sera incluida no projeto.", CreatedAt = Dt(2026, 1, 20) },
-
-            new ProjectUpdate { Project = b10, AuthorUser = ana, Text = "Levantamento realizado apos incendio que comprometeu a moradia. Modulo sanitario padrao BDG sera construido.", CreatedAt = Dt(2026, 4, 20) },
-            new ProjectUpdate { Project = b10, AuthorUser = ana, Text = "Modulo sanitario construido e redes da cozinha reconstruidas. Aguardando agenda de vistoria final para entrega.", CreatedAt = Dt(2026, 6, 1) },
-
-            new ProjectUpdate { Project = h1, AuthorUser = ana, Text = "Terreno cedido pela comunidade e preparado. Canteiros em fase de implantacao.", CreatedAt = Dt(2026, 3, 15) },
-
-            new ProjectUpdate { Project = h2, AuthorUser = fausto, Text = "Iniciada articulacao com a associacao de moradores do Sarandi para definicao do terreno da futura horta.", CreatedAt = Dt(2026, 7, 5) },
-
-            new ProjectUpdate { Project = h3, AuthorUser = leonardo, Text = "Canteiros implantados e sistema de irrigacao por gotejamento instalado.", CreatedAt = Dt(2025, 8, 10) },
-            new ProjectUpdate { Project = h3, AuthorUser = leonardo, Text = "Horta entregue e funcionando, com primeira oficina de manejo realizada junto as 18 familias participantes.", CreatedAt = Dt(2025, 11, 15) },
-
-            new ProjectUpdate { Project = h4, AuthorUser = ana, Text = "Canteiros preparados. Capacitacao das familias em cultivo de hortalicas em andamento.", CreatedAt = Dt(2026, 3, 1) }
-        );
-
-        // Relatos sao texto formatado (HTML); os de demonstracao estao escritos como texto puro.
-        foreach (var update in db.ProjectUpdates.Local)
-            update.Text = RichText.FromPlainText(update.Text);
+        // Em andamento: horta em terreno atingido pela enchente de 2024.
+        var hFarrapos = new Project
+        {
+            Name = "Horta Comunitária Vila Farrapos",
+            Program = pHorta,
+            Description = "Horta em terreno cedido pela associação de moradores e atingido pela enchente de 2024: limpeza e correção do solo, 10 canteiros elevados, irrigação por gotejamento e oficinas de manejo agroecológico.",
+            Objective = "Implantar horta comunitária para segurança alimentar e renda complementar das famílias.",
+            Beneficiaries = "Famílias da Vila Farrapos",
+            TargetAudience = "Cerca de 25 famílias",
+            District = "Farrapos",
+            City = cidade,
+            State = estado,
+            Latitude = -29.9835,
+            Longitude = -51.1925,
+            StartDate = Day(-90),
+            EndDateForecast = Day(60),
+            Status = ProjectStatus.EmAndamento,
+            OwnerVolunteer = vAna,
+            Notes = "Como o terreno ficou alagado, a análise do solo veio antes de tudo; os canteiros são elevados e recebem terra nova.",
+            CreatedAt = At(-90),
+            UpdatedAt = At(-3)
+        };
+        db.Projects.Add(hFarrapos);
+        Team(hFarrapos,
+            (vAna, "Responsável pelo projeto"),
+            (vLuca, "Responsável técnico"),
+            (vJulia, "Mobilização comunitária"),
+            (vAlice, "Comunicação"),
+            (vCarol, "Voluntários do mutirão"));
+        var farraposCanteiros = new Activity
+        {
+            Project = hFarrapos, Title = "Implantação dos canteiros e irrigação", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media,
+            AssignedVolunteer = vLuca, DueDate = Day(6),
+            ChecklistItems = Checklist(("Canteiros 1 a 5", -14), ("Canteiros 6 a 10", null), ("Caixa d'água e mangueiras de gotejamento", null))
+        };
+        db.Activities.AddRange(
+            new Activity
+            {
+                Project = hFarrapos, Title = "Cessão e preparo do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                AssignedVolunteer = vAna, DueDate = Day(-65), CompletedAt = At(-70),
+                ChecklistItems = Checklist(("Termo de cessão com a associação de moradores", -85), ("Análise do solo depois da enchente", -78), ("Limpeza do terreno em mutirão", -70))
+            },
+            farraposCanteiros,
+            new Activity
+            {
+                Project = hFarrapos, Title = "Divulgação do mutirão de plantio", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Baixa,
+                AssignedVolunteer = vAlice, DueDate = Day(10),
+                Description = "Cartaz na associação e mensagem nos grupos da comunidade."
+            },
+            new Activity
+            {
+                Project = hFarrapos, Title = "Plantio com a comunidade", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
+                AssignedVolunteer = vJulia, DueDate = Day(14)
+            },
+            new Activity
+            {
+                Project = hFarrapos, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa,
+                AssignedVolunteer = vLuca, DueDate = Day(30)
+            });
+        db.ActivityComments.AddRange(
+            new ActivityComment
+            {
+                Activity = farraposCanteiros, AuthorUser = ana, CreatedAt = At(-4),
+                Text = "A associação ofereceu o ponto de água deles. @Leonardo Motta a caixa d'água pode ficar junto do muro?",
+                MentionedVolunteerIds = [vLeonardo.Id]
+            },
+            new ActivityComment
+            {
+                Activity = farraposCanteiros, AuthorUser = leonardo, CreatedAt = At(-3),
+                Text = "Junto do muro fica bom: a água desce por gravidade até os canteiros. @Luca Moura só precisa de uma base nivelada antes de instalar.",
+                MentionedVolunteerIds = [vLuca.Id]
+            });
+        Results(hFarrapos,
+            ("Famílias envolvidas", "famílias", 25),
+            ("Canteiros", "un.", 5),
+            ("Oficinas realizadas", "oficinas", 0));
+        Record(hFarrapos, ana, -70, "Termo de cessão assinado com a associação de moradores. A análise mostrou solo pobre depois da enchente; vamos usar canteiros elevados com terra nova e composto.");
+        Record(hFarrapos, ana, -14, "Cinco canteiros prontos e plantados com alface, couve e temperos. Faltam cinco e a irrigação.");
 
         await db.SaveChangesAsync();
         await ProjectTeam.SyncAllAsync(db);
-        logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.", 3, 20, 15);
+        logger.LogInformation("Dados iniciais criados: {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.",
+            db.Users.Local.Count, db.Volunteers.Local.Count, db.Projects.Local.Count);
     }
 }
