@@ -35,7 +35,7 @@ public static class Mapping
     public static UserDto ToDto(User u) =>
         new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name,
             PhotoUrl(u.Volunteer?.PhotoStoredName), u.TermsVersion != PrivacyTerms.CurrentVersion,
-            u.PasswordHash.Length == 0);
+            u.PasswordHash.Length == 0, u.OrganizationId, u.IsNational);
 
     public static ActivityDto ToDto(Activity a) => ToDto(a, null);
 

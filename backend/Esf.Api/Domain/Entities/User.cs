@@ -7,6 +7,12 @@ public class User
     /// <summary>Nucleo do acesso (o mesmo do voluntario). Vazio so em contas da gestao nacional.</summary>
     public Guid? OrganizationId { get; set; }
 
+    /// <summary>
+    /// Faz parte da gestao nacional (ve os numeros de todos os nucleos e cuida dos nucleos e dos indicadores nacionais).
+    /// Pode ser uma conta so nacional ou o acesso de alguem de um nucleo.
+    /// </summary>
+    public bool IsNational { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

@@ -1,7 +1,15 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { displayName } from '../../utils/format';
-import { IconChecklist, IconHome, IconProjects, IconReports, IconSettings, IconVolunteers } from '../ui/Icons';
+import {
+  IconChecklist,
+  IconGlobe,
+  IconHome,
+  IconProjects,
+  IconReports,
+  IconSettings,
+  IconVolunteers
+} from '../ui/Icons';
 
 interface SidebarProps {
   open: boolean;
@@ -17,12 +25,18 @@ const items = [
   { to: '/voluntarios', label: 'Voluntários', icon: IconVolunteers, end: false },
   { to: '/relatorios', label: 'Relatórios', icon: IconReports, end: false },
   // Configuracoes e da coordenacao; o voluntario chega na propria conta pelo menu do avatar.
-  { to: '/configuracoes', label: 'Configurações', icon: IconSettings, end: false, manageOnly: true }
+  { to: '/configuracoes', label: 'Configurações', icon: IconSettings, end: false, manageOnly: true },
+  // Gestao nacional: numeros de todos os nucleos, os nucleos e os indicadores nacionais.
+  { to: '/nacional', label: 'Nacional', icon: IconGlobe, end: false, nationalOnly: true }
 ];
 
 export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
-  const { user, canManage } = useAuth();
+  const { user, canManage, hasNucleo, isNational } = useAuth();
   const { pathname } = useLocation();
+  // Conta so da gestao nacional nao tem nucleo: so o item Nacional.
+  const visible = items.filter((item) =>
+    item.nationalOnly ? isNational : hasNucleo && (!item.manageOnly || canManage)
+  );
 
   return (
     <aside className={`sidebar${open ? ' sidebar--open' : ''}`}>
@@ -35,7 +49,7 @@ export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
       </div>
 
       <nav className="sidebar__group">
-        {items.filter((item) => !item.manageOnly || canManage).map((item) => (
+        {visible.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

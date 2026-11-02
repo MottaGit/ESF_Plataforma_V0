@@ -804,6 +804,9 @@ namespace Esf.Api.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsNational")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("LockedUntil")
                         .HasColumnType("timestamp with time zone");
 

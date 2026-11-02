@@ -30,6 +30,59 @@ export interface User {
   termsPending: boolean;
   /** Criado por link e ainda sem senha (aguardando o primeiro acesso). */
   passwordPending: boolean;
+  /** Nucleo do acesso (null: conta so da gestao nacional). */
+  organizationId: string | null;
+  /** Faz parte da gestao nacional. */
+  isNational: boolean;
+}
+
+/** Um nucleo na gestao nacional: dados basicos, numeros gerais e quem administra. */
+export interface Nucleo {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  activeVolunteers: number;
+  activeProjects: number;
+  admins: NucleoAdmin[];
+}
+
+export interface NucleoAdmin {
+  userId: string;
+  name: string;
+  email: string;
+  pending: boolean;
+  isActive: boolean;
+}
+
+/** Nucleo criado ou administrador incluido: o link de primeiro acesso (null quando a pessoa ja tinha acesso). */
+export interface NucleoAdminResult {
+  nucleo: Nucleo;
+  link: AccessLink | null;
+}
+
+export interface SaveNucleoPayload {
+  name: string;
+  city: string | null;
+  state: string | null;
+  adminName?: string;
+  adminEmail?: string;
+}
+
+/** Quem faz parte da gestao nacional (conta so nacional ou acesso de alguem de um nucleo). */
+export interface NationalPerson {
+  userId: string;
+  name: string;
+  email: string;
+  nucleoName: string | null;
+  pending: boolean;
+  isActive: boolean;
+  isMe: boolean;
+}
+
+export interface NationalPersonResult {
+  person: NationalPerson;
+  link: AccessLink | null;
 }
 
 export interface LoginResponse {

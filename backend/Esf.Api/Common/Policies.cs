@@ -1,8 +1,8 @@
 namespace Esf.Api.Common;
 
 /// <summary>
-/// Autorizacao da V0: apenas dois niveis de politica sobre os tres perfis existentes.
-/// Administrador: tudo. Coordenador: gestao de projetos e dados. Usuario: participa e atualiza execucao.
+/// Autorizacao: dois niveis de politica sobre os tres perfis de cada nucleo, mais a gestao nacional.
+/// Administrador: tudo no nucleo. Coordenador: gestao de projetos e dados. Usuario: participa e atualiza execucao.
 /// </summary>
 public static class Policies
 {
@@ -11,4 +11,7 @@ public static class Policies
 
     /// <summary>Gestao de usuarios e dados institucionais.</summary>
     public const string AdminOnly = "AdminOnly";
+
+    /// <summary>Gestao nacional: nucleos, indicadores nacionais e numeros consolidados (sem dados pessoais dos nucleos).</summary>
+    public const string National = "National";
 }

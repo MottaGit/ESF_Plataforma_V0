@@ -25,7 +25,9 @@ public class UserService
                     ? Mapping.UploadsUrlPrefix + "/" + u.Volunteer.PhotoStoredName
                     : null,
                 u.TermsVersion != PrivacyTerms.CurrentVersion,
-                u.PasswordHash == ""))
+                u.PasswordHash == "",
+                u.OrganizationId,
+                u.IsNational))
             .ToListAsync();
     }
 

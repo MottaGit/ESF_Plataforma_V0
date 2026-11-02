@@ -13,6 +13,8 @@ interface HelpSection {
   topics: HelpTopic[];
   /** So aparece para a coordenacao (coordenadores e administradores). */
   manageOnly?: boolean;
+  /** So aparece para quem faz parte da gestao nacional. */
+  nationalOnly?: boolean;
 }
 
 const SECTIONS: HelpSection[] = [
@@ -284,10 +286,59 @@ const SECTIONS: HelpSection[] = [
   }
 ];
 
+const NATIONAL_SECTION: HelpSection = {
+  title: 'Gestão nacional',
+  nationalOnly: true,
+  topics: [
+    {
+      question: 'O que a gestão nacional vê?',
+      answer: (
+        <p>
+          Na área <strong>Nacional</strong> do menu: os núcleos da plataforma, quem administra cada um e as pessoas da
+          gestão nacional. Os dados de dentro dos núcleos (voluntários, projetos, tarefas, registros) ficam com cada
+          núcleo: a gestão nacional vê só números.
+        </p>
+      )
+    },
+    {
+      question: 'Como cadastro um núcleo novo?',
+      answer: (
+        <p>
+          Em <strong>Nacional › Núcleos</strong>, use <strong>Novo núcleo</strong>: nome, cidade, estado e quem vai
+          administrar (nome e e-mail). Sai um link de primeiro acesso para essa pessoa; ela cria a senha, completa os
+          dados do núcleo em Configurações e, a partir daí, cadastra os voluntários e dá os outros acessos.
+        </p>
+      )
+    },
+    {
+      question: 'E se quem administra um núcleo sair ou perder o acesso?',
+      answer: (
+        <p>
+          No menu <strong>⋯</strong> do núcleo, <strong>Novo administrador</strong> inclui outra pessoa. Para quem
+          perdeu o link ou esqueceu a senha, use a chave ao lado do nome dela: sai um link novo.
+        </p>
+      )
+    },
+    {
+      question: 'Como incluo alguém na gestão nacional?',
+      answer: (
+        <p>
+          Em <strong>Nacional › Pessoas da gestão nacional</strong>, use <strong>Incluir pessoa</strong>. Se o e-mail já
+          for o login de alguém de um núcleo, a pessoa ganha a permissão e continua com a mesma senha; se não, nasce uma
+          conta só nacional, com link de primeiro acesso.
+        </p>
+      )
+    }
+  ]
+};
+
 /** Ajuda: perguntas frequentes sobre o uso da plataforma (abre pelo menu da conta, no topo). */
 export function HelpPage() {
-  const { canManage } = useAuth();
-  const sections = SECTIONS.filter((section) => !section.manageOnly || canManage);
+  const { canManage, hasNucleo, isNational } = useAuth();
+  // Conta so da gestao nacional nao tem nucleo: so as perguntas da gestao nacional.
+  const sections = [...SECTIONS, NATIONAL_SECTION].filter((section) =>
+    section.nationalOnly ? isNational : hasNucleo && (!section.manageOnly || canManage)
+  );
 
   return (
     <div className="help">

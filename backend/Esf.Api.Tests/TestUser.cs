@@ -11,6 +11,7 @@ public class TestUser : ICurrentUser
     public UserRole? Role { get; init; }
     public bool IsAdmin => Role == UserRole.Administrador;
     public Guid? OrganizationId { get; init; }
+    public bool IsNational { get; init; }
 
     public Guid RequireId() => Id ?? throw new AppException("Sessao invalida.", 401);
 

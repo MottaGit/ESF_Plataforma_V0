@@ -14,7 +14,11 @@ import type {
   Indicator,
   LoginResponse,
   Mentionable,
+  NationalPerson,
+  NationalPersonResult,
   NotificationList,
+  Nucleo,
+  NucleoAdminResult,
   Organization,
   Program,
   ProgramTemplate,
@@ -28,6 +32,7 @@ import type {
   SaveActivityPayload,
   SaveCommentPayload,
   SaveIndicatorPayload,
+  SaveNucleoPayload,
   SaveProgramTemplatePayload,
   SaveOrganizationPayload,
   SaveProgramPayload,
@@ -238,6 +243,25 @@ export const usersApi = {
       }
     }),
   remove: (id: string) => http.request<void>(`/api/users/${id}`, { method: 'DELETE' })
+};
+
+/** Gestao nacional: nucleos, quem os administra e as pessoas da propria gestao nacional. */
+export const nationalApi = {
+  nucleos: () => http.request<Nucleo[]>('/api/national/nucleos'),
+  createNucleo: (payload: SaveNucleoPayload) =>
+    http.request<NucleoAdminResult>('/api/national/nucleos', { method: 'POST', body: payload }),
+  updateNucleo: (id: string, payload: SaveNucleoPayload) =>
+    http.request<Nucleo>(`/api/national/nucleos/${id}`, { method: 'PUT', body: payload }),
+  addAdmin: (nucleoId: string, name: string, email: string) =>
+    http.request<NucleoAdminResult>(`/api/national/nucleos/${nucleoId}/admins`, { method: 'POST', body: { name, email } }),
+  adminLink: (nucleoId: string, userId: string) =>
+    http.request<AccessLink>(`/api/national/nucleos/${nucleoId}/admins/${userId}/access-link`, { method: 'POST' }),
+  people: () => http.request<NationalPerson[]>('/api/national/people'),
+  addPerson: (name: string, email: string) =>
+    http.request<NationalPersonResult>('/api/national/people', { method: 'POST', body: { name, email } }),
+  removePerson: (userId: string) => http.request<void>(`/api/national/people/${userId}`, { method: 'DELETE' }),
+  personLink: (userId: string) =>
+    http.request<AccessLink>(`/api/national/people/${userId}/access-link`, { method: 'POST' })
 };
 
 /**

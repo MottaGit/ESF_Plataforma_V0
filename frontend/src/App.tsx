@@ -1,12 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { FirstAccessPage } from './pages/FirstAccessPage';
 import { HelpPage } from './pages/HelpPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
+import { NationalPage } from './pages/NationalPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ProgramRedirect, ProgramTemplatePage } from './pages/ProgramTemplatePage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
@@ -16,6 +17,12 @@ import { SettingsPage } from './pages/SettingsPage';
 import { TasksPage } from './pages/TasksPage';
 import { VolunteerDetailPage } from './pages/VolunteerDetailPage';
 import { VolunteersPage } from './pages/VolunteersPage';
+
+/** Area Nacional: so para quem faz parte da gestao nacional. */
+function NationalRoute() {
+  const { isNational } = useAuth();
+  return isNational ? <NationalPage /> : <Navigate to="/" replace />;
+}
 
 export function App() {
   return (
@@ -45,6 +52,7 @@ export function App() {
               <Route path="/relatorios" element={<ReportsPage />} />
               <Route path="/configuracoes" element={<SettingsPage />} />
               <Route path="/ajuda" element={<HelpPage />} />
+              <Route path="/nacional" element={<NationalRoute />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

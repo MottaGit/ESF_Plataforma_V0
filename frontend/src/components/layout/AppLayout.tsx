@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { IconMenu } from '../ui/Icons';
@@ -19,23 +19,30 @@ const titles: Array<{ match: RegExp; title: string }> = [
   { match: /^\/voluntarios/, title: 'Voluntários' },
   { match: /^\/relatorios/, title: 'Relatórios' },
   { match: /^\/configuracoes/, title: 'Configurações' },
-  { match: /^\/ajuda/, title: 'Ajuda' }
+  { match: /^\/ajuda/, title: 'Ajuda' },
+  { match: /^\/nacional/, title: 'Gestão nacional' }
 ];
+
+/** Conta so da gestao nacional (sem nucleo) so usa estas telas; o resto e de dentro de um nucleo. */
+const nationalOnlyPaths = /^\/(nacional|configuracoes|ajuda)(\/|$)/;
 
 export function AppLayout() {
   const location = useLocation();
-  const { canManage } = useAuth();
+  const { canManage, hasNucleo } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [organizationName, setOrganizationName] = useState('Engenheiros Sem Fronteiras');
+  const [organizationName, setOrganizationName] = useState(hasNucleo ? 'Engenheiros Sem Fronteiras' : 'Gestão nacional');
 
   useEffect(() => {
+    if (!hasNucleo) return;
     organizationApi
       .get()
       .then((organization) => setOrganizationName(organization.name))
       .catch(() => undefined);
-  }, []);
+  }, [hasNucleo]);
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  if (!hasNucleo && !nationalOnlyPaths.test(location.pathname)) return <Navigate to="/nacional" replace />;
 
   // Para o voluntario comum, Configuracoes e so a propria conta.
   const title =
@@ -62,8 +69,13 @@ export function AppLayout() {
           <span className="header__title">{title}</span>
           <span className="header__spacer" />
 
-          <GlobalSearch />
-          <NotificationBell />
+          {/* Busca e avisos sao do dia a dia do nucleo. */}
+          {hasNucleo ? (
+            <>
+              <GlobalSearch />
+              <NotificationBell />
+            </>
+          ) : null}
 
           <div className="header__user">
             <AccountMenu />
@@ -74,7 +86,7 @@ export function AppLayout() {
           <Outlet />
         </main>
 
-        <BottomBar />
+        {hasNucleo ? <BottomBar /> : null}
 
         <TermsGate />
       </div>

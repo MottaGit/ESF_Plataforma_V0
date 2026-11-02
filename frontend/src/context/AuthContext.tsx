@@ -15,6 +15,10 @@ interface AuthContextValue {
   /** Administrador e Coordenador podem criar e editar projetos, voluntarios e indicadores. */
   canManage: boolean;
   isAdmin: boolean;
+  /** O acesso e de um nucleo (conta so da gestao nacional nao tem: so ve a area Nacional). */
+  hasNucleo: boolean;
+  /** Faz parte da gestao nacional (area Nacional no menu). */
+  isNational: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -81,8 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       startSession,
       logout,
       refreshUser,
-      canManage: user?.role === 'Administrador' || user?.role === 'Coordenador',
-      isAdmin: user?.role === 'Administrador'
+      // Conta so nacional tem um perfil de nucleo so por formalidade: nao gerencia nada dentro dos nucleos.
+      canManage: Boolean(user?.organizationId) && (user?.role === 'Administrador' || user?.role === 'Coordenador'),
+      isAdmin: Boolean(user?.organizationId) && user?.role === 'Administrador',
+      hasNucleo: Boolean(user?.organizationId),
+      isNational: Boolean(user?.isNational)
     }),
     [user, initializing, login, startSession, logout, refreshUser]
   );

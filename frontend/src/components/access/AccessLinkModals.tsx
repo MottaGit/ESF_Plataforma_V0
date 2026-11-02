@@ -129,11 +129,13 @@ interface NewAccessLinkModalProps {
   recipient: Recipient;
   /** Ainda espera o primeiro acesso (sem senha) ou ja usa a plataforma (link para criar uma senha nova). */
   firstAccess: boolean;
+  /** Como gerar o link (gestao nacional usa as rotas dela); sem isto, o do proprio nucleo. */
+  generate?: () => Promise<AccessLink>;
   onClose: () => void;
 }
 
 /** Link novo para um acesso que ja existe: primeiro acesso perdido ou senha esquecida. */
-export function NewAccessLinkModal({ userId, recipient, firstAccess, onClose }: NewAccessLinkModalProps) {
+export function NewAccessLinkModal({ userId, recipient, firstAccess, generate: generateLink, onClose }: NewAccessLinkModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState<AccessLink | null>(null);
@@ -142,7 +144,7 @@ export function NewAccessLinkModal({ userId, recipient, firstAccess, onClose }: 
     setSaving(true);
     setError(null);
     try {
-      setLink(await accessApi.newLink(userId));
+      setLink(await (generateLink ? generateLink() : accessApi.newLink(userId)));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível gerar o link.');
     } finally {
@@ -181,6 +183,25 @@ export function NewAccessLinkModal({ userId, recipient, firstAccess, onClose }: 
           </p>
         </div>
       )}
+    </Modal>
+  );
+}
+
+/** Janela so com um link ja gerado (gestao nacional: nucleo novo, administrador, pessoa nova). */
+export function AccessLinkResultModal({
+  title,
+  link,
+  recipient,
+  onClose
+}: {
+  title: string;
+  link: AccessLink;
+  recipient: Recipient;
+  onClose: () => void;
+}) {
+  return (
+    <Modal title={title} subtitle={recipient.name} onClose={onClose} footer={<Button onClick={onClose}>Fechar</Button>}>
+      <AccessLinkResult link={link} recipient={recipient} firstAccess />
     </Modal>
   );
 }

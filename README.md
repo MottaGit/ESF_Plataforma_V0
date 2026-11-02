@@ -391,6 +391,21 @@ anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas p
 voluntários mostra uma chave ao lado de quem tem acesso (cinza enquanto aguarda o primeiro acesso), e a página do
 voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo.
 
+**Gestão nacional** — a área **Nacional** do menu (só para quem tem a permissão; `/nacional`) tem as abas:
+- **Núcleos**: cada núcleo com cidade/UF, voluntários ativos, projetos em andamento e quem o administra (nome,
+  e-mail, situação do acesso). **Novo núcleo** pede nome, cidade, estado e quem vai administrar: a pessoa entra como
+  voluntária e administradora do núcleo novo e recebe o link de primeiro acesso; os demais dados do núcleo (CNPJ, logo,
+  quem assina) ela completa em Configurações. No menu ⋯ do núcleo, **Editar núcleo** (nome e local) e **Novo
+  administrador** (se a pessoa já for voluntária do núcleo, o acesso nasce do cadastro dela; se já tiver acesso, só
+  passa a administradora). A chave ao lado de cada administrador gera um link novo.
+- **Pessoas da gestão nacional**: quem tem a permissão. **Incluir pessoa** dá a permissão a um login de núcleo (mesma
+  senha; o menu Nacional aparece quando a pessoa entrar de novo) ou cria uma conta só nacional, com link. **Tirar**
+  remove a permissão (a conta só nacional fica desativada); ninguém tira a própria.
+
+A gestão nacional não vê voluntários, projetos, tarefas nem registros de dentro dos núcleos: só contagens e quem
+administra cada núcleo. A primeira conta vem da configuração do servidor (`Nacional:AdminEmail` e
+`Nacional:AdminPassword`, ver Configuração), criada na subida enquanto não existe nenhuma.
+
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
@@ -603,6 +618,10 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |
 | GET/POST | `/api/access/{código}` | públicas: dados do link e criação da senha (com o aceite da política), já devolvendo o login |
+| GET/POST/PUT | `/api/national/nucleos[/{id}]` | gestão nacional: núcleos com números gerais e administradores; núcleo novo já com quem administra (devolve o link) |
+| POST | `/api/national/nucleos/{id}/admins[/{userId}/access-link]` | gestão nacional: mais um administrador para o núcleo; link novo para um administrador |
+| GET/POST/DELETE | `/api/national/people[/{userId}]` | gestão nacional: quem faz parte, incluir (conta nova com link ou permissão para um login de núcleo) e tirar |
+| POST | `/api/national/people/{userId}/access-link` | gestão nacional: link novo para uma conta só nacional |
 | GET/PUT | `/api/organization` · `POST /logo` | dados institucionais |
 
 Erros seguem sempre o mesmo formato:
@@ -620,6 +639,12 @@ Erros seguem sempre o mesmo formato:
 | **Administrador** | tudo, incluindo usuários, dados institucionais e exclusão de projetos |
 | **Coordenador** | criar e editar projetos, voluntários e indicadores; arquivar projetos |
 | **Usuário** | consultar tudo, criar e atualizar tarefas, indicadores, arquivos, registros de andamento e status |
+| **Gestão nacional** (permissão, não perfil) | área Nacional: núcleos e quem os administra, pessoas da gestão nacional (e, nas próximas partes, indicadores nacionais e o painel) |
+
+Os três perfis valem dentro do núcleo da pessoa. A gestão nacional é uma permissão à parte (`Users.IsNational`, claim
+`nacional` no token, política `National`): pode estar numa conta só nacional (sem núcleo) ou no acesso de alguém de um
+núcleo, que continua com o mesmo login e ganha o item **Nacional** no menu. Conta só nacional vê apenas a área
+Nacional, Ajuda e Minha conta (o resto é de dentro de um núcleo).
 
 Autenticação por JWT (HS256), senha com BCrypt. As regras ficam em `Common/Policies.cs` e nos atributos
 `[Authorize(Policy = ...)]` dos controllers.
@@ -640,6 +665,9 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | `Cors:AllowedOrigins` | localhost 5173/4173 | origens liberadas |
 | `Seed:Enabled` | `true` | criar dados de demonstração em banco vazio |
 | `Seed:DemoPassword` | `Esf@2026` | senha dos usuários de demonstração |
+| `Nacional:AdminEmail` | (vazio) | conta inicial da gestão nacional, criada na subida do servidor enquanto não existe nenhuma; se o e-mail já for o login de alguém, essa pessoa ganha a permissão |
+| `Nacional:AdminPassword` | (vazio) | senha dessa conta inicial (mín. 6 caracteres; troque em Minha conta depois de entrar) |
+| `Nacional:AdminName` | `Gestão nacional` | nome da conta inicial |
 
 No frontend, `VITE_API_URL` só é necessário se a API não estiver atrás do proxy (Vite em desenvolvimento, nginx em Docker).
 

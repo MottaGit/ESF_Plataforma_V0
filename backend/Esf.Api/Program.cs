@@ -23,6 +23,7 @@ QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection(StorageOptions.SectionName));
 builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOptions.SectionName));
+builder.Services.Configure<NationalOptions>(builder.Configuration.GetSection(NationalOptions.SectionName));
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 if (jwtOptions.Key.Length < 32)
@@ -60,6 +61,7 @@ builder.Services.AddScoped<SignedDocumentService>();
 builder.Services.AddScoped<CertificateService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<SearchService>();
+builder.Services.AddScoped<NationalService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services
@@ -80,9 +82,11 @@ builder.Services
         options.Events = new JwtBearerEvents
         {
             // Sessao de antes dos nucleos (o token nao diz de qual nucleo a pessoa e): pede para entrar de novo.
+            // Conta so da gestao nacional nao tem nucleo, mas tem a claim nacional.
             OnTokenValidated = context =>
             {
-                if (context.Principal?.FindFirst(CurrentUser.OrganizationClaim) is null)
+                if (context.Principal?.FindFirst(CurrentUser.OrganizationClaim) is null
+                    && context.Principal?.FindFirst(CurrentUser.NationalClaim) is null)
                     context.Fail("Sessao sem nucleo.");
                 return Task.CompletedTask;
             }
@@ -96,6 +100,9 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy(Policies.AdminOnly, policy =>
         policy.RequireRole(nameof(UserRole.Administrador)));
+
+    options.AddPolicy(Policies.National, policy =>
+        policy.RequireClaim(CurrentUser.NationalClaim));
 });
 
 // Links de acesso (rotas publicas): poucas tentativas por minuto de cada endereco.
@@ -253,6 +260,10 @@ static async Task PrepareDatabaseAsync(WebApplication app)
     var seed = provider.GetRequiredService<IOptions<SeedOptions>>().Value;
     if (seed.Enabled)
         await DbSeeder.SeedAsync(db, seed.DemoPassword, logger);
+
+    // Conta inicial da gestao nacional (variaveis Nacional__AdminEmail e Nacional__AdminPassword), se configurada.
+    await NationalService.EnsureInitialAccountAsync(db,
+        provider.GetRequiredService<IOptions<NationalOptions>>().Value, logger);
 
     // Arquivos de versoes anteriores (gravados em disco) que ainda existirem passam para o banco.
     try

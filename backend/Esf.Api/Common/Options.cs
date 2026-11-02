@@ -25,3 +25,16 @@ public class SeedOptions
     public bool Enabled { get; set; } = true;
     public string DemoPassword { get; set; } = "Esf@2026";
 }
+
+/// <summary>
+/// Conta inicial da gestao nacional, criada na subida do servidor quando ainda nao existe nenhuma (variaveis
+/// Nacional__AdminEmail e Nacional__AdminPassword). Se o e-mail ja for de um acesso de nucleo, ele ganha a permissao.
+/// </summary>
+public class NationalOptions
+{
+    public const string SectionName = "Nacional";
+
+    public string? AdminEmail { get; set; }
+    public string? AdminPassword { get; set; }
+    public string AdminName { get; set; } = "Gestão nacional";
+}

@@ -27,6 +27,8 @@ public class JwtTokenService
         // Nucleo do acesso: e por ele que as consultas filtram os dados (ver EsfDbContext).
         if (user.OrganizationId.HasValue)
             claims.Add(new Claim(CurrentUser.OrganizationClaim, user.OrganizationId.Value.ToString()));
+        if (user.IsNational)
+            claims.Add(new Claim(CurrentUser.NationalClaim, "1"));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
         var token = new JwtSecurityToken(

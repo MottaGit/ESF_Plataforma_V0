@@ -11,6 +11,8 @@ public interface ICurrentUser
     bool IsAdmin { get; }
     /// <summary>Nucleo de quem esta logado (vazio em conta so da gestao nacional ou sem login).</summary>
     Guid? OrganizationId { get; }
+    /// <summary>Faz parte da gestao nacional.</summary>
+    bool IsNational { get; }
     Guid RequireId();
 }
 
@@ -18,6 +20,9 @@ public class CurrentUser : ICurrentUser
 {
     /// <summary>Claim do token com o nucleo do acesso.</summary>
     public const string OrganizationClaim = "org";
+
+    /// <summary>Claim do token de quem faz parte da gestao nacional.</summary>
+    public const string NationalClaim = "nacional";
 
     private readonly ClaimsPrincipal? _principal;
 
@@ -38,6 +43,8 @@ public class CurrentUser : ICurrentUser
 
     public Guid? OrganizationId =>
         Guid.TryParse(_principal?.FindFirst(OrganizationClaim)?.Value, out var id) ? id : null;
+
+    public bool IsNational => _principal?.FindFirst(NationalClaim) is not null;
 
     public Guid RequireId() => Id ?? throw new AppException("Sessao invalida.", StatusCodes.Status401Unauthorized);
 }

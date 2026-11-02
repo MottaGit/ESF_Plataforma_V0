@@ -17,7 +17,11 @@ public record UserDto(
     // Ainda nao aceitou a versao vigente da politica de privacidade e dos termos de uso.
     bool TermsPending,
     // Criado por link e ainda sem senha (aguardando o primeiro acesso).
-    bool PasswordPending);
+    bool PasswordPending,
+    // Nucleo do acesso (vazio: conta so da gestao nacional).
+    Guid? OrganizationId,
+    // Faz parte da gestao nacional.
+    bool IsNational);
 
 public class UpdateUserRequest
 {
