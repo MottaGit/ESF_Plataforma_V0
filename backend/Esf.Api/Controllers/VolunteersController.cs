@@ -23,6 +23,11 @@ public class VolunteersController : ControllerBase
         [FromQuery] VolunteerSector? sector = null)
         => Ok(await _volunteers.ListAsync(search, onlyActive, sector));
 
+    /// <summary>Situacao e tarefas em aberto de cada voluntario (formulario da tarefa, ao escolher o responsavel).</summary>
+    [HttpGet("volunteers/load")]
+    public async Task<ActionResult<List<VolunteerLoadDto>>> Load()
+        => Ok(await _volunteers.LoadAsync());
+
     [HttpGet("volunteers/{id:guid}")]
     public async Task<ActionResult<VolunteerDto>> Get(Guid id)
         => Ok(await _volunteers.GetAsync(id));

@@ -255,7 +255,10 @@ um clique e "Desfazer" logo em seguida; a tarefa concluída fica riscada no luga
 a aba é aberta de novo. O botão "Nova tarefa" abre o
 formulário com título, responsável, prazo, prioridade e descrição. O responsável é escolhido entre a
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
-também faz parte dela e só pode ser desvinculado depois de trocado).
+também faz parte dela e só pode ser desvinculado depois de trocado). Na lista de responsáveis, cada nome mostra a
+carga da pessoa ("Fausto da Silva · 2 em aberto", "Edu Grehs · afastado"), contada como no Início (tarefas em aberto
+de projetos em planejamento ou em andamento, não arquivados), e embaixo do campo aparece o resumo de quem foi
+escolhido ("2 tarefas em aberto, 1 atrasada.").
 
 **Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um registro com
 formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
@@ -518,6 +521,7 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
 | GET/POST/PUT | `/api/volunteers[/{id}]` | cadastro de voluntários (DELETE, exclusão definitiva, só administrador) |
+| GET | `/api/volunteers/load` | situação e tarefas em aberto (e atrasadas) de cada voluntário, para escolher o responsável |
 | POST | `/api/volunteers/{id}/anonymize` | anonimiza os dados pessoais e mantém o histórico (LGPD) |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
 | GET | `/api/volunteers/{id}/hours` | horas de voluntariado; o histórico de status só vem para a coordenação e para o próprio voluntário |

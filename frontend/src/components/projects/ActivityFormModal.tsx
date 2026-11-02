@@ -8,7 +8,8 @@ import type {
   ActivityStatus,
   ProjectVolunteer,
   SaveActivityPayload,
-  Volunteer
+  Volunteer,
+  VolunteerLoad
 } from '../../types/api';
 import {
   ACTIVITY_PRIORITIES,
@@ -19,7 +20,8 @@ import {
   emptyToNull,
   formatDate,
   formatDateTime,
-  priorityLabel
+  priorityLabel,
+  volunteerStatusLabel
 } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
@@ -30,6 +32,29 @@ import { IconEdit } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 import { ActivityExtras } from './ActivityExtras';
 import { BlockActivityDialog } from './BlockActivityDialog';
+
+/** Nome com a carga ao lado, na lista de responsaveis: "Ana Aumond · 3 em aberto", "Edu Grehs · afastado". */
+function ownerOptionLabel(name: string, load: VolunteerLoad | undefined) {
+  if (!load) return name;
+  const extras = [
+    load.status !== 'Ativo' ? volunteerStatusLabel(load.status).toLowerCase() : null,
+    load.openActivities > 0 ? `${load.openActivities} em aberto` : null
+  ].filter(Boolean);
+  return extras.length > 0 ? `${name} · ${extras.join(' · ')}` : name;
+}
+
+/** Dica embaixo do campo para o responsavel escolhido: tarefas em aberto, atrasadas e a situacao. */
+function ownerLoadHint(load: VolunteerLoad | undefined) {
+  if (!load) return null;
+  const tasks =
+    load.openActivities === 0
+      ? 'Nenhuma tarefa em aberto'
+      : `${load.openActivities} ${load.openActivities === 1 ? 'tarefa' : 'tarefas'} em aberto` +
+        (load.lateActivities > 0
+          ? `, ${load.lateActivities} ${load.lateActivities === 1 ? 'atrasada' : 'atrasadas'}`
+          : '');
+  return load.status === 'Ativo' ? `${tasks}.` : `${tasks}. Situação: ${volunteerStatusLabel(load.status)}.`;
+}
 
 interface ActivityFormModalProps {
   /** Projeto da tarefa; vazio quando ele e escolhido no proprio formulario (ver `projects`). */
@@ -124,6 +149,17 @@ export function ActivityFormModal({
   const teamIds = new Set(currentTeam.map((member) => member.volunteerId));
   const others = allVolunteers.filter((volunteer) => !teamIds.has(volunteer.id));
   const outsiderSelected = !teamLoading && Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
+
+  // Carga de cada pessoa (tarefas em aberto e situacao), ao lado do nome na escolha do responsavel.
+  const [load, setLoad] = useState<Map<string, VolunteerLoad> | null>(null);
+  useEffect(() => {
+    if (mode !== 'edit' || load) return;
+    volunteersApi
+      .load()
+      .then((list) => setLoad(new Map(list.map((item) => [item.volunteerId, item]))))
+      .catch(() => setLoad(new Map()));
+  }, [mode, load]);
+  const ownerLoad = assignedVolunteerId ? load?.get(assignedVolunteerId) : undefined;
 
   const [projectError, setProjectError] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -366,9 +402,12 @@ export function ActivityFormModal({
               hint={
                 !selectedProjectId
                   ? 'Escolha o projeto primeiro.'
-                  : outsiderSelected
-                    ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.'
-                    : undefined
+                  : [
+                      ownerLoadHint(ownerLoad),
+                      outsiderSelected ? 'Esta pessoa ainda não está na equipe e será adicionada a ela ao salvar.' : null
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || undefined
               }
             >
               <Select
@@ -381,7 +420,7 @@ export function ActivityFormModal({
                 <optgroup label="Equipe do projeto">
                   {currentTeam.map((member) => (
                     <option key={member.volunteerId} value={member.volunteerId}>
-                      {member.name}
+                      {ownerOptionLabel(member.name, load?.get(member.volunteerId))}
                     </option>
                   ))}
                 </optgroup>
@@ -389,7 +428,7 @@ export function ActivityFormModal({
                   <optgroup label="Outros voluntários (entram na equipe)">
                     {others.map((volunteer) => (
                       <option key={volunteer.id} value={volunteer.id}>
-                        {volunteer.name}
+                        {ownerOptionLabel(volunteer.name, load?.get(volunteer.id))}
                       </option>
                     ))}
                   </optgroup>

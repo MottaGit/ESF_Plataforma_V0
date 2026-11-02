@@ -40,6 +40,7 @@ import type {
   User,
   Volunteer,
   VolunteerHours,
+  VolunteerLoad,
   VolunteerSector
 } from '../types/api';
 
@@ -137,6 +138,8 @@ export const volunteersApi = {
   list: (search?: string, onlyActive = false, sector?: VolunteerSector) =>
     http.request<Volunteer[]>('/api/volunteers', { query: { search, onlyActive, sector } }),
   get: (id: string) => http.request<Volunteer>(`/api/volunteers/${id}`),
+  /** Situacao e tarefas em aberto de cada voluntario (formulario da tarefa). */
+  load: () => http.request<VolunteerLoad[]>('/api/volunteers/load'),
   create: (payload: SaveVolunteerPayload) =>
     http.request<Volunteer>('/api/volunteers', { method: 'POST', body: payload }),
   update: (id: string, payload: SaveVolunteerPayload) =>

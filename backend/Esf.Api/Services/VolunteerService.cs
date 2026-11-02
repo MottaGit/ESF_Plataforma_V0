@@ -71,6 +71,40 @@ public class VolunteerService
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Situacao e tarefas em aberto de cada voluntario (os anonimizados ficam de fora). Conta como o Inicio: so
+    /// projetos em planejamento ou em andamento, nao arquivados.
+    /// </summary>
+    public async Task<List<VolunteerLoadDto>> LoadAsync()
+    {
+        var today = Mapping.Today;
+        var open = await _db.Activities
+            .Where(a => a.AssignedVolunteerId != null
+                        && a.Status != ActivityStatus.Concluida
+                        && !a.Project!.IsArchived
+                        && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento))
+            .GroupBy(a => a.AssignedVolunteerId!.Value)
+            .Select(g => new
+            {
+                g.Key,
+                Open = g.Count(),
+                Late = g.Count(a => a.DueDate.HasValue && a.DueDate.Value < today)
+            })
+            .ToDictionaryAsync(x => x.Key, x => (x.Open, x.Late));
+
+        var volunteers = await _db.Volunteers
+            .AsNoTracking()
+            .Where(v => v.AnonymizedAt == null)
+            .Select(v => new { v.Id, v.Status })
+            .ToListAsync();
+
+        return volunteers.Select(v =>
+        {
+            var (openCount, lateCount) = open.GetValueOrDefault(v.Id);
+            return new VolunteerLoadDto(v.Id, v.Status, openCount, lateCount);
+        }).ToList();
+    }
+
     public async Task<VolunteerDto> GetAsync(Guid id)
     {
         var volunteer = await _db.Volunteers

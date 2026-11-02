@@ -29,6 +29,12 @@ public record VolunteerDto(
     // Dados pessoais ja anonimizados: so o historico continua.
     bool Anonymized);
 
+/// <summary>
+/// Carga de um voluntario para escolher o responsavel por uma tarefa: situacao e tarefas em aberto (e atrasadas)
+/// nos projetos em planejamento ou em andamento.
+/// </summary>
+public record VolunteerLoadDto(Guid VolunteerId, VolunteerStatus Status, int OpenActivities, int LateActivities);
+
 public record ProjectVolunteerDto(
     Guid VolunteerId,
     string Name,

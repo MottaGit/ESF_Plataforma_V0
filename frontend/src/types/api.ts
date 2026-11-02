@@ -265,6 +265,14 @@ export interface SaveStatusPeriodPayload {
   endsOn: string | null;
 }
 
+/** Situacao e tarefas em aberto (projetos em planejamento ou andamento), para escolher o responsavel. */
+export interface VolunteerLoad {
+  volunteerId: string;
+  status: VolunteerStatus;
+  openActivities: number;
+  lateActivities: number;
+}
+
 export interface ProjectVolunteer {
   volunteerId: string;
   name: string;
