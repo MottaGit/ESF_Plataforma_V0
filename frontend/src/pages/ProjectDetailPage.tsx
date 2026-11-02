@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endpoints';
+import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { AboutTab } from '../components/projects/AboutTab';
 import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { AndamentoTab } from '../components/projects/AndamentoTab';
@@ -10,6 +10,7 @@ import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { ProjectStatusStrip } from '../components/projects/ProjectStatusStrip';
 import { TeamTab } from '../components/projects/TeamTab';
+import { ReportDialog } from '../components/reports/ReportDialog';
 import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, Loading } from '../components/ui/Feedback';
@@ -83,7 +84,7 @@ export function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const [reporting, setReporting] = useState(false);
   /** Concluir ou cancelar passa pela confirmacao (tarefas em aberto e registro de encerramento). */
   const [closing, setClosing] = useState<'Concluido' | 'Cancelado' | null>(null);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
@@ -131,25 +132,6 @@ export function ProjectDetailPage() {
   function dismissClosingSuggestion() {
     rememberClosingDismissed(id);
     setDismissedIds((current) => [...current, id]);
-  }
-
-  async function generateReport() {
-    setGenerating(true);
-    try {
-      await reportsApi.generate({
-        projectIds: [id],
-        includeVolunteers: true,
-        includeIndicators: true,
-        includeUpdates: true,
-        includePhotos: true,
-        note: null
-      });
-      notify('Relatório gerado.');
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível gerar o relatório.');
-    } finally {
-      setGenerating(false);
-    }
   }
 
   if (loading) return <Loading label="Carregando projeto…" />;
@@ -211,7 +193,7 @@ export function ProjectDetailPage() {
         </div>
 
         <div className="page-head__actions">
-          <Button icon={<IconDownload size={15} />} loading={generating} onClick={() => void generateReport()}>
+          <Button icon={<IconDownload size={15} />} onClick={() => setReporting(true)}>
             Gerar relatório
           </Button>
           {canManage ? (
@@ -270,6 +252,8 @@ export function ProjectDetailPage() {
       {tab === 'team' ? <TeamTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'about' ? <AboutTab project={project} canManage={canManage} onChanged={() => void load()} /> : null}
+
+      {reporting ? <ReportDialog project={project} onClose={() => setReporting(false)} /> : null}
 
       {closing ? (
         <CloseProjectDialog

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError } from '../api/client';
 import { projectsApi, reportsApi } from '../api/endpoints';
+import { DEFAULT_REPORT_OPTIONS, ReportOptionsFields, reportPayload } from '../components/reports/ReportOptions';
 import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
+import { Select, TextInput } from '../components/ui/Field';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconDownload, IconSearch } from '../components/ui/Icons';
 import { useToast } from '../context/ToastContext';
@@ -21,8 +22,7 @@ export function ReportsPage() {
   const [status, setStatus] = useState<ProjectStatus | ''>('');
   const [selected, setSelected] = useState<string[]>([]);
 
-  const [includePhotos, setIncludePhotos] = useState(true);
-  const [note, setNote] = useState('');
+  const [options, setOptions] = useState(DEFAULT_REPORT_OPTIONS);
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
@@ -59,14 +59,7 @@ export function ReportsPage() {
     if (selected.length === 0) return;
     setGenerating(true);
     try {
-      const fileName = await reportsApi.generate({
-        projectIds: selected,
-        includeVolunteers: true,
-        includeIndicators: true,
-        includeUpdates: true,
-        includePhotos,
-        note: note.trim() || null
-      });
+      const fileName = await reportsApi.generate(reportPayload(selected, options));
       notify(`Relatório gerado: ${fileName}`);
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível gerar o relatório.');
@@ -183,37 +176,11 @@ export function ReportsPage() {
             <h2>Conteúdo do PDF</h2>
           </div>
           <div className="panel__body">
-            <p className="field__hint" style={{ marginBottom: 10 }}>
-              Indicadores, voluntários e linha do tempo sempre entram no PDF. Só as fotos anexadas aos registros de andamento são
-              opcionais.
-            </p>
-            <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
-              <label className="checkbox">
-                <input type="checkbox" checked={includePhotos} onChange={(event) => setIncludePhotos(event.target.checked)} />
-                Registro fotográfico
-              </label>
-            </div>
-
-            {includePhotos && withoutImageAuthorization.length > 0 ? (
-              <div style={{ marginBottom: 16 }}>
-                <Alert kind="warning">
-                  {withoutImageAuthorization.length === 1
-                    ? '1 projeto selecionado não tem'
-                    : `${withoutImageAuthorization.length} projetos selecionados não têm`}{' '}
-                  autorização de uso de imagem dos beneficiários registrada:{' '}
-                  {withoutImageAuthorization.map((project) => project.name).join(', ')}. As fotos entram no relatório;
-                  confira se podem ser usadas.
-                </Alert>
-              </div>
-            ) : null}
-
-            <Field
-              label="Observação do relatório"
-              htmlFor="report-note"
-              hint="Aparece no início do documento. Ex.: finalidade, parceiro ou período de referência."
-            >
-              <TextArea id="report-note" value={note} onChange={(event) => setNote(event.target.value)} />
-            </Field>
+            <ReportOptionsFields
+              value={options}
+              onChange={setOptions}
+              withoutImageAuthorization={withoutImageAuthorization.map((project) => project.name)}
+            />
 
             <div style={{ marginTop: 16 }}>
               <Button

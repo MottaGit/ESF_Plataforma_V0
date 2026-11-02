@@ -246,7 +246,8 @@ comparação usa a função `esf_fold` (criada pela migração, sem depender de 
 bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre**
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. No celular, quando as abas não cabem, aparece uma seta
-com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. Relatório do projeto em um clique.
+com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. **Gerar relatório** abre as mesmas opções da tela Relatórios
+(componente `components/reports/ReportOptions.tsx`), já com o projeto escolhido.
 
 **Concluir ou cancelar o projeto** — escolher Concluído ou Cancelado no badge do topo abre uma confirmação: avisa
 quantas tarefas ainda estão em aberto (com atrasadas e bloqueadas, e o botão "Ver tarefas") e pede, sem obrigar, um

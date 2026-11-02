@@ -152,8 +152,9 @@ const SECTIONS: HelpSection[] = [
         question: 'Como gero o relatório de um projeto?',
         answer: (
           <p>
-            No topo do projeto, use <strong>Gerar relatório</strong>. Sai um PDF com os resultados, a equipe e a linha do
-            tempo com as fotos, pronto para enviar a parceiros.
+            No topo do projeto, use <strong>Gerar relatório</strong>: abrem as mesmas opções da tela Relatórios (fotos e
+            observação). Sai um PDF com os resultados, a equipe e a linha do tempo com as fotos, pronto para enviar a
+            parceiros.
           </p>
         )
       }

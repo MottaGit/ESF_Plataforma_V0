@@ -893,6 +893,9 @@ button { font: inherit; }
 .closing-notice__text { flex: 1 1 260px; }
 .closing-notice__actions { display: flex; gap: 6px; margin-left: auto; }
 
+/* Opcoes do relatorio em PDF (tela Relatorios e "Gerar relatorio" do projeto). */
+.report-options { display: grid; gap: 14px; }
+
 /* Janela de concluir ou cancelar o projeto. */
 .close-project { display: grid; gap: 14px; }
 .close-project__intro { font-size: 13.5px; color: var(--text-muted); }
