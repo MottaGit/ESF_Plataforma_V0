@@ -1,16 +1,20 @@
 import type { ProjectDetail } from '../../types/api';
+import { formatNumber } from '../../utils/format';
 import { Progress } from '../ui/Progress';
 
 interface ProjectStatusStripProps {
   project: ProjectDetail;
-  onOpenTab: (tab: 'activities' | 'team', filter?: 'atrasadas') => void;
+  /** Coordenacao ve o convite para cadastrar indicadores quando o projeto ainda nao tem nenhum. */
+  canManage: boolean;
+  onOpenTab: (tab: 'activities' | 'team' | 'about', filter?: 'atrasadas') => void;
 }
 
 /**
  * Faixa de situacao do projeto, logo abaixo do cabecalho e visivel em todas as abas:
- * progresso, atividades atrasadas, bloqueadas e equipe. Cada bloco leva a aba correspondente.
+ * progresso, atividades atrasadas, bloqueadas e equipe e, embaixo, os indicadores (resultados).
+ * Cada bloco leva a aba correspondente; os indicadores, a Sobre, onde sao editados.
  */
-export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripProps) {
+export function ProjectStatusStrip({ project, canManage, onOpenTab }: ProjectStatusStripProps) {
   const total = project.activities.length;
   const done = project.activities.filter((activity) => activity.status === 'Concluida').length;
   const pending = project.activities.filter((activity) => activity.status !== 'Concluida');
@@ -70,6 +74,31 @@ export function ProjectStatusStrip({ project, onOpenTab }: ProjectStatusStripPro
             : `${teamNames.join(', ')}${team.length > teamNames.length ? ` e mais ${team.length - teamNames.length}` : ''}`}
         </span>
       </button>
+
+      {project.indicators.length > 0 || canManage ? (
+        <button
+          type="button"
+          className="status-results"
+          title="Indicadores do projeto (editados na aba Sobre)"
+          onClick={() => onOpenTab('about')}
+        >
+          {project.indicators.length === 0 ? (
+            <span className="status-results__empty">
+              Nenhum indicador de resultado ainda. Cadastre em Sobre (ex.: famílias atendidas, área construída).
+            </span>
+          ) : (
+            project.indicators.map((indicator) => (
+              <span className="status-result" key={indicator.id}>
+                <span className="status-tile__label">{indicator.name}</span>
+                <span className="status-result__value num">
+                  {formatNumber(indicator.value)}
+                  {indicator.unit ? <small> {indicator.unit}</small> : null}
+                </span>
+              </span>
+            ))
+          )}
+        </button>
+      ) : null}
     </div>
   );
 }

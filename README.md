@@ -243,7 +243,9 @@ comparação usa a função `esf_fold` (criada pela migração, sem depender de 
 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, tarefas atrasadas,
-bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre**
+bloqueadas e equipe, cada uma levando à aba correspondente; embaixo, na largura toda, os **indicadores** do projeto,
+nome e valor com a unidade, que levam à aba Sobre, onde são editados; sem indicadores, a coordenação vê o convite
+para cadastrar e os demais não veem a linha) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre**
 (descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. No celular, quando as abas não cabem, aparece uma seta
 com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. **Gerar relatório** abre as mesmas opções da tela Relatórios
