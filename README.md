@@ -89,6 +89,22 @@ dotnet ef database update                     # aplicar
 dotnet ef migrations add NomeDaMigration      # criar a próxima
 ```
 
+### Testes
+
+`backend/Esf.Api.Tests` (xUnit, banco em memória, sem PostgreSQL) verifica a **separação entre núcleos**: com dois
+núcleos que têm um registro em cada tabela, quem é de um núcleo não lê (lista, busca por id, inclusão pelo
+relacionamento), não cria e não referencia dados do outro (tarefa, responsável, programa, equipe, ficha de
+voluntário, acesso, relatório); o login acha qualquer núcleo e o token leva o núcleo; o e-mail é único na plataforma.
+Rode antes de mexer em consultas ou no `EsfDbContext`:
+
+```bash
+cd backend
+dotnet test
+```
+
+O banco em memória não roda as funções do PostgreSQL (busca sem acento, `ILIKE`), então as telas que dependem delas
+ficam de fora desses testes.
+
 ---
 
 ## Acessos de demonstração
@@ -472,6 +488,7 @@ ESF_Plataforma_V0/
 ├─ backend/
 │  ├─ Dockerfile
 │  ├─ Esf.Api.sln
+│  ├─ Esf.Api.Tests/      testes (xUnit, banco em memória): separação entre núcleos
 │  └─ Esf.Api/
 │     ├─ Common/          AppException, middleware de erros, JWT, opções, políticas
 │     ├─ Controllers/     auth, dashboard, projects, activities, volunteers,
