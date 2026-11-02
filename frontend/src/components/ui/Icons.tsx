@@ -275,3 +275,12 @@ export const IconWhatsApp = (p: IconProps) =>
     </>,
     p
   );
+
+export const IconKey = (p: IconProps) =>
+  svg(
+    <>
+      <circle cx="7.5" cy="15.5" r="4.5" />
+      <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14.5 8.5l2 2" />
+    </>,
+    p
+  );

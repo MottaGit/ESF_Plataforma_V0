@@ -2,12 +2,13 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'r
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { ApiError, assetUrl } from '../api/client';
 import { authApi, organizationApi, usersApi, volunteersApi } from '../api/endpoints';
+import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
 import { AuditSection } from '../components/settings/AuditSection';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconPlus, IconTrash, IconUpload } from '../components/ui/Icons';
+import { IconEdit, IconKey, IconPlus, IconTrash, IconUpload } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
@@ -439,10 +440,12 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
   const { notify, notifyError } = useToast();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
+  const [granting, setGranting] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
+  const [linkFor, setLinkFor] = useState<User | null>(null);
   const [removing, setRemoving] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -450,7 +453,10 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
     setLoading(true);
     setError(null);
     try {
-      setUsers(await usersApi.list());
+      // Voluntarios: para dar acesso (o acesso nasce do cadastro) e para o telefone no envio do link.
+      const [loadedUsers, loadedVolunteers] = await Promise.all([usersApi.list(), volunteersApi.list()]);
+      setUsers(loadedUsers);
+      setVolunteers(loadedVolunteers);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os usuários.');
     } finally {
@@ -480,22 +486,15 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 560 }}>
+        <p className="field__hint" style={{ maxWidth: 620 }}>
           Três perfis: administrador (acesso completo), coordenador (gerencia projetos e dados) e usuário (participa e
-          atualiza a execução).
+          atualiza a execução). O acesso nasce do cadastro do voluntário e sai como um link: a própria pessoa cria a
+          senha. Para quem esqueceu a senha, gere um link novo.
         </p>
         {canEdit ? (
           <div className="toolbar__right">
-            <Button
-              variant="primary"
-              small
-              icon={<IconPlus size={15} />}
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              Novo usuário
+            <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => setGranting(true)}>
+              Novo acesso
             </Button>
           </div>
         ) : null}
@@ -535,21 +534,32 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                       {roleLabel(user.role)}
                       <div className="table__secondary">{roleDescription[user.role]}</div>
                     </td>
-                    <td>{user.isActive ? <NeutralBadge>Ativo</NeutralBadge> : <NeutralBadge>Desativado</NeutralBadge>}</td>
+                    <td>
+                      <NeutralBadge>
+                        {!user.isActive ? 'Desativado' : user.passwordPending ? 'Aguardando o primeiro acesso' : 'Ativo'}
+                      </NeutralBadge>
+                    </td>
                     <td className="tight">{formatDate(user.createdAt)}</td>
                     {canEdit ? (
                       <td>
                         <div className="row-actions">
+                          {user.isActive ? (
+                            <Button
+                              small
+                              variant="ghost"
+                              icon={<IconKey size={15} />}
+                              title="Gerar link de acesso (primeiro acesso ou senha esquecida)"
+                              aria-label={`Gerar link de acesso para ${user.name}`}
+                              onClick={() => setLinkFor(user)}
+                            />
+                          ) : null}
                           <Button
                             small
                             variant="ghost"
                             icon={<IconEdit size={15} />}
                             title="Editar usuário"
                             aria-label="Editar usuário"
-                            onClick={() => {
-                              setEditing(user);
-                              setFormOpen(true);
-                            }}
+                            onClick={() => setEditing(user)}
                           />
                           {user.id !== currentUser?.id ? (
                             <Button
@@ -572,17 +582,35 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
         )}
       </section>
 
-      {formOpen ? (
+      {granting ? (
+        <GrantAccessModal volunteers={volunteers} onClose={() => setGranting(false)} onGranted={() => void load()} />
+      ) : null}
+
+      {linkFor ? (
+        <NewAccessLinkModal
+          userId={linkFor.id}
+          recipient={{
+            name: linkFor.volunteerName ?? linkFor.name,
+            email: linkFor.email,
+            phone: volunteers.find((volunteer) => volunteer.id === linkFor.volunteerId)?.phone ?? null
+          }}
+          firstAccess={linkFor.passwordPending}
+          onClose={() => setLinkFor(null)}
+        />
+      ) : null}
+
+      {editing ? (
         <UserFormModal
           user={editing}
           users={users}
-          onClose={() => setFormOpen(false)}
+          volunteers={volunteers}
+          onClose={() => setEditing(null)}
           onSaved={() => {
-            setFormOpen(false);
-            notify(editing ? 'Usuário atualizado.' : 'Usuário criado.');
+            setEditing(null);
+            notify('Usuário atualizado.');
             void load();
             // O proprio acesso: nome, foto e "Minhas atividades" mudam junto com o vinculo.
-            if (editing?.id === currentUser?.id) void refreshUser();
+            if (editing.id === currentUser?.id) void refreshUser();
           }}
         />
       ) : null}
@@ -603,31 +631,27 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
 }
 
 interface UserFormModalProps {
-  user: User | null;
+  user: User;
   users: User[];
+  volunteers: Volunteer[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
-  const [name, setName] = useState(user?.name ?? '');
-  const [email, setEmail] = useState(user?.email ?? '');
-  const [role, setRole] = useState<UserRole>(user?.role ?? 'Usuario');
-  const [isActive, setIsActive] = useState(user?.isActive ?? true);
-  const [volunteerId, setVolunteerId] = useState(user?.volunteerId ?? '');
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [password, setPassword] = useState('');
+/** Edicao de um acesso existente (acesso novo nasce do voluntario, em "Novo acesso"; senha, so por link). */
+function UserFormModal({ user, users, volunteers, onClose, onSaved }: UserFormModalProps) {
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [role, setRole] = useState<UserRole>(user.role);
+  const [isActive, setIsActive] = useState(user.isActive);
+  const [volunteerId, setVolunteerId] = useState(user.volunteerId ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    volunteersApi.list().then(setVolunteers).catch(() => undefined);
-  }, []);
-
   // Cada voluntario so pode estar ligado a um acesso.
   const takenVolunteerIds = new Set(
-    users.filter((item) => item.id !== user?.id && item.volunteerId).map((item) => item.volunteerId)
+    users.filter((item) => item.id !== user.id && item.volunteerId).map((item) => item.volunteerId)
   );
   const availableVolunteers = volunteers.filter((volunteer) => !takenVolunteerIds.has(volunteer.id));
 
@@ -638,8 +662,6 @@ function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
     const found: Record<string, string> = {};
     if (name.trim().length < 3) found.name = 'Informe o nome completo.';
     if (!email.includes('@')) found.email = 'Informe um e-mail válido.';
-    if (!user && password.length < 6) found.password = 'A senha deve ter ao menos 6 caracteres.';
-    if (user && password && password.length < 6) found.password = 'A senha deve ter ao menos 6 caracteres.';
 
     setErrors(found);
     if (Object.keys(found).length > 0) return;
@@ -649,15 +671,12 @@ function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
       email: email.trim(),
       role,
       isActive,
-      volunteerId: volunteerId || null,
-      password,
-      newPassword: password
+      volunteerId: volunteerId || null
     };
 
     setSaving(true);
     try {
-      if (user) await usersApi.update(user.id, payload);
-      else await usersApi.create(payload);
+      await usersApi.update(user.id, payload);
       onSaved();
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o usuário.');
@@ -668,8 +687,8 @@ function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
 
   return (
     <Modal
-      title={user ? 'Editar usuário' : 'Novo usuário'}
-      subtitle={user ? user.email : 'O acesso é feito com e-mail e senha.'}
+      title="Editar usuário"
+      subtitle={user.email}
       onClose={onClose}
       footer={
         <>
@@ -733,32 +752,13 @@ function UserFormModal({ user, users, onClose, onSaved }: UserFormModalProps) {
             </Select>
           </Field>
 
-          <Field
-            label={user ? 'Nova senha' : 'Senha'}
-            htmlFor="user-password"
-            required={!user}
-            error={errors.password}
-            hint={user ? 'Deixe em branco para manter a senha atual.' : 'Mínimo de 6 caracteres.'}
-            span
-          >
-            <TextInput
-              id="user-password"
-              type="password"
-              value={password}
-              invalid={Boolean(errors.password)}
-              autoComplete="new-password"
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </Field>
-
-          {user ? (
-            <div className="field span-2">
-              <label className="checkbox">
-                <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
-                Acesso ativo
-              </label>
-            </div>
-          ) : null}
+          <div className="field span-2">
+            <label className="checkbox">
+              <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
+              Acesso ativo
+            </label>
+            <span className="field__hint">Senha não se define aqui: para quem esqueceu, use o link de acesso (ícone da chave).</span>
+          </div>
         </div>
 
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />

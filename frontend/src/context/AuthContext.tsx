@@ -1,12 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authApi } from '../api/endpoints';
 import { onUnauthorized, tokenStore } from '../api/client';
-import type { User } from '../types/api';
+import type { LoginResponse, User } from '../types/api';
 
 interface AuthContextValue {
   user: User | null;
   initializing: boolean;
   login: (email: string, password: string) => Promise<void>;
+  /** Comeca a sessao com um login ja feito (link de primeiro acesso: a pessoa cria a senha e ja entra). */
+  startSession: (result: LoginResponse) => void;
   logout: () => void;
   /** Recarrega o usuario da sessao (ex.: depois de trocar a foto do proprio voluntario). */
   refreshUser: () => Promise<void>;
@@ -61,23 +63,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await authApi.login(email, password);
+  const startSession = useCallback((result: LoginResponse) => {
     tokenStore.set(result.token);
     setUser(result.user);
   }, []);
+
+  const login = useCallback(
+    async (email: string, password: string) => startSession(await authApi.login(email, password)),
+    [startSession]
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       initializing,
       login,
+      startSession,
       logout,
       refreshUser,
       canManage: user?.role === 'Administrador' || user?.role === 'Coordenador',
       isAdmin: user?.role === 'Administrador'
     }),
-    [user, initializing, login, logout, refreshUser]
+    [user, initializing, login, startSession, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -67,7 +67,11 @@ public class VolunteerService
                 _db.SignedDocuments
                     .Where(d => d.VolunteerId == v.Id && d.Kind == SignedDocumentKind.VolunteerTerm)
                     .Max(d => (DateOnly?)d.SignedOn),
-                v.AnonymizedAt != null))
+                v.AnonymizedAt != null,
+                _db.Users
+                    .Where(u => u.VolunteerId == v.Id)
+                    .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == ""))
+                    .FirstOrDefault()))
             .ToListAsync();
     }
 
@@ -113,7 +117,7 @@ public class VolunteerService
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
-        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id));
+        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
     }
 
     /// <summary>Depois de anonimizado, o cadastro nao volta a receber dados pessoais.</summary>
@@ -128,6 +132,13 @@ public class VolunteerService
         _db.SignedDocuments
             .Where(d => d.VolunteerId == volunteerId && d.Kind == SignedDocumentKind.VolunteerTerm)
             .MaxAsync(d => (DateOnly?)d.SignedOn);
+
+    /// <summary>Acesso a plataforma ligado ao voluntario (null: sem acesso).</summary>
+    private Task<VolunteerAccessDto?> AccessOfAsync(Guid volunteerId) =>
+        _db.Users.AsNoTracking()
+            .Where(u => u.VolunteerId == volunteerId)
+            .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == ""))
+            .FirstOrDefaultAsync();
 
     public async Task<VolunteerDto> CreateAsync(SaveVolunteerRequest request)
     {
@@ -159,7 +170,7 @@ public class VolunteerService
         await _db.SaveChangesAsync();
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
-        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id));
+        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
     }
 
     /// <summary>

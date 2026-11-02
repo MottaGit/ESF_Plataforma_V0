@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
+import { IconEdit, IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
@@ -251,6 +251,16 @@ export function VolunteersPage() {
                             <Link className="row-link" to={`/voluntarios/${volunteer.id}`}>
                               {volunteer.name}
                             </Link>
+                            {canManage && volunteer.access?.isActive ? (
+                              <span
+                                className={`access-mark${volunteer.access.pending ? ' access-mark--pending' : ''}`}
+                                role="img"
+                                aria-label={volunteer.access.pending ? 'Acesso aguardando o primeiro acesso' : 'Tem acesso à plataforma'}
+                                title={volunteer.access.pending ? 'Acesso aguardando o primeiro acesso' : 'Tem acesso à plataforma'}
+                              >
+                                <IconKey size={13} />
+                              </span>
+                            ) : null}
                             {birthday ? (
                               <div style={{ marginTop: 4 }}>
                                 <BirthdayBadge />

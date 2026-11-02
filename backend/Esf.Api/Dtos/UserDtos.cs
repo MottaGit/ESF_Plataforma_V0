@@ -15,29 +15,9 @@ public record UserDto(
     // Foto do voluntario vinculado (avatar do usuario no topo da tela).
     string? VolunteerPhotoUrl,
     // Ainda nao aceitou a versao vigente da politica de privacidade e dos termos de uso.
-    bool TermsPending);
-
-public class CreateUserRequest
-{
-    [Required(ErrorMessage = "Informe o nome.")]
-    [StringLength(160)]
-    public string Name { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Informe o e-mail.")]
-    [EmailAddress(ErrorMessage = "E-mail invalido.")]
-    [StringLength(200)]
-    public string Email { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Informe uma senha.")]
-    [MinLength(6, ErrorMessage = "A senha deve ter ao menos 6 caracteres.")]
-    public string Password { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Selecione o perfil de acesso.")]
-    public UserRole? Role { get; set; }
-
-    /// <summary>Voluntario que este acesso representa (opcional).</summary>
-    public Guid? VolunteerId { get; set; }
-}
+    bool TermsPending,
+    // Criado por link e ainda sem senha (aguardando o primeiro acesso).
+    bool PasswordPending);
 
 public class UpdateUserRequest
 {
@@ -57,8 +37,4 @@ public class UpdateUserRequest
 
     /// <summary>Voluntario que este acesso representa (opcional).</summary>
     public Guid? VolunteerId { get; set; }
-
-    /// <summary>Opcional: quando informada, redefine a senha do usuario.</summary>
-    [MinLength(6, ErrorMessage = "A senha deve ter ao menos 6 caracteres.")]
-    public string? NewPassword { get; set; }
 }

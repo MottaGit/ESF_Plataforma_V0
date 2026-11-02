@@ -363,7 +363,20 @@ de um), registros de andamento e tarefas concluídas no período e, para cada pr
 modelo, esses indicadores somados nos projetos do relatório (mesma comparação de nomes da visão do programa). Títulos
 de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
-**Configurações** — dados institucionais, logo, gestão de usuários e troca da própria senha. No formulário de
+**Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
+Configurações › Usuários, **Novo acesso**, escolhendo o voluntário; só administradores) pede o perfil e usa como login
+o e-mail do cadastro (sem e-mail, não dá). Sai um **link de primeiro acesso** (`/acesso/{código}`), mostrado uma vez,
+com botões para copiar, mandar pelo WhatsApp (celular do cadastro, já com a mensagem) ou por e-mail. A pessoa abre,
+cria a própria senha, aceita a política de privacidade e já entra; ninguém define nem repassa senha de outra pessoa.
+O link vale 7 dias e uma vez só; só o hash do código fica no banco (tabela `AccessLinks`). Enquanto não for usado, o
+acesso aparece como "Aguardando o primeiro acesso" e o login com senha é recusado. Para quem perdeu o link ou esqueceu
+a senha, **Gerar link de acesso** (página do voluntário ou ícone da chave em Usuários) faz um link novo e anula os
+anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas por minuto por endereço. A lista de
+voluntários mostra uma chave ao lado de quem tem acesso (cinza enquanto aguarda o primeiro acesso), e a página do
+voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo.
+
+**Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
+senha só por link) e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
 aberta fica na URL (`?aba=organizacao`, `usuarios`, `historico` ou `conta`).
 
@@ -383,7 +396,7 @@ demonstração, rotinas internas) não é registrado.
 
 **Proteção do login** — depois de 10 senhas erradas seguidas, o acesso fica bloqueado por 15 minutos (nem a senha
 certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acerto antes disso zera a contagem, e a
-senha redefinida por um administrador libera o acesso na hora. Os campos de texto livre (observações e registros de andamento) lembram
+senha criada por um link de acesso libera o acesso na hora. Os campos de texto livre (observações e registros de andamento) lembram
 de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
 
 **Topo da tela** — mostra o nome da seção, igual ao item marcado no menu ("Projetos" também dentro de um projeto),
@@ -480,7 +493,8 @@ ESF_Plataforma_V0/
 
 | Tabela | Conteúdo |
 | --- | --- |
-| `Users` | acesso à plataforma (nome, e-mail, hash da senha, perfil, ativo, voluntário vinculado) |
+| `Users` | acesso à plataforma (nome, e-mail, hash da senha — vazio até o primeiro acesso —, perfil, ativo, voluntário vinculado) |
+| `AccessLinks` | links de acesso (hash do código, validade, uso), para criar a senha no primeiro acesso ou depois de esquecê-la |
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
 | `Programs` | programas (nome, situação, ícone, cor e os textos sugeridos do modelo) |
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa |
@@ -555,7 +569,10 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
 | POST | `/api/reports/projects` | gera o PDF consolidado (projetos, partes incluídas e período de referência `from`/`to`, opcional) |
-| GET/POST/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários |
+| GET/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários (acesso novo só pelo voluntário, abaixo) |
+| POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
+| POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |
+| GET/POST | `/api/access/{código}` | públicas: dados do link e criação da senha (com o aceite da política), já devolvendo o login |
 | GET/PUT | `/api/organization` · `POST /logo` | dados institucionais |
 
 Erros seguem sempre o mesmo formato:

@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
@@ -40,6 +41,7 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AccessService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<ProgramService>();
@@ -84,6 +86,17 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy(Policies.AdminOnly, policy =>
         policy.RequireRole(nameof(UserRole.Administrador)));
+});
+
+// Links de acesso (rotas publicas): poucas tentativas por minuto de cada endereco.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (context, token) => new ValueTask(context.HttpContext.Response.WriteAsJsonAsync(
+        new { message = "Muitas tentativas seguidas. Aguarde um minuto e tente de novo." }, token));
+    options.AddPolicy(AccessService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // ---------- API ----------
@@ -171,6 +184,7 @@ app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

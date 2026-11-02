@@ -27,7 +27,12 @@ public record VolunteerDto(
     // Data do termo de adesao assinado mais recente (null: termo pendente).
     DateOnly? TermSignedOn,
     // Dados pessoais ja anonimizados: so o historico continua.
-    bool Anonymized);
+    bool Anonymized,
+    // Acesso a plataforma ligado a este voluntario (null: sem acesso).
+    VolunteerAccessDto? Access);
+
+/// <summary>Acesso de um voluntario: perfil, se esta ativo e se ainda espera o primeiro acesso (sem senha).</summary>
+public record VolunteerAccessDto(Guid UserId, UserRole Role, bool IsActive, bool Pending);
 
 /// <summary>
 /// Carga de um voluntario para escolher o responsavel por uma tarefa: situacao e tarefas em aberto (e atrasadas)

@@ -27,10 +27,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<List<UserDto>>> List([FromQuery] bool onlyActive = false)
         => Ok(await _users.ListAsync(onlyActive));
 
-    [HttpPost]
-    [Authorize(Policy = Policies.AdminOnly)]
-    public async Task<ActionResult<UserDto>> Create(CreateUserRequest request)
-        => Ok(await _users.CreateAsync(request));
+    // Acesso novo nasce de um voluntario e por link: POST /api/volunteers/{id}/access (AccessController).
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = Policies.AdminOnly)]

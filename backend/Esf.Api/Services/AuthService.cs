@@ -33,6 +33,12 @@ public class AuthService
         // Bloqueado: nem confere a senha, para nao dar pista se ela esta certa.
         if (user.LockedUntil > DateTime.UtcNow) throw Locked(user.LockedUntil.Value);
 
+        // Acesso criado por link e ainda sem senha: a pessoa entra pelo link de primeiro acesso.
+        if (user.PasswordHash.Length == 0)
+            throw new AppException(
+                "Este acesso ainda nao foi ativado. Use o link de primeiro acesso que voce recebeu ou peca um novo a coordenacao.",
+                StatusCodes.Status401Unauthorized);
+
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
             user.FailedLoginCount++;

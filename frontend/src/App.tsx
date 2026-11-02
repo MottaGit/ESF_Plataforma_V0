@@ -3,6 +3,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { FirstAccessPage } from './pages/FirstAccessPage';
 import { HelpPage } from './pages/HelpPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
@@ -23,6 +24,7 @@ export function App() {
         <ToastProvider>
           <Routes>
             <Route path="/entrar" element={<LoginPage />} />
+            <Route path="/acesso/:token" element={<FirstAccessPage />} />
             <Route path="/privacidade" element={<PrivacyPage />} />
             <Route
               element={

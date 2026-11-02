@@ -755,6 +755,12 @@ button { font: inherit; }
 .contact-icon:focus-visible { outline: none; box-shadow: var(--focus); }
 .contact-icon--whatsapp:hover { color: #128c4b; }
 .contact-phone { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; }
+
+/* Acesso a plataforma: marca na lista de voluntarios e o link gerado para mandar a pessoa. */
+.access-mark { display: inline-flex; margin-left: 6px; vertical-align: -2px; color: var(--accent-text); }
+.access-mark--pending { color: var(--text-soft); }
+.access-link { display: grid; gap: 12px; }
+.access-link__actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .contact-phone__whatsapp { display: inline-flex; align-items: center; gap: 4px; color: #128c4b; }
 
 /* Foto do voluntario: area no topo do formulario e o enquadramento circular. */

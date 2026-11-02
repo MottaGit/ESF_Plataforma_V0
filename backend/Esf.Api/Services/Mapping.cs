@@ -34,7 +34,8 @@ public static class Mapping
 
     public static UserDto ToDto(User u) =>
         new(u.Id, u.Name, u.Email, u.Role, u.IsActive, u.CreatedAt, u.VolunteerId, u.Volunteer?.Name,
-            PhotoUrl(u.Volunteer?.PhotoStoredName), u.TermsVersion != PrivacyTerms.CurrentVersion);
+            PhotoUrl(u.Volunteer?.PhotoStoredName), u.TermsVersion != PrivacyTerms.CurrentVersion,
+            u.PasswordHash.Length == 0);
 
     public static ActivityDto ToDto(Activity a) => ToDto(a, null);
 
@@ -68,9 +69,10 @@ public static class Mapping
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt);
 
-    public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects, DateOnly? termSignedOn = null) =>
+    public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects, DateOnly? termSignedOn = null,
+        VolunteerAccessDto? access = null) =>
         new(v.Id, v.Name, v.Email, v.Phone, v.Sector, v.Skills, v.Notes, v.Status, projects, v.CreatedAt,
-            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName), termSignedOn, v.AnonymizedAt != null);
+            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName), termSignedOn, v.AnonymizedAt != null, access);
 
     /// <summary>Endereco publico da foto de um voluntario (null quando nao ha foto).</summary>
     public static string? PhotoUrl(string? storedName) =>

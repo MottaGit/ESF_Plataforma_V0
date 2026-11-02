@@ -28,12 +28,28 @@ export interface User {
   volunteerPhotoUrl: string | null;
   /** Ainda nao aceitou a versao vigente da politica de privacidade e dos termos de uso. */
   termsPending: boolean;
+  /** Criado por link e ainda sem senha (aguardando o primeiro acesso). */
+  passwordPending: boolean;
 }
 
 export interface LoginResponse {
   token: string;
   expiresAt: string;
   user: User;
+}
+
+/** Link de acesso recem-gerado: o codigo so volta nesta resposta. */
+export interface AccessLink {
+  userId: string;
+  token: string;
+  expiresAt: string;
+}
+
+/** O que a pagina publica do link mostra antes de a pessoa criar a senha. */
+export interface AccessLinkInfo {
+  name: string;
+  email: string;
+  firstAccess: boolean;
 }
 
 export interface Program {
@@ -240,6 +256,16 @@ export interface Volunteer {
   termSignedOn: string | null;
   /** Dados pessoais anonimizados (nome generico, sem contatos nem foto); so o historico continua. */
   anonymized: boolean;
+  /** Acesso a plataforma ligado a este voluntario (null: sem acesso). */
+  access: VolunteerAccess | null;
+}
+
+/** Acesso de um voluntario: perfil, se esta ativo e se ainda espera o primeiro acesso (sem senha). */
+export interface VolunteerAccess {
+  userId: string;
+  role: UserRole;
+  isActive: boolean;
+  pending: boolean;
 }
 
 /** Um periodo do historico de status (endsOn null: o status atual). */
@@ -545,8 +571,6 @@ export interface SaveUserPayload {
   role: UserRole;
   isActive: boolean;
   volunteerId: string | null;
-  password?: string;
-  newPassword?: string;
 }
 
 export interface SaveOrganizationPayload {

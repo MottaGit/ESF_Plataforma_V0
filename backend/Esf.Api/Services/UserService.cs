@@ -24,31 +24,9 @@ public class UserService
                 u.Volunteer != null && u.Volunteer.PhotoStoredName != null
                     ? Mapping.UploadsUrlPrefix + "/" + u.Volunteer.PhotoStoredName
                     : null,
-                u.TermsVersion != PrivacyTerms.CurrentVersion))
+                u.TermsVersion != PrivacyTerms.CurrentVersion,
+                u.PasswordHash == ""))
             .ToListAsync();
-    }
-
-    public async Task<UserDto> CreateAsync(CreateUserRequest request)
-    {
-        var email = request.Email.Trim().ToLowerInvariant();
-        if (await _db.Users.AnyAsync(u => u.Email.ToLower() == email))
-            throw AppException.Conflict("Ja existe um usuario com este e-mail.");
-
-        await EnsureVolunteerAvailableAsync(request.VolunteerId, null);
-
-        var user = new User
-        {
-            Name = request.Name.Trim(),
-            Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = request.Role!.Value,
-            IsActive = true,
-            VolunteerId = request.VolunteerId
-        };
-
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-        return await GetDtoAsync(user.Id);
     }
 
     public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request, Guid currentUserId)
@@ -69,14 +47,6 @@ public class UserService
         user.Role = request.Role!.Value;
         user.IsActive = request.IsActive;
         user.VolunteerId = request.VolunteerId;
-
-        if (!string.IsNullOrWhiteSpace(request.NewPassword))
-        {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            // Senha redefinida pelo administrador: libera o acesso, se estava bloqueado por tentativas erradas.
-            user.FailedLoginCount = 0;
-            user.LockedUntil = null;
-        }
 
         await _db.SaveChangesAsync();
         return await GetDtoAsync(id);

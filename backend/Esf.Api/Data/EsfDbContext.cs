@@ -26,6 +26,7 @@ public class EsfDbContext : DbContext
     public DbSet<ActivityChecklistItem> ActivityChecklistItems => Set<ActivityChecklistItem>();
     public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
+    public DbSet<AccessLink> AccessLinks => Set<AccessLink>();
 
     /// <summary>Funcao esf_fold do banco: minusculas e sem acento (busca geral). So vale dentro de consultas.</summary>
     public static string Fold(string text) => throw new NotSupportedException("Use apenas em consultas.");
@@ -52,6 +53,14 @@ public class EsfDbContext : DbContext
                 .WithOne()
                 .HasForeignKey<User>(x => x.VolunteerId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<AccessLink>(e =>
+        {
+            e.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.HasIndex(x => x.UserId);
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Volunteer>(e =>

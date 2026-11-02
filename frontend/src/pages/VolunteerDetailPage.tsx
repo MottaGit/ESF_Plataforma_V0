@@ -2,13 +2,14 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { certificatesApi, projectsApi, volunteersApi } from '../api/endpoints';
+import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
 import { SignedDocumentsPanel } from '../components/documents/SignedDocumentsPanel';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
+import { IconChevronLeft, IconDownload, IconEdit, IconKey, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
 import { EmailLink, PhoneLink } from '../components/volunteers/ContactLinks';
 import { VolunteerHoursPanel } from '../components/volunteers/VolunteerHoursPanel';
@@ -20,6 +21,7 @@ import {
   emptyToNull,
   isBirthdayToday,
   isPastProjectStatus,
+  roleLabel,
   sectorLabel,
   todayInputValue
 } from '../utils/format';
@@ -27,7 +29,7 @@ import { VolunteerFormModal } from './VolunteersPage';
 
 export function VolunteerDetailPage() {
   const { id = '' } = useParams();
-  const { canManage } = useAuth();
+  const { canManage, isAdmin } = useAuth();
   const { notify } = useToast();
   const navigate = useNavigate();
 
@@ -160,6 +162,10 @@ export function VolunteerDetailPage() {
             </div>
           </section>
 
+          {canManage && !volunteer.anonymized ? (
+            <AccessPanel volunteer={volunteer} canEdit={isAdmin} onChanged={() => void load()} />
+          ) : null}
+
           {hours ? (
             <VolunteerHoursPanel
               volunteerId={volunteer.id}
@@ -242,6 +248,70 @@ export function VolunteerDetailPage() {
         />
       ) : null}
     </>
+  );
+}
+
+/**
+ * Acesso a plataforma do voluntario: a coordenacao ve a situacao; a administracao da o acesso (link de primeiro
+ * acesso) ou gera um link novo para quem perdeu o anterior ou esqueceu a senha.
+ */
+function AccessPanel({ volunteer, canEdit, onChanged }: { volunteer: Volunteer; canEdit: boolean; onChanged: () => void }) {
+  const [granting, setGranting] = useState(false);
+  const [renewing, setRenewing] = useState(false);
+  const access = volunteer.access;
+
+  return (
+    <section className="panel">
+      <div className="panel__head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Acesso à plataforma</h2>
+        {canEdit && !access ? (
+          <Button variant="primary" small icon={<IconKey size={15} />} onClick={() => setGranting(true)}>
+            Dar acesso
+          </Button>
+        ) : null}
+        {canEdit && access?.isActive ? (
+          <Button small icon={<IconKey size={15} />} onClick={() => setRenewing(true)}>
+            Gerar link de acesso
+          </Button>
+        ) : null}
+      </div>
+      <div className="panel__body">
+        {!access ? (
+          <p className="meta__value">
+            Sem acesso. {volunteer.email ? 'O login será o e-mail do cadastro.' : 'Para dar acesso, cadastre antes o e-mail (é o login).'}
+          </p>
+        ) : (
+          <div className="meta-list">
+            <div>
+              <div className="meta__label">Perfil</div>
+              <div className="meta__value">{roleLabel(access.role)}</div>
+            </div>
+            <div>
+              <div className="meta__label">Situação</div>
+              <div className="meta__value">
+                {!access.isActive
+                  ? 'Desativado (reative em Configurações › Usuários)'
+                  : access.pending
+                    ? 'Aguardando o primeiro acesso'
+                    : 'Ativo'}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {granting ? (
+        <GrantAccessModal volunteer={volunteer} onClose={() => setGranting(false)} onGranted={onChanged} />
+      ) : null}
+      {renewing && access ? (
+        <NewAccessLinkModal
+          userId={access.userId}
+          recipient={volunteer}
+          firstAccess={access.pending}
+          onClose={() => setRenewing(false)}
+        />
+      ) : null}
+    </section>
   );
 }
 

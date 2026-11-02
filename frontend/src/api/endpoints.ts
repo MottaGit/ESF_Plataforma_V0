@@ -1,6 +1,8 @@
 import { shrinkImage } from '../utils/images';
 import { http } from './client';
 import type {
+  AccessLink,
+  AccessLinkInfo,
   Activity,
   ActivityComment,
   ActivityDetails,
@@ -38,6 +40,7 @@ import type {
   UnreadNotifications,
   UpdateProgramPayload,
   User,
+  UserRole,
   Volunteer,
   VolunteerHours,
   VolunteerLoad,
@@ -222,17 +225,6 @@ export const reportsApi = {
 
 export const usersApi = {
   list: (onlyActive = false) => http.request<User[]>('/api/users', { query: { onlyActive } }),
-  create: (payload: SaveUserPayload) =>
-    http.request<User>('/api/users', {
-      method: 'POST',
-      body: {
-        name: payload.name,
-        email: payload.email,
-        role: payload.role,
-        password: payload.password,
-        volunteerId: payload.volunteerId
-      }
-    }),
   update: (id: string, payload: SaveUserPayload) =>
     http.request<User>(`/api/users/${id}`, {
       method: 'PUT',
@@ -242,11 +234,28 @@ export const usersApi = {
         role: payload.role,
         isActive: payload.isActive,
         // Sem este campo a API entendia "sem voluntario" e desfazia o vinculo a cada edicao.
-        volunteerId: payload.volunteerId,
-        newPassword: payload.newPassword || null
+        volunteerId: payload.volunteerId
       }
     }),
   remove: (id: string) => http.request<void>(`/api/users/${id}`, { method: 'DELETE' })
+};
+
+/**
+ * Acesso por link: a administracao da acesso a um voluntario (ou gera um link novo) e a pessoa cria a propria
+ * senha na pagina publica do link.
+ */
+export const accessApi = {
+  grant: (volunteerId: string, role: UserRole) =>
+    http.request<AccessLink>(`/api/volunteers/${volunteerId}/access`, { method: 'POST', body: { role } }),
+  newLink: (userId: string) => http.request<AccessLink>(`/api/users/${userId}/access-link`, { method: 'POST' }),
+  info: (token: string) =>
+    http.request<AccessLinkInfo>(`/api/access/${encodeURIComponent(token)}`, { skipAuthRedirect: true }),
+  use: (token: string, password: string) =>
+    http.request<LoginResponse>(`/api/access/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      body: { password, acceptTerms: true },
+      skipAuthRedirect: true
+    })
 };
 
 /** Dono dos documentos assinados: um voluntario (termo de adesao) ou um projeto (autorizacao de imagem). */

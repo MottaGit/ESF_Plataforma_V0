@@ -267,10 +267,17 @@ const SECTIONS: HelpSection[] = [
       {
         question: 'Como dou acesso à plataforma para alguém?',
         answer: (
-          <p>
-            Em <strong>Configurações › Usuários</strong> (só administradores). Ao criar o acesso, ligue-o ao cadastro de
-            voluntário da pessoa, para que ela veja as próprias tarefas e o próprio perfil.
-          </p>
+          <>
+            <p>
+              Na página do voluntário, use <strong>Dar acesso</strong> (ou, em <strong>Configurações › Usuários</strong>,{' '}
+              <strong>Novo acesso</strong>; só administradores). Escolha o perfil: o login é o e-mail do cadastro.
+            </p>
+            <p>
+              Sai um link de primeiro acesso, que você manda pelo WhatsApp, por e-mail ou copiando. A pessoa abre, cria a
+              própria senha e já entra. O link vale 7 dias e uma vez só. Se alguém esquecer a senha, gere um link novo
+              (ícone da chave em Usuários ou "Gerar link de acesso" na página do voluntário).
+            </p>
+          </>
         )
       }
     ]
