@@ -24,14 +24,17 @@ public static class DbSeeder
             db.Organizations.Add(new Organization
             {
                 Name = "Engenheiros Sem Fronteiras",
-                LegalName = "Engenheiros Sem Fronteiras - Nucleo Local",
-                Mission = "Levar engenharia a comunidades em situacao de vulnerabilidade, com projetos construidos junto das pessoas atendidas.",
-                About = "Organizacao formada por voluntarios que realizam reformas habitacionais, saneamento e hortas comunitarias em Porto Alegre.",
+                LegalName = "Engenheiros Sem Fronteiras - Núcleo Porto Alegre",
+                Mission = "Levar engenharia a comunidades em situação de vulnerabilidade, com projetos construídos junto das pessoas atendidas.",
+                About = "Organização formada por voluntários que constroem e reformam banheiros, cuidam de saneamento e implantam hortas comunitárias em Porto Alegre.",
                 Email = "contato@esf-nucleo.org.br",
                 Phone = "(51) 3000-0000",
                 Website = "https://esf.org.br",
                 City = "Porto Alegre",
                 State = "RS",
+                SignatoryName = "Ana Aumond",
+                SignatoryRole = "Coordenadora do núcleo",
+                SignatoryNote = $"Gestão {DateTime.UtcNow.Year}",
                 UpdatedAt = DateTime.UtcNow
             });
         }
@@ -44,60 +47,6 @@ public static class DbSeeder
 
         logger.LogInformation("Banco vazio: criando dados iniciais de demonstracao.");
 
-        var hash = BCrypt.Net.BCrypt.HashPassword(demoPassword);
-
-        var leonardo = new User { Name = "Leonardo Motta", Email = "leonardo.motta@esf.org.br", PasswordHash = hash, Role = UserRole.Administrador };
-        var ana = new User { Name = "Ana Aumond", Email = "ana.aumond@esf.org.br", PasswordHash = hash, Role = UserRole.Coordenador };
-        var fausto = new User { Name = "Fausto da Silva", Email = "fausto.silva@esf.org.br", PasswordHash = hash, Role = UserRole.Usuario };
-        db.Users.AddRange(leonardo, ana, fausto);
-
-        // Setor Projetos
-        var vLeonardo = new Volunteer { Name = "Leonardo Motta", Sector = VolunteerSector.Projetos };
-        var vClivia = new Volunteer { Name = "Clivia", Sector = VolunteerSector.Projetos };
-        var vSandra = new Volunteer { Name = "Sandra", Sector = VolunteerSector.Projetos };
-        var vAna = new Volunteer { Name = "Ana", Sector = VolunteerSector.Projetos };
-        var vGiovani = new Volunteer { Name = "Giovani", Sector = VolunteerSector.Projetos };
-        var vFelipe = new Volunteer { Name = "Felipe", Sector = VolunteerSector.Projetos };
-        var vAdriano = new Volunteer { Name = "Adriano Panazzolo", Sector = VolunteerSector.Projetos };
-        var vEdu = new Volunteer { Name = "Edu Grehs", Sector = VolunteerSector.Projetos };
-        var vLuca = new Volunteer { Name = "Luca Moura", Sector = VolunteerSector.Projetos };
-        // Setor Juridico
-        var vGuilherme = new Volunteer { Name = "Guilherme Fd", Sector = VolunteerSector.Juridico };
-        var vTanea = new Volunteer { Name = "Tanea", Sector = VolunteerSector.Juridico };
-        // Setor Pessoas
-        var vCarol = new Volunteer { Name = "Carol Metz", Sector = VolunteerSector.Pessoas };
-        var vJulia = new Volunteer { Name = "Julia Schafer", Sector = VolunteerSector.Pessoas };
-        var vMarcosHeitor = new Volunteer { Name = "Marcos Heitor", Sector = VolunteerSector.Pessoas };
-        // Setor Comunicacao
-        var vAlice = new Volunteer { Name = "Alice Marques", Sector = VolunteerSector.Comunicacao };
-        var vYasminM = new Volunteer { Name = "Yasmin Meirelles", Sector = VolunteerSector.Comunicacao };
-        // Setor Financeiro
-        var vFrancielly = new Volunteer { Name = "Francielly Ramos", Sector = VolunteerSector.Financeiro };
-        // Setor Qualidade
-        var vAlisson = new Volunteer { Name = "Alisson", Sector = VolunteerSector.Qualidade };
-        var vMariaAntonia = new Volunteer { Name = "Maria Antonia", Sector = VolunteerSector.Qualidade };
-        var vFausto = new Volunteer { Name = "Fausto da Silva", Sector = VolunteerSector.Projetos };
-
-        Volunteer[] volunteers =
-        [
-            vLeonardo, vClivia, vSandra, vAna, vGiovani, vFelipe, vAdriano, vEdu, vLuca,
-            vGuilherme, vTanea, vCarol, vJulia, vMarcosHeitor, vAlice, vYasminM, vFrancielly, vAlisson, vMariaAntonia,
-            vFausto
-        ];
-        db.Volunteers.AddRange(volunteers);
-
-        // Historico de status de demonstracao: todos ativos desde marco de 2025; Fausto teve um afastamento.
-        foreach (var volunteer in volunteers)
-            VolunteerStatusHistoryService.Start(db, volunteer, new DateOnly(2025, 3, 1));
-        db.VolunteerStatusChanges.AddRange(
-            new VolunteerStatusChange { VolunteerId = vFausto.Id, Status = VolunteerStatus.Afastado, StartsOn = new DateOnly(2025, 12, 1) },
-            new VolunteerStatusChange { VolunteerId = vFausto.Id, Status = VolunteerStatus.Ativo, StartsOn = new DateOnly(2026, 2, 1) });
-
-        // Acessos de demonstracao representam voluntarios ja cadastrados.
-        leonardo.Volunteer = vLeonardo;
-        ana.Volunteer = vAna;
-        fausto.Volunteer = vFausto;
-
         var org = db.Organizations.Local.FirstOrDefault() ?? await db.Organizations.FirstAsync();
 
         // Datas relativas ao dia em que o banco e criado, para a demonstracao nao envelhecer: tarefas vencidas,
@@ -105,6 +54,13 @@ public static class DbSeeder
         var today = Mapping.Today;
         DateOnly Day(int offset) => today.AddDays(offset);
         DateTime At(int offset) => Day(offset).ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc);
+
+        var hash = BCrypt.Net.BCrypt.HashPassword(demoPassword);
+
+        var leonardo = new User { Name = "Leonardo Motta", Email = "leonardo.motta@esf.org.br", PasswordHash = hash, Role = UserRole.Administrador };
+        var ana = new User { Name = "Ana Aumond", Email = "ana.aumond@esf.org.br", PasswordHash = hash, Role = UserRole.Coordenador };
+        var fausto = new User { Name = "Fausto da Silva", Email = "fausto.silva@esf.org.br", PasswordHash = hash, Role = UserRole.Usuario };
+        db.Users.AddRange(leonardo, ana, fausto);
 
         // Checklist da tarefa: (texto, dia em que foi feito; vazio = pendente).
         List<ActivityChecklistItem> Checklist(params (string Text, int? DoneOn)[] items) =>
@@ -177,6 +133,157 @@ public static class DbSeeder
             SignedDocument(SignedDocumentKind.BeneficiaryImageAuthorization, null, project,
                 DocumentTemplates.BeneficiaryImageAuthorization(org, project),
                 $"autorizacao-de-imagem-{TextHelpers.Slug(project.Name)}-assinada.pdf", signedOn);
+
+        // Entrada do voluntario e as mudancas de situacao depois dela; a situacao atual e a ultima da lista.
+        // Com o termo, guarda o termo de adesao assinado no dia da entrada.
+        void Joined(Volunteer volunteer, int on, bool signedTerm, params (int On, VolunteerStatus Status)[] changes)
+        {
+            volunteer.CreatedAt = At(on);
+            volunteer.Status = changes.Length == 0 ? VolunteerStatus.Ativo : changes[^1].Status;
+            db.VolunteerStatusChanges.Add(new VolunteerStatusChange { VolunteerId = volunteer.Id, Status = VolunteerStatus.Ativo, StartsOn = Day(on) });
+            db.VolunteerStatusChanges.AddRange(changes.Select(c =>
+                new VolunteerStatusChange { VolunteerId = volunteer.Id, Status = c.Status, StartsOn = Day(c.On) }));
+
+            if (signedTerm)
+                SignedDocument(SignedDocumentKind.VolunteerTerm, volunteer, null, DocumentTemplates.VolunteerTerm(org, volunteer),
+                    $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}-assinado.pdf", on);
+        }
+
+        // ---------------------------------------------------------------
+        // Voluntarios: um ou mais por setor, com contato, competencias, aniversario e historico.
+        // ---------------------------------------------------------------
+
+        // Um aniversario logo adiante e outro de poucos dias atras, para o painel do Inicio nao ficar vazio.
+        var birthdaySoon = Day(4);
+        var birthdayRecent = Day(-3);
+
+        var vLeonardo = new Volunteer
+        {
+            Name = "Leonardo Motta", Sector = VolunteerSector.Projetos,
+            Email = "leonardo.motta@esf.org.br", Phone = "(51) 99000-0101",
+            Skills = "Engenharia civil, orçamento de obras, AutoCAD, gestão de projetos",
+            Notes = "Coordena a frente técnica do Banheiro Direito da Gente. Disponível à noite e aos sábados.",
+            BirthDay = 14, BirthMonth = 3
+        };
+        var vAna = new Volunteer
+        {
+            Name = "Ana Aumond", Sector = VolunteerSector.Projetos,
+            Email = "ana.aumond@esf.org.br", Phone = "(51) 99000-0102",
+            Skills = "Arquitetura, acessibilidade (NBR 9050), levantamento técnico, articulação com lideranças comunitárias",
+            Notes = "Coordenadora do núcleo e ponto de contato com as gestoras locais (CPCA e ACONVI).",
+            BirthDay = birthdaySoon.Day, BirthMonth = birthdaySoon.Month
+        };
+        var vFausto = new Volunteer
+        {
+            Name = "Fausto da Silva", Sector = VolunteerSector.Projetos,
+            Email = "fausto.silva@esf.org.br", Phone = "(51) 99000-0103",
+            Skills = "Técnico em edificações, instalações hidrossanitárias, acompanhamento de obra",
+            Notes = "Acompanha as obras do Beco dos Herdeiros junto com a CPCA.",
+            BirthDay = 22, BirthMonth = 8
+        };
+        var vAdriano = new Volunteer
+        {
+            Name = "Adriano Panazzolo", Sector = VolunteerSector.Projetos,
+            Email = "adriano.panazzolo@esf.org.br", Phone = "(51) 99000-0104",
+            Skills = "Engenharia civil, estruturas e fundações, visitas técnicas",
+            Notes = "Disponível para visitas técnicas aos sábados pela manhã.",
+            BirthDay = 5, BirthMonth = 6
+        };
+        var vEdu = new Volunteer
+        {
+            Name = "Edu Grehs", Sector = VolunteerSector.Projetos,
+            Email = "edu.grehs@esf.org.br", Phone = "(51) 99000-0105",
+            Skills = "Engenharia elétrica, instalações elétricas residenciais, padrão de entrada",
+            Notes = "Afastado temporariamente; na volta, retoma as instalações elétricas da obra da Sra. Beatriz.",
+            BirthDay = 30, BirthMonth = 9
+        };
+        var vLuca = new Volunteer
+        {
+            Name = "Luca Moura", Sector = VolunteerSector.Projetos,
+            Email = "luca.moura@esf.org.br", Phone = "(51) 99000-0106",
+            Skills = "Engenharia ambiental (estudante), compostagem, irrigação por gotejamento",
+            Notes = "Cuida da parte técnica das hortas: canteiros, irrigação e oficinas.",
+            BirthDay = 9, BirthMonth = 5
+        };
+        var vGuilherme = new Volunteer
+        {
+            Name = "Guilherme Fd", Sector = VolunteerSector.Juridico,
+            Email = "guilherme.fd@esf.org.br", Phone = "(51) 99000-0107",
+            Skills = "Direito civil, contratos com construtores locais, termos e autorizações (LGPD)",
+            Notes = "Revisa os contratos com os construtores e os termos assinados pelas famílias.",
+            BirthDay = 11, BirthMonth = 1
+        };
+        var vCarol = new Volunteer
+        {
+            Name = "Carol Metz", Sector = VolunteerSector.Pessoas,
+            Email = "carol.metz@esf.org.br", Phone = "(51) 99000-0108",
+            Skills = "Psicologia, acolhimento de novos voluntários, processo seletivo",
+            Notes = "Entrou no último processo seletivo; organiza a escala de voluntários dos mutirões.",
+            BirthDay = 19, BirthMonth = 12
+        };
+        var vJulia = new Volunteer
+        {
+            Name = "Julia Schafer", Sector = VolunteerSector.Pessoas,
+            Email = "julia.schafer@esf.org.br", Phone = "(51) 99000-0109",
+            Skills = "Serviço social, mobilização comunitária, cadastro de famílias",
+            Notes = "Faz o cadastro das famílias junto com as gestoras locais.",
+            BirthDay = birthdayRecent.Day, BirthMonth = birthdayRecent.Month
+        };
+        var vAlice = new Volunteer
+        {
+            Name = "Alice Marques", Sector = VolunteerSector.Comunicacao,
+            Email = "alice.marques@esf.org.br", Phone = "(51) 99000-0110",
+            Skills = "Fotografia, redes sociais, relatórios para parceiros",
+            Notes = "Fotografa as entregas para os relatórios, só onde há autorização de imagem assinada.",
+            BirthDay = 27, BirthMonth = 7
+        };
+        var vYasminM = new Volunteer
+        {
+            Name = "Yasmin Meirelles", Sector = VolunteerSector.Comunicacao,
+            Email = "yasmin.meirelles@esf.org.br", Phone = "(51) 99000-0111",
+            Skills = "Design gráfico, redes sociais",
+            Notes = "Saiu da organização; cuidou da comunicação da horta do Cristal.",
+            BirthDay = 8, BirthMonth = 2
+        };
+        var vFrancielly = new Volunteer
+        {
+            Name = "Francielly Ramos", Sector = VolunteerSector.Financeiro,
+            Email = "francielly.ramos@esf.org.br", Phone = "(51) 99000-0112",
+            Skills = "Contabilidade, cotação de material, prestação de contas",
+            Notes = "Faz as cotações e guarda as notas fiscais de cada obra.",
+            BirthDay = 3, BirthMonth = 10
+        };
+        var vMariaAntonia = new Volunteer
+        {
+            Name = "Maria Antonia", Sector = VolunteerSector.Qualidade,
+            Email = "maria.antonia@esf.org.br", Phone = "(51) 99000-0113",
+            Skills = "Engenharia de produção, padrão BDG, vistorias de entrega",
+            Notes = "Confere cada entrega com o checklist de vistoria do programa.",
+            BirthDay = 16, BirthMonth = 4
+        };
+        db.Volunteers.AddRange(vLeonardo, vAna, vFausto, vAdriano, vEdu, vLuca, vGuilherme, vCarol, vJulia, vAlice,
+            vYasminM, vFrancielly, vMariaAntonia);
+
+        // Fausto teve um afastamento e voltou; Edu esta afastado; Yasmin saiu. Termo pendente: Carol, que acabou de
+        // entrar, e Alice, que entrou antes de o termo existir.
+        Joined(vAna, -1250, signedTerm: true);
+        Joined(vLeonardo, -1020, signedTerm: true);
+        Joined(vGuilherme, -900, signedTerm: true);
+        Joined(vJulia, -800, signedTerm: true);
+        Joined(vYasminM, -760, signedTerm: true, (-60, VolunteerStatus.ExMembro));
+        Joined(vAdriano, -700, signedTerm: true);
+        Joined(vEdu, -650, signedTerm: true, (-20, VolunteerStatus.Afastado));
+        Joined(vFrancielly, -600, signedTerm: true);
+        Joined(vLuca, -560, signedTerm: true);
+        Joined(vFausto, -480, signedTerm: true, (-300, VolunteerStatus.Afastado), (-240, VolunteerStatus.Ativo));
+        Joined(vMariaAntonia, -450, signedTerm: true);
+        Joined(vAlice, -400, signedTerm: false);
+        Joined(vCarol, -100, signedTerm: false);
+
+        // Acessos de demonstracao representam voluntarios ja cadastrados.
+        leonardo.Volunteer = vLeonardo;
+        ana.Volunteer = vAna;
+        fausto.Volunteer = vFausto;
 
         // ---------------------------------------------------------------
         // Programas e modelos (o que um projeto novo de cada programa ja recebe)

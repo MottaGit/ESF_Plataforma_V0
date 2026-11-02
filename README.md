@@ -93,8 +93,15 @@ dotnet ef migrations add NomeDaMigration      # criar a próxima
 
 ## Acessos de demonstração
 
-O seed cria a organização (Porto Alegre/RS), 3 usuários, 20 voluntários e 5 projetos, um de cada situação que a
-aplicação mostra:
+O seed cria a organização (Porto Alegre/RS, com quem assina os termos e certificados), 3 usuários, 13 voluntários e
+5 projetos.
+
+Os voluntários cobrem os seis setores e vêm com e-mail, telefone, competências, observações, aniversário e histórico
+de situação (as horas de voluntariado saem dele). Há um afastado, um ex-membro e um que já teve afastamento e voltou.
+Onze têm o termo de adesão assinado; Carol e Alice ficam pendentes, para o aviso de termo aparecer. Dois aniversários
+caem perto do dia em que o banco é criado, para o painel de aniversariantes do Início não ficar vazio.
+
+Os projetos mostram uma situação diferente cada um:
 
 | Projeto | Programa | Situação |
 | --- | --- | --- |
@@ -111,6 +118,8 @@ assinada em dois projetos. As datas contam a partir do dia em que o banco é cri
 concluídas, vencidas e próximas perto de "hoje". Os projetos de banheiro ficam sem ponto no mapa de propósito (são
 casas de famílias); as hortas marcam o bairro.
 
+Acessos (os três são voluntários cadastrados):
+
 | E-mail | Perfil | Senha |
 | --- | --- | --- |
 | leonardo.motta@esf.org.br | Administrador | `Esf@2026` |
@@ -119,6 +128,11 @@ casas de famílias); as hortas marcam o bairro.
 
 O seed só roda quando o banco está vazio, então ele nunca sobrescreve dados reais. A tela de login lista esses acessos
 e já vem preenchida com o do administrador, para facilitar a demonstração.
+
+Para recriar os dados de demonstração, apague o banco e suba a API de novo: as migrations recriam as tabelas e o seed
+preenche. Localmente, `docker compose down -v`. Num Postgres hospedado (como o do Render), rode no banco
+`DROP SCHEMA public CASCADE; CREATE SCHEMA public;` e reinicie a API, ou crie um banco novo e troque a string de
+conexão da API. Isso apaga tudo, inclusive os arquivos enviados, que ficam no banco.
 
 ---
 
