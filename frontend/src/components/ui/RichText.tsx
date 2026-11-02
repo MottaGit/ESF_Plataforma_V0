@@ -26,6 +26,15 @@ export function RichTextView({ html, className }: { html: string; className?: st
   return <div className={`rich-text${className ? ` ${className}` : ''}`} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
+/** Texto puro em paragrafos HTML, uma linha por paragrafo (como o servidor faz com texto sem marcacao). */
+export function plainTextToHtml(text: string) {
+  const escape = (line: string) => line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return text
+    .split('\n')
+    .map((line) => `<p>${escape(line)}</p>`)
+    .join('');
+}
+
 /** Texto sem formatacao de um HTML (para validar tamanho minimo). */
 export function htmlToPlainText(html: string) {
   return new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';

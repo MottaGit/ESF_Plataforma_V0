@@ -876,6 +876,29 @@ button { font: inherit; }
 .status-tile--alert .status-tile__value,
 .status-tile--alert .status-tile__label { color: var(--danger); }
 
+/* Todas as tarefas concluidas com o projeto ainda aberto: sugestao de concluir. */
+.closing-notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid #cfe2dd;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 13.5px;
+}
+.closing-notice__text { flex: 1 1 260px; }
+.closing-notice__actions { display: flex; gap: 6px; margin-left: auto; }
+
+/* Janela de concluir ou cancelar o projeto. */
+.close-project { display: grid; gap: 14px; }
+.close-project__intro { font-size: 13.5px; color: var(--text-muted); }
+.close-project__open { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.close-project__open span { flex: 1 1 240px; }
+
 /* Feed do andamento: uma coluna com largura confortavel de leitura. */
 .feed { max-width: 760px; margin: 0 auto; }
 .update-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }

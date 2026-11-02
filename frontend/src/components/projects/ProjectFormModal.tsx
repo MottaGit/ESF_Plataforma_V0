@@ -6,6 +6,7 @@ import {
   PROJECT_STATUSES,
   SENSITIVE_DATA_HINT,
   emptyToNull,
+  isPastProjectStatus,
   projectStatusLabel,
   todayInputValue
 } from '../../utils/format';
@@ -49,6 +50,14 @@ interface FormState {
   startDate: string;
   endDateForecast: string;
   status: ProjectStatus;
+}
+
+/** Ao passar para concluido ou cancelado aqui (sem a confirmacao do topo do projeto), avisa das tarefas em aberto. */
+function closingHint(project: ProjectDetail | null, status: ProjectStatus) {
+  if (!project || project.status === status || !isPastProjectStatus(status)) return undefined;
+  const open = project.activities.filter((activity) => activity.status !== 'Concluida').length;
+  if (open === 0) return undefined;
+  return open === 1 ? 'Ainda há 1 tarefa em aberto neste projeto.' : `Ainda há ${open} tarefas em aberto neste projeto.`;
 }
 
 function initialState(project: ProjectDetail | null, fallbackProgramId: string): FormState {
@@ -414,7 +423,7 @@ export function ProjectFormModal({
                   />
                 </Field>
 
-                <Field label="Status" htmlFor="status" required>
+                <Field label="Status" htmlFor="status" required hint={closingHint(project, form.status)}>
                   <Select
                     id="status"
                     value={form.status}

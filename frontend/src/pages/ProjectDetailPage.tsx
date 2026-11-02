@@ -5,6 +5,7 @@ import { programsApi, projectsApi, reportsApi, volunteersApi } from '../api/endp
 import { AboutTab } from '../components/projects/AboutTab';
 import { ActivitiesTab } from '../components/projects/ActivitiesTab';
 import { AndamentoTab } from '../components/projects/AndamentoTab';
+import { CloseProjectDialog } from '../components/projects/CloseProjectDialog';
 import { FilesTab } from '../components/projects/FilesTab';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { ProjectStatusStrip } from '../components/projects/ProjectStatusStrip';
@@ -12,12 +13,12 @@ import { TeamTab } from '../components/projects/TeamTab';
 import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, Loading } from '../components/ui/Feedback';
-import { IconCalendar, IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
+import { IconCalendar, IconCheck, IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectStatus, Volunteer } from '../types/api';
-import { deadlineLabel } from '../utils/format';
+import { deadlineLabel, isPastProjectStatus } from '../utils/format';
 import { projectsListPath } from '../utils/listState';
 
 type TabKey = 'updates' | 'activities' | 'team' | 'files' | 'about';
@@ -30,6 +31,25 @@ const TAB_PARAMS: Record<TabKey, string> = {
   files: 'arquivos',
   about: 'sobre'
 };
+
+/** "Agora nao" na sugestao de concluir o projeto: guardado na sessao do navegador, por projeto. */
+const closingDismissedKey = (projectId: string) => `esf.sugestao-concluir.${projectId}`;
+
+function isClosingDismissed(projectId: string) {
+  try {
+    return sessionStorage.getItem(closingDismissedKey(projectId)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function rememberClosingDismissed(projectId: string) {
+  try {
+    sessionStorage.setItem(closingDismissedKey(projectId), '1');
+  } catch {
+    // Sem armazenamento disponivel, a sugestao so some ate sair da pagina.
+  }
+}
 
 function tabFromParam(value: string | null): TabKey {
   // "atividades" e o nome antigo da aba, que links ja enviados ainda usam.
@@ -64,6 +84,9 @@ export function ProjectDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [generating, setGenerating] = useState(false);
+  /** Concluir ou cancelar passa pela confirmacao (tarefas em aberto e registro de encerramento). */
+  const [closing, setClosing] = useState<'Concluido' | 'Cancelado' | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     setError(null);
@@ -86,12 +109,28 @@ export function ProjectDetailPage() {
   }, []);
 
   async function changeStatus(status: ProjectStatus) {
+    if (status === 'Concluido' || status === 'Cancelado') {
+      setClosing(status);
+      return;
+    }
     try {
       setProject(await projectsApi.updateStatus(id, status));
       notify('Status atualizado.');
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível alterar o status.');
     }
+  }
+
+  function handleClosed(recordError: string | null) {
+    if (recordError) notifyError(`O status mudou, mas o registro de encerramento não foi publicado: ${recordError}`);
+    else notify(closing === 'Cancelado' ? 'Projeto cancelado.' : 'Projeto concluído.');
+    setClosing(null);
+    void load();
+  }
+
+  function dismissClosingSuggestion() {
+    rememberClosingDismissed(id);
+    setDismissedIds((current) => [...current, id]);
   }
 
   async function generateReport() {
@@ -133,6 +172,14 @@ export function ProjectDetailPage() {
     { key: 'files', label: 'Arquivos', count: project.files.length },
     { key: 'about', label: 'Sobre' }
   ];
+
+  // Todas as tarefas concluidas e o projeto ainda aberto: sugere concluir ("Agora nao" vale ate fechar o navegador).
+  const suggestClosing =
+    project.activities.length > 0 &&
+    project.activities.every((activity) => activity.status === 'Concluida') &&
+    !isPastProjectStatus(project.status) &&
+    !dismissedIds.includes(project.id) &&
+    !isClosingDismissed(project.id);
 
   return (
     <>
@@ -177,6 +224,23 @@ export function ProjectDetailPage() {
 
       <ProjectStatusStrip project={project} onOpenTab={openTab} />
 
+      {suggestClosing ? (
+        <div className="closing-notice" role="status">
+          <IconCheck size={18} />
+          <span className="closing-notice__text">
+            Todas as tarefas estão concluídas. Se a entrega foi feita, conclua o projeto.
+          </span>
+          <div className="closing-notice__actions">
+            <Button small variant="ghost" onClick={dismissClosingSuggestion}>
+              Agora não
+            </Button>
+            <Button small variant="primary" onClick={() => setClosing('Concluido')}>
+              Concluir projeto
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       <ScrollTabs activeKey={tab}>
         {tabs.map((item) => (
           <button
@@ -206,6 +270,19 @@ export function ProjectDetailPage() {
       {tab === 'team' ? <TeamTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'about' ? <AboutTab project={project} canManage={canManage} onChanged={() => void load()} /> : null}
+
+      {closing ? (
+        <CloseProjectDialog
+          project={project}
+          status={closing}
+          onCancel={() => setClosing(null)}
+          onClosed={handleClosed}
+          onOpenTasks={() => {
+            setClosing(null);
+            openTab('activities');
+          }}
+        />
+      ) : null}
 
       {editing ? (
         <ProjectFormModal

@@ -248,6 +248,15 @@ bloqueadas e equipe, cada uma levando à aba correspondente) e cinco abas: **And
 então links diretos e recarregar a página caem no lugar certo. No celular, quando as abas não cabem, aparece uma seta
 com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. Relatório do projeto em um clique.
 
+**Concluir ou cancelar o projeto** — escolher Concluído ou Cancelado no badge do topo abre uma confirmação: avisa
+quantas tarefas ainda estão em aberto (com atrasadas e bloqueadas, e o botão "Ver tarefas") e pede, sem obrigar, um
+**registro de encerramento** (ou o motivo do cancelamento), que é publicado no Andamento como um registro comum e por
+isso entra no relatório. Os outros status mudam direto. Em Editar projeto, escolher um desses status mostra o mesmo
+aviso de tarefas em aberto embaixo do campo. Quando todas as tarefas estão concluídas e o projeto ainda está em
+planejamento, em andamento ou pausado, aparece abaixo da faixa de situação a sugestão "Todas as tarefas estão
+concluídas…" com **Concluir projeto** (abre a mesma confirmação) e **Agora não** (some daquele projeto até fechar o
+navegador).
+
 **Tarefas** — título, descrição, responsável, status (não iniciada / em andamento / bloqueada / concluída; ao bloquear, um motivo opcional), prioridade
 (baixa / média / alta), prazo e observações. A lista tem duas seções sempre visíveis: **Em aberto** (não iniciadas
 primeiro, depois em andamento e bloqueadas, reordenando na hora quando o status muda) e **Concluídas**. Há caixinha para concluir em
