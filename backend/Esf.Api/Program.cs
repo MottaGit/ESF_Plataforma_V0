@@ -77,6 +77,16 @@ builder.Services
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1)
         };
+        options.Events = new JwtBearerEvents
+        {
+            // Sessao de antes dos nucleos (o token nao diz de qual nucleo a pessoa e): pede para entrar de novo.
+            OnTokenValidated = context =>
+            {
+                if (context.Principal?.FindFirst(CurrentUser.OrganizationClaim) is null)
+                    context.Fail("Sessao sem nucleo.");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>

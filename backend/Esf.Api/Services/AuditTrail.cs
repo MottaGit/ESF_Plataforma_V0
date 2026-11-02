@@ -145,6 +145,8 @@ public static class AuditTrail
             var (type, label, id, projectId) = Describe(entry.Entity);
             db.AuditEntries.Add(new AuditEntry
             {
+                // Cada nucleo ve so o proprio historico; o da gestao nacional fica sem nucleo.
+                OrganizationId = db.CurrentOrganizationId,
                 At = DateTime.UtcNow,
                 UserId = userId,
                 UserName = Truncate(userName, 160),

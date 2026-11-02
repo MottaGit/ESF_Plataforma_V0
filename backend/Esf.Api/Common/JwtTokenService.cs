@@ -24,6 +24,9 @@ public class JwtTokenService
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, user.Role.ToString())
         };
+        // Nucleo do acesso: e por ele que as consultas filtram os dados (ver EsfDbContext).
+        if (user.OrganizationId.HasValue)
+            claims.Add(new Claim(CurrentUser.OrganizationClaim, user.OrganizationId.Value.ToString()));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
         var token = new JwtSecurityToken(

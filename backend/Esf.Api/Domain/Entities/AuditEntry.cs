@@ -8,6 +8,10 @@ namespace Esf.Api.Domain.Entities;
 public class AuditEntry
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>Nucleo em que aconteceu (cada nucleo ve so o proprio historico).</summary>
+    public Guid? OrganizationId { get; set; }
+
     public DateTime At { get; set; } = DateTime.UtcNow;
 
     public Guid? UserId { get; set; }

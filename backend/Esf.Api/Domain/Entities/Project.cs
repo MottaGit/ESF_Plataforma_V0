@@ -1,8 +1,11 @@
 namespace Esf.Api.Domain.Entities;
 
-public class Project
+public class Project : IOrganizationOwned
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>Nucleo dono do projeto (o mesmo do programa).</summary>
+    public Guid OrganizationId { get; set; }
 
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }

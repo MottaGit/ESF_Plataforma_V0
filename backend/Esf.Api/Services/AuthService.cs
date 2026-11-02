@@ -25,7 +25,9 @@ public class AuthService
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _db.Users.Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+        // Antes de entrar ainda nao se sabe o nucleo: o e-mail e unico em toda a plataforma.
+        var user = await _db.Users.IgnoreQueryFilters().Include(u => u.Volunteer)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
         if (user is null)
             throw new AppException("E-mail ou senha incorretos.", StatusCodes.Status401Unauthorized);

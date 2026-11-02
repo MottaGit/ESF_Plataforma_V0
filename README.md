@@ -447,6 +447,19 @@ Monólito simples, sem microserviços, filas, cache distribuído ou CQRS. As res
 Os serviços não conhecem HTTP e os controllers não conhecem EF Core. É esse acoplamento baixo que permite, na V1,
 reorganizar o projeto em módulos com Clean Architecture e DDD sem reescrever as regras.
 
+**Núcleos (vários núcleos numa plataforma só)** — o registro `Organizations` é o núcleo (nome, CNPJ, logo, quem
+assina). Voluntários, programas, projetos, acessos e o histórico de alterações guardam o núcleo (`OrganizationId`); o
+resto (tarefas, indicadores, registros, arquivos, equipe, comentários, checklist, avisos, documentos, modelos de
+programa, links de acesso) herda o do projeto, do voluntário, da tarefa ou do programa. A separação fica no
+`EsfDbContext`, num **filtro global por núcleo** em todas essas tabelas: toda consulta só enxerga o núcleo de quem está
+logado (vem no token, claim `org`), sem depender de cada tela lembrar. Registro novo de voluntário, programa ou
+projeto entra sozinho no núcleo atual ao salvar, e as validações de "existe?" usam consultas filtradas, então um id de
+outro núcleo é recusado. Só três pontos olham todos os núcleos, de propósito e com `IgnoreQueryFilters`: o login (o
+e-mail é único na plataforma inteira), o link de acesso (rota pública) e a checagem de e-mail repetido. Rotinas
+internas (dados de demonstração) usam `AllOrganizations`. Sessões de antes dos núcleos (token sem `org`) pedem para
+entrar de novo. Na atualização, a migração `AddNucleos` põe todos os dados existentes no núcleo já cadastrado (o
+mesmo registro usado nos termos e certificados); um banco com dados e sem esse registro ganha um.
+
 **Bibliotecas usadas:** Npgsql/EF Core (persistência), BCrypt.Net (hash de senha), JwtBearer (autenticação),
 QuestPDF (relatórios), Swashbuckle (Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
 
@@ -507,7 +520,7 @@ ESF_Plataforma_V0/
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com papel no projeto |
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento |
 | `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
-| `Organizations` | dados institucionais (registro único) |
+| `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
 | `AuditEntries` | histórico de alterações: quem fez, quando, o quê e os campos alterados (antes e depois) |

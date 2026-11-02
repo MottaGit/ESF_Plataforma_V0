@@ -3,6 +3,10 @@ namespace Esf.Api.Domain.Entities;
 public class User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>Nucleo do acesso (o mesmo do voluntario). Vazio so em contas da gestao nacional.</summary>
+    public Guid? OrganizationId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

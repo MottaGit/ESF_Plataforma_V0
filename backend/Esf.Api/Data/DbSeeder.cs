@@ -16,6 +16,8 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(EsfDbContext db, string demoPassword, ILogger logger)
     {
+        // Rotina interna, sem login: ve todos os nucleos.
+        db.AllOrganizations = true;
         var hasUsers = await db.Users.AnyAsync();
         var hasOrg = await db.Organizations.AnyAsync();
 
@@ -48,6 +50,8 @@ public static class DbSeeder
         logger.LogInformation("Banco vazio: criando dados iniciais de demonstracao.");
 
         var org = db.Organizations.Local.FirstOrDefault() ?? await db.Organizations.FirstAsync();
+        // Voluntarios, programas e projetos da demonstracao entram neste nucleo ao salvar.
+        db.OrganizationOverride = org.Id;
 
         // Datas relativas ao dia em que o banco e criado, para a demonstracao nao envelhecer: tarefas vencidas,
         // proximas e concluidas aparecem sempre perto de "hoje".
@@ -57,9 +61,9 @@ public static class DbSeeder
 
         var hash = BCrypt.Net.BCrypt.HashPassword(demoPassword);
 
-        var leonardo = new User { Name = "Leonardo Motta", Email = "leonardo.motta@esf.org.br", PasswordHash = hash, Role = UserRole.Administrador };
-        var ana = new User { Name = "Ana Aumond", Email = "ana.aumond@esf.org.br", PasswordHash = hash, Role = UserRole.Coordenador };
-        var fausto = new User { Name = "Fausto da Silva", Email = "fausto.silva@esf.org.br", PasswordHash = hash, Role = UserRole.Usuario };
+        var leonardo = new User { OrganizationId = org.Id, Name = "Leonardo Motta", Email = "leonardo.motta@esf.org.br", PasswordHash = hash, Role = UserRole.Administrador };
+        var ana = new User { OrganizationId = org.Id, Name = "Ana Aumond", Email = "ana.aumond@esf.org.br", PasswordHash = hash, Role = UserRole.Coordenador };
+        var fausto = new User { OrganizationId = org.Id, Name = "Fausto da Silva", Email = "fausto.silva@esf.org.br", PasswordHash = hash, Role = UserRole.Usuario };
         db.Users.AddRange(leonardo, ana, fausto);
 
         // Checklist da tarefa: (texto, dia em que foi feito; vazio = pendente).

@@ -9,11 +9,16 @@ public interface ICurrentUser
     string? Name { get; }
     UserRole? Role { get; }
     bool IsAdmin { get; }
+    /// <summary>Nucleo de quem esta logado (vazio em conta so da gestao nacional ou sem login).</summary>
+    Guid? OrganizationId { get; }
     Guid RequireId();
 }
 
 public class CurrentUser : ICurrentUser
 {
+    /// <summary>Claim do token com o nucleo do acesso.</summary>
+    public const string OrganizationClaim = "org";
+
     private readonly ClaimsPrincipal? _principal;
 
     public CurrentUser(IHttpContextAccessor accessor)
@@ -30,6 +35,9 @@ public class CurrentUser : ICurrentUser
         Enum.TryParse<UserRole>(_principal?.FindFirst(ClaimTypes.Role)?.Value, out var role) ? role : null;
 
     public bool IsAdmin => Role == UserRole.Administrador;
+
+    public Guid? OrganizationId =>
+        Guid.TryParse(_principal?.FindFirst(OrganizationClaim)?.Value, out var id) ? id : null;
 
     public Guid RequireId() => Id ?? throw new AppException("Sessao invalida.", StatusCodes.Status401Unauthorized);
 }

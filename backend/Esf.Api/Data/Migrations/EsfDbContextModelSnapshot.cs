@@ -207,6 +207,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uuid");
 
@@ -221,6 +224,8 @@ namespace Esf.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("At");
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("ProjectId");
 
@@ -501,6 +506,9 @@ namespace Esf.Api.Data.Migrations
                     b.Property<string>("Objective")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("OwnerVolunteerId")
                         .HasColumnType("uuid");
 
@@ -527,6 +535,8 @@ namespace Esf.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("OwnerVolunteerId");
 
@@ -617,6 +627,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -632,7 +645,7 @@ namespace Esf.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("OrganizationId", "Name")
                         .IsUnique();
 
                     b.ToTable("Programs");
@@ -799,6 +812,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -820,6 +836,8 @@ namespace Esf.Api.Data.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("VolunteerId")
                         .IsUnique();
@@ -857,6 +875,9 @@ namespace Esf.Api.Data.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
@@ -877,6 +898,8 @@ namespace Esf.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("Sector");
 
@@ -1027,6 +1050,12 @@ namespace Esf.Api.Data.Migrations
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.Project", b =>
                 {
+                    b.HasOne("Esf.Api.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Esf.Api.Domain.Entities.Volunteer", "OwnerVolunteer")
                         .WithMany()
                         .HasForeignKey("OwnerVolunteerId")
@@ -1073,6 +1102,15 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("ProjectUpdate");
 
                     b.Navigation("UploadedByUser");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectProgram", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectUpdate", b =>
@@ -1131,12 +1169,26 @@ namespace Esf.Api.Data.Migrations
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.User", b =>
                 {
+                    b.HasOne("Esf.Api.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Esf.Api.Domain.Entities.Volunteer", "Volunteer")
                         .WithOne()
                         .HasForeignKey("Esf.Api.Domain.Entities.User", "VolunteerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Volunteer");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.Volunteer", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.VolunteerStatusChange", b =>

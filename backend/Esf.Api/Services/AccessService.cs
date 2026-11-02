@@ -47,11 +47,13 @@ public class AccessService
         var email = volunteer.Email?.Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(email))
             throw new AppException("Cadastre o e-mail do voluntario antes de dar acesso: ele e o login.");
-        if (await _db.Users.AnyAsync(u => u.Email.ToLower() == email))
+        // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
+        if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email.ToLower() == email))
             throw AppException.Conflict("Ja existe um acesso com este e-mail.");
 
         var user = new User
         {
+            OrganizationId = volunteer.OrganizationId,
             Name = volunteer.Name,
             Email = email,
             // Sem senha ate a pessoa usar o link (o login recusa enquanto isso).
@@ -124,7 +126,8 @@ public class AccessService
     private async Task<(AccessLink Link, User User)> FindValidAsync(string token)
     {
         var hash = Hash(token);
-        var link = await _db.AccessLinks
+        // Rota publica: ainda nao ha login (nem nucleo); o codigo do link e que identifica a pessoa.
+        var link = await _db.AccessLinks.IgnoreQueryFilters()
             .Include(l => l.User).ThenInclude(u => u!.Volunteer)
             .FirstOrDefaultAsync(l => l.TokenHash == hash);
 

@@ -7,9 +7,13 @@ namespace Esf.Api.Domain.Entities;
 /// Nomeado ProjectProgram (nao "Program") para nao colidir com a classe Program gerada
 /// pelos top-level statements de Program.cs.
 /// </summary>
-public class ProjectProgram
+public class ProjectProgram : IOrganizationOwned
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>Nucleo dono do programa (cada nucleo tem os seus).</summary>
+    public Guid OrganizationId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public ProgramStatus Status { get; set; } = ProgramStatus.Ativo;
 

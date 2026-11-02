@@ -1,6 +1,9 @@
 namespace Esf.Api.Domain.Entities;
 
-/// <summary>Dados institucionais. A V0 mantem um unico registro.</summary>
+/// <summary>
+/// Nucleo: os dados institucionais de cada nucleo (nome, CNPJ, quem assina os termos e certificados). Projetos,
+/// programas, voluntarios e acessos pertencem a um nucleo; cada um so enxerga os proprios dados.
+/// </summary>
 public class Organization
 {
     public Guid Id { get; set; } = Guid.NewGuid();

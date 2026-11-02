@@ -1,3 +1,5 @@
+using Esf.Api.Common;
+using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,7 +7,27 @@ namespace Esf.Api.Data;
 
 public class EsfDbContext : DbContext
 {
-    public EsfDbContext(DbContextOptions<EsfDbContext> options) : base(options) { }
+    private readonly ICurrentUser? _currentUser;
+
+    public EsfDbContext(DbContextOptions<EsfDbContext> options, ICurrentUser? currentUser = null) : base(options)
+    {
+        _currentUser = currentUser;
+    }
+
+    /// <summary>
+    /// Nucleo cujos dados as consultas enxergam: o de quem esta logado (ou o fixado em OrganizationOverride).
+    /// Sem nucleo (sem login, conta so da gestao nacional), nenhum dado de nucleo aparece.
+    /// </summary>
+    public Guid? CurrentOrganizationId => OrganizationOverride ?? _currentUser?.OrganizationId;
+
+    /// <summary>Nucleo fixado a mao (dados de demonstracao, rotinas internas), no lugar do de quem esta logado.</summary>
+    public Guid? OrganizationOverride { get; set; }
+
+    /// <summary>
+    /// Desliga o filtro por nucleo neste contexto: so para rotinas internas (migracao, dados de demonstracao) e para
+    /// os numeros agregados da gestao nacional. Nunca para devolver dados de um nucleo a quem e de outro.
+    /// </summary>
+    public bool AllOrganizations { get; set; }
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Volunteer> Volunteers => Set<Volunteer>();
@@ -28,6 +50,29 @@ public class EsfDbContext : DbContext
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
     public DbSet<AccessLink> AccessLinks => Set<AccessLink>();
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        StampOrganization();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        StampOrganization();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    /// <summary>Registro novo de nucleo (voluntario, programa, projeto) entra no nucleo atual, se nao veio com um.</summary>
+    private void StampOrganization()
+    {
+        foreach (var entry in ChangeTracker.Entries<IOrganizationOwned>())
+        {
+            if (entry.State != EntityState.Added || entry.Entity.OrganizationId != Guid.Empty) continue;
+            entry.Entity.OrganizationId = CurrentOrganizationId
+                ?? throw AppException.Forbidden("So quem e de um nucleo pode cadastrar dados nele.");
+        }
+    }
+
     /// <summary>Funcao esf_fold do banco: minusculas e sem acento (busca geral). So vale dentro de consultas.</summary>
     public static string Fold(string text) => throw new NotSupportedException("Use apenas em consultas.");
 
@@ -46,7 +91,9 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Name).HasMaxLength(160).IsRequired();
             e.Property(x => x.Email).HasMaxLength(200).IsRequired();
             e.Property(x => x.PasswordHash).HasMaxLength(300).IsRequired();
+            // Um e-mail, um acesso, em toda a plataforma (o login nao pergunta o nucleo).
             e.HasIndex(x => x.Email).IsUnique();
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
 
             // Cada voluntario tem no maximo um acesso (indice unico criado pelo 1:1).
             e.HasOne(x => x.Volunteer)
@@ -71,6 +118,7 @@ public class EsfDbContext : DbContext
             e.Property(x => x.PhotoStoredName).HasMaxLength(160);
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.Sector);
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<Project>(e =>
@@ -84,6 +132,7 @@ public class EsfDbContext : DbContext
             e.Property(x => x.State).HasMaxLength(60);
             e.HasIndex(x => x.Status);
             e.HasIndex(x => x.Name);
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(x => x.OwnerVolunteer)
                 .WithMany()
@@ -99,7 +148,9 @@ public class EsfDbContext : DbContext
         b.Entity<ProjectProgram>(e =>
         {
             e.Property(x => x.Name).HasMaxLength(120).IsRequired();
-            e.HasIndex(x => x.Name).IsUnique();
+            // Nome unico dentro do nucleo (nucleos diferentes podem ter programas com o mesmo nome).
+            e.HasIndex(x => new { x.OrganizationId, x.Name }).IsUnique();
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
             e.Property(x => x.Icon).HasMaxLength(20).IsRequired();
             e.Property(x => x.Color).HasMaxLength(20).IsRequired();
             e.Property(x => x.TemplateTargetAudience).HasMaxLength(300);
@@ -192,6 +243,7 @@ public class EsfDbContext : DbContext
             e.HasIndex(x => x.At);
             e.HasIndex(x => x.ProjectId);
             e.HasIndex(x => x.UserId);
+            e.HasIndex(x => x.OrganizationId);
         });
 
         b.Entity<SignedDocument>(e =>
@@ -294,5 +346,47 @@ public class EsfDbContext : DbContext
             e.Property(x => x.SignatoryNote).HasMaxLength(80);
             e.Property(x => x.SignatureStoredName).HasMaxLength(160);
         });
+
+        ApplyOrganizationFilters(b);
+    }
+
+    /// <summary>
+    /// Separacao entre nucleos: toda consulta so enxerga os dados do nucleo atual (CurrentOrganizationId). Os
+    /// registros que nao guardam o nucleo herdam o do projeto, do voluntario, da tarefa ou do programa a que
+    /// pertencem. Arquivos (StoredFiles) ficam de fora: sao achados pelo nome unico que so o dono conhece.
+    /// </summary>
+    private void ApplyOrganizationFilters(ModelBuilder b)
+    {
+        b.Entity<Organization>().HasQueryFilter(x => AllOrganizations || x.Id == CurrentOrganizationId);
+        b.Entity<User>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+        b.Entity<Volunteer>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProjectProgram>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+        b.Entity<Project>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+        b.Entity<AuditEntry>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+
+        b.Entity<Activity>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<Indicator>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProjectUpdate>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProjectFile>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProjectVolunteer>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ActivityChecklistItem>()
+            .HasQueryFilter(x => AllOrganizations || x.Activity!.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ActivityComment>()
+            .HasQueryFilter(x => AllOrganizations || x.Activity!.Project!.OrganizationId == CurrentOrganizationId);
+
+        b.Entity<VolunteerStatusChange>()
+            .HasQueryFilter(x => AllOrganizations || x.Volunteer!.OrganizationId == CurrentOrganizationId);
+        b.Entity<Notification>()
+            .HasQueryFilter(x => AllOrganizations || x.Volunteer!.OrganizationId == CurrentOrganizationId);
+        b.Entity<SignedDocument>().HasQueryFilter(x => AllOrganizations
+            || (x.VolunteerId != null && x.Volunteer!.OrganizationId == CurrentOrganizationId)
+            || (x.ProjectId != null && x.Project!.OrganizationId == CurrentOrganizationId));
+
+        b.Entity<ProgramTemplateActivity>()
+            .HasQueryFilter(x => AllOrganizations || x.Program!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProgramTemplateIndicator>()
+            .HasQueryFilter(x => AllOrganizations || x.Program!.OrganizationId == CurrentOrganizationId);
+
+        b.Entity<AccessLink>().HasQueryFilter(x => AllOrganizations || x.User!.OrganizationId == CurrentOrganizationId);
     }
 }

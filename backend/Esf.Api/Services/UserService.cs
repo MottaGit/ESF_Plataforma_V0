@@ -34,7 +34,8 @@ public class UserService
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Usuario");
 
         var email = request.Email.Trim().ToLowerInvariant();
-        if (await _db.Users.AnyAsync(u => u.Id != id && u.Email.ToLower() == email))
+        // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
+        if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id != id && u.Email.ToLower() == email))
             throw AppException.Conflict("Ja existe um usuario com este e-mail.");
 
         if (id == currentUserId && !request.IsActive)

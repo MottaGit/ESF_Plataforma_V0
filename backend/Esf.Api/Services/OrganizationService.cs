@@ -85,17 +85,9 @@ public class OrganizationService
         return Mapping.ToDto(org);
     }
 
-    /// <summary>A V0 mantem um unico registro institucional; cria na primeira chamada se nao existir.</summary>
-    private async Task<Organization> GetEntityAsync()
-    {
-        var org = await _db.Organizations.OrderBy(o => o.UpdatedAt).FirstOrDefaultAsync();
-        if (org is not null) return org;
-
-        org = new Organization { Name = "Engenheiros Sem Fronteiras", UpdatedAt = DateTime.UtcNow };
-        _db.Organizations.Add(org);
-        await _db.SaveChangesAsync();
-        return org;
-    }
+    /// <summary>O nucleo de quem esta logado (o filtro por nucleo deixa so ele visivel).</summary>
+    private async Task<Organization> GetEntityAsync() =>
+        await _db.Organizations.FirstOrDefaultAsync() ?? throw AppException.NotFound("Nucleo");
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
