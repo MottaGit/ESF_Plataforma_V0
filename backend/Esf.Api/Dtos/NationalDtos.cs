@@ -86,3 +86,42 @@ public class SaveNationalIndicatorRequest
     [StringLength(600, ErrorMessage = "A explicacao deve ter no maximo 600 caracteres.")]
     public string? Description { get; set; }
 }
+
+/// <summary>
+/// Painel nacional: numeros de todos os nucleos, sem dados pessoais. Tarefas concluidas, registros e horas valem no
+/// periodo (From-To; sem ponta, sem limite); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+/// </summary>
+public record NationalPanelDto(
+    DateOnly? From,
+    DateOnly? To,
+    NationalTotalsDto Totals,
+    List<NationalIndicatorTotalDto> Indicators,
+    List<NationalNucleoRowDto> Nucleos);
+
+public record NationalTotalsDto(
+    int Nucleos,
+    int ActiveProjects,
+    int ConcludedProjects,
+    int ActiveVolunteers,
+    int VolunteerHours,
+    int TasksCompleted,
+    int Records);
+
+/// <summary>Indicador nacional somado em todos os nucleos (valores atuais dos projetos nao arquivados).</summary>
+public record NationalIndicatorTotalDto(Guid Id, string Name, string? Unit, decimal Total);
+
+public record NationalNucleoRowDto(
+    Guid Id,
+    string Name,
+    string? City,
+    string? State,
+    int ActiveProjects,
+    int ConcludedProjects,
+    int ActiveVolunteers,
+    int VolunteerHours,
+    int TasksCompleted,
+    int Records,
+    // Ultimo registro de andamento ou tarefa concluida (mostra quem esta usando de fato).
+    DateTime? LastActivityAt,
+    // Valor de cada indicador nacional neste nucleo (id do indicador -> soma).
+    Dictionary<Guid, decimal> Indicators);

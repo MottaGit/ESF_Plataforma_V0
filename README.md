@@ -392,6 +392,14 @@ voluntários mostra uma chave ao lado de quem tem acesso (cinza enquanto aguarda
 voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo.
 
 **Gestão nacional** — a área **Nacional** do menu (só para quem tem a permissão; `/nacional`) tem as abas:
+- **Painel** (a primeira): os números de todos os núcleos, no total (cartões) e numa tabela por núcleo — projetos em
+  andamento e concluídos, voluntários ativos, horas de voluntariado (dias como Ativo × 6 h/semana, a mesma regra do
+  perfil do voluntário), tarefas concluídas, registros de andamento, data da última atividade (último registro ou
+  tarefa concluída: mostra quem está usando de fato) e uma coluna por indicador nacional. Os indicadores nacionais
+  aparecem também somados em cartões. Horas, tarefas e registros contam no **período** escolhido (de início, o ano
+  corrente); projetos, voluntários e indicadores são a situação de hoje (os indicadores não guardam histórico;
+  somam os projetos não arquivados pelo vínculo com o indicador nacional). Só números: nada de nomes de pessoas
+  nem de projetos.
 - **Núcleos**: cada núcleo com cidade/UF, voluntários ativos, projetos em andamento e quem o administra (nome,
   e-mail, situação do acesso). **Novo núcleo** pede nome, cidade, estado e quem vai administrar: a pessoa entra como
   voluntária e administradora do núcleo novo e recebe o link de primeiro acesso; os demais dados do núcleo (CNPJ, logo,
@@ -625,6 +633,7 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |
 | GET/POST | `/api/access/{código}` | públicas: dados do link e criação da senha (com o aceite da política), já devolvendo o login |
+| GET | `/api/national/panel?from=&to=` | gestão nacional: painel com os números de todos os núcleos (total e por núcleo) e os indicadores nacionais somados; o período vale para horas, tarefas e registros |
 | GET/POST/PUT | `/api/national/nucleos[/{id}]` | gestão nacional: núcleos com números gerais e administradores; núcleo novo já com quem administra (devolve o link) |
 | POST | `/api/national/nucleos/{id}/admins[/{userId}/access-link]` | gestão nacional: mais um administrador para o núcleo; link novo para um administrador |
 | GET/POST/DELETE | `/api/national/people[/{userId}]` | gestão nacional: quem faz parte, incluir (conta nova com link ou permissão para um login de núcleo) e tirar |

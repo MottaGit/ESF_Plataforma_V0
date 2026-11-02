@@ -16,6 +16,11 @@ public class NationalController : ControllerBase
 
     public NationalController(NationalService national) => _national = national;
 
+    /// <summary>Painel: numeros de todos os nucleos; tarefas, registros e horas no periodo (from/to, opcionais).</summary>
+    [HttpGet("panel")]
+    public async Task<ActionResult<NationalPanelDto>> Panel([FromQuery] DateOnly? from, [FromQuery] DateOnly? to)
+        => Ok(await _national.PanelAsync(from, to));
+
     [HttpGet("nucleos")]
     public async Task<ActionResult<List<NucleoDto>>> Nucleos() => Ok(await _national.ListNucleosAsync());
 

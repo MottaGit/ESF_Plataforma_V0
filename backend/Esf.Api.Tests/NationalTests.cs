@@ -121,6 +121,47 @@ public class NationalTests
     }
 
     [Fact]
+    public async Task PanelAddsUpEveryNucleo()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var id = await CreateNationalAccountAsync(f);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // A conclui a tarefa dele; os dois ligam o mesmo indicador nacional.
+        await using (var system = f.SystemContext())
+        {
+            var task = await system.Activities.SingleAsync(a => a.Id == f.A.ActivityId);
+            task.Status = ActivityStatus.Concluida;
+            task.CompletedAt = DateTime.UtcNow;
+            await system.SaveChangesAsync();
+        }
+        NationalIndicatorDto people;
+        await using (var db = f.Context(NationalOnly(id)))
+            people = await new NationalIndicatorService(db).CreateAsync(new SaveNationalIndicatorRequest { Name = "Pessoas beneficiadas", Unit = "pessoas" });
+        foreach (var (nucleo, value) in new[] { (f.A, 8m), (f.B, 5m) })
+        {
+            await using var db = f.Context(nucleo.Admin);
+            await new IndicatorService(db).CreateAsync(nucleo.ProjectId,
+                new SaveIndicatorRequest { Name = "x", Value = value, NationalIndicatorId = people.Id });
+        }
+
+        await using var panelDb = f.Context(NationalOnly(id));
+        var national = new NationalService(panelDb, new AccessService(panelDb, Jwt(), NationalOnly(id)), NationalOnly(id));
+        var panel = await national.PanelAsync(today.AddDays(-10), today);
+
+        Assert.Equal(2, panel.Totals.Nucleos);
+        Assert.Equal(2, panel.Totals.ActiveProjects);
+        Assert.Equal(4, panel.Totals.ActiveVolunteers);
+        Assert.Equal(1, panel.Totals.TasksCompleted);
+        Assert.Equal(2, panel.Totals.Records);
+        // Voluntario ativo desde 30 dias atras: 11 dias no periodo de 10 dias para tras ate hoje = 9 horas (6 h/semana).
+        Assert.All(panel.Nucleos, n => Assert.Equal(9, n.VolunteerHours));
+        Assert.Equal(13, Assert.Single(panel.Indicators).Total);
+        Assert.Equal(8, panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).Indicators[people.Id]);
+        Assert.NotNull(panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).LastActivityAt);
+    }
+
+    [Fact]
     public async Task PeopleOfTheNationalManagement()
     {
         var f = await TwoNucleos.CreateAsync();

@@ -775,6 +775,21 @@ button { font: inherit; }
   vertical-align: 1px;
 }
 
+/* Painel nacional: numeros gerais e indicadores, em cartoes que se ajustam a largura. */
+.national-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.national-stat {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+.national-stat__value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.national-stat__value small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+.national-stat__label { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.national-stat--result { background: var(--accent-soft); border-color: #cfe2dd; }
+.national-stat--result .national-stat__value { color: var(--accent-text); }
+
 /* Gestao nacional: administradores de cada nucleo, um por linha, com o botao do link ao lado. */
 .admin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .admin-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

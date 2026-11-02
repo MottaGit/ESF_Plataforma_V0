@@ -15,6 +15,7 @@ import type {
   LoginResponse,
   Mentionable,
   NationalIndicator,
+  NationalPanel,
   NationalPerson,
   NationalPersonResult,
   NotificationList,
@@ -263,6 +264,9 @@ export const nationalIndicatorsApi = {
 
 /** Gestao nacional: nucleos, quem os administra e as pessoas da propria gestao nacional. */
 export const nationalApi = {
+  /** Numeros de todos os nucleos; tarefas, registros e horas no periodo (aaaa-mm-dd, opcionais). */
+  panel: (from: string | null, to: string | null) =>
+    http.request<NationalPanel>('/api/national/panel', { query: { from, to } }),
   nucleos: () => http.request<Nucleo[]>('/api/national/nucleos'),
   createNucleo: (payload: SaveNucleoPayload) =>
     http.request<NucleoAdminResult>('/api/national/nucleos', { method: 'POST', body: payload }),

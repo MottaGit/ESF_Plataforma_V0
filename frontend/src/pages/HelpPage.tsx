@@ -312,6 +312,17 @@ const NATIONAL_SECTION: HelpSection = {
       )
     },
     {
+      question: 'O que o painel nacional mostra?',
+      answer: (
+        <p>
+          Em <strong>Nacional › Painel</strong>, os números de todos os núcleos, no total e por núcleo: projetos em
+          andamento e concluídos, voluntários ativos, horas de voluntariado, tarefas concluídas, registros de andamento,
+          a data da última atividade de cada núcleo e os indicadores nacionais somados. Horas, tarefas e registros contam
+          no período escolhido (o ano corrente, de início); o resto é a situação de hoje.
+        </p>
+      )
+    },
+    {
       question: 'Como cadastro um núcleo novo?',
       answer: (
         <p>

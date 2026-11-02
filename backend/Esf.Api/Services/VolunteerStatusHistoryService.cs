@@ -226,6 +226,27 @@ public class VolunteerStatusHistoryService
         return periods;
     }
 
+    /// <summary>
+    /// Dias como Ativo de um voluntario dentro de um intervalo (sem ponta, sem limite daquele lado; nunca depois de
+    /// hoje), a partir das mudancas dele em ordem de data. Base das horas do painel nacional.
+    /// </summary>
+    public static int ActiveDays(IReadOnlyList<VolunteerStatusChange> changes, DateOnly? from, DateOnly? to)
+    {
+        var today = Mapping.Today;
+        var last = to.HasValue && to.Value < today ? to.Value : today;
+        var days = 0;
+        foreach (var period in Periods(changes).Where(p => p.Status == VolunteerStatus.Ativo))
+        {
+            var start = from.HasValue && from.Value > period.StartsOn ? from.Value : period.StartsOn;
+            var end = period.EndsOn.HasValue && period.EndsOn.Value < last ? period.EndsOn.Value : last;
+            if (end >= start) days += end.DayNumber - start.DayNumber + 1;
+        }
+        return days;
+    }
+
+    /// <summary>Horas de voluntariado de uma quantidade de dias como Ativo (carga semanal fixa).</summary>
+    public static int HoursFor(int activeDays) => (int)Math.Floor(activeDays / 7.0 * WeeklyHours);
+
     /// <summary>Dias como Ativo (contando o primeiro e o ultimo; o periodo atual vai ate hoje) x carga semanal.</summary>
     private static int Hours(IEnumerable<VolunteerStatusPeriodDto> periods)
     {

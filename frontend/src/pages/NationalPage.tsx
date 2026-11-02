@@ -12,12 +12,13 @@ import { Menu } from '../components/ui/Menu';
 import { Modal } from '../components/ui/Modal';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useToast } from '../context/ToastContext';
-import type { AccessLink, NationalIndicator, NationalPerson, Nucleo, NucleoAdmin } from '../types/api';
-import { emptyToNull } from '../utils/format';
+import type { AccessLink, NationalIndicator, NationalPanel, NationalPerson, Nucleo, NucleoAdmin } from '../types/api';
+import { emptyToNull, formatDate, formatNumber, todayInputValue } from '../utils/format';
 
-type TabKey = 'nucleos' | 'indicators' | 'people';
+type TabKey = 'panel' | 'nucleos' | 'indicators' | 'people';
 
 const tabs: Array<{ key: TabKey; label: string; slug: string }> = [
+  { key: 'panel', label: 'Painel', slug: 'painel' },
   { key: 'nucleos', label: 'Núcleos', slug: 'nucleos' },
   { key: 'indicators', label: 'Indicadores nacionais', slug: 'indicadores' },
   { key: 'people', label: 'Pessoas da gestão nacional', slug: 'pessoas' }
@@ -45,8 +46,8 @@ export function NationalPage() {
         <div className="page-head__text">
           <h1>Gestão nacional</h1>
           <p className="page-head__desc">
-            Os núcleos da plataforma, quem administra cada um e as pessoas da gestão nacional. Os dados de dentro dos
-            núcleos (voluntários, projetos, registros) ficam com cada núcleo.
+            Os números de todos os núcleos, os núcleos e quem administra cada um, os indicadores nacionais e as pessoas da
+            gestão nacional. Os dados de dentro dos núcleos (voluntários, projetos, registros) ficam com cada núcleo.
           </p>
         </div>
       </div>
@@ -64,9 +65,179 @@ export function NationalPage() {
         ))}
       </ScrollTabs>
 
+      {tab === 'panel' ? <PanelSection /> : null}
       {tab === 'nucleos' ? <NucleosSection /> : null}
       {tab === 'indicators' ? <NationalIndicatorsSection /> : null}
       {tab === 'people' ? <PeopleSection /> : null}
+    </>
+  );
+}
+
+/**
+ * Painel: os numeros de todos os nucleos, no total e por nucleo. Tarefas concluidas, registros e horas contam no
+ * periodo escolhido (o ano corrente, por padrao); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+ */
+function PanelSection() {
+  const today = todayInputValue();
+  const [from, setFrom] = useState(`${today.slice(0, 4)}-01-01`);
+  const [to, setTo] = useState(today);
+  const [panel, setPanel] = useState<NationalPanel | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const periodError = from && to && to < from ? 'O fim do período não pode ser antes do início.' : null;
+
+  useEffect(() => {
+    if (periodError) return;
+    let active = true;
+    setError(null);
+    nationalApi
+      .panel(from || null, to || null)
+      .then((result) => active && setPanel(result))
+      .catch((err) => active && setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o painel.'));
+    return () => {
+      active = false;
+    };
+  }, [from, to, periodError]);
+
+  const totals = panel?.totals;
+  const stats = totals
+    ? [
+        { label: 'núcleos', value: totals.nucleos },
+        { label: 'projetos em andamento', value: totals.activeProjects },
+        { label: 'projetos concluídos', value: totals.concludedProjects },
+        { label: 'voluntários ativos', value: totals.activeVolunteers },
+        { label: 'horas de voluntariado no período', value: totals.volunteerHours },
+        { label: 'tarefas concluídas no período', value: totals.tasksCompleted },
+        { label: 'registros de andamento no período', value: totals.records }
+      ]
+    : [];
+
+  return (
+    <>
+      <div className="toolbar">
+        <div className="field">
+          <span className="field__label">Período</span>
+          <div className="report-period">
+            <TextInput
+              type="date"
+              aria-label="Início do período"
+              value={from}
+              invalid={Boolean(periodError)}
+              onChange={(event) => setFrom(event.target.value)}
+            />
+            <span className="report-period__sep">a</span>
+            <TextInput
+              type="date"
+              aria-label="Fim do período"
+              value={to}
+              invalid={Boolean(periodError)}
+              onChange={(event) => setTo(event.target.value)}
+            />
+          </div>
+          {periodError ? <span className="field__error">{periodError}</span> : null}
+        </div>
+        <p className="field__hint" style={{ maxWidth: 420 }}>
+          O período vale para horas, tarefas concluídas e registros. Projetos, voluntários e indicadores mostram a
+          situação de hoje.
+        </p>
+      </div>
+
+      {error ? <Alert kind="error">{error}</Alert> : null}
+
+      {!panel ? (
+        <Loading label="Carregando o painel…" />
+      ) : (
+        <>
+          <div className="national-stats">
+            {stats.map((stat) => (
+              <div key={stat.label} className="national-stat">
+                <div className="national-stat__value num">{formatNumber(stat.value)}</div>
+                <div className="national-stat__label">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <section className="panel" style={{ marginTop: 16 }}>
+            <div className="panel__head">
+              <h2>Indicadores nacionais</h2>
+            </div>
+            <div className="panel__body">
+              {panel.indicators.length === 0 ? (
+                <EmptyState
+                  title="Nenhum indicador nacional"
+                  description="Cadastre na aba Indicadores nacionais; os núcleos escolhem nos projetos e a soma aparece aqui."
+                />
+              ) : (
+                <>
+                  <div className="national-stats">
+                    {panel.indicators.map((indicator) => (
+                      <div key={indicator.id} className="national-stat national-stat--result">
+                        <div className="national-stat__value num">
+                          {formatNumber(indicator.total)}
+                          {indicator.unit ? <small> {indicator.unit}</small> : null}
+                        </div>
+                        <div className="national-stat__label">{indicator.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="field__hint" style={{ marginTop: 10 }}>
+                    Valores atuais, somados nos projetos não arquivados que escolheram cada indicador nacional.
+                  </p>
+                </>
+              )}
+            </div>
+          </section>
+
+          <section className="panel" style={{ marginTop: 16 }}>
+            <div className="panel__head">
+              <h2>Por núcleo</h2>
+            </div>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Núcleo</th>
+                    <th className="tight">Projetos em andamento</th>
+                    <th className="tight">Concluídos</th>
+                    <th className="tight">Voluntários ativos</th>
+                    <th className="tight">Horas no período</th>
+                    <th className="tight">Tarefas no período</th>
+                    <th className="tight">Registros no período</th>
+                    <th className="tight">Última atividade</th>
+                    {panel.indicators.map((indicator) => (
+                      <th key={indicator.id} className="tight">
+                        {indicator.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {panel.nucleos.map((row) => (
+                    <tr key={row.id}>
+                      <td>
+                        <div className="table__primary">{row.name}</div>
+                        <div className="table__secondary">{[row.city, row.state].filter(Boolean).join(' / ') || '—'}</div>
+                      </td>
+                      <td className="tight num">{row.activeProjects}</td>
+                      <td className="tight num">{row.concludedProjects}</td>
+                      <td className="tight num">{row.activeVolunteers}</td>
+                      <td className="tight num">{formatNumber(row.volunteerHours)}</td>
+                      <td className="tight num">{row.tasksCompleted}</td>
+                      <td className="tight num">{row.records}</td>
+                      <td className="tight">{row.lastActivityAt ? formatDate(row.lastActivityAt) : 'nenhuma'}</td>
+                      {panel.indicators.map((indicator) => (
+                        <td key={indicator.id} className="tight num">
+                          {formatNumber(row.indicators[indicator.id] ?? 0)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
     </>
   );
 }

@@ -69,6 +69,43 @@ export interface SaveNucleoPayload {
   adminEmail?: string;
 }
 
+/**
+ * Painel nacional: numeros de todos os nucleos, sem dados pessoais. Tarefas, registros e horas valem no periodo;
+ * projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+ */
+export interface NationalPanel {
+  from: string | null;
+  to: string | null;
+  totals: {
+    nucleos: number;
+    activeProjects: number;
+    concludedProjects: number;
+    activeVolunteers: number;
+    volunteerHours: number;
+    tasksCompleted: number;
+    records: number;
+  };
+  indicators: Array<{ id: string; name: string; unit: string | null; total: number }>;
+  nucleos: NationalPanelRow[];
+}
+
+export interface NationalPanelRow {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  activeProjects: number;
+  concludedProjects: number;
+  activeVolunteers: number;
+  volunteerHours: number;
+  tasksCompleted: number;
+  records: number;
+  /** Ultimo registro de andamento ou tarefa concluida. */
+  lastActivityAt: string | null;
+  /** Valor de cada indicador nacional neste nucleo (id do indicador -> soma). */
+  indicators: Record<string, number>;
+}
+
 /** Quem faz parte da gestao nacional (conta so nacional ou acesso de alguem de um nucleo). */
 export interface NationalPerson {
   userId: string;

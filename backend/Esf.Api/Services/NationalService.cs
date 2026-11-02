@@ -48,6 +48,113 @@ public class NationalService
             .ToList();
     }
 
+    /// <summary>
+    /// Painel nacional: por nucleo e no total, so numeros. Tarefas concluidas, registros e horas de voluntariado
+    /// contam no periodo; projetos, voluntarios ativos e indicadores nacionais sao a situacao de hoje (os indicadores
+    /// nao guardam historico), somando os projetos nao arquivados pelo vinculo com o indicador nacional.
+    /// </summary>
+    public async Task<NationalPanelDto> PanelAsync(DateOnly? from, DateOnly? to)
+    {
+        if (from.HasValue && to.HasValue && to < from)
+            throw new AppException("O fim do periodo nao pode ser antes do inicio.");
+        var fromUtc = from?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var toUtc = to?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        var nucleos = await _db.Organizations.AsNoTracking().OrderBy(o => o.Name).ToListAsync();
+
+        var projects = await _db.Projects
+            .Where(p => !p.IsArchived)
+            .GroupBy(p => new { p.OrganizationId, p.Status })
+            .Select(g => new { g.Key.OrganizationId, g.Key.Status, Count = g.Count() })
+            .ToListAsync();
+        int ProjectsOf(Guid id, params ProjectStatus[] statuses) =>
+            projects.Where(p => p.OrganizationId == id && statuses.Contains(p.Status)).Sum(p => p.Count);
+
+        var volunteers = await _db.Volunteers
+            .Where(v => v.Status == VolunteerStatus.Ativo && v.AnonymizedAt == null)
+            .GroupBy(v => v.OrganizationId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count);
+
+        // Horas: dias como Ativo no periodo, de cada voluntario (inclusive quem ja saiu), somados por nucleo.
+        var nucleoOfVolunteer = await _db.Volunteers.Select(v => new { v.Id, v.OrganizationId })
+            .ToDictionaryAsync(v => v.Id, v => v.OrganizationId);
+        var changes = await _db.VolunteerStatusChanges.AsNoTracking().OrderBy(c => c.StartsOn).ToListAsync();
+        var activeDays = changes
+            .GroupBy(c => c.VolunteerId)
+            .Where(g => nucleoOfVolunteer.ContainsKey(g.Key))
+            .GroupBy(g => nucleoOfVolunteer[g.Key])
+            .ToDictionary(g => g.Key, g => g.Sum(volunteer =>
+                VolunteerStatusHistoryService.ActiveDays(volunteer.ToList(), from, to)));
+
+        var tasks = await _db.Activities
+            .Where(a => a.CompletedAt != null
+                        && (fromUtc == null || a.CompletedAt >= fromUtc)
+                        && (toUtc == null || a.CompletedAt < toUtc))
+            .GroupBy(a => a.Project!.OrganizationId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count);
+
+        var records = await _db.ProjectUpdates
+            .Where(u => (fromUtc == null || u.CreatedAt >= fromUtc) && (toUtc == null || u.CreatedAt < toUtc))
+            .GroupBy(u => u.Project!.OrganizationId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count);
+
+        var lastRecord = await _db.ProjectUpdates
+            .GroupBy(u => u.Project!.OrganizationId)
+            .Select(g => new { g.Key, Last = g.Max(u => u.CreatedAt) })
+            .ToDictionaryAsync(x => x.Key, x => x.Last);
+        var lastTask = await _db.Activities
+            .Where(a => a.CompletedAt != null)
+            .GroupBy(a => a.Project!.OrganizationId)
+            .Select(g => new { g.Key, Last = g.Max(a => a.CompletedAt) })
+            .ToDictionaryAsync(x => x.Key, x => x.Last);
+
+        var values = await _db.Indicators
+            .Where(i => i.NationalIndicatorId != null && !i.Project!.IsArchived)
+            .GroupBy(i => new { i.Project!.OrganizationId, NationalId = i.NationalIndicatorId!.Value })
+            .Select(g => new { g.Key.OrganizationId, g.Key.NationalId, Total = g.Sum(i => i.Value) })
+            .ToListAsync();
+        // Ativos, mais os arquivados que ainda tem valor registrado.
+        var nationals = await _db.NationalIndicators.AsNoTracking().OrderBy(n => n.Name).ToListAsync();
+        nationals = nationals.Where(n => !n.IsArchived || values.Any(v => v.NationalId == n.Id)).ToList();
+
+        var rows = nucleos.Select(o =>
+        {
+            var moments = new List<DateTime>();
+            if (lastRecord.TryGetValue(o.Id, out var record)) moments.Add(record);
+            if (lastTask.TryGetValue(o.Id, out var task) && task.HasValue) moments.Add(task.Value);
+            DateTime? lastActivity = moments.Count > 0 ? moments.Max() : null;
+
+            return new NationalNucleoRowDto(o.Id, o.Name, o.City, o.State,
+                ProjectsOf(o.Id, ProjectStatus.Planejamento, ProjectStatus.EmAndamento),
+                ProjectsOf(o.Id, ProjectStatus.Concluido),
+                volunteers.GetValueOrDefault(o.Id),
+                VolunteerStatusHistoryService.HoursFor(activeDays.GetValueOrDefault(o.Id)),
+                tasks.GetValueOrDefault(o.Id),
+                records.GetValueOrDefault(o.Id),
+                lastActivity,
+                values.Where(v => v.OrganizationId == o.Id).ToDictionary(v => v.NationalId, v => v.Total));
+        }).ToList();
+
+        var totals = new NationalTotalsDto(
+            nucleos.Count,
+            rows.Sum(r => r.ActiveProjects),
+            rows.Sum(r => r.ConcludedProjects),
+            rows.Sum(r => r.ActiveVolunteers),
+            rows.Sum(r => r.VolunteerHours),
+            rows.Sum(r => r.TasksCompleted),
+            rows.Sum(r => r.Records));
+
+        var indicatorTotals = nationals
+            .Select(n => new NationalIndicatorTotalDto(n.Id, n.Name, n.Unit,
+                values.Where(v => v.NationalId == n.Id).Sum(v => v.Total)))
+            .ToList();
+
+        return new NationalPanelDto(from, to, totals, indicatorTotals, rows);
+    }
+
     /// <summary>Nucleo novo, ja com quem vai administra-lo (entra como voluntario do nucleo e recebe o link).</summary>
     public async Task<NucleoAdminResultDto> CreateNucleoAsync(CreateNucleoRequest request)
     {
