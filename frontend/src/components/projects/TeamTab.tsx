@@ -12,6 +12,7 @@ import { Field, Select, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconPlus, IconTrash } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
+import { EmailLink, PhoneLink } from '../volunteers/ContactLinks';
 
 interface TeamTabProps {
   project: ProjectDetail;
@@ -147,8 +148,12 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                         )}
                       </td>
                       <td>
-                        {volunteer.email ?? '—'}
-                        {volunteer.phone ? <div className="table__secondary">{volunteer.phone}</div> : null}
+                        <EmailLink email={volunteer.email} />
+                        {volunteer.phone ? (
+                          <div className="table__secondary">
+                            <PhoneLink phone={volunteer.phone} />
+                          </div>
+                        ) : null}
                       </td>
                       <td className="tight">{formatDate(volunteer.joinedAt)}</td>
                       <td>

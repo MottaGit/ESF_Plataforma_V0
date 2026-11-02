@@ -12,6 +12,7 @@ import { IconEdit, IconPlus, IconSearch, IconUpload } from '../components/ui/Ico
 import { Menu } from '../components/ui/Menu';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
+import { ContactIcons } from '../components/volunteers/ContactLinks';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { SaveVolunteerPayload, Volunteer, VolunteerSector, VolunteerStatus } from '../types/api';
@@ -205,6 +206,7 @@ export function VolunteersPage() {
               <thead>
                 <tr>
                   <th>Nome</th>
+                  <th>Contato</th>
                   <th>Setor</th>
                   <th>Programas</th>
                   <th>Situação</th>
@@ -214,7 +216,7 @@ export function VolunteersPage() {
               <tbody>
                 {shown.length === 0 ? (
                   <tr>
-                    <td colSpan={canManage ? 5 : 4} className="table__secondary">
+                    <td colSpan={canManage ? 6 : 5} className="table__secondary">
                       Todos os voluntários ativos e afastados já têm o termo de adesão assinado.
                     </td>
                   </tr>
@@ -256,6 +258,9 @@ export function VolunteersPage() {
                             ) : null}
                           </div>
                         </div>
+                      </td>
+                      <td className="tight">
+                        <ContactIcons name={volunteer.name} email={volunteer.email} phone={volunteer.phone} />
                       </td>
                       <td>{sectorLabel(volunteer.sector)}</td>
                       <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>

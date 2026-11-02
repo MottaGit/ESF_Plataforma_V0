@@ -251,3 +251,27 @@ export const IconBell = (p: IconProps) =>
     </>,
     p
   );
+
+export const IconMail = (p: IconProps) =>
+  svg(
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </>,
+    p
+  );
+
+export const IconPhone = (p: IconProps) =>
+  svg(
+    <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" />,
+    p
+  );
+
+export const IconWhatsApp = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M4.5 20.5 5.6 17A8.5 8.5 0 1 1 8.6 19.6z" />
+      <path d="M9.2 8.6c.3-.4.8-.4 1 0l.7 1.5c.1.3 0 .6-.2.8l-.4.4a5.6 5.6 0 0 0 2.6 2.6l.4-.4c.2-.2.5-.3.8-.2l1.5.7c.4.2.4.7 0 1-.9.9-2.1 1-3.2.4a8 8 0 0 1-3.6-3.6c-.6-1.1-.5-2.3.4-3.2" />
+    </>,
+    p
+  );

@@ -10,6 +10,7 @@ import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconChevronLeft, IconDownload, IconEdit, IconPlus, IconTrash } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
+import { EmailLink, PhoneLink } from '../components/volunteers/ContactLinks';
 import { VolunteerHoursPanel } from '../components/volunteers/VolunteerHoursPanel';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -131,11 +132,15 @@ export function VolunteerDetailPage() {
                 </div>
                 <div>
                   <div className="meta__label">E-mail</div>
-                  <div className="meta__value">{volunteer.email ?? '—'}</div>
+                  <div className="meta__value">
+                    <EmailLink email={volunteer.email} />
+                  </div>
                 </div>
                 <div>
                   <div className="meta__label">Telefone</div>
-                  <div className="meta__value">{volunteer.phone ?? '—'}</div>
+                  <div className="meta__value">
+                    <PhoneLink phone={volunteer.phone} />
+                  </div>
                 </div>
                 <div>
                   <div className="meta__label">Aniversário</div>

@@ -248,6 +248,27 @@ export function emptyToNull(value: string | null | undefined) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/** Digitos do telefone; com DDD e sem o 55 do Brasil, o 55 entra na frente. */
+function phoneDigits(phone: string) {
+  const digits = phone.replace(/\D/g, '').replace(/^0+/, '');
+  return digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
+}
+
+/** Link para ligar; null quando o telefone nao tem digitos suficientes. */
+export function phoneHref(phone: string | null | undefined) {
+  if (!phone) return null;
+  const digits = phoneDigits(phone);
+  if (digits.length < 8) return null;
+  return digits.startsWith('55') && digits.length >= 12 ? `tel:+${digits}` : `tel:${digits}`;
+}
+
+/** Conversa no WhatsApp, so para celular do Brasil (DDD + 9 + 8 digitos). */
+export function whatsAppHref(phone: string | null | undefined) {
+  if (!phone) return null;
+  const digits = phoneDigits(phone);
+  return /^55\d{2}9\d{8}$/.test(digits) ? `https://wa.me/${digits}` : null;
+}
+
 /** Quando o acesso nao esta vinculado a um voluntario, nao ha como saber quais atividades sao da pessoa. */
 export const UNLINKED_MESSAGE =
   'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais tarefas são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';
