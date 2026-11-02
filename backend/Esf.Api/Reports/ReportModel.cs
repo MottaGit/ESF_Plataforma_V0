@@ -31,7 +31,14 @@ public record ReportModel
 
     /// <summary>Fotos ja lidas do disco, por atualizacao (ProjectUpdate.Id) - limitadas pelo servico.</summary>
     public Dictionary<Guid, List<ReportPhoto>> Photos { get; init; } = new();
+
+    /// <summary>Indicadores padrao de cada programa somados nos projetos do relatorio (bloco Resultados).</summary>
+    public List<ReportProgramResults> ProgramResults { get; init; } = new();
 }
+
+public record ReportProgramResults(string Program, int Projects, List<ReportResult> Results);
+
+public record ReportResult(string Name, string? Unit, decimal Total);
 
 /// <summary>Caption so vem preenchida quando o arquivo tem uma descricao de verdade cadastrada
 /// (nunca cai para o nome do arquivo) - o relatorio so exibe legenda quando ela existir.</summary>

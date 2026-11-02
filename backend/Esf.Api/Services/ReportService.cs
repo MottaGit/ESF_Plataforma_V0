@@ -50,6 +50,13 @@ public class ReportService
         var organization = await _db.Organizations.AsNoTracking().FirstOrDefaultAsync()
                            ?? new Organization { Name = "Engenheiros Sem Fronteiras" };
 
+        var programIds = projects.Select(p => p.ProgramId).Distinct().ToList();
+        var templates = await _db.ProgramTemplateIndicators
+            .AsNoTracking()
+            .Where(t => programIds.Contains(t.ProgramId))
+            .OrderBy(t => t.Position)
+            .ToListAsync();
+
         var model = new ReportModel
         {
             Organization = organization,
@@ -63,7 +70,8 @@ public class ReportService
             IncludePhotos = request.IncludePhotos,
             IncludeTasks = request.IncludeTasks,
             From = request.From,
-            To = request.To
+            To = request.To,
+            ProgramResults = ProgramResults(projects, templates)
         };
 
         // Fotos ficam atreladas a atualizacao (ProjectUpdate) que as recebeu, nao ao projeto todo -
@@ -114,6 +122,26 @@ public class ReportService
 
         return (content, fileName);
     }
+
+    /// <summary>
+    /// Resultados por programa, na ordem dos projetos: cada indicador padrao do modelo somado nos projetos do
+    /// relatorio, comparando os nomes sem diferenciar maiusculas nem acentos (como a visao do programa).
+    /// </summary>
+    private static List<ReportProgramResults> ProgramResults(List<Project> projects, List<ProgramTemplateIndicator> templates) =>
+        projects
+            .GroupBy(p => p.ProgramId)
+            .Select(group => new ReportProgramResults(
+                group.First().Program!.Name,
+                group.Count(),
+                templates
+                    .Where(t => t.ProgramId == group.Key)
+                    .Select(t => new ReportResult(t.Name, t.Unit, group
+                        .SelectMany(p => p.Indicators)
+                        .Where(i => SearchText.Fold(i.Name.Trim()) == SearchText.Fold(t.Name.Trim()))
+                        .Sum(i => i.Value)))
+                    .ToList()))
+            .Where(result => result.Results.Count > 0)
+            .ToList();
 
     private static bool IsSupportedImage(string storedName)
     {

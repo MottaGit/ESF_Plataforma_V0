@@ -122,16 +122,107 @@ public static class ProjectReportBuilder
             }
 
             if (model.Projects.Count > 1)
+            {
+                col.Item().Element(c => ComposeResults(c, model));
                 col.Item().Element(c => ComposeSummary(c, model));
+            }
 
             foreach (var project in model.Projects)
                 col.Item().Element(c => ComposeProject(c, model, project));
         });
     }
 
+    /// <summary>
+    /// Abertura do relatorio de varios projetos: numeros gerais (projetos por status, equipe, registros e tarefas
+    /// concluidas no periodo) e os indicadores padrao de cada programa somados nos projetos do relatorio.
+    /// </summary>
+    private static void ComposeResults(IContainer container, ReportModel model)
+    {
+        var projects = model.Projects;
+        var volunteers = projects.SelectMany(p => p.Volunteers).Select(v => v.VolunteerId).Distinct().Count();
+        var updates = projects.SelectMany(p => p.Updates).Count(u => model.InPeriod(u.CreatedAt));
+        var doneTasks = projects.SelectMany(p => p.Activities)
+            .Count(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value));
+        var byStatus = string.Join(" · ", projects
+            .GroupBy(p => p.Status)
+            .OrderBy(g => g.Key)
+            .Select(g => StatusCount(g.Key, g.Count())));
+        var inPeriod = model.HasPeriod ? " no período" : "";
+
+        container.EnsureSpace(150).Column(col =>
+        {
+            col.Spacing(8);
+            col.Item().Text("Resultados").FontSize(11).SemiBold();
+
+            col.Item().Row(row =>
+            {
+                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, projects.Count, "projetos", byStatus));
+                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, volunteers, "voluntários nas equipes", null));
+                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, updates, $"registros de andamento{inPeriod}", null));
+                row.RelativeItem().Element(c => StatCard(c, doneTasks, $"tarefas concluídas{inPeriod}", null));
+            });
+
+            foreach (var program in model.ProgramResults)
+            {
+                col.Item().PaddingTop(4).ShowEntire().Column(block =>
+                {
+                    block.Item().Text(text =>
+                    {
+                        text.Span(program.Program).FontSize(9.5f).SemiBold();
+                        text.Span($" · {program.Projects} {(program.Projects == 1 ? "projeto" : "projetos")}")
+                            .FontSize(8.5f).FontColor(Muted);
+                    });
+
+                    foreach (var chunk in program.Results.Chunk(4))
+                    {
+                        block.Item().PaddingTop(4).Row(row =>
+                        {
+                            foreach (var result in chunk)
+                                row.RelativeItem().PaddingRight(6)
+                                    .Element(c => ValueCard(c, result.Total, result.Unit, result.Name));
+
+                            for (var pad = chunk.Length; pad < 4; pad++)
+                                row.RelativeItem();
+                        });
+                    }
+                });
+            }
+
+            if (model.ProgramResults.Count > 0)
+                col.Item().Text("Indicadores com os valores atuais, somados nos projetos deste relatório.")
+                    .FontSize(7.5f).FontColor(Muted);
+        });
+    }
+
+    private static void StatCard(IContainer container, int value, string label, string? detail)
+    {
+        container
+            .Border(1)
+            .BorderColor(Line)
+            .Padding(8)
+            .Column(card =>
+            {
+                card.Item().Text(Number(value)).FontSize(16).SemiBold().FontColor(Ink);
+                card.Item().Text(label).FontSize(8).FontColor(Muted);
+                if (!string.IsNullOrWhiteSpace(detail))
+                    card.Item().PaddingTop(2).Text(detail!).FontSize(7.5f).FontColor(Muted);
+            });
+    }
+
+    /// <summary>"Concluídos: 2" por extenso, no plural quando precisa ("2 concluídos · 1 em andamento").</summary>
+    private static string StatusCount(ProjectStatus status, int count) => status switch
+    {
+        ProjectStatus.Planejamento => $"{count} em planejamento",
+        ProjectStatus.EmAndamento => $"{count} em andamento",
+        ProjectStatus.Pausado => $"{count} {(count == 1 ? "pausado" : "pausados")}",
+        ProjectStatus.Concluido => $"{count} {(count == 1 ? "concluído" : "concluídos")}",
+        ProjectStatus.Cancelado => $"{count} {(count == 1 ? "cancelado" : "cancelados")}",
+        _ => $"{count} {status}"
+    };
+
     private static void ComposeSummary(IContainer container, ReportModel model)
     {
-        container.Column(col =>
+        container.EnsureSpace(80).Column(col =>
         {
             col.Item().Text("Resumo dos projetos").FontSize(11).SemiBold();
             col.Item().PaddingTop(6).Table(table =>
@@ -169,7 +260,7 @@ public static class ProjectReportBuilder
             .OrderBy(a => a.CompletedAt)
             .ToList();
 
-        container.Column(col =>
+        container.EnsureSpace(160).Column(col =>
         {
             col.Spacing(8);
 
@@ -233,7 +324,7 @@ public static class ProjectReportBuilder
 
     private static void ComposeIndicators(IContainer container, Project p)
     {
-        container.Column(col =>
+        container.ShowEntire().Column(col =>
         {
             col.Item().Text("Indicadores").FontSize(10).SemiBold();
 
@@ -243,7 +334,8 @@ public static class ProjectReportBuilder
                 col.Item().PaddingTop(6).Row(row =>
                 {
                     foreach (var indicator in chunk)
-                        row.RelativeItem().PaddingRight(6).Element(c => IndicatorCard(c, indicator));
+                        row.RelativeItem().PaddingRight(6)
+                            .Element(c => ValueCard(c, indicator.Value, indicator.Unit, indicator.Name));
 
                     for (var pad = chunk.Length; pad < 4; pad++)
                         row.RelativeItem();
@@ -252,7 +344,8 @@ public static class ProjectReportBuilder
         });
     }
 
-    private static void IndicatorCard(IContainer container, Indicator i)
+    /// <summary>Cartao de indicador: valor e unidade em destaque, nome embaixo (projeto e resultados do programa).</summary>
+    private static void ValueCard(IContainer container, decimal value, string? unit, string name)
     {
         container
             .Background(SoftBg)
@@ -263,17 +356,17 @@ public static class ProjectReportBuilder
             {
                 card.Item().AlignCenter().Text(text =>
                 {
-                    text.Span(Number(i.Value)).FontSize(16).SemiBold().FontColor(Accent);
-                    if (!string.IsNullOrWhiteSpace(i.Unit))
-                        text.Span($" {i.Unit}").FontSize(9).FontColor(Muted);
+                    text.Span(Number(value)).FontSize(16).SemiBold().FontColor(Accent);
+                    if (!string.IsNullOrWhiteSpace(unit))
+                        text.Span($" {unit}").FontSize(9).FontColor(Muted);
                 });
-                card.Item().AlignCenter().Text(i.Name).FontSize(7.5f).FontColor(Muted);
+                card.Item().AlignCenter().Text(name).FontSize(7.5f).FontColor(Muted);
             });
     }
 
     private static void ComposeVolunteers(IContainer container, Project p)
     {
-        container.Column(col =>
+        container.EnsureSpace(70).Column(col =>
         {
             col.Item().Text($"Voluntarios envolvidos ({p.Volunteers.Count})").FontSize(10).SemiBold();
             col.Item().PaddingTop(4).Table(table =>
@@ -305,7 +398,7 @@ public static class ProjectReportBuilder
     /// <summary>O que foi entregue: tarefas concluidas (no periodo, quando ha), com responsavel e data.</summary>
     private static void ComposeTasks(IContainer container, ReportModel model, List<Activity> tasks)
     {
-        container.Column(col =>
+        container.EnsureSpace(70).Column(col =>
         {
             var title = model.HasPeriod ? "Tarefas concluídas no período" : "Tarefas concluídas";
             col.Item().Text($"{title} ({tasks.Count})").FontSize(10).SemiBold();
@@ -338,7 +431,7 @@ public static class ProjectReportBuilder
     /// <summary>Historico cronologico do projeto: cada atualizacao com seu texto e as fotos anexadas a ela.</summary>
     private static void ComposeUpdates(IContainer container, ReportModel model, List<ProjectUpdate> updates)
     {
-        container.Column(col =>
+        container.EnsureSpace(70).Column(col =>
         {
             col.Item().Text(model.HasPeriod ? "Linha do tempo no período" : "Linha do tempo").FontSize(10).SemiBold();
 

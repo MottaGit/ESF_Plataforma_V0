@@ -355,7 +355,11 @@ indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcado
 referência** (De/Até, cada ponta pode ficar em branco) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
 andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico). As datas
-seguem o fuso do servidor, o mesmo usado para imprimir as datas no PDF.
+seguem o fuso do servidor, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
+**Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em mais
+de um), registros de andamento e tarefas concluídas no período e, para cada programa com indicadores padrão no
+modelo, esses indicadores somados nos projetos do relatório (mesma comparação de nomes da visão do programa). Títulos
+de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
 **Configurações** — dados institucionais, logo, gestão de usuários e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
