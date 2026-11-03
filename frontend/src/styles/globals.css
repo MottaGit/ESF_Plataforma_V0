@@ -2304,7 +2304,34 @@ button { font: inherit; }
    Inicio
    --------------------------------------------------------- */
 
-.home__col { display: grid; gap: 16px; align-content: start; }
+.home__col { display: grid; gap: 20px; align-content: start; }
+
+/* Primeiros passos de um nucleo novo. */
+.first-steps { margin-bottom: 22px; }
+.first-steps .panel__head { flex-wrap: wrap; row-gap: 2px; }
+.first-steps__list { list-style: none; margin: 0; padding: 4px 0; }
+.first-steps__item { display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+.first-steps__item + .first-steps__item { border-top: 1px solid var(--border-soft); }
+.first-steps__mark {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.first-steps__item--done .first-steps__mark { background: var(--accent); color: #fff; }
+.first-steps__text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.first-steps__title { font-weight: 500; }
+.first-steps__item--done .first-steps__title { color: var(--text-muted); text-decoration: line-through; }
+@media (max-width: 560px) {
+  .first-steps__item { flex-wrap: wrap; }
+  .first-steps__item .btn { margin-left: 42px; }
+}
 .home__label { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
 .home .task-list__more { display: block; padding: 8px 16px 12px; border-top: 1px solid #eef0f3; text-decoration: none; }
 
@@ -2314,25 +2341,6 @@ button { font: inherit; }
 .home-projects__main { flex: 1; min-width: 0; display: grid; gap: 4px; }
 .home-projects__main .row-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.home-notices { list-style: none; margin: 0; padding: 0; }
-.home-notices li + li { border-top: 1px solid #eef0f3; }
-.home-notices__item {
-  width: 100%;
-  display: flex;
-  gap: 10px;
-  padding: 11px 16px;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 13px;
-  text-align: left;
-  color: var(--text);
-  cursor: pointer;
-}
-.home-notices__item:hover { background: var(--surface-soft); }
-.home-notices__dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex: 0 0 auto; background: transparent; }
-.home-notices__item--unread .home-notices__dot { background: var(--accent); }
-.home-notices__when { display: block; margin-top: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ---------------------------------------------------------

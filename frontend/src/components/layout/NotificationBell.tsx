@@ -12,7 +12,7 @@ import { usePopover } from '../ui/usePopover';
 const POLL_MS = 60_000;
 
 /** Para onde o aviso leva: a propria tarefa (aberta na aba Tarefas do projeto), quando e de uma; senao, o projeto. */
-export function linkFor(notification: AppNotification) {
+function linkFor(notification: AppNotification) {
   if (!notification.projectId) return null;
   return notification.activityId
     ? `/projetos/${notification.projectId}?aba=tarefas&tarefa=${notification.activityId}`

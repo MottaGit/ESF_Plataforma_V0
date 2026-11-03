@@ -164,13 +164,16 @@ conexão da API. Isso apaga tudo, inclusive os arquivos enviados, que ficam no b
 atrasadas, bloqueadas). **Minhas tarefas** agrupa por prazo (atrasadas, próximos 7 dias, depois, sem prazo; até 8, o
 resto em Tarefas): a caixinha conclui na hora e clicar abre a tarefa ali mesmo. Ao lado, **Meus projetos** (os em
 planejamento ou andamento em que a pessoa é responsável ou está na equipe, com progresso, último registro e o botão
-**Registrar**, que abre o projeto já no registro de andamento), **Avisos recentes** (os 3 últimos do sininho) e os
-**aniversariantes** dos últimos 10 dias e dos próximos 30. Sem voluntário vinculado, explica como pedir o vínculo.
+**Registrar**, que abre o projeto já no registro de andamento) e os **aniversariantes** dos últimos 5 dias e dos
+próximos 14 (o bloco some quando não há nenhum). Os avisos ficam só no sininho. Sem voluntário vinculado, explica como
+pedir o vínculo.
 Datas recentes aparecem em tempo relativo até uma semana ("há 3 dias", "ontem") e, depois disso, como data curta
 ("último registro em 09/10"; o ano só aparece quando não é o atual), igual em todas as telas. Para
 a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, bloqueadas, sem responsável e projetos
 parados, isto é, em andamento sem registro há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
-carregado** (cada pessoa leva às tarefas dela).
+carregado** (cada pessoa leva às tarefas dela). Num núcleo que ainda não tem nenhum projeto, a administração vê no
+lugar da faixa os **Primeiros passos**: dados do núcleo (CNPJ e quem assina), um programa, mais alguém com acesso e o
+primeiro projeto; cada passo se marca sozinho e o quadro some quando o primeiro projeto é criado.
 
 **Projetos** — listagem com busca, filtros (status, só atrasados, incluir arquivados; o programa é a aba escolhida)
 e ordenação. No celular, busca, filtros e ordenação ficam recolhidos no botão "Filtros", que mostra quantos estão

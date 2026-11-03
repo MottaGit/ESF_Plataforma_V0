@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { activitiesApi, dashboardApi, notificationsApi, volunteersApi } from '../api/endpoints';
-import { linkFor } from '../components/layout/NotificationBell';
+import { activitiesApi, dashboardApi, volunteersApi } from '../api/endpoints';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
@@ -11,10 +10,11 @@ import { isOverdue } from '../components/tasks/taskUtils';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge } from '../components/ui/Badge';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
+import { IconCheck } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { Activity, AppNotification, Dashboard, HomeProject, Volunteer, VolunteerWorkload } from '../types/api';
+import type { Activity, Dashboard, HomeProject, SetupStatus, Volunteer, VolunteerWorkload } from '../types/api';
 import {
   UNLINKED_MESSAGE,
   birthdayLabel,
@@ -22,7 +22,6 @@ import {
   displayName,
   dueDateLabel,
   dueDateTitle,
-  timeAgo,
   timeAgoPhrase
 } from '../utils/format';
 
@@ -30,8 +29,8 @@ import {
 const MY_TASKS_VISIBLE = 8;
 
 /** Janela de aniversarios: os que passaram ha poucos dias e os que vem pela frente. */
-const BIRTHDAYS_DAYS_BACK = 10;
-const BIRTHDAYS_DAYS_AHEAD = 30;
+const BIRTHDAYS_DAYS_BACK = 5;
+const BIRTHDAYS_DAYS_AHEAD = 14;
 
 /** "1 tarefa" / "3 tarefas" e afins. */
 function plural(count: number, singular: string, pluralForm: string) {
@@ -39,11 +38,12 @@ function plural(count: number, singular: string, pluralForm: string) {
 }
 
 /**
- * Inicio: o que a pessoa logada tem para fazer (as tarefas e os projetos dela, os avisos e os aniversarios).
- * A coordenacao ve tambem o resumo da organizacao e a carga da equipe.
+ * Inicio: o que a pessoa logada tem para fazer (as tarefas e os projetos dela) e os aniversarios. A coordenacao ve
+ * tambem o resumo da organizacao e a carga da equipe; a administracao de um nucleo que esta comecando, os primeiros
+ * passos.
  */
 export function HomePage() {
-  const { user, canManage } = useAuth();
+  const { user, canManage, isAdmin } = useAuth();
   const { notify } = useToast();
 
   const [data, setData] = useState<Dashboard | null>(null);
@@ -101,7 +101,9 @@ export function HomePage() {
         </div>
       </div>
 
-      {canManage ? <OrgStrip data={data} /> : null}
+      {isAdmin && data.setup ? <FirstSteps setup={data.setup} /> : null}
+
+      {canManage && !data.setup ? <OrgStrip data={data} /> : null}
 
       <div className="grid-sidebar home">
         <div className="home__col">
@@ -111,7 +113,6 @@ export function HomePage() {
 
         <div className="home__col">
           <MyProjectsPanel projects={data.myProjects} />
-          <RecentNotices />
           <BirthdaysPanel volunteers={volunteers} />
         </div>
       </div>
@@ -150,6 +151,73 @@ function SummaryLine({ data }: { data: Dashboard }) {
       ) : null}
       {mine.blocked > 0 ? ` · ${plural(mine.blocked, 'bloqueada', 'bloqueadas')}` : null}
     </>
+  );
+}
+
+/**
+ * Primeiros passos de um nucleo novo (so a administracao ve): cada passo se marca sozinho quando e feito, e o quadro
+ * some quando o primeiro projeto e criado.
+ */
+function FirstSteps({ setup }: { setup: SetupStatus }) {
+  const steps = [
+    {
+      done: setup.organizationDone,
+      title: 'Complete os dados do núcleo',
+      hint: 'CNPJ, quem assina os termos e certificados e o logo dos relatórios.',
+      to: '/configuracoes?aba=organizacao',
+      action: 'Abrir dados'
+    },
+    {
+      done: setup.programDone,
+      title: 'Crie um programa',
+      hint: 'Agrupa os projetos do mesmo tipo (ex.: banheiros, hortas). Em Projetos, botão "Novo programa".',
+      to: '/projetos',
+      action: 'Ir para Projetos'
+    },
+    {
+      done: setup.teamDone,
+      title: 'Cadastre a equipe e dê acesso',
+      hint: 'Cadastre os voluntários e, na página de cada um, use "Dar acesso" para mandar o link.',
+      to: '/voluntarios',
+      action: 'Ir para Voluntários'
+    },
+    {
+      done: false,
+      title: 'Crie o primeiro projeto',
+      hint: 'Com ele criado, este quadro sai do Início.',
+      to: '/projetos?novo=1',
+      action: 'Novo projeto'
+    }
+  ];
+
+  return (
+    <section className="panel first-steps" aria-label="Primeiros passos">
+      <div className="panel__head">
+        <h2>Primeiros passos</h2>
+        <span className="field__hint">O núcleo está começando: estes passos deixam tudo pronto para o primeiro projeto.</span>
+      </div>
+      <ol className="first-steps__list">
+        {steps.map((step, index) => (
+          <li key={step.title} className={`first-steps__item${step.done ? ' first-steps__item--done' : ''}`}>
+            <span className="first-steps__mark" aria-hidden="true">
+              {step.done ? <IconCheck size={14} /> : index + 1}
+            </span>
+            <span className="first-steps__text">
+              <span className="first-steps__title">
+                {step.title}
+                {step.done ? <span className="sr-only"> (feito)</span> : null}
+              </span>
+              <span className="field__hint">{step.hint}</span>
+            </span>
+            {!step.done ? (
+              <Link className="btn btn--sm" to={step.to}>
+                {step.action}
+              </Link>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -344,62 +412,6 @@ function MyProjectsPanel({ projects }: { projects: HomeProject[] }) {
   );
 }
 
-/** Os ultimos avisos do sininho; clicar marca como lido e leva ao lugar do aviso. */
-function RecentNotices() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [items, setItems] = useState<AppNotification[] | null>(null);
-
-  useEffect(() => {
-    if (!user?.volunteerId) return;
-    notificationsApi
-      .list()
-      .then((result) => setItems(result.items.slice(0, 3)))
-      .catch(() => setItems([]));
-  }, [user?.volunteerId]);
-
-  if (!user?.volunteerId) return null;
-
-  async function open(notification: AppNotification) {
-    if (!notification.read) await notificationsApi.markRead(notification.id).catch(() => undefined);
-    const to = linkFor(notification);
-    if (to) navigate(to);
-  }
-
-  return (
-    <section className="panel">
-      <div className="panel__head">
-        <h2>Avisos recentes</h2>
-      </div>
-      {items === null ? (
-        <Loading label="Carregando avisos…" />
-      ) : items.length === 0 ? (
-        <div className="panel__body">
-          <p className="field__hint">Nenhum aviso por enquanto.</p>
-        </div>
-      ) : (
-        <ul className="home-notices">
-          {items.map((notification) => (
-            <li key={notification.id}>
-              <button
-                type="button"
-                className={`home-notices__item${notification.read ? '' : ' home-notices__item--unread'}`}
-                onClick={() => void open(notification)}
-              >
-                <span className="home-notices__dot" aria-hidden="true" />
-                <span>
-                  {notification.message}
-                  <span className="field__hint home-notices__when">{timeAgo(notification.createdAt)}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
 /** Coordenacao: quem esta com mais tarefas em aberto. */
 function WorkloadPanel({ workload }: { workload: VolunteerWorkload[] }) {
   return (
@@ -449,7 +461,7 @@ function birthdayWhen(day: number, month: number, offset: number) {
 }
 
 /**
- * Aniversariantes dos ultimos 10 dias e dos proximos 30 (pela data local de quem esta usando), so de quem
+ * Aniversariantes dos ultimos 5 dias e dos proximos 14 (pela data local de quem esta usando), so de quem
  * ainda faz parte da organizacao (ativos e afastados). Quem ja fez fica esmaecido; o do dia, destacado.
  */
 function BirthdaysPanel({ volunteers }: { volunteers: Volunteer[] | null }) {
@@ -462,38 +474,35 @@ function BirthdaysPanel({ volunteers }: { volunteers: Volunteer[] | null }) {
     })
     .sort((a, b) => a.offset - b.offset || a.volunteer.name.localeCompare(b.volunteer.name));
 
+  // Sem ninguem na janela (ou ainda carregando), o bloco nem aparece.
+  if (people.length === 0) return null;
+
   return (
     <section className="panel">
       <div className="panel__head">
         <h2>Aniversariantes</h2>
       </div>
       <div className="panel__body">
-        {volunteers === null ? (
-          <Loading label="Carregando aniversários…" />
-        ) : people.length === 0 ? (
-          <p className="field__hint">Nenhum aniversário nos últimos dias nem nas próximas semanas.</p>
-        ) : (
-          <ul className="birthday-list">
-            {people.map(({ volunteer, day, month, offset }) => (
-              <li
-                key={volunteer.id}
-                className={`birthday-list__item${offset === 0 ? ' birthday-list__item--today' : ''}${offset < 0 ? ' birthday-list__item--passed' : ''}`}
-              >
-                <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
-                <Link className="row-link birthday-list__name" to={`/voluntarios/${volunteer.id}`}>
-                  {volunteer.name}
-                </Link>
-                {offset === 0 ? (
-                  <BirthdayBadge />
-                ) : (
-                  <span className="birthday-list__day" title={birthdayLabel(day, month) ?? undefined}>
-                    {birthdayWhen(day, month, offset)}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="birthday-list">
+          {people.map(({ volunteer, day, month, offset }) => (
+            <li
+              key={volunteer.id}
+              className={`birthday-list__item${offset === 0 ? ' birthday-list__item--today' : ''}${offset < 0 ? ' birthday-list__item--passed' : ''}`}
+            >
+              <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
+              <Link className="row-link birthday-list__name" to={`/voluntarios/${volunteer.id}`}>
+                {volunteer.name}
+              </Link>
+              {offset === 0 ? (
+                <BirthdayBadge />
+              ) : (
+                <span className="birthday-list__day" title={birthdayLabel(day, month) ?? undefined}>
+                  {birthdayWhen(day, month, offset)}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

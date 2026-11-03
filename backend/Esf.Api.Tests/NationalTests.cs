@@ -118,6 +118,15 @@ public class NationalTests
         await using var adminDb = f.Context(new TestUser { Id = login.User.Id, Role = UserRole.Administrador, OrganizationId = nucleoId });
         Assert.Equal("Admin C", Assert.Single(await adminDb.Volunteers.ToListAsync()).Name);
         Assert.Empty(await adminDb.Projects.ToListAsync());
+
+        // Inicio do nucleo novo: primeiros passos, nada feito ainda; os nucleos com projeto nao veem o quadro.
+        var setup = (await new DashboardService(adminDb).GetAsync(login.User.Id)).Setup;
+        Assert.NotNull(setup);
+        Assert.False(setup.OrganizationDone);
+        Assert.False(setup.ProgramDone);
+        Assert.False(setup.TeamDone);
+        await using var dbA = f.Context(f.A.Admin);
+        Assert.Null((await new DashboardService(dbA).GetAsync(f.A.AdminUserId)).Setup);
     }
 
     [Fact]

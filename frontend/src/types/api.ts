@@ -534,6 +534,15 @@ export interface Dashboard {
   myProjects: HomeProject[];
   org: OrgSummary;
   workload: VolunteerWorkload[];
+  /** Primeiros passos de um nucleo que esta comecando (null quando ja tem projeto). */
+  setup: SetupStatus | null;
+}
+
+/** Primeiros passos do nucleo novo; o ultimo (o primeiro projeto) fecha o quadro. */
+export interface SetupStatus {
+  organizationDone: boolean;
+  programDone: boolean;
+  teamDone: boolean;
 }
 
 export type SignedDocumentKind = 'VolunteerTerm' | 'BeneficiaryImageAuthorization';

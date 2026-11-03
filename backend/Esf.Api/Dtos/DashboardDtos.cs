@@ -12,7 +12,15 @@ public record DashboardDto(
     IReadOnlyList<HomeProjectDto> MyProjects,
     OrgSummaryDto Org,
     // Voluntarios com mais tarefas em aberto (carga da equipe).
-    IReadOnlyList<VolunteerWorkloadDto> Workload);
+    IReadOnlyList<VolunteerWorkloadDto> Workload,
+    // Primeiros passos de um nucleo que esta comecando (null quando o nucleo ja tem projeto).
+    SetupDto? Setup);
+
+/// <summary>
+/// Primeiros passos do nucleo novo, cada um marcado sozinho: dados do nucleo (CNPJ e quem assina), um programa e mais
+/// alguem com acesso. O ultimo passo e o primeiro projeto: quando ele existe, o quadro some.
+/// </summary>
+public record SetupDto(bool OrganizationDone, bool ProgramDone, bool TeamDone);
 
 public record HomeProjectDto(
     Guid Id,

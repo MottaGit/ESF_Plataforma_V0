@@ -110,7 +110,19 @@ public class DashboardService
                 .ToList();
         }
 
-        return new DashboardDto(mine, myTasks, myProjects, org, workload);
+        return new DashboardDto(mine, myTasks, myProjects, org, workload, await SetupAsync());
+    }
+
+    /// <summary>Primeiros passos, so enquanto o nucleo nao tem nenhum projeto (nem arquivado).</summary>
+    private async Task<SetupDto?> SetupAsync()
+    {
+        if (await _db.Projects.AnyAsync()) return null;
+
+        var organization = await _db.Organizations.AsNoTracking().FirstOrDefaultAsync();
+        return new SetupDto(
+            !string.IsNullOrWhiteSpace(organization?.Cnpj) && !string.IsNullOrWhiteSpace(organization?.SignatoryName),
+            await _db.Programs.AnyAsync(),
+            await _db.Users.CountAsync() > 1);
     }
 
     /// <summary>
