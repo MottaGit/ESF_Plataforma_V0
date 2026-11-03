@@ -319,9 +319,11 @@ as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Ed
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está
 vinculado, com filtro por setor e por situação (no celular, busca e filtros ficam no botão "Filtros", como em
 Tarefas e Projetos). **Contato em um toque**: na lista, a coluna Contato tem ícones de e-mail (abre o programa de
-e-mail), ligar e WhatsApp (só quando o telefone é celular do Brasil: DDD + 9 + 8 dígitos; sem o 55, ele é incluído);
-na página do voluntário e na aba Equipe do projeto, o e-mail e o telefone por extenso viram links, com "WhatsApp" ao
-lado do celular. O vínculo com projetos (e o papel exercido em cada um) pode ser feito
+e-mail) e WhatsApp (só quando o telefone é celular do Brasil: DDD + 9 + 8 dígitos; sem o 55, ele é incluído);
+na página do voluntário e na aba Equipe do projeto, o e-mail e o telefone por extenso viram links (o telefone liga ao
+toque), com "WhatsApp" ao lado do celular. A lista não tem coluna de ações: editar e anonimizar ficam na página da
+pessoa. A **página do voluntário** traz primeiro o contato e o perfil (e-mail, telefone, aniversário, competências) e
+os projetos atuais e anteriores; ao lado (embaixo, no celular), a parte administrativa: acesso, horas e termo. O vínculo com projetos (e o papel exercido em cada um) pode ser feito
 tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o voluntário, sempre entre projeto e
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
 hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
@@ -342,7 +344,7 @@ canto da foto. O status do termo só aparece por extenso na página do voluntár
 download com login da coordenação. Quem assina pela organização (nome e cargo) é configurado em Configurações ›
 Organização.
 
-**Anonimizar voluntário** — na lista, a coordenação usa "Anonimizar" (no menu "⋯" da linha, junto com "Editar")
+**Anonimizar voluntário** — na página do voluntário, a coordenação usa "Anonimizar dados" (no menu "⋯" ao lado de "Editar voluntário")
 no lugar de excluir (quando a pessoa sai da
 organização ou pede a exclusão dos dados): nome vira "Voluntário removido", saem e-mail, telefone, habilidades,
 observações, aniversário e foto, a situação passa a ex-membro, o acesso vinculado é desfeito e os avisos da pessoa

@@ -7,9 +7,8 @@ import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
-import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
-import { Menu } from '../components/ui/Menu';
+import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
+import { IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { ContactIcons } from '../components/volunteers/ContactLinks';
@@ -36,7 +35,7 @@ function needsTerm(volunteer: Volunteer) {
 
 export function VolunteersPage() {
   const { canManage } = useAuth();
-  const { notify, notifyError } = useToast();
+  const { notify } = useToast();
 
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [search, setSearch] = useState('');
@@ -48,9 +47,6 @@ export function VolunteersPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Volunteer | null>(null);
-  const [removing, setRemoving] = useState<Volunteer | null>(null);
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(search), 300);
@@ -77,22 +73,6 @@ export function VolunteersPage() {
   const pendingTerms = canManage ? volunteers.filter(needsTerm).length : 0;
   const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
 
-  /** LGPD: no lugar da exclusao, apaga os dados pessoais e mantem o historico dos projetos. */
-  async function handleAnonymize() {
-    if (!removing) return;
-    setBusy(true);
-    try {
-      await volunteersApi.anonymize(removing.id);
-      notify('Dados do voluntário anonimizados.');
-      setRemoving(null);
-      void load();
-    } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível anonimizar o voluntário.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <>
       <div className="page-head">
@@ -105,10 +85,7 @@ export function VolunteersPage() {
             <Button
               variant="primary"
               icon={<IconPlus size={15} />}
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
+              onClick={() => setFormOpen(true)}
             >
               Novo voluntário
             </Button>
@@ -190,10 +167,7 @@ export function VolunteersPage() {
               canManage ? (
                 <Button
                   variant="primary"
-                  onClick={() => {
-                    setEditing(null);
-                    setFormOpen(true);
-                  }}
+                  onClick={() => setFormOpen(true)}
                 >
                   Cadastrar voluntário
                 </Button>
@@ -210,13 +184,12 @@ export function VolunteersPage() {
                   <th>Setor</th>
                   <th>Programas</th>
                   <th>Situação</th>
-                  {canManage ? <th className="right">Ações</th> : null}
                 </tr>
               </thead>
               <tbody>
                 {shown.length === 0 ? (
                   <tr>
-                    <td colSpan={canManage ? 6 : 5} className="table__secondary">
+                    <td colSpan={5} className="table__secondary">
                       Todos os voluntários ativos e afastados já têm o termo de adesão assinado.
                     </td>
                   </tr>
@@ -266,6 +239,7 @@ export function VolunteersPage() {
                                 <BirthdayBadge />
                               </div>
                             ) : null}
+                            {volunteer.anonymized ? <div className="table__secondary">dados anonimizados</div> : null}
                           </div>
                         </div>
                       </td>
@@ -277,30 +251,6 @@ export function VolunteersPage() {
                       <td>
                         <VolunteerStatusBadge status={volunteer.status} />
                       </td>
-                      {canManage ? (
-                        <td className="cell--actions">
-                          {volunteer.anonymized ? (
-                            <span className="table__secondary">dados anonimizados</span>
-                          ) : (
-                            <div className="row-actions">
-                              <Menu
-                                label={`Ações de ${volunteer.name}`}
-                                items={[
-                                  {
-                                    label: 'Editar',
-                                    icon: <IconEdit size={14} />,
-                                    onSelect: () => {
-                                      setEditing(volunteer);
-                                      setFormOpen(true);
-                                    }
-                                  },
-                                  { label: 'Anonimizar', danger: true, onSelect: () => setRemoving(volunteer) }
-                                ]}
-                              />
-                            </div>
-                          )}
-                        </td>
-                      ) : null}
                     </tr>
                   );
                 })}
@@ -312,27 +262,16 @@ export function VolunteersPage() {
 
       {formOpen ? (
         <VolunteerFormModal
-          volunteer={editing}
+          volunteer={null}
           onClose={() => setFormOpen(false)}
           onSaved={() => {
             setFormOpen(false);
-            notify(editing ? 'Voluntário atualizado.' : 'Voluntário cadastrado.');
+            notify('Voluntário cadastrado.');
             void load();
           }}
         />
       ) : null}
 
-      {removing ? (
-        <ConfirmDialog
-          title="Anonimizar voluntário"
-          message={`Os dados pessoais de ${removing.name} (nome, contatos, aniversário, foto e observações) serão apagados de vez. O histórico de projetos e tarefas continua, como "Voluntário removido", e os documentos assinados ficam guardados. Use quando a pessoa sair da organização ou pedir a exclusão dos dados. Não dá para desfazer.`}
-          confirmLabel="Anonimizar"
-          destructive
-          busy={busy}
-          onCancel={() => setRemoving(null)}
-          onConfirm={() => void handleAnonymize()}
-        />
-      ) : null}
     </>
   );
 }

@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconChevronLeft, IconDownload, IconEdit, IconKey, IconPlus, IconTrash } from '../components/ui/Icons';
+import { Menu } from '../components/ui/Menu';
 import { Modal } from '../components/ui/Modal';
 import { EmailLink, PhoneLink } from '../components/volunteers/ContactLinks';
 import { VolunteerHoursPanel } from '../components/volunteers/VolunteerHoursPanel';
@@ -30,7 +31,7 @@ import { VolunteerFormModal } from './VolunteersPage';
 export function VolunteerDetailPage() {
   const { id = '' } = useParams();
   const { canManage, isAdmin } = useAuth();
-  const { notify } = useToast();
+  const { notify, notifyError } = useToast();
   const navigate = useNavigate();
 
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
@@ -39,6 +40,8 @@ export function VolunteerDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [certificateOpen, setCertificateOpen] = useState(false);
+  const [anonymizing, setAnonymizing] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -60,6 +63,21 @@ export function VolunteerDetailPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  /** LGPD: no lugar da exclusao, apaga os dados pessoais e mantem o historico dos projetos. */
+  async function handleAnonymize() {
+    setBusy(true);
+    try {
+      await volunteersApi.anonymize(id);
+      notify('Dados do voluntário anonimizados.');
+      setAnonymizing(false);
+      void load();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível anonimizar o voluntário.');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (loading) return <Loading label="Carregando voluntário…" />;
 
@@ -107,6 +125,11 @@ export function VolunteerDetailPage() {
             <Button variant="primary" icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
               Editar voluntário
             </Button>
+            {/* Acao rara e sem volta: fica no menu, nunca solta na tela. */}
+            <Menu
+              label={`Mais ações de ${volunteer.name}`}
+              items={[{ label: 'Anonimizar dados', danger: true, onSelect: () => setAnonymizing(true) }]}
+            />
           </div>
         ) : null}
       </div>
@@ -121,17 +144,13 @@ export function VolunteerDetailPage() {
       ) : null}
 
       <div className="grid-sidebar">
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+        <div className="detail-col">
           <section className="panel">
             <div className="panel__head">
-              <h2>Informações pessoais</h2>
+              <h2>Contato e perfil</h2>
             </div>
             <div className="panel__body">
               <div className="meta-list">
-                <div>
-                  <div className="meta__label">Nome</div>
-                  <div className="meta__value">{volunteer.name}</div>
-                </div>
                 <div>
                   <div className="meta__label">E-mail</div>
                   <div className="meta__value">
@@ -149,19 +168,45 @@ export function VolunteerDetailPage() {
                   <div className="meta__value">{birthdayLabel(volunteer.birthDay, volunteer.birthMonth) ?? '—'}</div>
                 </div>
                 <div>
-                  <div className="meta__label">Setor</div>
-                  <div className="meta__value">{sectorLabel(volunteer.sector)}</div>
+                  <div className="meta__label">Competências</div>
+                  <p className="meta__value">{volunteer.skills ?? 'Nada registrado.'}</p>
                 </div>
-                <div>
-                  <div className="meta__label">Situação</div>
-                  <div className="meta__value">
-                    <VolunteerStatusBadge status={volunteer.status} />
+                {volunteer.notes ? (
+                  <div>
+                    <div className="meta__label">Outras informações relevantes</div>
+                    <p className="meta__value">{volunteer.notes}</p>
                   </div>
-                </div>
+                ) : null}
               </div>
             </div>
           </section>
 
+          <ProjectsPanel
+            title="Projetos atuais"
+            items={current}
+            emptyText="Nenhum projeto em andamento no momento."
+            volunteerId={volunteer.id}
+            linkedProjectIds={volunteer.projects.map((item) => item.projectId)}
+            canManage={canManage}
+            allowLinking
+            onChanged={() => void load()}
+          />
+
+          {history.length > 0 ? (
+            <ProjectsPanel
+              title="Projetos anteriores"
+              items={history}
+              emptyText=""
+              volunteerId={volunteer.id}
+              linkedProjectIds={volunteer.projects.map((item) => item.projectId)}
+              canManage={canManage}
+              onChanged={() => void load()}
+            />
+          ) : null}
+        </div>
+
+        {/* Parte administrativa: acesso, horas e documentos. */}
+        <div className="detail-col">
           {canManage && !volunteer.anonymized ? (
             <AccessPanel volunteer={volunteer} canEdit={isAdmin} onChanged={() => void load()} />
           ) : null}
@@ -175,24 +220,6 @@ export function VolunteerDetailPage() {
             />
           ) : null}
 
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Perfil</h2>
-            </div>
-            <div className="panel__body">
-              <div style={{ display: 'grid', gap: 16 }}>
-                <div>
-                  <div className="meta__label">Competências</div>
-                  <p className="meta__value">{volunteer.skills ?? 'Nada registrado.'}</p>
-                </div>
-                <div>
-                  <div className="meta__label">Outras informações relevantes</div>
-                  <p className="meta__value">{volunteer.notes ?? 'Nada registrado.'}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
           {canManage ? (
             <SignedDocumentsPanel
               owner={{ type: 'volunteer', id: volunteer.id }}
@@ -203,29 +230,6 @@ export function VolunteerDetailPage() {
             />
           ) : null}
         </div>
-
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
-          <ProjectsPanel
-            title="Projetos atuais"
-            items={current}
-            emptyText="Nenhum projeto em andamento no momento."
-            volunteerId={volunteer.id}
-            linkedProjectIds={volunteer.projects.map((item) => item.projectId)}
-            canManage={canManage}
-            allowLinking
-            onChanged={() => void load()}
-          />
-
-          <ProjectsPanel
-            title="Histórico"
-            items={history}
-            emptyText="Sem projetos concluídos ou cancelados ainda."
-            volunteerId={volunteer.id}
-            linkedProjectIds={volunteer.projects.map((item) => item.projectId)}
-            canManage={canManage}
-            onChanged={() => void load()}
-          />
-        </div>
       </div>
 
       {certificateOpen ? (
@@ -233,6 +237,18 @@ export function VolunteerDetailPage() {
           volunteer={volunteer}
           history={hours?.history ?? null}
           onClose={() => setCertificateOpen(false)}
+        />
+      ) : null}
+
+      {anonymizing ? (
+        <ConfirmDialog
+          title="Anonimizar voluntário"
+          message={`Os dados pessoais de ${volunteer.name} (nome, contatos, aniversário, foto e observações) serão apagados de vez. O histórico de projetos e tarefas continua, como "Voluntário removido", e os documentos assinados ficam guardados. Use quando a pessoa sair da organização ou pedir a exclusão dos dados. Não dá para desfazer.`}
+          confirmLabel="Anonimizar"
+          destructive
+          busy={busy}
+          onCancel={() => setAnonymizing(false)}
+          onConfirm={() => void handleAnonymize()}
         />
       ) : null}
 

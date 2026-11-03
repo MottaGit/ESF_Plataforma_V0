@@ -1,5 +1,5 @@
 import { phoneHref, whatsAppHref } from '../../utils/format';
-import { IconMail, IconPhone, IconWhatsApp } from '../ui/Icons';
+import { IconMail, IconWhatsApp } from '../ui/Icons';
 
 interface ContactProps {
   name: string;
@@ -7,22 +7,19 @@ interface ContactProps {
   phone: string | null;
 }
 
-/** Contato em um toque, so com icones (listas): e-mail, ligacao e WhatsApp quando o telefone e celular. */
+/**
+ * Contato em um toque, so com icones (listas): e-mail e WhatsApp quando o telefone e celular. O numero por extenso
+ * (que liga ao toque) fica na pagina da pessoa.
+ */
 export function ContactIcons({ name, email, phone }: ContactProps) {
-  const call = phoneHref(phone);
   const whatsApp = whatsAppHref(phone);
-  if (!email && !call) return <span className="table__secondary">—</span>;
+  if (!email && !whatsApp) return <span className="table__secondary">—</span>;
 
   return (
     <span className="contact-icons">
       {email ? (
         <a className="contact-icon" href={`mailto:${email}`} title={email} aria-label={`Enviar e-mail para ${name}`}>
           <IconMail size={16} />
-        </a>
-      ) : null}
-      {call ? (
-        <a className="contact-icon" href={call} title={phone ?? undefined} aria-label={`Ligar para ${name}`}>
-          <IconPhone size={16} />
         </a>
       ) : null}
       {whatsApp ? (
