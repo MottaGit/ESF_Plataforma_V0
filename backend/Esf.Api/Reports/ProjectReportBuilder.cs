@@ -287,7 +287,7 @@ public static class ProjectReportBuilder
                     left.Spacing(2);
                     left.Item().Element(c => Field(c, "Responsável", p.OwnerVolunteer?.Name ?? "Não definido"));
                     left.Item().Element(c => Field(c, "Período do projeto", PeriodLine(p)));
-                    left.Item().Element(c => Field(c, "Comunidade/beneficiários", p.Beneficiaries ?? "-"));
+                    left.Item().Element(c => Field(c, "Comunidade ou família atendida", p.Beneficiaries ?? "-"));
                 });
 
                 row.ConstantItem(16);
@@ -295,7 +295,7 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Column(right =>
                 {
                     right.Spacing(2);
-                    right.Item().Element(c => Field(c, "Público beneficiado", p.TargetAudience ?? "-"));
+                    right.Item().Element(c => Field(c, "Quem se beneficia", p.TargetAudience ?? "-"));
                     right.Item().Element(c => Field(c, "Localização", FullAddress(p)));
                 });
             });

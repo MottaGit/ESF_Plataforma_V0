@@ -204,7 +204,7 @@ export function ProjectDetailPage() {
         </div>
       </div>
 
-      <ProjectStatusStrip project={project} canManage={canManage} onOpenTab={openTab} />
+      <ProjectStatusStrip project={project} canManage={canManage} onOpenTab={openTab} onChanged={() => void load()} />
 
       {suggestClosing ? (
         <div className="closing-notice" role="status">

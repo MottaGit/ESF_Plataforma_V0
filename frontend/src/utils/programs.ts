@@ -43,11 +43,6 @@ export function programHex(color: string | null | undefined) {
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-/** "3 em andamento · 9 concluídos" */
-export function programProjectsSummary(program: Program) {
-  return `${program.activeProjectsCount} em andamento · ${plural(program.doneProjectsCount, 'concluído', 'concluídos')}`;
-}
-
 /** "5 tarefas · 2 indicadores · textos sugeridos"; null quando o programa nao tem modelo. */
 export function programTemplateSummary(program: Program) {
   const parts = [

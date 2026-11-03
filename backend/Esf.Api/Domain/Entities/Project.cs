@@ -18,9 +18,9 @@ public class Project : IOrganizationOwned
     public Volunteer? OwnerVolunteer { get; set; }
 
     public string? Objective { get; set; }
-    /// <summary>Comunidade ou beneficiarios atendidos.</summary>
+    /// <summary>Comunidade ou familia atendida (tela: "Comunidade ou família atendida").</summary>
     public string? Beneficiaries { get; set; }
-    /// <summary>Publico beneficiado (ex.: 12 familias em situacao de vulnerabilidade).</summary>
+    /// <summary>Quem se beneficia, em texto (ex.: 5 pessoas, 1 idosa); a quantidade para somar fica nos indicadores.</summary>
     public string? TargetAudience { get; set; }
     public string? Notes { get; set; }
 

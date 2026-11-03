@@ -1,17 +1,15 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { indicatorsApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { Indicator, ProjectDetail, SaveIndicatorPayload } from '../../types/api';
-import { emptyToNull, formatDate, formatDateTime, formatNumber } from '../../utils/format';
+import type { Indicator, ProjectDetail } from '../../types/api';
+import { formatDate, formatNumber } from '../../utils/format';
 import { SignedDocumentsPanel } from '../documents/SignedDocumentsPanel';
-import { NationalIndicatorField, useNationalIndicators } from '../indicators/NationalIndicatorField';
 import { Button } from '../ui/Button';
-import { Field, TextInput } from '../ui/Field';
-import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
+import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
-import { Modal } from '../ui/Modal';
+import { IndicatorFormModal } from './IndicatorModals';
 
 interface AboutTabProps {
   project: ProjectDetail;
@@ -151,16 +149,14 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
           </div>
           <div className="panel__body">
             <div className="meta-list">
-              <MetaItem label="Programa" value={project.programName} />
-              <MetaItem label="Responsável" value={project.ownerName ?? 'Não definido'} />
               <MetaItem
                 label="Período"
                 value={`${formatDate(project.startDate)} até ${
                   project.endDateForecast ? formatDate(project.endDateForecast) : 'sem previsão'
                 }`}
               />
-              <MetaItem label="Comunidade ou beneficiários" value={project.beneficiaries ?? '—'} />
-              <MetaItem label="Público beneficiado" value={project.targetAudience ?? '—'} />
+              <MetaItem label="Comunidade ou família atendida" value={project.beneficiaries ?? '—'} />
+              <MetaItem label="Quem se beneficia" value={project.targetAudience ?? '—'} />
               <MetaItem label="Localização" value={location || '—'} />
               <div>
                 <div className="meta__label">No mapa</div>
@@ -172,8 +168,6 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                   )}
                 </div>
               </div>
-              <MetaItem label="Criado em" value={formatDateTime(project.createdAt)} />
-              <MetaItem label="Última alteração" value={formatDateTime(project.updatedAt)} />
             </div>
           </div>
         </section>
@@ -224,131 +218,5 @@ function MetaItem({ label, value }: { label: string; value: string }) {
       <div className="meta__label">{label}</div>
       <div className="meta__value">{value}</div>
     </div>
-  );
-}
-
-interface IndicatorFormModalProps {
-  projectId: string;
-  indicator: Indicator | null;
-  onClose: () => void;
-  onSaved: () => void;
-}
-
-function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: IndicatorFormModalProps) {
-  const nationals = useNationalIndicators();
-  const [nationalId, setNationalId] = useState(indicator?.nationalIndicatorId ?? '');
-  const [name, setName] = useState(indicator?.nationalIndicatorId ? '' : indicator?.name ?? '');
-  const [unit, setUnit] = useState(indicator?.nationalIndicatorId ? '' : indicator?.unit ?? '');
-  const [value, setValue] = useState(String(indicator?.value ?? ''));
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const national = nationals.find((item) => item.id === nationalId);
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    setFormError(null);
-
-    const found: Record<string, string> = {};
-    if (!nationalId && name.trim().length < 2) found.name = 'Informe o nome do indicador.';
-    if (value === '' || Number.isNaN(Number(value)) || Number(value) < 0) found.value = 'Informe um valor válido.';
-
-    setErrors(found);
-    if (Object.keys(found).length > 0) return;
-
-    // Indicador nacional: o nome e a unidade vem dele (a API ignora os daqui).
-    const payload: SaveIndicatorPayload = nationalId
-      ? {
-          name: national?.name ?? indicator?.name ?? 'Indicador nacional',
-          unit: national?.unit ?? indicator?.unit ?? null,
-          value: Number(value),
-          nationalIndicatorId: nationalId
-        }
-      : { name: name.trim(), unit: emptyToNull(unit), value: Number(value), nationalIndicatorId: null };
-
-    setSaving(true);
-    try {
-      if (indicator) await indicatorsApi.update(indicator.id, payload);
-      else await indicatorsApi.create(projectId, payload);
-      onSaved();
-    } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o indicador.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Modal
-      title={indicator ? 'Editar indicador' : 'Novo indicador'}
-      subtitle="Um número simples de resultado."
-      onClose={onClose}
-      footer={
-        <>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
-            Salvar
-          </Button>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit}>
-        {formError ? (
-          <div style={{ marginBottom: 16 }}>
-            <Alert kind="error">{formError}</Alert>
-          </div>
-        ) : null}
-
-        <div className="form-grid">
-          <NationalIndicatorField
-            id="indicator-national"
-            value={nationalId}
-            onChange={setNationalId}
-            options={nationals}
-            scope="projeto"
-            linked={indicator?.nationalIndicatorId ? { id: indicator.nationalIndicatorId, name: indicator.name } : null}
-          />
-
-          {!nationalId ? (
-            <Field label="Nome" htmlFor="indicator-name" required error={errors.name} span>
-              <TextInput
-                id="indicator-name"
-                value={name}
-                invalid={Boolean(errors.name)}
-                placeholder="Ex.: Pessoas beneficiadas"
-                onChange={(event) => setName(event.target.value)}
-              />
-            </Field>
-          ) : null}
-
-          <Field
-            label="Valor"
-            htmlFor="indicator-value"
-            required
-            error={errors.value}
-            hint={nationalId && national?.unit ? `Em ${national.unit}.` : undefined}
-          >
-            <TextInput
-              id="indicator-value"
-              type="number"
-              min={0}
-              step="0.01"
-              value={value}
-              invalid={Boolean(errors.value)}
-              onChange={(event) => setValue(event.target.value)}
-            />
-          </Field>
-
-          {!nationalId ? (
-            <Field label="Unidade" htmlFor="indicator-unit" hint="Ex.: pessoas, famílias, horas, unidades.">
-              <TextInput id="indicator-unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
-            </Field>
-          ) : null}
-        </div>
-
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
-      </form>
-    </Modal>
   );
 }

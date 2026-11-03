@@ -18,7 +18,6 @@ import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
 import { PROJECT_STATUSES, formatDateTime, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
 import { rememberProjectsQuery } from '../utils/listState';
-import { programProjectsSummary } from '../utils/programs';
 
 const sortOptions = [
   { value: 'recent', label: 'Atualizados recentemente' },
@@ -304,9 +303,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           onToggleArchived={() => void toggleProgramArchived(selected)}
           onDelete={() => setRemovingProgram(selected)}
         />
-      ) : (
-        <ProgramCards programs={activePrograms} onSelect={(id) => updateParams({ programa: id })} />
-      )}
+      ) : null}
 
       <div className="toolbar">
         <CollapsibleFilters active={activeFilters}>
@@ -573,33 +570,6 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         />
       ) : null}
     </>
-  );
-}
-
-/** "Todos": um cartao por programa, com os numeros e os resultados dele. */
-function ProgramCards({ programs, onSelect }: { programs: Program[]; onSelect: (id: string) => void }) {
-  if (programs.length === 0) return null;
-  return (
-    <div className="program-grid program-grid--overview">
-      {programs.map((program) => (
-        <button key={program.id} type="button" className="program-card" onClick={() => onSelect(program.id)}>
-          <ProgramMark icon={program.icon} color={program.color} size={40} />
-          <span className="program-card__body">
-            <span className="program-card__name">{program.name}</span>
-            <span className="program-card__meta">{programProjectsSummary(program)}</span>
-            {program.results.length > 0 ? (
-              <span className="program-card__results">
-                {program.results.slice(0, 2).map((result) => (
-                  <span key={result.name}>
-                    <b className="num">{formatNumber(result.total)}</b> {result.name.toLowerCase()}
-                  </span>
-                ))}
-              </span>
-            ) : null}
-          </span>
-        </button>
-      ))}
-    </div>
   );
 }
 

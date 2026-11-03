@@ -181,8 +181,10 @@ ligados ("Filtros (2)"); o Lista|Mapa continua à mostra. Cada linha mostra prog
 e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem registro há
 mais de 30 dias. Busca, filtros, ordenação e visão ficam na URL, então voltar de um projeto (ou recarregar) mantém a
 lista como estava. O **progresso** é calculado pelas tarefas concluídas (projeto concluído conta como 100%). O **novo
-projeto** pede só o essencial (nome, programa, responsável, data de início e endereço; começa em planejamento); o resto
-(descrição, objetivo, comunidade, público, previsão de término, status, observações) fica em Editar projeto.
+projeto** pede só o essencial (nome, programa, responsável, data de início e endereço, com o estado do núcleo já
+preenchido; a cidade fica em branco, porque há projetos em cidades da região; começa em planejamento); o resto
+(descrição, objetivo, comunidade, quem se beneficia, previsão de término, observações) fica em Editar projeto. O status
+muda só no badge do topo do projeto.
 
 **Mapa dos projetos** — em Projetos, a alternância **Lista | Mapa** mostra os projetos num mapa do OpenStreetMap
 (gratuito, sem chave), com os mesmos filtros da lista. Cada pino tem o ícone e a cor do programa; clicar mostra nome,
@@ -194,8 +196,8 @@ apaga o ponto. Em Sobre, "Ver no mapa" abre o mapa já centrado no projeto. O ma
 aberto.
 
 **Programas** — a tela Projetos é organizada por programa: no topo, uma aba para **Todos** e uma por programa (com
-ícone, cor e número de projetos) e, para a coordenação, **+ Novo programa**. Em **Todos** aparece um cartão por
-programa (projetos em andamento e concluídos e os resultados); escolhendo um programa aparece a **visão do programa**:
+ícone, cor e número de projetos) e, para a coordenação, **+ Novo programa**. Em **Todos** vem direto a lista de
+projetos; escolhendo um programa aparece a **visão do programa**:
 números (em andamento, concluídos) e os **resultados somados** — cada indicador padrão do modelo somado nos projetos
 não arquivados do programa, comparando os nomes sem diferenciar maiúsculas nem acentos —, mais, para a coordenação,
 **Modelo do programa**, **Editar** (nome, ícone e cor) e arquivar/reativar ou excluir (só sem projetos). A lista
@@ -205,7 +207,7 @@ programa abre a aba dele.
 
 **Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **tarefas padrão** (título, prioridade, descrição e
 prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
-**textos sugeridos** (descrição, objetivo e público beneficiado). A coordenação inclui, edita, reordena e remove; cada
+**textos sugeridos** (descrição, objetivo e quem se beneficia). A coordenação inclui, edita, reordena e remove; cada
 mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
 mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado): as tarefas entram sem responsável,
 com o prazo contado da data de início, os indicadores entram zerados e os textos preenchem o que ficou em branco. Os
@@ -272,9 +274,11 @@ comparação usa a função `esf_fold` (criada pela migração, sem depender de 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, tarefas atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente; embaixo, na largura toda, os **indicadores** do projeto,
-nome e valor com a unidade, que levam à aba Sobre, onde são editados; sem indicadores, a coordenação vê o convite
-para cadastrar e os demais não veem a linha) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre**
-(descrição, objetivo, dados cadastrais e indicadores). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
+nome e valor com a unidade; tocar num deles abre a janela para atualizar o valor ali mesmo — nome, unidade e exclusão
+ficam na aba Sobre; sem indicadores, a coordenação vê o convite, que abre o cadastro do primeiro, e os demais não veem a
+linha) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre** (descrição, objetivo,
+período, comunidade ou família atendida, quem se beneficia, local e indicadores; programa e responsável já estão no
+topo). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. No celular, quando as abas não cabem, aparece uma seta
 com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. **Gerar relatório** abre as mesmas opções da tela Relatórios
 (componente `components/reports/ReportOptions.tsx`), já com o projeto escolhido.
@@ -282,8 +286,7 @@ com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aber
 **Concluir ou cancelar o projeto** — escolher Concluído ou Cancelado no badge do topo abre uma confirmação: avisa
 quantas tarefas ainda estão em aberto (com atrasadas e bloqueadas, e o botão "Ver tarefas") e pede, sem obrigar, um
 **registro de encerramento** (ou o motivo do cancelamento), que é publicado no Andamento como um registro comum e por
-isso entra no relatório. Os outros status mudam direto. Em Editar projeto, escolher um desses status mostra o mesmo
-aviso de tarefas em aberto embaixo do campo. Quando todas as tarefas estão concluídas e o projeto ainda está em
+isso entra no relatório. Os outros status mudam direto. Quando todas as tarefas estão concluídas e o projeto ainda está em
 planejamento, em andamento ou pausado, aparece abaixo da faixa de situação a sugestão "Todas as tarefas estão
 concluídas…" com **Concluir projeto** (abre a mesma confirmação) e **Agora não** (some daquele projeto até fechar o
 navegador).

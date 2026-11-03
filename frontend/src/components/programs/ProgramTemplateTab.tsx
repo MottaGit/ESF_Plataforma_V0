@@ -107,7 +107,7 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
   const texts = [
     { label: 'Descrição', value: template.description },
     { label: 'Objetivo', value: template.objective },
-    { label: 'Público beneficiado', value: template.targetAudience }
+    { label: 'Quem se beneficia', value: template.targetAudience }
   ];
 
   return (
@@ -592,7 +592,7 @@ function TemplateTextsModal({
         <Field label="Objetivo" htmlFor="template-objective">
           <TextArea id="template-objective" value={objective} onChange={(event) => setObjective(event.target.value)} />
         </Field>
-        <Field label="Público beneficiado" htmlFor="template-audience">
+        <Field label="Quem se beneficia" htmlFor="template-audience">
           <TextInput
             id="template-audience"
             maxLength={300}

@@ -1,20 +1,29 @@
-import type { ProjectDetail } from '../../types/api';
+import { useState } from 'react';
+import { useToast } from '../../context/ToastContext';
+import type { Indicator, ProjectDetail } from '../../types/api';
 import { formatNumber } from '../../utils/format';
 import { Progress } from '../ui/Progress';
+import { IndicatorFormModal, IndicatorValueModal } from './IndicatorModals';
 
 interface ProjectStatusStripProps {
   project: ProjectDetail;
   /** Coordenacao ve o convite para cadastrar indicadores quando o projeto ainda nao tem nenhum. */
   canManage: boolean;
   onOpenTab: (tab: 'activities' | 'team' | 'about', filter?: 'atrasadas') => void;
+  /** Indicador atualizado ou criado pela faixa. */
+  onChanged: () => void;
 }
 
 /**
  * Faixa de situacao do projeto, logo abaixo do cabecalho e visivel em todas as abas:
  * progresso, atividades atrasadas, bloqueadas e equipe e, embaixo, os indicadores (resultados).
- * Cada bloco leva a aba correspondente; os indicadores, a Sobre, onde sao editados.
+ * Cada bloco leva a aba correspondente; tocar num indicador atualiza o valor ali mesmo (nome e unidade, em Sobre).
  */
-export function ProjectStatusStrip({ project, canManage, onOpenTab }: ProjectStatusStripProps) {
+export function ProjectStatusStrip({ project, canManage, onOpenTab, onChanged }: ProjectStatusStripProps) {
+  const { notify } = useToast();
+  const [updating, setUpdating] = useState<Indicator | null>(null);
+  const [creating, setCreating] = useState(false);
+
   const total = project.activities.length;
   const done = project.activities.filter((activity) => activity.status === 'Concluida').length;
   const pending = project.activities.filter((activity) => activity.status !== 'Concluida');
@@ -76,28 +85,54 @@ export function ProjectStatusStrip({ project, canManage, onOpenTab }: ProjectSta
       </button>
 
       {project.indicators.length > 0 || canManage ? (
-        <button
-          type="button"
-          className="status-results"
-          title="Indicadores do projeto (editados na aba Sobre)"
-          onClick={() => onOpenTab('about')}
-        >
+        <div className="status-results">
           {project.indicators.length === 0 ? (
-            <span className="status-results__empty">
-              Nenhum indicador de resultado ainda. Cadastre em Sobre (ex.: famílias atendidas, área construída).
-            </span>
+            <button type="button" className="status-results__empty" onClick={() => setCreating(true)}>
+              Nenhum indicador de resultado ainda. Cadastre o primeiro (ex.: famílias atendidas, área construída).
+            </button>
           ) : (
             project.indicators.map((indicator) => (
-              <span className="status-result" key={indicator.id}>
+              <button
+                type="button"
+                className="status-result"
+                key={indicator.id}
+                title="Atualizar o valor"
+                onClick={() => setUpdating(indicator)}
+              >
                 <span className="status-tile__label">{indicator.name}</span>
                 <span className="status-result__value num">
                   {formatNumber(indicator.value)}
                   {indicator.unit ? <small> {indicator.unit}</small> : null}
                 </span>
-              </span>
+              </button>
             ))
           )}
-        </button>
+        </div>
+      ) : null}
+
+      {updating ? (
+        <IndicatorValueModal
+          indicator={updating}
+          onClose={() => setUpdating(null)}
+          onSaved={() => {
+            setUpdating(null);
+            notify('Valor atualizado.');
+            onChanged();
+          }}
+        />
+      ) : null}
+
+      {creating ? (
+        <IndicatorFormModal
+          projectId={project.id}
+          indicator={null}
+          onClose={() => setCreating(false)}
+          onSaved={() => {
+            setCreating(false);
+            notify('Indicador criado.');
+            onChanged();
+          }}
+        />
       ) : null}
     </div>
   );

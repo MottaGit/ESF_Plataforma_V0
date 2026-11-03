@@ -1,15 +1,8 @@
 import { Suspense, lazy, useEffect, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { programsApi, projectsApi } from '../../api/endpoints';
+import { organizationApi, programsApi, projectsApi } from '../../api/endpoints';
 import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
-import {
-  PROJECT_STATUSES,
-  SENSITIVE_DATA_HINT,
-  emptyToNull,
-  isPastProjectStatus,
-  projectStatusLabel,
-  todayInputValue
-} from '../../utils/format';
+import { SENSITIVE_DATA_HINT, emptyToNull, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
@@ -49,15 +42,8 @@ interface FormState {
   longitude: string;
   startDate: string;
   endDateForecast: string;
+  /** O status muda so no topo do projeto (com a confirmacao ao concluir ou cancelar); aqui vai o atual. */
   status: ProjectStatus;
-}
-
-/** Ao passar para concluido ou cancelado aqui (sem a confirmacao do topo do projeto), avisa das tarefas em aberto. */
-function closingHint(project: ProjectDetail | null, status: ProjectStatus) {
-  if (!project || project.status === status || !isPastProjectStatus(status)) return undefined;
-  const open = project.activities.filter((activity) => activity.status !== 'Concluida').length;
-  if (open === 0) return undefined;
-  return open === 1 ? 'Ainda há 1 tarefa em aberto neste projeto.' : `Ainda há ${open} tarefas em aberto neste projeto.`;
 }
 
 function initialState(project: ProjectDetail | null, fallbackProgramId: string): FormState {
@@ -157,6 +143,22 @@ export function ProjectFormModal({
   const templateParts =
     chosenProgram && chosenProgram.id === form.programId ? templateDescription(chosenProgram) : null;
 
+  // Projeto novo: o estado ja vem com o do nucleo. A cidade fica em branco: ha projetos em cidades da regiao.
+  useEffect(() => {
+    if (project) return;
+    let active = true;
+    organizationApi
+      .get()
+      .then((organization) => {
+        if (!active || !organization.state) return;
+        setForm((current) => (current.state ? current : { ...current, state: organization.state ?? '' }));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [project]);
+
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => {
@@ -253,7 +255,7 @@ export function ProjectFormModal({
     <>
       <Modal
         title={project ? 'Editar projeto' : 'Novo projeto'}
-        subtitle={project ? project.name : 'Só o essencial agora; descrição, objetivo, público e o resto você completa depois em Sobre.'}
+        subtitle={project ? project.name : 'Só o essencial agora; descrição, objetivo, comunidade e o resto você completa depois em Sobre.'}
         size="wide"
         onClose={onClose}
         footer={
@@ -358,7 +360,7 @@ export function ProjectFormModal({
                   <TextArea id="objective" value={form.objective} onChange={(event) => update('objective', event.target.value)} />
                 </Field>
 
-                <Field label="Comunidade ou beneficiários" htmlFor="beneficiaries">
+                <Field label="Comunidade ou família atendida" htmlFor="beneficiaries">
                   <TextInput
                     id="beneficiaries"
                     value={form.beneficiaries}
@@ -367,11 +369,11 @@ export function ProjectFormModal({
                   />
                 </Field>
 
-                <Field label="Público beneficiado" htmlFor="targetAudience">
+                <Field label="Quem se beneficia" htmlFor="targetAudience">
                   <TextInput
                     id="targetAudience"
                     value={form.targetAudience}
-                    placeholder="Ex.: 30 famílias"
+                    placeholder="Ex.: 5 pessoas, 1 idosa"
                     onChange={(event) => update('targetAudience', event.target.value)}
                   />
                 </Field>
@@ -421,20 +423,6 @@ export function ProjectFormModal({
                     invalid={Boolean(errors.endDateForecast)}
                     onChange={(event) => update('endDateForecast', event.target.value)}
                   />
-                </Field>
-
-                <Field label="Status" htmlFor="status" required hint={closingHint(project, form.status)}>
-                  <Select
-                    id="status"
-                    value={form.status}
-                    onChange={(event) => update('status', event.target.value as ProjectStatus)}
-                  >
-                    {PROJECT_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {projectStatusLabel(status)}
-                      </option>
-                    ))}
-                  </Select>
                 </Field>
 
                 <Field label="Observações" htmlFor="notes" span hint={SENSITIVE_DATA_HINT}>
