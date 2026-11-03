@@ -193,7 +193,7 @@ function PanelSection() {
               <h2>Por núcleo</h2>
             </div>
             <div className="table-wrap">
-              <table className="table">
+              <table className="table table--cards">
                 <thead>
                   <tr>
                     <th>Núcleo</th>
@@ -214,19 +214,19 @@ function PanelSection() {
                 <tbody>
                   {panel.nucleos.map((row) => (
                     <tr key={row.id}>
-                      <td>
+                      <td className="cell--main">
                         <div className="table__primary">{row.name}</div>
                         <div className="table__secondary">{[row.city, row.state].filter(Boolean).join(' / ') || '—'}</div>
                       </td>
-                      <td className="tight num">{row.activeProjects}</td>
-                      <td className="tight num">{row.concludedProjects}</td>
-                      <td className="tight num">{row.activeVolunteers}</td>
-                      <td className="tight num">{formatNumber(row.volunteerHours)}</td>
-                      <td className="tight num">{row.tasksCompleted}</td>
-                      <td className="tight num">{row.records}</td>
-                      <td className="tight">{row.lastActivityAt ? formatDate(row.lastActivityAt) : 'nenhuma'}</td>
+                      <td className="tight num" data-label="Projetos em andamento">{row.activeProjects}</td>
+                      <td className="tight num" data-label="Concluídos">{row.concludedProjects}</td>
+                      <td className="tight num" data-label="Voluntários ativos">{row.activeVolunteers}</td>
+                      <td className="tight num" data-label="Horas">{formatNumber(row.volunteerHours)}</td>
+                      <td className="tight num" data-label="Tarefas">{row.tasksCompleted}</td>
+                      <td className="tight num" data-label="Registros">{row.records}</td>
+                      <td className="tight" data-label="Última atividade">{row.lastActivityAt ? formatDate(row.lastActivityAt) : 'nenhuma'}</td>
                       {panel.indicators.map((indicator) => (
-                        <td key={indicator.id} className="tight num">
+                        <td key={indicator.id} className="tight num" data-label={indicator.name}>
                           {formatNumber(row.indicators[indicator.id] ?? 0)}
                         </td>
                       ))}
@@ -291,7 +291,7 @@ function NucleosSection() {
           <EmptyState title="Nenhum núcleo cadastrado" />
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>Núcleo</th>
@@ -304,15 +304,15 @@ function NucleosSection() {
               <tbody>
                 {nucleos.map((nucleo) => (
                   <tr key={nucleo.id}>
-                    <td>
+                    <td className="cell--main">
                       <div className="table__primary">{nucleo.name}</div>
                       <div className="table__secondary">
                         {[nucleo.city, nucleo.state].filter(Boolean).join(' / ') || 'Local não informado'}
                       </div>
                     </td>
-                    <td className="tight num">{nucleo.activeVolunteers}</td>
-                    <td className="tight num">{nucleo.activeProjects}</td>
-                    <td>
+                    <td className="tight num" data-label="Voluntários ativos">{nucleo.activeVolunteers}</td>
+                    <td className="tight num" data-label="Projetos em andamento">{nucleo.activeProjects}</td>
+                    <td className="cell--wide">
                       {nucleo.admins.length === 0 ? (
                         <span className="table__secondary">Sem administrador</span>
                       ) : (
@@ -340,7 +340,7 @@ function NucleosSection() {
                         </ul>
                       )}
                     </td>
-                    <td>
+                    <td className="cell--actions">
                       <div className="row-actions">
                         <Menu
                           label={`Ações de ${nucleo.name}`}
@@ -646,7 +646,7 @@ function NationalIndicatorsSection() {
           />
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>Indicador</th>
@@ -659,13 +659,13 @@ function NationalIndicatorsSection() {
               <tbody>
                 {indicators.map((indicator) => (
                   <tr key={indicator.id}>
-                    <td className="table__primary">{indicator.name}</td>
-                    <td>{indicator.unit ?? '—'}</td>
-                    <td className="table__secondary">{indicator.description ?? '—'}</td>
+                    <td className="table__primary cell--main">{indicator.name}</td>
+                    <td data-label="Unidade">{indicator.unit ?? '—'}</td>
+                    <td className="table__secondary cell--wide">{indicator.description ?? '—'}</td>
                     <td>
                       <NeutralBadge>{indicator.isArchived ? 'Arquivado' : 'Ativo'}</NeutralBadge>
                     </td>
-                    <td>
+                    <td className="cell--actions">
                       <div className="row-actions">
                         <Menu
                           label={`Ações de ${indicator.name}`}
@@ -853,7 +853,7 @@ function PeopleSection() {
           <Loading label="Carregando…" />
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>Nome</th>
@@ -866,7 +866,7 @@ function PeopleSection() {
               <tbody>
                 {people.map((person) => (
                   <tr key={person.userId}>
-                    <td>
+                    <td className="cell--main">
                       <div className="table__primary">{person.name}</div>
                       {person.isMe ? <div className="table__secondary">você</div> : null}
                     </td>
@@ -877,7 +877,7 @@ function PeopleSection() {
                         {!person.isActive ? 'Desativado' : person.pending ? 'Aguardando o primeiro acesso' : 'Ativo'}
                       </NeutralBadge>
                     </td>
-                    <td>
+                    <td className="cell--actions">
                       <div className="row-actions">
                         {!person.nucleoName && person.isActive ? (
                           <Button

@@ -1684,6 +1684,49 @@ button { font: inherit; }
   .page-head__actions { margin-left: 0; width: 100%; }
 }
 
+/* ---------------------------------------------------------
+   Celular: campos do tamanho do dedo e tabelas em cartoes
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  /* 16px: com letra menor, o Safari do iPhone amplia a tela a cada toque num campo. 44px: tamanho do dedo. */
+  .input, .select, .textarea, .rich-editor__content { font-size: 16px; }
+  .input, .select { min-height: 44px; }
+  .btn { height: 40px; }
+  .btn--sm { height: 34px; }
+  .checkbox { font-size: 14px; }
+  .checkbox input { width: 20px; height: 20px; }
+}
+
+/*
+ * Tabela que vira lista de cartoes no celular: cada linha e um cartao, a celula principal (cell--main) ocupa a
+ * largura toda e as outras vem embaixo, lado a lado. data-label poe um rotulo antes do valor; cell--desktop some;
+ * cell--actions fica no canto de cima; cell--wide ocupa uma linha inteira; cell--check fica a esquerda da principal.
+ */
+@media (max-width: 760px) {
+  .table--cards thead { display: none; }
+  .table--cards, .table--cards tbody { display: block; width: 100%; }
+  .table--cards tr {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .table--cards tbody tr:last-child { border-bottom: 0; }
+  .table--cards td { display: block; padding: 0; border: 0; min-width: 0 !important; white-space: normal; }
+  .table.table--cards td.tight { white-space: normal; }
+  .table--cards td.cell--main, .table--cards td.cell--wide { flex: 1 1 100%; }
+  .table--cards td.cell--check + td.cell--main { flex: 1 1 0; }
+  .table--cards td.cell--grow { flex: 1 1 140px; }
+  .table--cards td.cell--desktop { display: none; }
+  .table--cards td.cell--actions { position: absolute; top: 10px; right: 8px; }
+  .table--cards tr:has(> td.cell--actions) > td.cell--main { padding-right: 44px; }
+  .table--cards td[data-label]::before { content: attr(data-label) " "; color: var(--text-muted); }
+}
+
 /* Select com um botao ao lado (ex.: Programa + "Novo" no formulario de projeto). */
 .select-with-action { display: flex; gap: 8px; align-items: center; }
 .select-with-action .select { flex: 1; min-width: 0; }

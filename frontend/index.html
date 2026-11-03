@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // iPhone/iPad: sem o zoom automatico ao tocar num campo ou num seletor pequeno. No iOS o gesto de pinca
+      // continua ampliando a tela; nos outros sistemas nada muda.
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+      }
+    </script>
     <meta name="description" content="Plataforma de gestao de projetos sociais do Engenheiros Sem Fronteiras." />
     <title>ESF - Gestao de projetos</title>
   </head>

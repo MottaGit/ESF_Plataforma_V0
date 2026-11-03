@@ -426,7 +426,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           ) : (
             <>
               <div className="table-wrap">
-                <table className="table">
+                <table className="table table--cards">
                   <thead>
                     <tr>
                       <th>Projeto</th>
@@ -444,7 +444,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                   <tbody>
                     {projects.map((project) => (
                       <tr key={project.id}>
-                        <td style={{ minWidth: 220 }}>
+                        <td className="cell--main" style={{ minWidth: 220 }}>
                           <div className="project-cell">
                             {!selected ? (
                               <ProgramMark icon={project.programIcon} color={project.programColor} size={24} />
@@ -469,11 +469,11 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                             </div>
                           ) : null}
                         </td>
-                        <td>{project.ownerName ?? '—'}</td>
-                        <td style={{ minWidth: 120 }}>
+                        <td className="cell--desktop">{project.ownerName ?? '—'}</td>
+                        <td className="cell--grow" style={{ minWidth: 120 }}>
                           <Progress value={project.progress} />
                         </td>
-                        <td className="tight">
+                        <td className="tight" data-label={project.lastUpdateAt ? 'último registro' : undefined}>
                           {project.lastUpdateAt ? (
                             <span title={formatDateTime(project.lastUpdateAt)}>{timeAgo(project.lastUpdateAt)}</span>
                           ) : (
@@ -481,7 +481,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                           )}
                         </td>
                         {canManage ? (
-                          <td>
+                          <td className="cell--actions">
                             <div className="row-actions">
                               <Menu
                                 label={`Ações de ${project.name}`}

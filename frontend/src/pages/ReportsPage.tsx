@@ -132,7 +132,7 @@ export function ReportsPage() {
             <EmptyState title="Nenhum projeto encontrado" description="Ajuste a busca ou o filtro de status." />
           ) : (
             <div className="table-wrap">
-              <table className="table">
+              <table className="table table--cards">
                 <thead>
                   <tr>
                     <th style={{ width: 44 }} />
@@ -144,7 +144,7 @@ export function ReportsPage() {
                 <tbody>
                   {filtered.map((project) => (
                     <tr key={project.id} onClick={() => toggle(project.id)} style={{ cursor: 'pointer' }}>
-                      <td>
+                      <td className="cell--check">
                         <input
                           type="checkbox"
                           checked={selected.includes(project.id)}
@@ -154,7 +154,7 @@ export function ReportsPage() {
                           style={{ width: 15, height: 15, accentColor: 'var(--accent)' }}
                         />
                       </td>
-                      <td>
+                      <td className="cell--main">
                         <div className="table__primary">{project.name}</div>
                         <div className="table__secondary">
                           {project.programName}

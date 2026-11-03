@@ -202,7 +202,7 @@ export function VolunteersPage() {
           />
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>Nome</th>
@@ -232,7 +232,7 @@ export function VolunteersPage() {
                   const birthday = isBirthdayToday(volunteer.birthDay, volunteer.birthMonth);
                   return (
                     <tr key={volunteer.id} className={birthday ? 'table__row--birthday' : undefined}>
-                      <td>
+                      <td className="cell--main">
                         <div className="person-cell">
                           <span className="avatar-flagged">
                             <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={32} />
@@ -273,12 +273,12 @@ export function VolunteersPage() {
                         <ContactIcons name={volunteer.name} email={volunteer.email} phone={volunteer.phone} />
                       </td>
                       <td>{sectorLabel(volunteer.sector)}</td>
-                      <td>{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
+                      <td className="cell--desktop">{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
                       <td>
                         <VolunteerStatusBadge status={volunteer.status} />
                       </td>
                       {canManage ? (
-                        <td>
+                        <td className="cell--actions">
                           {volunteer.anonymized ? (
                             <span className="table__secondary">dados anonimizados</span>
                           ) : (

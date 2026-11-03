@@ -215,7 +215,10 @@ de ser visível para ele).
 **No celular** — uma barra fixa embaixo com **Início · Projetos · Tarefas · + Registrar** (o menu lateral continua no
 botão do topo, para Voluntários, Relatórios e Configurações). **Registrar** pergunta o projeto (os da pessoa primeiro,
 com busca) e abre o projeto já no registro de andamento, com o cursor no campo; o botão "Registrar" de Meus projetos,
-no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmação aparecem acima da barra.
+no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmação aparecem acima da barra. As listas em
+tabela (Projetos, Voluntários, Equipe do projeto, Relatórios, Usuários e as da área Nacional) viram cartões, um por
+linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no iPhone, letra menor faz a tela ampliar
+sozinha a cada toque num campo).
 
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 vencidas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban

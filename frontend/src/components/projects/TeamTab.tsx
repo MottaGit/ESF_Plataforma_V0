@@ -100,7 +100,7 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
           />
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>Voluntário</th>
@@ -116,7 +116,7 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                   const load = workload(volunteer.volunteerId);
                   return (
                     <tr key={volunteer.volunteerId}>
-                      <td>
+                      <td className="cell--main">
                         <div className="person-cell">
                           <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
                           <div>
@@ -147,7 +147,7 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                           </>
                         )}
                       </td>
-                      <td>
+                      <td className="cell--wide">
                         <EmailLink email={volunteer.email} />
                         {volunteer.phone ? (
                           <div className="table__secondary">
@@ -155,8 +155,8 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                           </div>
                         ) : null}
                       </td>
-                      <td className="tight">{formatDate(volunteer.joinedAt)}</td>
-                      <td>
+                      <td className="tight cell--desktop">{formatDate(volunteer.joinedAt)}</td>
+                      <td className="cell--actions">
                         <div className="row-actions">
                           <Button
                             small

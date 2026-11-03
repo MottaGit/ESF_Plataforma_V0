@@ -509,7 +509,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
           <EmptyState title="Nenhum usuário cadastrado" />
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>Nome</th>
@@ -524,12 +524,12 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
               <tbody>
                 {users.map((user) => (
                   <tr key={user.id}>
-                    <td>
+                    <td className="cell--main">
                       <div className="table__primary">{user.name}</div>
                       {user.id === currentUser?.id ? <div className="table__secondary">você</div> : null}
                     </td>
                     <td>{user.email}</td>
-                    <td>{user.volunteerName ?? '—'}</td>
+                    <td className="cell--desktop">{user.volunteerName ?? '—'}</td>
                     <td>
                       {roleLabel(user.role)}
                       <div className="table__secondary">{roleDescription[user.role]}</div>
@@ -539,9 +539,9 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                         {!user.isActive ? 'Desativado' : user.passwordPending ? 'Aguardando o primeiro acesso' : 'Ativo'}
                       </NeutralBadge>
                     </td>
-                    <td className="tight">{formatDate(user.createdAt)}</td>
+                    <td className="tight cell--desktop">{formatDate(user.createdAt)}</td>
                     {canEdit ? (
-                      <td>
+                      <td className="cell--actions">
                         <div className="row-actions">
                           {user.isActive ? (
                             <Button
