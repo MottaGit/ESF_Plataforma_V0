@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { programEmoji, programHex } from '../../utils/programs';
+import { programHex, programIconBody } from '../../utils/programs';
 
 /** Mapa base gratuito do OpenStreetMap (a atribuicao e obrigatoria). */
 export const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -21,7 +21,10 @@ export function createMap(element: HTMLElement, center: L.LatLngTuple = DEFAULT_
 export function programPin(icon: string, color: string) {
   return L.divIcon({
     className: 'map-pin-wrap',
-    html: `<span class="map-pin" style="--pin:${programHex(color)}"><span class="map-pin__icon">${programEmoji(icon)}</span></span>`,
+    html:
+      `<span class="map-pin" style="--pin:${programHex(color)}">` +
+      `<svg class="map-pin__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ` +
+      `stroke-linecap="round" stroke-linejoin="round">${programIconBody(icon)}</svg></span>`,
     iconSize: [34, 42],
     iconAnchor: [17, 42],
     popupAnchor: [0, -38]

@@ -205,6 +205,13 @@ embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com el
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
 programa abre a aba dele.
 
+**Ícone e cor do programa** — no programa novo, o ícone sai do nome enquanto se digita: vale a primeira palavra
+conhecida (banheiro, horta, cisterna, passarela, oficina, reforma, diagnóstico…; "Cisterna da Escola" é água, não
+educação) e a cor vem junto, por assunto (água azul, natureza verde, obra laranja, energia amarela, educação roxa,
+pessoas rosa). **Trocar** abre a grade com os 20 ícones e as cores; depois de escolher à mão, o nome não mexe mais. Os
+ícones são desenhos de traço da biblioteca Lucide (licença ISC, em `frontend/src/components/programs/LUCIDE-LICENSE`),
+iguais em qualquer aparelho (os emojis de antes mudavam de cara em cada sistema); as chaves antigas continuam valendo.
+
 **Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **tarefas padrão** (título, "Urgente", descrição e
 prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
 **textos sugeridos** (descrição, objetivo e quem se beneficia). A coordenação inclui, edita, reordena e remove; cada

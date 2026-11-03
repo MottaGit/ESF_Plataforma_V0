@@ -12,15 +12,19 @@ public static class ProgramAppearance
     /// <summary>Chave do icone e o nome dele em portugues (aparece no historico de alteracoes).</summary>
     public static readonly Dictionary<string, string> Icons = new(StringComparer.Ordinal)
     {
-        ["banheiro"] = "Banheiro", ["horta"] = "Horta", ["evento"] = "Evento", ["casa"] = "Moradia",
-        ["agua"] = "Água", ["energia"] = "Energia", ["obra"] = "Obra", ["educacao"] = "Educação",
-        ["arvore"] = "Meio ambiente", ["reciclagem"] = "Reciclagem", ["comunidade"] = "Comunidade", ["pin"] = "Local"
+        ["banheiro"] = "Banheiro", ["agua"] = "Água e saneamento", ["horta"] = "Horta", ["arvore"] = "Meio ambiente",
+        ["reciclagem"] = "Reciclagem", ["alimentacao"] = "Alimentação", ["obra"] = "Obra e reforma",
+        ["casa"] = "Moradia", ["manutencao"] = "Manutenção e reparos", ["mobilidade"] = "Mobilidade e acesso",
+        ["energia"] = "Energia e elétrica", ["solar"] = "Energia solar", ["educacao"] = "Educação",
+        ["oficina"] = "Oficina e capacitação", ["comunidade"] = "Comunidade", ["evento"] = "Evento e campanha",
+        ["saude"] = "Saúde", ["acessibilidade"] = "Acessibilidade", ["diagnostico"] = "Diagnóstico e levantamento",
+        ["pin"] = "Outro"
     };
 
     public static readonly Dictionary<string, string> Colors = new(StringComparer.Ordinal)
     {
-        ["teal"] = "Verde-azulado", ["blue"] = "Azul", ["green"] = "Verde", ["orange"] = "Laranja",
-        ["red"] = "Vermelho", ["purple"] = "Roxo", ["pink"] = "Rosa", ["gray"] = "Cinza"
+        ["teal"] = "Verde-azulado", ["blue"] = "Azul", ["green"] = "Verde", ["amber"] = "Amarelo",
+        ["orange"] = "Laranja", ["red"] = "Vermelho", ["purple"] = "Roxo", ["pink"] = "Rosa", ["gray"] = "Cinza"
     };
 
     public static string IconOrDefault(string? icon) =>
