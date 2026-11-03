@@ -135,7 +135,7 @@ function TaskRow({ activity, onOpen, onRequestStatus }: TaskRowProps) {
       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
         <span className="task-row__title">
           {activity.title}
-          {activity.priority === 'Alta' && !done ? <span className="badge badge--cancel">Alta</span> : null}
+          {activity.priority === 'Alta' && !done ? <span className="badge badge--urgent">Alta</span> : null}
         </span>
         <span className="task-row__meta">
           {activity.programIcon && activity.programColor ? (

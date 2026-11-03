@@ -25,10 +25,11 @@ const activityStatusClass: Record<ActivityStatus, string> = {
   Concluida: 'badge--done'
 };
 
+// So a prioridade alta chama atencao (laranja); vermelho fica para o atraso.
 const priorityClass: Record<ActivityPriority, string> = {
   Baixa: 'badge--plan',
-  Media: 'badge--pause',
-  Alta: 'badge--cancel'
+  Media: 'badge--plan',
+  Alta: 'badge--urgent'
 };
 
 const volunteerStatusClass: Record<VolunteerStatus, string> = {

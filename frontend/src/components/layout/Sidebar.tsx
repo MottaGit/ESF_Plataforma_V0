@@ -1,6 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { displayName } from '../../utils/format';
 import {
   IconChecklist,
   IconGlobe,
@@ -31,7 +30,7 @@ const items = [
 ];
 
 export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
-  const { user, canManage, hasNucleo, isNational } = useAuth();
+  const { canManage, hasNucleo, isNational } = useAuth();
   const { pathname } = useLocation();
   // Conta so da gestao nacional nao tem nucleo: so o item Nacional.
   const visible = items.filter((item) =>
@@ -65,11 +64,6 @@ export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="sidebar__footer">
-        Conectado como {displayName(user)}
-        <br />
-        Versão 0 — produto em validação
-      </div>
     </aside>
   );
 }

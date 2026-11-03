@@ -180,7 +180,7 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
         <button type="button" className="board-card__title">
           {activity.title}
         </button>
-        {activity.priority === 'Alta' && !done ? <span className="badge badge--cancel">Alta</span> : null}
+        {activity.priority === 'Alta' && !done ? <span className="badge badge--urgent">Alta</span> : null}
       </div>
 
       {activity.projectName ? (
