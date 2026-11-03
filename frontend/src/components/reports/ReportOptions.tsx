@@ -20,6 +20,23 @@ export const DEFAULT_REPORT_OPTIONS: ReportOptions = {
   note: ''
 };
 
+/** Data local no formato do campo de data (aaaa-mm-dd). */
+function inputDate(date: Date) {
+  return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`;
+}
+
+/** Atalhos de periodo, pelo calendario de quem esta usando: mes passado inteiro, ultimos 3 meses e o ano ate hoje. */
+function periodShortcuts(today = new Date()) {
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  return [
+    { label: 'Mês passado', from: inputDate(new Date(year, month - 1, 1)), to: inputDate(new Date(year, month, 0)) },
+    { label: 'Últimos 3 meses', from: inputDate(new Date(year, month - 3, today.getDate())), to: inputDate(today) },
+    { label: 'Este ano', from: inputDate(new Date(year, 0, 1)), to: inputDate(today) },
+    { label: 'Todo o histórico', from: '', to: '' }
+  ];
+}
+
 /** Problema nas opcoes que impede gerar o PDF (null: pode gerar). */
 export function reportOptionsError(options: ReportOptions) {
   return options.from && options.to && options.to < options.from
@@ -80,6 +97,22 @@ export function ReportOptionsFields({ value, onChange, withoutImageAuthorization
             invalid={Boolean(periodError)}
             onChange={(event) => set('to', event.target.value)}
           />
+        </div>
+        <div className="chip-group report-period__shortcuts" role="group" aria-label="Atalhos de período">
+          {periodShortcuts().map((shortcut) => {
+            const active = value.from === shortcut.from && value.to === shortcut.to;
+            return (
+              <button
+                key={shortcut.label}
+                type="button"
+                className={`chip${active ? ' chip--active' : ''}`}
+                aria-pressed={active}
+                onClick={() => onChange({ ...value, from: shortcut.from, to: shortcut.to })}
+              >
+                {shortcut.label}
+              </button>
+            );
+          })}
         </div>
         {periodError ? (
           <span className="field__error">{periodError}</span>

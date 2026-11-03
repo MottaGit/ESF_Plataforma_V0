@@ -992,6 +992,8 @@ button { font: inherit; }
 .report-period { display: flex; align-items: center; gap: 8px; }
 .report-period .input { flex: 1 1 0; min-width: 0; }
 .report-period__sep { font-size: 13px; color: var(--text-muted); }
+.report-period__shortcuts { margin-top: 4px; flex-wrap: wrap; }
+.report-period__shortcuts .chip { flex: 0 0 auto; white-space: nowrap; }
 
 /* Janela de concluir ou cancelar o projeto. */
 .close-project { display: grid; gap: 14px; }

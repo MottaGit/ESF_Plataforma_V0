@@ -54,17 +54,7 @@ export function SettingsPage() {
     <>
       <div className="page-head">
         <div className="page-head__text">
-          {canManage ? (
-            <>
-              <h1>Configurações</h1>
-              <p className="page-head__desc">Dados institucionais, acessos, histórico de alterações e sua própria conta.</p>
-            </>
-          ) : (
-            <>
-              <h1>Minha conta</h1>
-              <p className="page-head__desc">Seus dados de acesso e a troca de senha.</p>
-            </>
-          )}
+          <h1>{canManage ? 'Configurações' : 'Minha conta'}</h1>
         </div>
       </div>
 

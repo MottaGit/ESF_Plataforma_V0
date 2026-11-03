@@ -78,9 +78,7 @@ export function ReportsPage() {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Relatórios</h1>
-          <p className="page-head__desc">
-            Selecione os projetos e gere um PDF consolidado para parceiros, registro de resultados ou prestação de contas.
-          </p>
+          <p className="page-head__desc">Escolha os projetos e gere o PDF para parceiros e prestação de contas.</p>
         </div>
       </div>
 

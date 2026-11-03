@@ -46,8 +46,7 @@ export function NationalPage() {
         <div className="page-head__text">
           <h1>Gestão nacional</h1>
           <p className="page-head__desc">
-            Os números de todos os núcleos, os núcleos e quem administra cada um, os indicadores nacionais e as pessoas da
-            gestão nacional. Os dados de dentro dos núcleos (voluntários, projetos, registros) ficam com cada núcleo.
+            Só números: os dados de dentro dos núcleos (voluntários, projetos, registros) ficam com cada núcleo.
           </p>
         </div>
       </div>

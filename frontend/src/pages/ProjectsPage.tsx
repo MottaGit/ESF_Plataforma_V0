@@ -252,9 +252,6 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Projetos</h1>
-          <p className="page-head__desc">
-            {selected ? 'A visão do programa e os projetos dele.' : 'Escolha um programa para ver os números e os projetos dele.'}
-          </p>
         </div>
         {canManage ? (
           <div className="page-head__actions">

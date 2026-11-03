@@ -78,7 +78,6 @@ export function VolunteersPage() {
       <div className="page-head">
         <div className="page-head__text">
           <h1>Voluntários</h1>
-          <p className="page-head__desc">Pessoas da organização: setor, situação e em quantos projetos atuam.</p>
         </div>
         {canManage ? (
           <div className="page-head__actions">

@@ -389,7 +389,8 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 **Relatórios** — seleção de um ou vários projetos, observação livre e geração de um **PDF consolidado** com
 identificação, descrição, objetivo, período, status, responsável, localização, voluntários e
 indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
-referência** (De/Até, cada ponta pode ficar em branco) aparece no topo de todas as páginas e filtra a linha do
+referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Últimos 3 meses**, **Este
+ano** e **Todo o histórico**) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
 andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico). As datas
 seguem o fuso do servidor, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
