@@ -4,6 +4,7 @@ import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { ProgramFormModal } from '../components/programs/ProgramFormModal';
 import { ProgramMark } from '../components/programs/ProgramMark';
+import { ProgramPicker } from '../components/programs/ProgramPicker';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { LateBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -33,8 +34,8 @@ const ProjectsMap = lazy(() =>
 );
 
 /**
- * Tela de Projetos, organizada por programa: "Todos" mostra um cartao por programa; cada programa mostra a visao
- * geral dele (resultados somados, modelo) e os projetos. Filtros vivem na URL: voltar de um projeto (ou recarregar)
+ * Tela de Projetos, organizada por programa: a lista de programas (com icone, busca e arquivados) escolhe entre todos
+ * os projetos e um programa so, que mostra a visao geral dele (resultados somados, modelo) e os projetos dele. Filtros vivem na URL: voltar de um projeto (ou recarregar)
  * mantem a tela como estava.
  */
 export function ProjectsPage() {
@@ -161,8 +162,6 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
 
   const activePrograms = programs.filter((program) => program.status === 'Ativo');
   const selected = programs.find((program) => program.id === programId) ?? null;
-  // Programas nas abas: os ativos e, se for o escolhido, um arquivado.
-  const tabs = selected && selected.status === 'Arquivado' ? [...activePrograms, selected] : activePrograms;
 
   const summary = useMemo(() => {
     const late = projects.filter((project) => project.isLate).length;
@@ -262,35 +261,14 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         ) : null}
       </div>
 
-      <nav className="program-tabs" aria-label="Programas">
-        <button
-          type="button"
-          className={`program-tab${selected ? '' : ' program-tab--active'}`}
-          aria-pressed={!selected}
-          onClick={() => updateParams({ programa: null })}
-        >
-          Todos
-        </button>
-        {tabs.map((program) => (
-          <button
-            key={program.id}
-            type="button"
-            className={`program-tab${program.id === programId ? ' program-tab--active' : ''}`}
-            aria-pressed={program.id === programId}
-            onClick={() => updateParams({ programa: program.id })}
-          >
-            <ProgramMark icon={program.icon} color={program.color} size={22} />
-            {program.name}
-            <span className="program-tab__count num">{program.projectsCount}</span>
-          </button>
-        ))}
-        {canManage ? (
-          <button type="button" className="program-tab program-tab--add" onClick={() => setProgramForm('new')}>
-            <IconPlus size={14} />
-            Novo programa
-          </button>
-        ) : null}
-      </nav>
+      <div className="program-bar">
+        <ProgramPicker
+          programs={programs}
+          selectedId={programId}
+          onSelect={(id) => updateParams({ programa: id })}
+          onCreate={canManage ? () => setProgramForm('new') : undefined}
+        />
+      </div>
 
       {selected ? (
         <ProgramOverview

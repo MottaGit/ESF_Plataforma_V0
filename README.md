@@ -195,15 +195,18 @@ só quando a pessoa clica em Buscar), aceita um clique no lugar certo e o pino p
 apaga o ponto. Em Sobre, "Ver no mapa" abre o mapa já centrado no projeto. O mapa (Leaflet) só é baixado quando é
 aberto.
 
-**Programas** — a tela Projetos é organizada por programa: no topo, uma aba para **Todos** e uma por programa (com
-ícone, cor e número de projetos) e, para a coordenação, **+ Novo programa**. Em **Todos** vem direto a lista de
-projetos; escolhendo um programa aparece a **visão do programa**:
+**Programas** — a tela Projetos é organizada por programa: no topo, a **lista de programas** (um botão com o ícone e
+o nome do escolhido, ou "Todos os programas"). Ao abrir, ela mostra cada programa com ícone e número de projetos, os
+ativos primeiro e os **arquivados** num grupo embaixo; com 8 programas ou mais aparece a busca (sem diferenciar acentos)
+e dá para escolher pelo teclado (setas e Enter). No rodapé, para a coordenação, **+ Novo programa**. As abas de antes
+não cabiam num núcleo com dezenas de programas (a maioria de um projeto só). Em **Todos os programas** vem direto a
+lista de projetos; escolhendo um programa aparece a **visão do programa**:
 números (em andamento, concluídos) e os **resultados somados** — cada indicador padrão do modelo somado nos projetos
 não arquivados do programa, comparando os nomes sem diferenciar maiúsculas nem acentos —, mais, para a coordenação,
 **Modelo do programa**, **Editar** (nome, ícone e cor) e arquivar/reativar ou excluir (só sem projetos). A lista
 embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com ele escolhido. Os endereços antigos
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
-programa abre a aba dele.
+programa abre a visão dele.
 
 **Ícone e cor do programa** — no programa novo, o ícone sai do nome enquanto se digita: vale a primeira palavra
 conhecida (banheiro, horta, cisterna, passarela, oficina, reforma, diagnóstico…; "Cisterna da Escola" é água, não

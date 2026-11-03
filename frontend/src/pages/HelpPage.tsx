@@ -223,9 +223,11 @@ const SECTIONS: HelpSection[] = [
         question: 'O que são o programa e o modelo do programa?',
         answer: (
           <p>
-            O programa reúne projetos do mesmo tipo (por exemplo, banheiros ou hortas). Em <strong>Projetos</strong>,
-            cada programa mostra os resultados somados dos seus projetos. O <strong>Modelo do programa</strong> é a lista
-            de tarefas e indicadores que todo projeto novo daquele programa recebe.
+            O programa reúne projetos do mesmo tipo (por exemplo, banheiros ou hortas); um programa também pode ter um
+            projeto só. Em <strong>Projetos</strong>, escolha o programa na lista do topo (dá para buscar pelo nome; os
+            arquivados ficam embaixo) para ver os resultados somados dos seus projetos. O{' '}
+            <strong>Modelo do programa</strong> é a lista de tarefas e indicadores que todo projeto novo daquele programa
+            recebe.
           </p>
         )
       },
