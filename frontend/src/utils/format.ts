@@ -1,5 +1,4 @@
 import type {
-  ActivityPriority,
   ActivityStatus,
   ProjectStatus,
   UserRole,
@@ -15,7 +14,6 @@ export const isPastProjectStatus = (status: ProjectStatus) => PAST_PROJECT_STATU
 
 export const ACTIVITY_STATUSES: ActivityStatus[] = ['AFazer', 'EmAndamento', 'Bloqueada', 'Concluida'];
 
-export const ACTIVITY_PRIORITIES: ActivityPriority[] = ['Baixa', 'Media', 'Alta'];
 
 export const USER_ROLES: UserRole[] = ['Administrador', 'Coordenador', 'Usuario'];
 
@@ -45,12 +43,6 @@ const activityStatusLabels: Record<ActivityStatus, string> = {
   Concluida: 'Concluída'
 };
 
-const priorityLabels: Record<ActivityPriority, string> = {
-  Baixa: 'Baixa',
-  Media: 'Média',
-  Alta: 'Alta'
-};
-
 const roleLabels: Record<UserRole, string> = {
   Administrador: 'Administrador',
   Coordenador: 'Coordenador',
@@ -75,7 +67,6 @@ const volunteerStatusLabels: Record<VolunteerStatus, string> = {
 
 export const projectStatusLabel = (status: ProjectStatus) => projectStatusLabels[status] ?? status;
 export const activityStatusLabel = (status: ActivityStatus) => activityStatusLabels[status] ?? status;
-export const priorityLabel = (priority: ActivityPriority) => priorityLabels[priority] ?? priority;
 export const roleLabel = (role: UserRole) => roleLabels[role] ?? role;
 export const sectorLabel = (sector: VolunteerSector) => sectorLabels[sector] ?? sector;
 export const volunteerStatusLabel = (status: VolunteerStatus) => volunteerStatusLabels[status] ?? status;

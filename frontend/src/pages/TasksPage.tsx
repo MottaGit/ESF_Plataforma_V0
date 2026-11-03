@@ -167,6 +167,8 @@ export function TasksPage() {
 
   const hasFilters = Boolean(term || scopeParam || programFilter || projectFilter || assigneeFilter || cut);
   const activeFilters = [term, programFilter, projectFilter, assigneeFilter].filter(Boolean).length;
+  // No computador a busca fica a mostra; o botao conta so programa, projeto e responsavel.
+  const extraFilters = [programFilter, projectFilter, assigneeFilter].filter(Boolean).length;
   const openCount = filtered.filter((activity) => activity.status !== 'Concluida').length;
   const lateCount = filtered.filter((activity) => isOverdue(activity)).length;
 
@@ -255,7 +257,55 @@ export function TasksPage() {
           </button>
         </div>
 
-        <CollapsibleFilters active={activeFilters}>
+        <CollapsibleFilters
+          active={activeFilters}
+          extraActive={extraFilters}
+          extra={
+            <>
+              <Select
+                value={programFilter}
+                onChange={(event) => updateParams({ programa: event.target.value || null, projeto: null })}
+                aria-label="Programa"
+              >
+                <option value="">Todos os programas</option>
+                {programOptions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
+                value={projectFilter}
+                onChange={(event) => updateParams({ projeto: event.target.value || null })}
+                aria-label="Projeto"
+              >
+                <option value="">Todos os projetos</option>
+                {projectOptions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
+
+              {!wantsMine ? (
+                <Select
+                  value={assigneeFilter}
+                  onChange={(event) => updateParams({ responsavel: event.target.value || null })}
+                  aria-label="Responsável"
+                >
+                  <option value="">Todos os responsáveis</option>
+                  {assigneeOptions.map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                  <option value={UNASSIGNED}>Sem responsável</option>
+                </Select>
+              ) : null}
+            </>
+          }
+        >
           <span className="search">
             <IconSearch className="search__icon" />
             <TextInput
@@ -265,48 +315,6 @@ export function TasksPage() {
               aria-label="Buscar tarefas"
             />
           </span>
-
-          <Select
-            value={programFilter}
-            onChange={(event) => updateParams({ programa: event.target.value || null, projeto: null })}
-            aria-label="Programa"
-          >
-            <option value="">Todos os programas</option>
-            {programOptions.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </Select>
-
-          <Select
-            value={projectFilter}
-            onChange={(event) => updateParams({ projeto: event.target.value || null })}
-            aria-label="Projeto"
-          >
-            <option value="">Todos os projetos</option>
-            {projectOptions.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </Select>
-
-          {!wantsMine ? (
-            <Select
-              value={assigneeFilter}
-              onChange={(event) => updateParams({ responsavel: event.target.value || null })}
-              aria-label="Responsável"
-            >
-              <option value="">Todos os responsáveis</option>
-              {assigneeOptions.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-              <option value={UNASSIGNED}>Sem responsável</option>
-            </Select>
-          ) : null}
         </CollapsibleFilters>
 
         {hasFilters ? (

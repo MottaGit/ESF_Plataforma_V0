@@ -20,7 +20,7 @@ import type { Activity, ActivityStatus } from '../../types/api';
 import { dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
 import { ActivityCounters } from '../projects/ActivityCounters';
 import { Avatar } from '../ui/Avatar';
-import { ActivityStatusSelect } from '../ui/Badge';
+import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { DONE_DAYS, compareDone, compareOpen, isOverdue } from './taskUtils';
 
 const COLUMNS: Array<{ status: ActivityStatus; title: string; hint?: string }> = [
@@ -180,7 +180,7 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
         <button type="button" className="board-card__title">
           {activity.title}
         </button>
-        {activity.priority === 'Alta' && !done ? <span className="badge badge--urgent">Alta</span> : null}
+        {!done ? <UrgentBadge priority={activity.priority} /> : null}
       </div>
 
       {activity.projectName ? (

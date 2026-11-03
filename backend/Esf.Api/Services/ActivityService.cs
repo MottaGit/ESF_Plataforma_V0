@@ -264,7 +264,6 @@ public class ActivityService
         activity.Status = r.Status!.Value;
         activity.Priority = r.Priority!.Value;
         activity.DueDate = r.DueDate;
-        activity.Notes = string.IsNullOrWhiteSpace(r.Notes) ? null : r.Notes.Trim();
         activity.BlockedReason = BlockedReasonFor(activity.Status, r.BlockedReason);
 
         if (activity.Status == ActivityStatus.Concluida)

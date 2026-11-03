@@ -6,6 +6,7 @@ export type ProjectStatus = 'Planejamento' | 'EmAndamento' | 'Pausado' | 'Conclu
 
 export type ActivityStatus = 'AFazer' | 'EmAndamento' | 'Bloqueada' | 'Concluida';
 
+/** Na tela, Alta e "Urgente" e o resto e normal (Baixa nao e mais usada). */
 export type ActivityPriority = 'Baixa' | 'Media' | 'Alta';
 
 export type VolunteerSector = 'Projetos' | 'Juridico' | 'Pessoas' | 'Comunicacao' | 'Qualidade' | 'Financeiro';
@@ -262,7 +263,6 @@ export interface Activity {
   status: ActivityStatus;
   priority: ActivityPriority;
   dueDate: string | null;
-  notes: string | null;
   isLate: boolean;
   createdAt: string;
   completedAt: string | null;
@@ -649,7 +649,6 @@ export interface SaveActivityPayload {
   status: ActivityStatus;
   priority: ActivityPriority;
   dueDate: string | null;
-  notes: string | null;
   blockedReason: string | null;
 }
 

@@ -315,16 +315,16 @@ public static class DbSeeder
         db.Programs.AddRange(pBanheiro, pHorta);
 
         db.ProgramTemplateActivities.AddRange(
-            new ProgramTemplateActivity { Program = pBanheiro, Position = 0, Title = "Visita técnica e levantamento", Priority = ActivityPriority.Alta, DueDays = 7 },
-            new ProgramTemplateActivity { Program = pBanheiro, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Alta, DueDays = 20 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 0, Title = "Visita técnica e levantamento", Priority = ActivityPriority.Media, DueDays = 7 },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Media, DueDays = 20 },
             new ProgramTemplateActivity { Program = pBanheiro, Position = 2, Title = "Contratação do construtor local", Priority = ActivityPriority.Media, DueDays = 30 },
             new ProgramTemplateActivity { Program = pBanheiro, Position = 3, Title = "Compra de material", Priority = ActivityPriority.Media, DueDays = 35 },
-            new ProgramTemplateActivity { Program = pBanheiro, Position = 4, Title = "Execução da obra", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pBanheiro, Position = 4, Title = "Execução da obra", Priority = ActivityPriority.Media },
             new ProgramTemplateActivity { Program = pBanheiro, Position = 5, Title = "Vistoria final e entrega", Priority = ActivityPriority.Media },
-            new ProgramTemplateActivity { Program = pHorta, Position = 0, Title = "Cessão e preparo do terreno", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pHorta, Position = 0, Title = "Cessão e preparo do terreno", Priority = ActivityPriority.Media },
             new ProgramTemplateActivity { Program = pHorta, Position = 1, Title = "Implantação dos canteiros e irrigação", Priority = ActivityPriority.Media },
             new ProgramTemplateActivity { Program = pHorta, Position = 2, Title = "Plantio com a comunidade", Priority = ActivityPriority.Media },
-            new ProgramTemplateActivity { Program = pHorta, Position = 3, Title = "Oficina de manejo e compostagem", Priority = ActivityPriority.Baixa });
+            new ProgramTemplateActivity { Program = pHorta, Position = 3, Title = "Oficina de manejo e compostagem", Priority = ActivityPriority.Media });
 
         // Os indicadores do modelo sao os que a pagina do programa soma; os projetos abaixo usam os mesmos nomes.
         db.ProgramTemplateIndicators.AddRange(
@@ -375,13 +375,13 @@ public static class DbSeeder
         db.Activities.AddRange(
             new Activity
             {
-                Project = bJulia, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bJulia, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vAna, DueDate = Day(-208), CompletedAt = At(-211),
                 ChecklistItems = Checklist(("Medir o espaço disponível ao lado do quarto", -211), ("Localizar o ponto de água e a saída de esgoto", -211), ("Entender com a família a rotina de uso", -211))
             },
             new Activity
             {
-                Project = bJulia, Title = "Projeto de acessibilidade (NBR 9050) e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bJulia, Title = "Projeto de acessibilidade (NBR 9050) e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vAdriano, DueDate = Day(-195), CompletedAt = At(-197),
                 Description = "Área de giro de 1,50 m para a cadeira de rodas, porta de 90 cm abrindo para fora e barras de apoio na bacia e no chuveiro.",
                 ChecklistItems = Checklist(("Planta com a área de giro", -200), ("Lista de material com três cotações", -198), ("Aprovação do projeto com a família", -197))
@@ -399,7 +399,7 @@ public static class DbSeeder
             },
             new Activity
             {
-                Project = bJulia, Title = "Execução da obra", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bJulia, Title = "Execução da obra", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLeonardo, DueDate = Day(-170), CompletedAt = At(-168),
                 ChecklistItems = Checklist(("Fundação e alvenaria", -185), ("Telhado", -180), ("Redes de água, esgoto e elétrica", -176), ("Revestimento e piso antiderrapante", -172), ("Louças, metais e barras de apoio", -168))
             },
@@ -456,19 +456,19 @@ public static class DbSeeder
         db.Activities.AddRange(
             new Activity
             {
-                Project = bBeatriz, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bBeatriz, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vFausto, DueDate = Day(-133), CompletedAt = At(-135),
                 Description = "As paredes do banheiro antigo não têm condição de reforma."
             },
             new Activity
             {
-                Project = bBeatriz, Title = "Projeto e orçamento do módulo sanitário", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bBeatriz, Title = "Projeto e orçamento do módulo sanitário", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLeonardo, DueDate = Day(-120), CompletedAt = At(-121),
                 Description = "Escopo mudou de reforma para construção nova: módulo em alvenaria acoplado à casa, com lavanderia."
             },
             new Activity
             {
-                Project = bBeatriz, Title = "Contratação do construtor local", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bBeatriz, Title = "Contratação do construtor local", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vFausto, DueDate = Day(-60), CompletedAt = At(-58),
                 Description = "O primeiro construtor saiu depois do baldrame. A CPCA indicou a equipe de Flávio e Rita para retomar."
             },
@@ -536,13 +536,13 @@ public static class DbSeeder
         db.Activities.AddRange(
             new Activity
             {
-                Project = bRosangela, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = bRosangela, Title = "Visita técnica e levantamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vAdriano, DueDate = Day(-18), CompletedAt = At(-20),
                 ChecklistItems = Checklist(("Conferir o alicerce existente", -20), ("Registrar com a família os dias sem água", -20))
             },
             new Activity
             {
-                Project = bRosangela, Title = "Projeto e orçamento", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta,
+                Project = bRosangela, Title = "Projeto e orçamento", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLeonardo, DueDate = Day(-3),
                 ChecklistItems = Checklist(("Planta do banheiro sobre o alicerce", -8), ("Detalhe da caixa d'água de 500 litros", null), ("Orçamento com três cotações", null))
             },
@@ -562,7 +562,7 @@ public static class DbSeeder
                 Project = bRosangela, Title = "Compra de material", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vFrancielly, DueDate = Day(30)
             },
-            new Activity { Project = bRosangela, Title = "Execução da obra", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Alta },
+            new Activity { Project = bRosangela, Title = "Execução da obra", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media },
             new Activity { Project = bRosangela, Title = "Vistoria final e entrega", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media });
         Results(bRosangela,
             ("Famílias atendidas", "famílias", 1),
@@ -605,7 +605,7 @@ public static class DbSeeder
         db.Activities.AddRange(
             new Activity
             {
-                Project = hCristal, Title = "Cessão e preparo do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = hCristal, Title = "Cessão e preparo do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLeonardo, DueDate = Day(-500), CompletedAt = At(-505),
                 ChecklistItems = Checklist(("Termo de cessão com a associação de moradores", -515), ("Limpeza e correção do solo", -505))
             },
@@ -623,7 +623,7 @@ public static class DbSeeder
             },
             new Activity
             {
-                Project = hCristal, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Baixa,
+                Project = hCristal, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLuca, DueDate = Day(-350), CompletedAt = At(-352),
                 Description = "Seis oficinas mensais; na última, a composteira passou para o cuidado das famílias."
             });
@@ -673,14 +673,14 @@ public static class DbSeeder
         db.Activities.AddRange(
             new Activity
             {
-                Project = hFarrapos, Title = "Cessão e preparo do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta,
+                Project = hFarrapos, Title = "Cessão e preparo do terreno", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vAna, DueDate = Day(-65), CompletedAt = At(-70),
                 ChecklistItems = Checklist(("Termo de cessão com a associação de moradores", -85), ("Análise do solo depois da enchente", -78), ("Limpeza do terreno em mutirão", -70))
             },
             farraposCanteiros,
             new Activity
             {
-                Project = hFarrapos, Title = "Divulgação do mutirão de plantio", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Baixa,
+                Project = hFarrapos, Title = "Divulgação do mutirão de plantio", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vAlice, DueDate = Day(10),
                 Description = "Cartaz na associação e mensagem nos grupos da comunidade."
             },
@@ -691,7 +691,7 @@ public static class DbSeeder
             },
             new Activity
             {
-                Project = hFarrapos, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Baixa,
+                Project = hFarrapos, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLuca, DueDate = Day(30)
             });
         db.ActivityComments.AddRange(
@@ -776,9 +776,9 @@ public static class DbSeeder
         };
         db.Programs.Add(pReforma);
         db.ProgramTemplateActivities.AddRange(
-            new ProgramTemplateActivity { Program = pReforma, Position = 0, Title = "Vistoria da moradia", Priority = ActivityPriority.Alta, DueDays = 10 },
-            new ProgramTemplateActivity { Program = pReforma, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Alta, DueDays = 25 },
-            new ProgramTemplateActivity { Program = pReforma, Position = 2, Title = "Execução da reforma", Priority = ActivityPriority.Alta },
+            new ProgramTemplateActivity { Program = pReforma, Position = 0, Title = "Vistoria da moradia", Priority = ActivityPriority.Media, DueDays = 10 },
+            new ProgramTemplateActivity { Program = pReforma, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Media, DueDays = 25 },
+            new ProgramTemplateActivity { Program = pReforma, Position = 2, Title = "Execução da reforma", Priority = ActivityPriority.Media },
             new ProgramTemplateActivity { Program = pReforma, Position = 3, Title = "Entrega à família", Priority = ActivityPriority.Media });
         db.ProgramTemplateIndicators.AddRange(
             new ProgramTemplateIndicator { Program = pReforma, Position = 0, Name = "Famílias atendidas", Unit = "famílias" },
@@ -827,13 +827,13 @@ public static class DbSeeder
         Team(rLucia, (cMarina, "Responsável pelo projeto"), (cPedro, "Instalação elétrica"), (cCamila, "Contato com a família"));
         Team(rJoaquim, (cPedro, "Responsável pelo projeto"), (cMarina, "Responsável técnica"), (cRafael, "Compras"));
         db.Activities.AddRange(
-            new Activity { Project = rLucia, Title = "Vistoria da moradia", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cMarina, DueDate = Day(-170), CompletedAt = At(-172) },
-            new Activity { Project = rLucia, Title = "Projeto e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cMarina, DueDate = Day(-155), CompletedAt = At(-158) },
-            new Activity { Project = rLucia, Title = "Execução da reforma", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cPedro, CompletedAt = At(-118) },
+            new Activity { Project = rLucia, Title = "Vistoria da moradia", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cMarina, DueDate = Day(-170), CompletedAt = At(-172) },
+            new Activity { Project = rLucia, Title = "Projeto e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cMarina, DueDate = Day(-155), CompletedAt = At(-158) },
+            new Activity { Project = rLucia, Title = "Execução da reforma", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cPedro, CompletedAt = At(-118) },
             new Activity { Project = rLucia, Title = "Entrega à família", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cCamila, CompletedAt = At(-112) },
-            new Activity { Project = rJoaquim, Title = "Vistoria da moradia", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cPedro, DueDate = Day(-35), CompletedAt = At(-38) },
-            new Activity { Project = rJoaquim, Title = "Projeto e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Alta, AssignedVolunteer = cMarina, DueDate = Day(-20), CompletedAt = At(-22) },
-            new Activity { Project = rJoaquim, Title = "Execução da reforma", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta, AssignedVolunteer = cPedro, DueDate = Day(20) },
+            new Activity { Project = rJoaquim, Title = "Vistoria da moradia", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cPedro, DueDate = Day(-35), CompletedAt = At(-38) },
+            new Activity { Project = rJoaquim, Title = "Projeto e orçamento", Status = ActivityStatus.Concluida, Priority = ActivityPriority.Media, AssignedVolunteer = cMarina, DueDate = Day(-20), CompletedAt = At(-22) },
+            new Activity { Project = rJoaquim, Title = "Execução da reforma", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Media, AssignedVolunteer = cPedro, DueDate = Day(20) },
             new Activity { Project = rJoaquim, Title = "Compra do material elétrico", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, AssignedVolunteer = cRafael, DueDate = Day(5) },
             new Activity { Project = rJoaquim, Title = "Entrega à família", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media });
         Results(rLucia, ("Famílias atendidas", "famílias", 1), ("Pessoas beneficiadas", "pessoas", 5), ("Moradias reformadas", "un.", 1));

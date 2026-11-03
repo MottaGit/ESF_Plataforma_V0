@@ -205,7 +205,7 @@ embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com el
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
 programa abre a aba dele.
 
-**Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **tarefas padrão** (título, prioridade, descrição e
+**Modelo do programa** — em Projetos › programa › "Modelo do programa" (`/programas/{id}/modelo`): **tarefas padrão** (título, "Urgente", descrição e
 prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
 **textos sugeridos** (descrição, objetivo e quem se beneficia). A coordenação inclui, edita, reordena e remove; cada
 mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
@@ -228,14 +228,15 @@ sozinha a cada toque num campo).
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 vencidas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
 abaixo). **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), busca e filtros de programa,
-projeto e responsável, todos na URL. No celular, busca e filtros ficam recolhidos no botão "Filtros". Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
+projeto e responsável, todos na URL. A busca fica à mostra; programa, projeto e responsável ficam no botão "Filtros"
+(com quantos estão ligados), que abre uma linha embaixo da barra. No celular, a busca também fica no botão. Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
 últimos 30 dias. Links antigos do quadro (`/projetos?visao=quadro`) levam para cá com os mesmos filtros.
 
 **Quadro (em Tarefas)** — kanban com as tarefas de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
 dias). Levar um card para Bloqueadas pergunta, sem obrigar, o que está travando; o motivo aparece no card. Nas
 colunas em aberto, as atrasadas vêm primeiro, depois o prazo mais próximo e a prioridade; nas concluídas, as mais
-recentes. Cada card mostra título, prioridade (só "Alta" é destacada), projeto (link para a aba Tarefas dele),
+recentes. Cada card mostra título, a etiqueta "Urgente" (quando é), projeto (link para a aba Tarefas dele),
 responsável com foto (ou "Sem responsável" em destaque) e prazo como data curta ("até 14/07"); quando o prazo venceu,
 só o texto fica vermelho, e o detalhe ("atrasada 3 dias") fica na dica do mouse. O mesmo vale para a lista da aba
 Tarefas e para o Início. Para mudar o status, arraste o card para outra coluna (com o mouse; no celular,
@@ -247,8 +248,8 @@ horizontal, uma coluna por vez. O status do projeto em si é alterado na página
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
 
 **Janela da tarefa** — clicar numa tarefa, em qualquer lugar (Início, Tarefas, quadro, aba Tarefas do projeto,
-avisos, busca), abre a janela dela **para ler**: status (muda na hora; bloquear pergunta o motivo), prioridade,
-responsável, prazo, projeto, descrição e observações; ao lado (embaixo, no celular), **checklist** (itens para marcar,
+avisos, busca), abre a janela dela **para ler**: status (muda na hora; bloquear pergunta o motivo), "Urgente" (quando
+é), responsável, prazo, projeto e descrição; ao lado (embaixo, no celular), **checklist** (itens para marcar,
 com barra de progresso; incluir com Enter, remover no ×), **anexos** (vários arquivos de uma vez; imagens em miniatura)
 e comentários. **Editar** troca para o formulário (Cancelar volta para a leitura); "Editar" no menu ⋯ da aba do projeto
 abre direto no formulário. Status, checklist, anexos e comentários gravam na hora, sem depender do "Salvar". Os anexos
@@ -292,11 +293,12 @@ concluídas…" com **Concluir projeto** (abre a mesma confirmação) e **Agora 
 navegador).
 
 **Tarefas** — título, descrição, responsável, status (não iniciada / em andamento / bloqueada / concluída; ao bloquear, um motivo opcional), prioridade
-(baixa / média / alta), prazo e observações. A lista tem duas seções sempre visíveis: **Em aberto** (não iniciadas
+("Urgente" ou normal: só a urgente ganha etiqueta, em laranja) e prazo. Não há mais "observações" (o que havia foi para
+o fim da descrição) nem prioridade baixa (virou normal): a tarefa tem descrição, checklist e comentários. A lista tem duas seções sempre visíveis: **Em aberto** (não iniciadas
 primeiro, depois em andamento e bloqueadas, reordenando na hora quando o status muda) e **Concluídas**. Há caixinha para concluir em
 um clique e "Desfazer" logo em seguida; a tarefa concluída fica riscada no lugar e só passa para "Concluídas" quando
 a aba é aberta de novo. O botão "Nova tarefa" abre o
-formulário com título, responsável, prazo, prioridade e descrição. O responsável é escolhido entre a
+formulário com título, responsável, prazo, "Urgente" e descrição. O responsável é escolhido entre a
 equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automaticamente (o responsável pelo projeto
 também faz parte dela e só pode ser desvinculado depois de trocado). Na lista de responsáveis, cada nome mostra a
 carga da pessoa ("Fausto da Silva · 2 em aberto", "Edu Grehs · afastado"), contada como no Início (tarefas em aberto

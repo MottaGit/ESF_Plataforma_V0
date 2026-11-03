@@ -4,7 +4,6 @@ import {
   ACTIVITY_STATUSES,
   PROJECT_STATUSES,
   activityStatusLabel,
-  priorityLabel,
   projectStatusLabel,
   volunteerStatusLabel
 } from '../../utils/format';
@@ -23,13 +22,6 @@ const activityStatusClass: Record<ActivityStatus, string> = {
   EmAndamento: 'badge--run',
   Bloqueada: 'badge--blocked',
   Concluida: 'badge--done'
-};
-
-// So a prioridade alta chama atencao (laranja); vermelho fica para o atraso.
-const priorityClass: Record<ActivityPriority, string> = {
-  Baixa: 'badge--plan',
-  Media: 'badge--plan',
-  Alta: 'badge--urgent'
 };
 
 const volunteerStatusClass: Record<VolunteerStatus, string> = {
@@ -97,8 +89,9 @@ export function ActivityStatusBadge({ status }: { status: ActivityStatus }) {
   return <span className={`badge ${activityStatusClass[status]}`}>{activityStatusLabel(status)}</span>;
 }
 
-export function PriorityBadge({ priority }: { priority: ActivityPriority }) {
-  return <span className={`badge ${priorityClass[priority]}`}>{priorityLabel(priority)}</span>;
+/** "Urgente" (prioridade alta, em laranja; vermelho fica para o atraso) ou nada: tarefa normal nao ganha etiqueta. */
+export function UrgentBadge({ priority }: { priority: ActivityPriority }) {
+  return priority === 'Alta' ? <span className="badge badge--urgent">Urgente</span> : null;
 }
 
 export function VolunteerStatusBadge({ status }: { status: VolunteerStatus }) {

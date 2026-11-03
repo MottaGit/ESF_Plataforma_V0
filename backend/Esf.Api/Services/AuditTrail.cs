@@ -58,7 +58,7 @@ public static class AuditTrail
         {
             ["Title"] = "Título", ["Status"] = "Status", ["Priority"] = "Prioridade",
             ["AssignedVolunteerId"] = "Responsável", ["DueDate"] = "Prazo", ["BlockedReason"] = "O que está travando",
-            ["Description"] = "Descrição", ["Notes"] = "Observações"
+            ["Description"] = "Descrição"
         },
         [typeof(Volunteer)] = new()
         {

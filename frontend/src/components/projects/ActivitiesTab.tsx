@@ -5,7 +5,7 @@ import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
 import { ACTIVITY_STATUSES, activityStatusLabel, dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
-import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
+import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
@@ -406,7 +406,7 @@ function ActivityRow({
                 : 'concluída'
               : dueDateLabel(activity.dueDate)}
           </span>
-          {!done ? <PriorityBadge priority={activity.priority} /> : null}
+          {!done ? <UrgentBadge priority={activity.priority} /> : null}
           <ActivityCounters activity={activity} onClick={onOpen} />
           {canUndo ? (
             <button type="button" className="act-row__undo" onClick={() => void toggle(false)}>

@@ -12,7 +12,6 @@ import type {
   VolunteerLoad
 } from '../../types/api';
 import {
-  ACTIVITY_PRIORITIES,
   ACTIVITY_STATUSES,
   SENSITIVE_DATA_HINT,
   activityStatusLabel,
@@ -20,11 +19,10 @@ import {
   emptyToNull,
   formatDate,
   formatDateTime,
-  priorityLabel,
   volunteerStatusLabel
 } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
-import { ActivityStatusSelect, PriorityBadge } from '../ui/Badge';
+import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
@@ -111,7 +109,6 @@ export function ActivityFormModal({
   const [status, setStatus] = useState<ActivityStatus>(activity?.status ?? 'AFazer');
   const [priority, setPriority] = useState<ActivityPriority>(activity?.priority ?? 'Media');
   const [dueDate, setDueDate] = useState(activity?.dueDate?.slice(0, 10) ?? '');
-  const [notes, setNotes] = useState(activity?.notes ?? '');
   const [blockedReason, setBlockedReason] = useState(activity?.blockedReason ?? '');
 
   // Sem a lista de voluntarios de quem abriu, busca so quando for editar.
@@ -203,7 +200,6 @@ export function ActivityFormModal({
       status,
       priority,
       dueDate: dueDate || null,
-      notes: emptyToNull(notes),
       blockedReason: status === 'Bloqueada' ? emptyToNull(blockedReason) : null
     };
 
@@ -252,7 +248,7 @@ export function ActivityFormModal({
                   label="Status da tarefa"
                   onChange={(next) => (next === 'Bloqueada' ? setBlocking(true) : void changeStatus(next))}
                 />
-                {!done ? <PriorityBadge priority={current.priority} /> : null}
+                {!done ? <UrgentBadge priority={current.priority} /> : null}
               </div>
 
               {current.status === 'Bloqueada' && current.blockedReason ? (
@@ -289,22 +285,12 @@ export function ActivityFormModal({
                     </Link>
                   </dd>
                 </div>
-                <div>
-                  <dt>Prioridade</dt>
-                  <dd>{priorityLabel(current.priority)}</dd>
-                </div>
               </dl>
 
               <div className="task-view__text">
                 <h3>Descrição</h3>
                 <p>{current.description ?? 'Sem descrição.'}</p>
               </div>
-              {current.notes ? (
-                <div className="task-view__text">
-                  <h3>Observações</h3>
-                  <p>{current.notes}</p>
-                </div>
-              ) : null}
 
               <p className="field__hint">
                 Criada em {formatDateTime(current.createdAt)}
@@ -445,18 +431,15 @@ export function ActivityFormModal({
               />
             </Field>
 
-            <Field label="Prioridade" htmlFor="activity-priority" required>
-              <Select
-                id="activity-priority"
-                value={priority}
-                onChange={(event) => setPriority(event.target.value as ActivityPriority)}
-              >
-                {ACTIVITY_PRIORITIES.map((value) => (
-                  <option key={value} value={value}>
-                    {priorityLabel(value)}
-                  </option>
-                ))}
-              </Select>
+            <Field label="Prioridade" hint="A tarefa urgente aparece em destaque nas listas e no quadro.">
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={priority === 'Alta'}
+                  onChange={(event) => setPriority(event.target.checked ? 'Alta' : 'Media')}
+                />
+                Urgente
+              </label>
             </Field>
 
             {/* Tarefa nova sempre comeca sem iniciar; o status so aparece ao editar. */}
@@ -488,16 +471,17 @@ export function ActivityFormModal({
               </Field>
             ) : null}
 
-            <Field label="Descrição" htmlFor="activity-description" span hint="O que precisa ser feito, em poucas linhas.">
+            <Field
+              label="Descrição"
+              htmlFor="activity-description"
+              span
+              hint={`O que precisa ser feito, em poucas linhas. ${SENSITIVE_DATA_HINT}`}
+            >
               <TextArea
                 id="activity-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
               />
-            </Field>
-
-            <Field label="Observações" htmlFor="activity-notes" span hint={SENSITIVE_DATA_HINT}>
-              <TextArea id="activity-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
             </Field>
           </div>
 

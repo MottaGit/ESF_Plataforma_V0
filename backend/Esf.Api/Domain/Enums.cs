@@ -26,6 +26,7 @@ public enum ActivityStatus
     Bloqueada = 3
 }
 
+/// <summary>Prioridade da tarefa: na tela, Alta e "Urgente" e o resto e normal (Baixa nao e mais usada).</summary>
 public enum ActivityPriority
 {
     Baixa = 0,

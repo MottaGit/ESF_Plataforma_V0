@@ -14,7 +14,6 @@ public record ActivityDto(
     ActivityStatus Status,
     ActivityPriority Priority,
     DateOnly? DueDate,
-    string? Notes,
     bool IsLate,
     DateTime CreatedAt,
     DateTime? CompletedAt,
@@ -99,7 +98,6 @@ public class SaveActivityRequest
     public ActivityPriority? Priority { get; set; }
 
     public DateOnly? DueDate { get; set; }
-    public string? Notes { get; set; }
 
     /// <summary>Opcional; so e guardado quando o status e Bloqueada.</summary>
     [StringLength(300, ErrorMessage = "Descreva o bloqueio em ate 300 caracteres.")]

@@ -4,7 +4,7 @@ import { daysFromToday, dueDateLabel, dueDateTitle, formatDate } from '../../uti
 import { ProgramMark } from '../programs/ProgramMark';
 import { ActivityCounters } from '../projects/ActivityCounters';
 import { Avatar } from '../ui/Avatar';
-import { ActivityStatusSelect } from '../ui/Badge';
+import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { EmptyState } from '../ui/Feedback';
 import { DONE_DAYS, compareDone, compareOpen, isOverdue } from './taskUtils';
 
@@ -135,7 +135,7 @@ function TaskRow({ activity, onOpen, onRequestStatus }: TaskRowProps) {
       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
         <span className="task-row__title">
           {activity.title}
-          {activity.priority === 'Alta' && !done ? <span className="badge badge--urgent">Alta</span> : null}
+          {!done ? <UrgentBadge priority={activity.priority} /> : null}
         </span>
         <span className="task-row__meta">
           {activity.programIcon && activity.programColor ? (

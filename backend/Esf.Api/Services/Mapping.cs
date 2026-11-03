@@ -51,7 +51,6 @@ public static class Mapping
             a.Status,
             a.Priority,
             a.DueDate,
-            a.Notes,
             IsActivityLate(a.Status, a.DueDate),
             a.CreatedAt,
             a.CompletedAt,

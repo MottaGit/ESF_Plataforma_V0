@@ -2488,9 +2488,24 @@ button { font: inherit; }
    "Filtros", e o painel aberto vai para baixo de tudo o que esta na barra. */
 .filters-panel { display: contents; }
 .filters-toggle { display: none; }
+.filters-toggle__count--mobile { display: none; }
+/* Filtros que ficam no botao tambem no computador (Tarefas): a busca fica a mostra e o botao abre o resto numa
+   linha embaixo da barra. */
+@media (min-width: 761px) {
+  .filters-toggle--split { display: inline-flex; order: 1; }
+  .filters-toggle--on-desktop { border-color: var(--accent); color: var(--accent-text); }
+  .filters-panel--split { display: contents; }
+  .filters-panel--split .filters-extra { display: none; }
+  .filters-panel--split.filters-panel--open .filters-extra { display: flex; flex-wrap: wrap; gap: 10px; flex-basis: 100%; order: 2; }
+  .filters-panel--split ~ .toolbar__right--after-filters { order: 1; }
+}
 @media (max-width: 760px) {
   .filters-toggle { display: inline-flex; }
   .filters-toggle--on { border-color: var(--accent); color: var(--accent-text); }
+  .filters-toggle--on-desktop:not(.filters-toggle--on) { border-color: var(--border-strong); color: var(--text); }
+  .filters-toggle__count--mobile { display: inline; }
+  .filters-toggle__count--desktop { display: none; }
+  .filters-extra { display: grid; gap: 8px; }
   .filters-panel { display: none; }
   .filters-panel--open { display: grid; gap: 8px; width: 100%; order: 1; }
   .filters-panel--open .search, .filters-panel--open .select { max-width: none; width: 100%; }

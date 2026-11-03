@@ -16,9 +16,9 @@ public class Activity
     public ActivityStatus Status { get; set; } = ActivityStatus.AFazer;
     /// <summary>O que esta travando a atividade; so existe enquanto ela esta bloqueada.</summary>
     public string? BlockedReason { get; set; }
+    /// <summary>Alta: a tarefa e urgente (a tela so mostra "Urgente" ou nada); Baixa nao e mais usada.</summary>
     public ActivityPriority Priority { get; set; } = ActivityPriority.Media;
     public DateOnly? DueDate { get; set; }
-    public string? Notes { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }

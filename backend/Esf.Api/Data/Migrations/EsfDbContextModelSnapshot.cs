@@ -84,9 +84,6 @@ namespace Esf.Api.Data.Migrations
                     b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 

@@ -9,11 +9,11 @@ import type {
   TemplateActivity,
   TemplateIndicator
 } from '../../types/api';
-import { ACTIVITY_PRIORITIES, emptyToNull, priorityLabel } from '../../utils/format';
+import { emptyToNull } from '../../utils/format';
 import { NationalIndicatorField, useNationalIndicators } from '../indicators/NationalIndicatorField';
-import { PriorityBadge } from '../ui/Badge';
+import { UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Field, Select, TextArea, TextInput } from '../ui/Field';
+import { Field, TextArea, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../ui/Feedback';
 import { IconChevronDown, IconChevronUp, IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
@@ -144,7 +144,7 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
                   <div className="template-list__main">
                     <div className="template-list__title">{activity.title}</div>
                     <div className="template-list__meta">
-                      <PriorityBadge priority={activity.priority} />
+                      <UrgentBadge priority={activity.priority} />
                       <span>{dueDaysLabel(activity.dueDays)}</span>
                     </div>
                     {activity.description ? <p className="template-list__desc">{activity.description}</p> : null}
@@ -414,18 +414,15 @@ function TemplateActivityModal({
             onChange={(event) => setTitle(event.target.value)}
           />
         </Field>
-        <Field label="Prioridade" htmlFor="template-activity-priority" required>
-          <Select
-            id="template-activity-priority"
-            value={priority}
-            onChange={(event) => setPriority(event.target.value as ActivityPriority)}
-          >
-            {ACTIVITY_PRIORITIES.map((value) => (
-              <option key={value} value={value}>
-                {priorityLabel(value)}
-              </option>
-            ))}
-          </Select>
+        <Field label="Prioridade">
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={priority === 'Alta'}
+              onChange={(event) => setPriority(event.target.checked ? 'Alta' : 'Media')}
+            />
+            Urgente
+          </label>
         </Field>
         <Field
           label="Prazo (dias após o início do projeto)"
