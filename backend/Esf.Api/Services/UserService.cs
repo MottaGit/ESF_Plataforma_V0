@@ -31,25 +31,35 @@ public class UserService
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Perfil e situacao do acesso. Nome e e-mail vem do cadastro do voluntario (e mudam la); um acesso antigo, sem
+    /// voluntario, pode ser ligado a um aqui e passa a usar o nome e o e-mail dele.
+    /// </summary>
     public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request, Guid currentUserId)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Usuario");
 
-        var email = request.Email.Trim().ToLowerInvariant();
-        // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
-        if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id != id && u.Email.ToLower() == email))
-            throw AppException.Conflict("Ja existe um usuario com este e-mail.");
-
         if (id == currentUserId && !request.IsActive)
             throw new AppException("Voce nao pode desativar o proprio acesso.");
 
-        await EnsureVolunteerAvailableAsync(request.VolunteerId, id);
+        if (request.VolunteerId.HasValue && request.VolunteerId != user.VolunteerId)
+        {
+            await EnsureVolunteerAvailableAsync(request.VolunteerId, id);
+            var volunteer = await _db.Volunteers.FirstAsync(v => v.Id == request.VolunteerId.Value);
+            var email = volunteer.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(email))
+                throw new AppException("Cadastre o e-mail do voluntario antes: ele e o login.");
+            // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
+            if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id != id && u.Email.ToLower() == email))
+                throw AppException.Conflict("Ja existe um acesso com o e-mail deste voluntario.");
 
-        user.Name = request.Name.Trim();
-        user.Email = email;
+            user.VolunteerId = volunteer.Id;
+            user.Name = volunteer.Name;
+            user.Email = email;
+        }
+
         user.Role = request.Role!.Value;
         user.IsActive = request.IsActive;
-        user.VolunteerId = request.VolunteerId;
 
         await _db.SaveChangesAsync();
         return await GetDtoAsync(id);

@@ -685,11 +685,11 @@ export interface SaveIndicatorPayload {
   nationalIndicatorId: string | null;
 }
 
+/** Edicao de um acesso: nome e e-mail vem do cadastro do voluntario. */
 export interface SaveUserPayload {
-  name: string;
-  email: string;
   role: UserRole;
   isActive: boolean;
+  /** So para acesso antigo, sem voluntario: liga ao cadastro. */
   volunteerId: string | null;
 }
 

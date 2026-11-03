@@ -436,7 +436,11 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
             />
           </Field>
 
-          <Field label="E-mail" htmlFor="volunteer-email">
+          <Field
+            label="E-mail"
+            htmlFor="volunteer-email"
+            hint={volunteer?.access ? 'É também o login desta pessoa na plataforma.' : undefined}
+          >
             <TextInput id="volunteer-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
           </Field>
 

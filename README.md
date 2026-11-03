@@ -221,7 +221,7 @@ de ser visível para ele).
 botão do topo, para Voluntários, Relatórios e Configurações). **Registrar** pergunta o projeto (os da pessoa primeiro,
 com busca) e abre o projeto já no registro de andamento, com o cursor no campo; o botão "Registrar" de Meus projetos,
 no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmação aparecem acima da barra. As listas em
-tabela (Projetos, Voluntários, Equipe do projeto, Relatórios, Usuários e as da área Nacional) viram cartões, um por
+tabela (Projetos, Voluntários, Equipe do projeto, Relatórios, Acessos e as da área Nacional) viram cartões, um por
 linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no iPhone, letra menor faz a tela ampliar
 sozinha a cada toque num campo).
 
@@ -399,16 +399,20 @@ modelo, esses indicadores somados nos projetos do relatório (mesma comparação
 de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
-Configurações › Usuários, **Novo acesso**, escolhendo o voluntário; só administradores) pede o perfil e usa como login
+Configurações › Acessos, **Novo acesso**, escolhendo o voluntário; só administradores) pede o perfil e usa como login
 o e-mail do cadastro (sem e-mail, não dá). Sai um **link de primeiro acesso** (`/acesso/{código}`), mostrado uma vez,
 com botões para copiar, mandar pelo WhatsApp (celular do cadastro, já com a mensagem) ou por e-mail. A pessoa abre,
 cria a própria senha, aceita a política de privacidade e já entra; ninguém define nem repassa senha de outra pessoa.
 O link vale 7 dias e uma vez só; só o hash do código fica no banco (tabela `AccessLinks`). Enquanto não for usado, o
 acesso aparece como "Aguardando o primeiro acesso" e o login com senha é recusado. Para quem perdeu o link ou esqueceu
-a senha, **Gerar link de acesso** (página do voluntário ou ícone da chave em Usuários) faz um link novo e anula os
+a senha, **Gerar link de acesso** (página do voluntário ou ícone da chave em Acessos) faz um link novo e anula os
 anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas por minuto por endereço. A lista de
 voluntários mostra uma chave ao lado de quem tem acesso (cinza enquanto aguarda o primeiro acesso), e a página do
-voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo.
+voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo. O nome e
+o e-mail do acesso vêm do cadastro do voluntário: mudar o e-mail no cadastro muda o login (não pode ficar em branco
+nem repetir o de outro acesso, de qualquer núcleo). Em **Configurações › Acessos** a lista mostra a pessoa (com o
+e-mail de login), o perfil e a situação, e editar muda só o perfil e se o acesso está ativo; um acesso antigo, sem
+cadastro de voluntário, pode ser ligado a um ali.
 
 **Gestão nacional** — a área **Nacional** do menu (só para quem tem a permissão; `/nacional`) tem as abas:
 - **Painel** (a primeira): os números de todos os núcleos, no total (cartões) e numa tabela por núcleo — projetos em
@@ -442,7 +446,7 @@ administra cada núcleo. A primeira conta vem da configuração do servidor (`Na
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
-aberta fica na URL (`?aba=organizacao`, `usuarios`, `historico` ou `conta`).
+aberta fica na URL (`?aba=organizacao`, `acessos`, `historico` ou `conta`; o antigo `usuarios` leva a Acessos).
 
 **Privacidade (LGPD)** — a política de privacidade e os termos de uso ficam em `/privacidade`, aberta a qualquer pessoa
 (link na tela de login). No primeiro acesso, e de novo sempre que o texto muda, uma janela pede o aceite antes de usar

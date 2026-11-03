@@ -236,14 +236,8 @@ export const usersApi = {
   update: (id: string, payload: SaveUserPayload) =>
     http.request<User>(`/api/users/${id}`, {
       method: 'PUT',
-      body: {
-        name: payload.name,
-        email: payload.email,
-        role: payload.role,
-        isActive: payload.isActive,
-        // Sem este campo a API entendia "sem voluntario" e desfazia o vinculo a cada edicao.
-        volunteerId: payload.volunteerId
-      }
+      // Nome e e-mail vem do cadastro do voluntario; volunteerId so liga um acesso antigo, sem cadastro.
+      body: { role: payload.role, isActive: payload.isActive, volunteerId: payload.volunteerId }
     }),
   remove: (id: string) => http.request<void>(`/api/users/${id}`, { method: 'DELETE' })
 };

@@ -163,7 +163,9 @@ public class VolunteerService
 
         EnsureNotAnonymized(volunteer);
         var previousStatus = volunteer.Status;
+        var previousEmail = volunteer.Email;
         Apply(volunteer, request);
+        await SyncAccessAsync(volunteer, previousEmail);
         // Mudou a situacao pelo cadastro: entra no historico a partir de hoje.
         if (volunteer.Status != previousStatus)
             await VolunteerStatusHistoryService.ApplyPeriodAsync(_db, volunteer, volunteer.Status, Mapping.Today, null);
@@ -171,6 +173,26 @@ public class VolunteerService
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
         return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
+    }
+
+    /// <summary>
+    /// O acesso usa o nome e o e-mail do cadastro: o nome acompanha sempre; o e-mail novo vira o login (so quando o
+    /// e-mail muda, para nao trocar o login de quem tinha outro por uma edicao qualquer).
+    /// </summary>
+    private async Task SyncAccessAsync(Volunteer volunteer, string? previousEmail)
+    {
+        var access = await _db.Users.FirstOrDefaultAsync(u => u.VolunteerId == volunteer.Id);
+        if (access is null) return;
+
+        access.Name = volunteer.Name;
+        if (volunteer.Email == previousEmail) return;
+
+        if (string.IsNullOrEmpty(volunteer.Email))
+            throw new AppException("Este voluntario tem acesso a plataforma: o e-mail e o login e nao pode ficar em branco.");
+        // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
+        if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id != access.Id && u.Email.ToLower() == volunteer.Email))
+            throw AppException.Conflict("Ja existe um acesso com este e-mail.");
+        access.Email = volunteer.Email;
     }
 
     /// <summary>

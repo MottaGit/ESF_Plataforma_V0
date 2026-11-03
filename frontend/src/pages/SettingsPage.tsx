@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { ApiError, assetUrl } from '../api/client';
 import { authApi, organizationApi, usersApi, volunteersApi } from '../api/endpoints';
 import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
 import { AuditSection } from '../components/settings/AuditSection';
+import { Avatar } from '../components/ui/Avatar';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
@@ -21,14 +22,14 @@ import type {
   UserRole,
   Volunteer
 } from '../types/api';
-import { USER_ROLES, emptyToNull, formatDate, roleDescription, roleLabel } from '../utils/format';
+import { USER_ROLES, emptyToNull, roleDescription, roleLabel } from '../utils/format';
 
 type TabKey = 'organization' | 'users' | 'history' | 'account';
 
 // A aba aberta fica na URL (?aba=conta), para o menu da conta e links diretos cairem no lugar certo.
 const tabs: Array<{ key: TabKey; label: string; slug: string; adminOnly?: boolean; manageOnly?: boolean }> = [
   { key: 'organization', label: 'Organização', slug: 'organizacao', manageOnly: true },
-  { key: 'users', label: 'Usuários', slug: 'usuarios', manageOnly: true },
+  { key: 'users', label: 'Acessos', slug: 'acessos', manageOnly: true },
   { key: 'history', label: 'Histórico', slug: 'historico', adminOnly: true },
   { key: 'account', label: 'Minha conta', slug: 'conta' }
 ];
@@ -38,7 +39,9 @@ export function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   // Coordenacao ve tudo (o historico so a administracao); o voluntario comum, so a propria conta.
   const visibleTabs = tabs.filter((item) => (!item.adminOnly || isAdmin) && (!item.manageOnly || canManage));
-  const tab = visibleTabs.find((item) => item.slug === searchParams.get('aba'))?.key ?? visibleTabs[0].key;
+  // "usuarios" e o nome antigo da aba Acessos, que links ja enviados ainda usam.
+  const slug = searchParams.get('aba') === 'usuarios' ? 'acessos' : searchParams.get('aba');
+  const tab = visibleTabs.find((item) => item.slug === slug)?.key ?? visibleTabs[0].key;
 
   // Os programas sairam daqui e foram para Projetos › Programas; links antigos continuam funcionando.
   if (searchParams.get('aba') === 'programas') return <Navigate to="/programas" replace />;
@@ -458,7 +461,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
       setUsers(loadedUsers);
       setVolunteers(loadedVolunteers);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os usuários.');
+      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os acessos.');
     } finally {
       setLoading(false);
     }
@@ -473,11 +476,11 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
     setBusy(true);
     try {
       await usersApi.remove(removing.id);
-      notify('Usuário excluído.');
+      notify('Acesso excluído.');
       setRemoving(null);
       void load();
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o usuário.');
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível excluir o acesso.');
     } finally {
       setBusy(false);
     }
@@ -488,8 +491,8 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
       <div className="toolbar">
         <p className="field__hint" style={{ maxWidth: 620 }}>
           Três perfis: administrador (acesso completo), coordenador (gerencia projetos e dados) e usuário (participa e
-          atualiza a execução). O acesso nasce do cadastro do voluntário e sai como um link: a própria pessoa cria a
-          senha. Para quem esqueceu a senha, gere um link novo.
+          atualiza a execução). O acesso nasce do cadastro do voluntário, de onde vêm o nome e o e-mail (o login), e
+          sai como um link: a própria pessoa cria a senha. Para quem esqueceu a senha, gere um link novo.
         </p>
         {canEdit ? (
           <div className="toolbar__right">
@@ -504,42 +507,52 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
 
       <section className="panel">
         {loading ? (
-          <Loading label="Carregando usuários…" />
+          <Loading label="Carregando acessos…" />
         ) : users.length === 0 ? (
-          <EmptyState title="Nenhum usuário cadastrado" />
+          <EmptyState title="Nenhum acesso cadastrado" />
         ) : (
           <div className="table-wrap">
             <table className="table table--cards">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th>Voluntário</th>
+                  <th>Pessoa</th>
                   <th>Perfil</th>
                   <th>Situação</th>
-                  <th className="tight">Desde</th>
-                  {canEdit ? <th className="right">Ações</th> : null}
+                  {canEdit ? (
+                    <th className="right">
+                      <span className="sr-only">Ações</span>
+                    </th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td className="cell--main">
-                      <div className="table__primary">{user.name}</div>
-                      {user.id === currentUser?.id ? <div className="table__secondary">você</div> : null}
+                      <div className="person-cell">
+                        <Avatar name={user.volunteerName ?? user.name} photoUrl={user.volunteerPhotoUrl} size={32} />
+                        <div>
+                          {user.volunteerId ? (
+                            <Link className="row-link" to={`/voluntarios/${user.volunteerId}`}>
+                              {user.volunteerName ?? user.name}
+                            </Link>
+                          ) : (
+                            <div className="table__primary">{user.name}</div>
+                          )}
+                          <div className="table__secondary">
+                            {user.email}
+                            {user.id === currentUser?.id ? ' · você' : ''}
+                            {!user.volunteerId ? ' · sem cadastro de voluntário' : ''}
+                          </div>
+                        </div>
+                      </div>
                     </td>
-                    <td>{user.email}</td>
-                    <td className="cell--desktop">{user.volunteerName ?? '—'}</td>
-                    <td>
-                      {roleLabel(user.role)}
-                      <div className="table__secondary">{roleDescription[user.role]}</div>
-                    </td>
+                    <td title={roleDescription[user.role]}>{roleLabel(user.role)}</td>
                     <td>
                       <NeutralBadge>
                         {!user.isActive ? 'Desativado' : user.passwordPending ? 'Aguardando o primeiro acesso' : 'Ativo'}
                       </NeutralBadge>
                     </td>
-                    <td className="tight cell--desktop">{formatDate(user.createdAt)}</td>
                     {canEdit ? (
                       <td className="cell--actions">
                         <div className="row-actions">
@@ -557,8 +570,8 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                             small
                             variant="ghost"
                             icon={<IconEdit size={15} />}
-                            title="Editar usuário"
-                            aria-label="Editar usuário"
+                            title="Editar perfil e situação"
+                            aria-label={`Editar o acesso de ${user.volunteerName ?? user.name}`}
                             onClick={() => setEditing(user)}
                           />
                           {user.id !== currentUser?.id ? (
@@ -566,8 +579,8 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                               small
                               variant="ghost"
                               icon={<IconTrash size={15} />}
-                              title="Excluir usuário"
-                              aria-label="Excluir usuário"
+                              title="Excluir acesso"
+                              aria-label={`Excluir o acesso de ${user.volunteerName ?? user.name}`}
                               onClick={() => setRemoving(user)}
                             />
                           ) : null}
@@ -600,14 +613,13 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
       ) : null}
 
       {editing ? (
-        <UserFormModal
+        <AccessFormModal
           user={editing}
-          users={users}
           volunteers={volunteers}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            notify('Usuário atualizado.');
+            notify('Acesso atualizado.');
             void load();
             // O proprio acesso: nome, foto e "Minhas atividades" mudam junto com o vinculo.
             if (editing.id === currentUser?.id) void refreshUser();
@@ -617,8 +629,8 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
 
       {removing ? (
         <ConfirmDialog
-          title="Excluir usuário"
-          message={`${removing.name} perderá o acesso à plataforma. Projetos e tarefas sob responsabilidade dele ficam sem responsável.`}
+          title="Excluir acesso"
+          message={`${removing.volunteerName ?? removing.name} perderá o acesso à plataforma. O cadastro de voluntário, os projetos e as tarefas continuam.`}
           confirmLabel="Excluir"
           destructive
           busy={busy}
@@ -630,56 +642,39 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
   );
 }
 
-interface UserFormModalProps {
+interface AccessFormModalProps {
   user: User;
-  users: User[];
   volunteers: Volunteer[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-/** Edicao de um acesso existente (acesso novo nasce do voluntario, em "Novo acesso"; senha, so por link). */
-function UserFormModal({ user, users, volunteers, onClose, onSaved }: UserFormModalProps) {
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+/**
+ * Edicao de um acesso: perfil e situacao (acesso novo nasce do voluntario, em "Novo acesso"; senha, so por link).
+ * Nome e e-mail vem do cadastro do voluntario; um acesso antigo, sem cadastro, pode ser ligado a um voluntario aqui.
+ */
+function AccessFormModal({ user, volunteers, onClose, onSaved }: AccessFormModalProps) {
   const [role, setRole] = useState<UserRole>(user.role);
   const [isActive, setIsActive] = useState(user.isActive);
-  const [volunteerId, setVolunteerId] = useState(user.volunteerId ?? '');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [volunteerId, setVolunteerId] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Cada voluntario so pode estar ligado a um acesso.
-  const takenVolunteerIds = new Set(
-    users.filter((item) => item.id !== user.id && item.volunteerId).map((item) => item.volunteerId)
-  );
-  const availableVolunteers = volunteers.filter((volunteer) => !takenVolunteerIds.has(volunteer.id));
+  // Cada voluntario so pode estar ligado a um acesso, e o e-mail dele vira o login.
+  const availableVolunteers = volunteers.filter((volunteer) => !volunteer.access && !volunteer.anonymized && volunteer.email);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setFormError(null);
 
-    const found: Record<string, string> = {};
-    if (name.trim().length < 3) found.name = 'Informe o nome completo.';
-    if (!email.includes('@')) found.email = 'Informe um e-mail válido.';
-
-    setErrors(found);
-    if (Object.keys(found).length > 0) return;
-
-    const payload: SaveUserPayload = {
-      name: name.trim(),
-      email: email.trim(),
-      role,
-      isActive,
-      volunteerId: volunteerId || null
-    };
+    const payload: SaveUserPayload = { role, isActive, volunteerId: volunteerId || null };
 
     setSaving(true);
     try {
       await usersApi.update(user.id, payload);
       onSaved();
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o usuário.');
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o acesso.');
     } finally {
       setSaving(false);
     }
@@ -687,8 +682,9 @@ function UserFormModal({ user, users, volunteers, onClose, onSaved }: UserFormMo
 
   return (
     <Modal
-      title="Editar usuário"
-      subtitle={user.email}
+      title="Editar acesso"
+      subtitle={`${user.volunteerName ?? user.name} · ${user.email}`}
+      size="narrow"
       onClose={onClose}
       footer={
         <>
@@ -706,26 +702,7 @@ function UserFormModal({ user, users, volunteers, onClose, onSaved }: UserFormMo
           </div>
         ) : null}
 
-        <div className="form-grid">
-          <Field label="Nome" htmlFor="user-name" required error={errors.name} span>
-            <TextInput
-              id="user-name"
-              value={name}
-              invalid={Boolean(errors.name)}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </Field>
-
-          <Field label="E-mail" htmlFor="user-email" required error={errors.email}>
-            <TextInput
-              id="user-email"
-              type="email"
-              value={email}
-              invalid={Boolean(errors.email)}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </Field>
-
+        <div className="form-grid form-grid--single">
           <Field label="Perfil de acesso" htmlFor="user-role" required hint={roleDescription[role]}>
             <Select id="user-role" value={role} onChange={(event) => setRole(event.target.value as UserRole)}>
               {USER_ROLES.map((value) => (
@@ -736,23 +713,26 @@ function UserFormModal({ user, users, volunteers, onClose, onSaved }: UserFormMo
             </Select>
           </Field>
 
-          <Field
-            label="Voluntário vinculado"
-            htmlFor="user-volunteer"
-            hint="Quem é esta pessoa no cadastro de voluntários. Assim a plataforma sabe quais tarefas são dela."
-            span
-          >
-            <Select id="user-volunteer" value={volunteerId} onChange={(event) => setVolunteerId(event.target.value)}>
-              <option value="">Nenhum</option>
-              {availableVolunteers.map((volunteer) => (
-                <option key={volunteer.id} value={volunteer.id}>
-                  {volunteer.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          {!user.volunteerId ? (
+            <Field
+              label="Cadastro de voluntário"
+              htmlFor="user-volunteer"
+              hint="Este acesso é de antes do cadastro de voluntários. Escolha quem é a pessoa: o nome e o e-mail (o login) passam a vir do cadastro."
+            >
+              <Select id="user-volunteer" value={volunteerId} onChange={(event) => setVolunteerId(event.target.value)}>
+                <option value="">Deixar sem cadastro</option>
+                {availableVolunteers.map((volunteer) => (
+                  <option key={volunteer.id} value={volunteer.id}>
+                    {volunteer.name} · {volunteer.email}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : (
+            <p className="field__hint">Nome e e-mail (o login) mudam no cadastro do voluntário.</p>
+          )}
 
-          <div className="field span-2">
+          <div className="field">
             <label className="checkbox">
               <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
               Acesso ativo

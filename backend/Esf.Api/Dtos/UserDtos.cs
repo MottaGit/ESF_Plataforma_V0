@@ -23,22 +23,16 @@ public record UserDto(
     // Faz parte da gestao nacional.
     bool IsNational);
 
+/// <summary>
+/// Edicao de um acesso: perfil e situacao. Nome e e-mail (o login) vem do cadastro do voluntario e mudam la.
+/// </summary>
 public class UpdateUserRequest
 {
-    [Required(ErrorMessage = "Informe o nome.")]
-    [StringLength(160)]
-    public string Name { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Informe o e-mail.")]
-    [EmailAddress(ErrorMessage = "E-mail invalido.")]
-    [StringLength(200)]
-    public string Email { get; set; } = string.Empty;
-
     [Required(ErrorMessage = "Selecione o perfil de acesso.")]
     public UserRole? Role { get; set; }
 
     public bool IsActive { get; set; } = true;
 
-    /// <summary>Voluntario que este acesso representa (opcional).</summary>
+    /// <summary>So para acesso antigo, sem voluntario: liga ao cadastro, que passa a dar o nome e o e-mail.</summary>
     public Guid? VolunteerId { get; set; }
 }
