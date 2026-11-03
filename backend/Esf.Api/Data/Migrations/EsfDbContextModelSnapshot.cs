@@ -255,7 +255,7 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
 
-                    b.Property<decimal>("Value")
+                    b.Property<decimal?>("Value")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 

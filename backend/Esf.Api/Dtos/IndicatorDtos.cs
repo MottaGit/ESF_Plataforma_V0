@@ -7,7 +7,8 @@ public record IndicatorDto(
     Guid ProjectId,
     string Name,
     string? Unit,
-    decimal Value,
+    // Vazio: ainda nao informado.
+    decimal? Value,
     DateTime CreatedAt,
     // Indicador nacional escolhido (null: especifico do projeto).
     Guid? NationalIndicatorId);
@@ -21,7 +22,7 @@ public class SaveIndicatorRequest
     [StringLength(60)]
     public string? Unit { get; set; }
 
-    [Required(ErrorMessage = "Informe o valor.")]
+    /// <summary>Vazio: ainda nao informado (nao entra nas somas como zero).</summary>
     [Range(0, 999999999, ErrorMessage = "Valor invalido.")]
     public decimal? Value { get; set; }
 

@@ -881,6 +881,25 @@ public static class DbSeeder
             item.Name = national.Name;
             item.Unit = national.Unit;
         }
+        // Todo projeto tem os nacionais: o que o projeto nao tinha entra em branco (ainda nao informado), como as
+        // pessoas beneficiadas das hortas.
+        var linked = db.Indicators.Local.Where(i => i.NationalIndicator is not null)
+            .Select(i => (i.Project, i.NationalIndicator)).ToHashSet();
+        foreach (var project in db.Projects.Local.ToList())
+        {
+            foreach (var national in new[] { nFamilias, nPessoas }.Where(n => !linked.Contains((project, n))))
+            {
+                db.Indicators.Add(new Indicator
+                {
+                    Project = project,
+                    NationalIndicator = national,
+                    Name = national.Name,
+                    Unit = national.Unit,
+                    Value = null,
+                    CreatedAt = project.CreatedAt
+                });
+            }
+        }
 
         db.Users.Add(new User
         {

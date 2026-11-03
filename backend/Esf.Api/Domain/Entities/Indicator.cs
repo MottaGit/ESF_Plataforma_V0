@@ -7,13 +7,18 @@ public class Indicator
     public Guid ProjectId { get; set; }
     public Project? Project { get; set; }
 
-    /// <summary>Indicador nacional escolhido (nome e unidade vem dele); vazio: indicador especifico do projeto.</summary>
+    /// <summary>
+    /// Indicador nacional (nome e unidade vem dele): todo projeto tem os nacionais ativos, e eles nao saem do projeto.
+    /// Vazio: indicador especifico do projeto.
+    /// </summary>
     public Guid? NationalIndicatorId { get; set; }
     public NationalIndicator? NationalIndicator { get; set; }
 
     public string Name { get; set; } = string.Empty;
     public string? Unit { get; set; }
-    public decimal Value { get; set; }
+
+    /// <summary>Vazio: ainda nao informado (diferente de zero). As somas ignoram os vazios.</summary>
+    public decimal? Value { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

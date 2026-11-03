@@ -147,11 +147,12 @@ public class NationalTests
         NationalIndicatorDto people;
         await using (var db = f.Context(NationalOnly(id)))
             people = await new NationalIndicatorService(db).CreateAsync(new SaveNationalIndicatorRequest { Name = "Pessoas beneficiadas", Unit = "pessoas" });
-        foreach (var (nucleo, value) in new[] { (f.A, 8m), (f.B, 5m) })
+        // O nacional entrou nos dois projetos: A informa 8, B ainda nao informou (em branco nao soma como nada).
+        await using (var system = f.SystemContext())
         {
-            await using var db = f.Context(nucleo.Admin);
-            await new IndicatorService(db).CreateAsync(nucleo.ProjectId,
-                new SaveIndicatorRequest { Name = "x", Value = value, NationalIndicatorId = people.Id });
+            var linked = await system.Indicators.SingleAsync(i => i.ProjectId == f.A.ProjectId && i.NationalIndicatorId == people.Id);
+            linked.Value = 8;
+            await system.SaveChangesAsync();
         }
 
         await using var panelDb = f.Context(NationalOnly(id));
@@ -165,8 +166,9 @@ public class NationalTests
         Assert.Equal(2, panel.Totals.Records);
         // Voluntario ativo desde 30 dias atras: 11 dias no periodo de 10 dias para tras ate hoje = 9 horas (6 h/semana).
         Assert.All(panel.Nucleos, n => Assert.Equal(9, n.VolunteerHours));
-        Assert.Equal(13, Assert.Single(panel.Indicators).Total);
+        Assert.Equal(8, Assert.Single(panel.Indicators).Total);
         Assert.Equal(8, panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).Indicators[people.Id]);
+        Assert.Equal(0, panel.Nucleos.Single(n => n.Id == f.B.OrganizationId).Indicators[people.Id]);
         Assert.NotNull(panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).LastActivityAt);
     }
 

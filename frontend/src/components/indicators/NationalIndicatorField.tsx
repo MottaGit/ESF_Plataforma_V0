@@ -3,7 +3,7 @@ import { nationalIndicatorsApi } from '../../api/endpoints';
 import type { NationalIndicator } from '../../types/api';
 import { Field, Select } from '../ui/Field';
 
-/** Indicadores nacionais ativos, para escolher num indicador de projeto ou de modelo de programa. */
+/** Indicadores nacionais ativos (para o modelo de programa e para mostrar o "como contar" nos projetos). */
 export function useNationalIndicators() {
   const [list, setList] = useState<NationalIndicator[]>([]);
   useEffect(() => {
@@ -42,7 +42,9 @@ export function NationalIndicatorField({ id, value, onChange, options, scope, li
       : 'Nome e unidade vêm da gestão nacional.'
     : value
       ? 'Indicador nacional arquivado: continua valendo para este registro.'
-      : 'Prefira um indicador nacional quando houver: o número entra na soma de todos os núcleos.';
+      : scope === 'programa'
+        ? 'Os nacionais já entram em todo projeto; escolher um aqui faz ele ser somado na visão do programa.'
+        : 'Prefira um indicador nacional quando houver: o número entra na soma de todos os núcleos.';
 
   return (
     <Field label="Indicador" htmlFor={id} hint={hint} span>

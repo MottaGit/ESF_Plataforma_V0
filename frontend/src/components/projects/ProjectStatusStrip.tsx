@@ -101,8 +101,14 @@ export function ProjectStatusStrip({ project, canManage, onOpenTab, onChanged }:
               >
                 <span className="status-tile__label">{indicator.name}</span>
                 <span className="status-result__value num">
-                  {formatNumber(indicator.value)}
-                  {indicator.unit ? <small> {indicator.unit}</small> : null}
+                  {indicator.value == null ? (
+                    <span className="status-result__blank">não informado</span>
+                  ) : (
+                    <>
+                      {formatNumber(indicator.value)}
+                      {indicator.unit ? <small> {indicator.unit}</small> : null}
+                    </>
+                  )}
                 </span>
               </button>
             ))

@@ -164,7 +164,9 @@ public static class Mapping
                 .ThenBy(a => a.DueDate ?? DateOnly.MaxValue)
                 .Select(a => ToDto(a, counts?.GetValueOrDefault(a.Id))).ToList(),
             p.Volunteers.OrderBy(v => v.Volunteer!.Name).Select(ToDto).ToList(),
-            p.Indicators.OrderBy(i => i.CreatedAt).Select(ToDto).ToList(),
+            // Nacionais primeiro (iguais em todo projeto), depois os especificos na ordem em que foram criados.
+            p.Indicators.OrderBy(i => i.NationalIndicatorId == null).ThenBy(i => i.CreatedAt).ThenBy(i => i.Name)
+                .Select(ToDto).ToList(),
             // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.
             p.Files.OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
             p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList(),

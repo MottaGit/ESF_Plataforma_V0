@@ -114,7 +114,7 @@ public class NationalService
         var values = await _db.Indicators
             .Where(i => i.NationalIndicatorId != null && !i.Project!.IsArchived)
             .GroupBy(i => new { i.Project!.OrganizationId, NationalId = i.NationalIndicatorId!.Value })
-            .Select(g => new { g.Key.OrganizationId, g.Key.NationalId, Total = g.Sum(i => i.Value) })
+            .Select(g => new { g.Key.OrganizationId, g.Key.NationalId, Total = g.Sum(i => i.Value ?? 0) })
             .ToListAsync();
         // Ativos, mais os arquivados que ainda tem valor registrado.
         var nationals = await _db.NationalIndicators.AsNoTracking().OrderBy(n => n.Name).ToListAsync();

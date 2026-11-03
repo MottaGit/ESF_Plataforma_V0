@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Esf.Api.Services;
 
 /// <summary>
-/// Indicadores nacionais: a gestao nacional define (nome, unidade, como contar) e os nucleos escolhem nos projetos e
-/// nos modelos de programa, em vez de criar um com outro nome. E o vinculo que permite somar entre nucleos.
+/// Indicadores nacionais: a gestao nacional define (nome, unidade, como contar) e todo projeto, de todos os nucleos, tem
+/// os ativos (o valor fica vazio ate o nucleo informar). E o vinculo que permite somar entre nucleos.
 /// </summary>
 public class NationalIndicatorService
 {
@@ -28,6 +28,7 @@ public class NationalIndicatorService
         var indicator = new NationalIndicator();
         await ApplyAsync(indicator, request);
         _db.NationalIndicators.Add(indicator);
+        await AddToEveryProjectAsync(indicator);
         await _db.SaveChangesAsync();
         return ToDto(indicator);
     }
@@ -55,14 +56,59 @@ public class NationalIndicatorService
         return ToDto(indicator);
     }
 
-    /// <summary>Arquivar tira das opcoes para indicadores novos; os ja ligados continuam (e continuam somando).</summary>
+    /// <summary>
+    /// Arquivar deixa de exigir o indicador (projeto novo nao recebe, e o nucleo pode tirar); os ja ligados continuam e
+    /// continuam somando. Reativar volta a exigir: entra nos projetos que nao o tem.
+    /// </summary>
     public async Task<NationalIndicatorDto> SetArchivedAsync(Guid id, bool archived)
     {
         var indicator = await FindAsync(id);
         indicator.IsArchived = archived;
+        if (!archived) await AddToEveryProjectAsync(indicator);
         await _db.SaveChangesAsync();
         return ToDto(indicator);
     }
+
+    /// <summary>
+    /// Projeto novo: recebe todos os nacionais ativos, com o valor vazio. Devolve os ids, para o modelo do programa nao
+    /// repetir os mesmos.
+    /// </summary>
+    public static async Task<HashSet<Guid>> AddActiveToNewProjectAsync(EsfDbContext db, Project project)
+    {
+        var nationals = await db.NationalIndicators.AsNoTracking()
+            .Where(n => !n.IsArchived)
+            .OrderBy(n => n.Name)
+            .ToListAsync();
+        var now = DateTime.UtcNow;
+        foreach (var national in nationals)
+            db.Indicators.Add(NewLinked(project.Id, national, now));
+        return nationals.Select(n => n.Id).ToHashSet();
+    }
+
+    /// <summary>Nacional ativo em todos os projetos de todos os nucleos (os que ainda nao o tem), com o valor vazio.</summary>
+    private async Task AddToEveryProjectAsync(NationalIndicator national)
+    {
+        _db.AllOrganizations = true;
+        var missing = await _db.Projects
+            .Where(p => !_db.Indicators.Any(i => i.ProjectId == p.Id && i.NationalIndicatorId == national.Id))
+            .Select(p => p.Id)
+            .ToListAsync();
+        _db.AllOrganizations = false;
+
+        var now = DateTime.UtcNow;
+        foreach (var projectId in missing)
+            _db.Indicators.Add(NewLinked(projectId, national, now));
+    }
+
+    private static Indicator NewLinked(Guid projectId, NationalIndicator national, DateTime now) => new()
+    {
+        ProjectId = projectId,
+        NationalIndicatorId = national.Id,
+        Name = national.Name,
+        Unit = national.Unit,
+        Value = null,
+        CreatedAt = now
+    };
 
     /// <summary>
     /// Indicador nacional que um nucleo quer usar: precisa existir e estar ativo (um arquivado so vale para quem ja

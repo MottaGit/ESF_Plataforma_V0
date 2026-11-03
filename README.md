@@ -220,7 +220,8 @@ prazo opcional em dias após o início do projeto; sem prazo por padrão), **ind
 **textos sugeridos** (descrição, objetivo e quem se beneficia). A coordenação inclui, edita, reordena e remove; cada
 mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
 mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado): as tarefas entram sem responsável,
-com o prazo contado da data de início, os indicadores entram zerados e os textos preenchem o que ficou em branco. Os
+com o prazo contado da data de início, os indicadores entram em branco (não informado; os nacionais, que o projeto
+já recebe, não se repetem) e os textos preenchem o que ficou em branco. Os
 cards dos programas mostram o resumo do modelo ("Modelo: 5 tarefas · 2 indicadores" ou "Sem modelo").
 
 **Menu** — Início · Projetos · Tarefas · Voluntários · Relatórios · Configurações. Configurações aparece só para a
@@ -379,8 +380,11 @@ registro ou entre um período antigo e a volta da pessoa) não contam horas. Vol
 status atual desde a data do cadastro. Todos veem o total; o histórico só aparece para a coordenação e para o próprio
 voluntário, e só a coordenação edita. O certificado já abre com o período do primeiro ao último período como Ativo.
 
-**Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso),
-consolidado por nome no dashboard geral.
+**Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso).
+Todo projeto tem os **indicadores nacionais** ativos (vêm primeiro, com a etiqueta "nacional"); os demais são
+específicos do projeto (**Novo indicador**, na aba Sobre). O valor pode ficar **em branco**: "não informado", que é
+diferente de zero — não entra nas somas e não aparece no PDF. O nacional não sai do projeto nem vira específico; só o
+valor muda (a janela mostra o "como contar" da gestão nacional).
 
 **Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
 a data do registro). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
@@ -440,12 +444,14 @@ cadastro de voluntário, pode ser ligado a um ali.
   quem assina) ela completa em Configurações. No menu ⋯ do núcleo, **Editar núcleo** (nome e local) e **Novo
   administrador** (se a pessoa já for voluntária do núcleo, o acesso nasce do cadastro dela; se já tiver acesso, só
   passa a administradora). A chave ao lado de cada administrador gera um link novo.
-- **Indicadores nacionais**: os resultados comuns a todos os núcleos (nome, unidade e **como contar**). Ao incluir
-  um indicador no projeto (aba Sobre) ou no modelo do programa, o núcleo escolhe um nacional ou "Específico deste
-  projeto/programa": o nacional traz nome e unidade (o núcleo só informa o valor), aparece com a etiqueta "nacional",
-  vale uma vez por projeto (senão a soma contaria em dobro) e entra na soma do painel pelo vínculo, não pelo nome.
-  Projeto criado pelo modelo já nasce ligado. Mudar nome ou unidade de um nacional atualiza os indicadores ligados em
-  todos os núcleos; arquivar tira das opções para indicadores novos, e os já ligados continuam valendo.
+- **Indicadores nacionais**: os resultados comuns a todos os núcleos (nome, unidade e **como contar**), **obrigatórios
+  em todo projeto**. Cada nacional ativo entra sozinho em todos os projetos de todos os núcleos (no projeto novo, ao
+  criar o nacional, ao reativá-lo e, para os projetos que já existiam, pela migração `MandatoryNationalIndicators`), com
+  o valor em branco até o núcleo informar. O nacional traz nome e unidade (o núcleo só informa o valor), aparece com a
+  etiqueta "nacional", vale uma vez por projeto, não pode ser excluído nem desligado e entra na soma do painel pelo
+  vínculo, não pelo nome; em branco não soma. No modelo do programa, escolher um nacional só serve para somá-lo na
+  visão do programa. Mudar nome ou unidade de um nacional atualiza os indicadores ligados em todos os núcleos;
+  arquivar deixa de exigir (projeto novo não recebe e o núcleo pode tirar), e os já ligados continuam valendo.
 - **Pessoas da gestão nacional**: quem tem a permissão. **Incluir pessoa** dá a permissão a um login de núcleo (mesma
   senha; o menu Nacional aparece quando a pessoa entrar de novo) ou cria uma conta só nacional, com link. **Tirar**
   remove a permissão (a conta só nacional fica desativada); ninguém tira a própria.
@@ -594,7 +600,7 @@ ESF_Plataforma_V0/
 | `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
 | `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
-| `Indicators` | indicadores do projeto (nome, valor e unidade; `NationalIndicatorId` quando é um indicador nacional) |
+| `Indicators` | indicadores do projeto (nome, valor — vazio é "não informado" — e unidade; `NationalIndicatorId` quando é um indicador nacional) |
 | `NationalIndicators` | indicadores nacionais da gestão nacional (nome, unidade, como contar, arquivado); sem núcleo |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |

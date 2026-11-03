@@ -138,7 +138,7 @@ public class ReportService
                     .Select(t => new ReportResult(t.Name, t.Unit, group
                         .SelectMany(p => p.Indicators)
                         .Where(i => SearchText.Fold(i.Name.Trim()) == SearchText.Fold(t.Name.Trim()))
-                        .Sum(i => i.Value)))
+                        .Sum(i => i.Value ?? 0)))
                     .ToList()))
             .Where(result => result.Results.Count > 0)
             .ToList();

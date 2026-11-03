@@ -30,6 +30,13 @@ public class DemoDataTests
         Assert.Equal(new[] { "ESF Curitiba", "ESF Porto Alegre" }, nucleos.Select(o => o.Name));
         Assert.DoesNotContain(await system.Volunteers.ToListAsync(), v => v.OrganizationId == Guid.Empty);
         Assert.DoesNotContain(await system.Projects.ToListAsync(), p => p.OrganizationId == Guid.Empty);
+        // Todo projeto tem os dois nacionais, uma vez cada (as hortas sem pessoas beneficiadas ficam em branco).
+        var links = await system.Indicators.Where(i => i.NationalIndicatorId != null)
+            .GroupBy(i => i.ProjectId).Select(g => g.Select(i => i.NationalIndicatorId).Distinct().Count()).ToListAsync();
+        Assert.Equal(await system.Projects.CountAsync(), links.Count);
+        Assert.All(links, count => Assert.Equal(2, count));
+        Assert.Equal(2 * links.Count, await system.Indicators.CountAsync(i => i.NationalIndicatorId != null));
+        Assert.Contains(await system.Indicators.ToListAsync(), i => i.NationalIndicatorId != null && i.Value == null);
 
         var national = await system.Users.SingleAsync(u => u.IsNational);
         Assert.Equal("nacional@esf.org.br", national.Email);

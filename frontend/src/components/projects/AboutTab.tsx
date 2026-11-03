@@ -102,14 +102,23 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                       <span className="indicator__name">
                         {indicator.name}
                         {indicator.nationalIndicatorId ? (
-                          <span className="national-mark" title="Indicador nacional: entra na soma de todos os núcleos">
+                          <span
+                            className="national-mark"
+                            title="Indicador nacional: está em todo projeto e entra na soma de todos os núcleos"
+                          >
                             nacional
                           </span>
                         ) : null}
                       </span>
                       <span className="indicator__values num">
-                        <strong>{formatNumber(indicator.value)}</strong>
-                        {indicator.unit ? ` ${indicator.unit}` : ''}
+                        {indicator.value == null ? (
+                          <span className="indicator__blank">não informado</span>
+                        ) : (
+                          <>
+                            <strong>{formatNumber(indicator.value)}</strong>
+                            {indicator.unit ? ` ${indicator.unit}` : ''}
+                          </>
+                        )}
                       </span>
                       <div className="row-actions" style={{ marginLeft: 8 }}>
                         <Button
@@ -123,7 +132,8 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                             setFormOpen(true);
                           }}
                         />
-                        {canManage ? (
+                        {/* Nacional nao sai do projeto: fica em branco enquanto nao houver o numero. */}
+                        {canManage && !indicator.nationalIndicatorId ? (
                           <Button
                             small
                             variant="ghost"

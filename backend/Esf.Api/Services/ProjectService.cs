@@ -147,7 +147,8 @@ public class ProjectService
         project.UpdatedAt = DateTime.UtcNow;
 
         _db.Projects.Add(project);
-        if (request.UseTemplate) await ApplyProgramTemplateAsync(project);
+        var nationals = await NationalIndicatorService.AddActiveToNewProjectAsync(_db, project);
+        if (request.UseTemplate) await ApplyProgramTemplateAsync(project, nationals);
         await ProjectTeam.EnsureMemberAsync(_db, project.Id, project.OwnerVolunteerId);
         if (project.OwnerVolunteerId.HasValue)
             await _notifications.ProjectOwnerAsync(project.OwnerVolunteerId.Value, project.Id, project.Name);
@@ -217,9 +218,10 @@ public class ProjectService
 
     /// <summary>
     /// Modelo do programa num projeto novo: cria as atividades (sem responsavel; prazo contado do inicio) e os
-    /// indicadores (zerados) e preenche descricao, objetivo e publico que vieram vazios.
+    /// indicadores (em branco; os nacionais que o projeto ja recebeu nao se repetem) e preenche descricao, objetivo e
+    /// publico que vieram vazios.
     /// </summary>
-    private async Task ApplyProgramTemplateAsync(Project project)
+    private async Task ApplyProgramTemplateAsync(Project project, HashSet<Guid> nationalsAlreadyIn)
     {
         var program = await _db.Programs.AsNoTracking()
             .Include(p => p.TemplateActivities)
@@ -248,13 +250,14 @@ public class ProjectService
 
         foreach (var item in program.TemplateIndicators.OrderBy(x => x.Position))
         {
+            if (item.NationalIndicatorId is { } nationalId && nationalsAlreadyIn.Contains(nationalId)) continue;
             _db.Indicators.Add(new Indicator
             {
                 ProjectId = project.Id,
                 NationalIndicatorId = item.NationalIndicatorId,
                 Name = item.Name,
                 Unit = item.Unit,
-                Value = 0,
+                Value = null,
                 // Mesma ordem do modelo (a lista de indicadores segue a data de criacao).
                 CreatedAt = now.AddTicks(item.Position)
             });

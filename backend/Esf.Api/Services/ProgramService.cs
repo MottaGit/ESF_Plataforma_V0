@@ -68,7 +68,7 @@ public class ProgramService
         var sums = await _db.Indicators.AsNoTracking()
             .Where(i => ids.Contains(i.Project!.ProgramId) && !i.Project.IsArchived)
             .GroupBy(i => new { i.Project!.ProgramId, Name = EsfDbContext.Fold(i.Name.Trim()) })
-            .Select(g => new { g.Key.ProgramId, g.Key.Name, Total = g.Sum(i => i.Value) })
+            .Select(g => new { g.Key.ProgramId, g.Key.Name, Total = g.Sum(i => i.Value ?? 0) })
             .ToListAsync();
 
         return programs

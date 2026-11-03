@@ -20,7 +20,9 @@ public class IndicatorService
         var indicators = await _db.Indicators
             .AsNoTracking()
             .Where(i => i.ProjectId == projectId)
-            .OrderBy(i => i.CreatedAt)
+            .OrderBy(i => i.NationalIndicatorId == null)
+            .ThenBy(i => i.CreatedAt)
+            .ThenBy(i => i.Name)
             .ToListAsync();
 
         return indicators.Select(Mapping.ToDto).ToList();
@@ -43,6 +45,8 @@ public class IndicatorService
     public async Task<IndicatorDto> UpdateAsync(Guid id, SaveIndicatorRequest request)
     {
         var indicator = await _db.Indicators.FirstOrDefaultAsync(i => i.Id == id) ?? throw AppException.NotFound("Indicador");
+        if (request.NationalIndicatorId != indicator.NationalIndicatorId && await IsMandatoryAsync(indicator))
+            throw new AppException("Indicador nacional e obrigatorio em todo projeto: so o valor pode mudar.");
 
         await ApplyAsync(indicator, request);
         await _db.SaveChangesAsync();
@@ -53,10 +57,19 @@ public class IndicatorService
     public async Task DeleteAsync(Guid id)
     {
         var indicator = await _db.Indicators.FirstOrDefaultAsync(i => i.Id == id) ?? throw AppException.NotFound("Indicador");
+        if (await IsMandatoryAsync(indicator))
+            throw new AppException(
+                "Indicador nacional e obrigatorio em todo projeto e nao pode ser excluido. Se o numero ainda nao foi apurado, deixe o valor em branco.");
 
         _db.Indicators.Remove(indicator);
         await _db.SaveChangesAsync();
     }
+
+    /// <summary>Ligado a um nacional ativo: fica no projeto e continua ligado (arquivado deixa de ser obrigatorio).</summary>
+    private Task<bool> IsMandatoryAsync(Indicator indicator) =>
+        indicator.NationalIndicatorId is { } nationalId
+            ? _db.NationalIndicators.AnyAsync(n => n.Id == nationalId && !n.IsArchived)
+            : Task.FromResult(false);
 
     /// <summary>
     /// Indicador nacional escolhido: nome e unidade vem dele, e cada projeto o tem uma vez so (senao a soma nacional
@@ -64,7 +77,7 @@ public class IndicatorService
     /// </summary>
     private async Task ApplyAsync(Indicator indicator, SaveIndicatorRequest r)
     {
-        indicator.Value = r.Value!.Value;
+        indicator.Value = r.Value;
 
         if (r.NationalIndicatorId.HasValue)
         {

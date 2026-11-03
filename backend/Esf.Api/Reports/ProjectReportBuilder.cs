@@ -303,7 +303,7 @@ public static class ProjectReportBuilder
             if (!string.IsNullOrWhiteSpace(p.Description))
                 col.Item().Element(c => Paragraph(c, "Descrição", p.Description!));
 
-            if (model.IncludeIndicators && p.Indicators.Count > 0)
+            if (model.IncludeIndicators && p.Indicators.Any(i => i.Value.HasValue))
                 col.Item().Element(c => ComposeIndicators(c, p));
 
             if (model.IncludeVolunteers && p.Volunteers.Count > 0)
@@ -328,14 +328,19 @@ public static class ProjectReportBuilder
         {
             col.Item().Text("Indicadores").FontSize(10).SemiBold();
 
-            var indicators = p.Indicators.OrderBy(i => i.CreatedAt).ToList();
+            // So os informados: indicador em branco (ainda nao apurado) nao vira zero no relatorio.
+            var indicators = p.Indicators
+                .Where(i => i.Value.HasValue)
+                .OrderBy(i => i.NationalIndicatorId == null)
+                .ThenBy(i => i.CreatedAt)
+                .ToList();
             foreach (var chunk in indicators.Chunk(4))
             {
                 col.Item().PaddingTop(6).Row(row =>
                 {
                     foreach (var indicator in chunk)
                         row.RelativeItem().PaddingRight(6)
-                            .Element(c => ValueCard(c, indicator.Value, indicator.Unit, indicator.Name));
+                            .Element(c => ValueCard(c, indicator.Value!.Value, indicator.Unit, indicator.Name));
 
                     for (var pad = chunk.Length; pad < 4; pad++)
                         row.RelativeItem();

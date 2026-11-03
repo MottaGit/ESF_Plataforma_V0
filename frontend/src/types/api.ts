@@ -332,9 +332,10 @@ export interface Indicator {
   projectId: string;
   name: string;
   unit: string | null;
-  value: number;
+  /** null: ainda nao informado (diferente de zero). */
+  value: number | null;
   createdAt: string;
-  /** Indicador nacional escolhido (null: especifico do projeto). */
+  /** Indicador nacional (obrigatorio em todo projeto); null: especifico do projeto. */
   nationalIndicatorId: string | null;
 }
 
@@ -680,7 +681,8 @@ export interface UpdateProgramPayload {
 export interface SaveIndicatorPayload {
   name: string;
   unit: string | null;
-  value: number;
+  /** null: ainda nao informado. */
+  value: number | null;
   /** Indicador nacional: nome e unidade passam a vir dele. */
   nationalIndicatorId: string | null;
 }

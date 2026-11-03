@@ -236,9 +236,10 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <p>
             É um indicador definido pela gestão nacional da ESF (por exemplo, "Pessoas beneficiadas"), com uma regra de
-            como contar. Ao incluir um indicador no projeto ou no modelo do programa, escolha um nacional quando houver:
-            o nome e a unidade vêm dele e o número entra na soma de todos os núcleos. Para o que é só do seu projeto,
-            escolha "Específico". Indicadores nacionais aparecem com a etiqueta "nacional".
+            como contar. Todo projeto já vem com os indicadores nacionais, com a etiqueta "nacional": preencha o número
+            quando tiver. Em branco quer dizer "ainda não informado" e não conta como zero. Eles não podem ser
+            excluídos do projeto, e o número entra na soma de todos os núcleos. Para o que é só do seu projeto, use{' '}
+            <strong>Novo indicador</strong> na aba Sobre.
           </p>
         )
       },

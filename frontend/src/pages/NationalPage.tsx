@@ -164,7 +164,7 @@ function PanelSection() {
               {panel.indicators.length === 0 ? (
                 <EmptyState
                   title="Nenhum indicador nacional"
-                  description="Cadastre na aba Indicadores nacionais; os núcleos escolhem nos projetos e a soma aparece aqui."
+                  description="Cadastre na aba Indicadores nacionais: eles entram em todo projeto de todos os núcleos e a soma aparece aqui."
                 />
               ) : (
                 <>
@@ -180,7 +180,8 @@ function PanelSection() {
                     ))}
                   </div>
                   <p className="field__hint" style={{ marginTop: 10 }}>
-                    Valores atuais, somados nos projetos não arquivados que escolheram cada indicador nacional.
+                    Valores atuais, somados nos projetos não arquivados de todos os núcleos. Projeto que ainda não
+                    informou o número não entra na soma.
                   </p>
                 </>
               )}
@@ -583,8 +584,8 @@ function PersonFormModal({
 }
 
 /**
- * Indicadores nacionais: a lista comum que os nucleos escolhem nos projetos e nos modelos de programa. O painel soma
- * pelo vinculo; renomear vale para todos os nucleos; arquivar tira das opcoes sem apagar o que ja foi registrado.
+ * Indicadores nacionais: a lista comum que entra em todo projeto de todos os nucleos. O painel soma pelo vinculo;
+ * renomear vale para todos os nucleos; arquivar deixa de exigir sem apagar o que ja foi registrado.
  */
 function NationalIndicatorsSection() {
   const { notify, notifyError } = useToast();
@@ -622,9 +623,10 @@ function NationalIndicatorsSection() {
     <>
       <div className="toolbar">
         <p className="field__hint" style={{ maxWidth: 620 }}>
-          Os núcleos escolhem estes indicadores nos projetos e nos modelos de programa, no lugar de criar um com outro
-          nome; é o que permite somar os resultados de todos os núcleos. Diga como contar, para todos contarem do
-          mesmo jeito. Mudar o nome ou a unidade vale para todos os núcleos.
+          Estes indicadores entram sozinhos em todo projeto de todos os núcleos, em branco até cada núcleo informar o
+          número; é o que permite somar os resultados de todos. Diga como contar, para todos contarem do mesmo jeito.
+          Mudar o nome ou a unidade vale para todos os núcleos; arquivar deixa de exigir o indicador (os números já
+          informados continuam).
         </p>
         <div className="toolbar__right">
           <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => setEditing('new')}>
@@ -737,7 +739,7 @@ function NationalIndicatorFormModal({
   return (
     <Modal
       title={indicator ? 'Editar indicador nacional' : 'Novo indicador nacional'}
-      subtitle={indicator ? 'Nome e unidade novos valem para todos os núcleos.' : 'Todos os núcleos poderão escolher este indicador.'}
+      subtitle={indicator ? 'Nome e unidade novos valem para todos os núcleos.' : 'Entra em todos os projetos de todos os núcleos, em branco até cada um informar.'}
       onClose={onClose}
       footer={
         <>
@@ -775,7 +777,7 @@ function NationalIndicatorFormModal({
           label="Como contar"
           htmlFor="national-indicator-description"
           span
-          hint="Aparece para os núcleos ao escolher o indicador. Ex.: conte só quem usa a obra diretamente, não visitantes."
+          hint="Aparece para os núcleos ao informar o número. Ex.: conte só quem usa a obra diretamente, não visitantes."
         >
           <TextArea
             id="national-indicator-description"
