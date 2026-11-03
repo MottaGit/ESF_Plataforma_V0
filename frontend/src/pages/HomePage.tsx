@@ -227,7 +227,7 @@ function OrgStrip({ data }: { data: Dashboard }) {
   const tiles = [
     { to: '/tarefas?de=todas&recorte=atrasadas', value: org.lateTasks, label: 'Tarefas atrasadas', alert: org.lateTasks > 0 },
     { to: '/tarefas?de=todas&recorte=bloqueadas', value: org.blockedTasks, label: 'Bloqueadas', alert: false },
-    { to: '/tarefas?de=todas&recorte=sem-responsavel', value: org.unassignedTasks, label: 'Sem responsável', alert: false },
+    { to: '/tarefas?de=todas&responsavel=nenhum', value: org.unassignedTasks, label: 'Sem responsável', alert: false },
     { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos parados', hint: 'sem registro há 30 dias', alert: false }
   ];
   return (

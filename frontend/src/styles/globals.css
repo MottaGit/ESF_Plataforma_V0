@@ -1721,6 +1721,8 @@ button { font: inherit; }
   .input, .select, .textarea, .rich-editor__content { font-size: 16px; }
   .input, .select { min-height: 44px; }
   .btn { height: 40px; }
+  /* Mesma altura dos botoes ao lado (Filtros), e alvo de toque maior. */
+  .segmented__option { height: 38px; }
   .btn--sm { height: 34px; }
   .checkbox { font-size: 14px; }
   .checkbox input { width: 20px; height: 20px; }
@@ -2252,9 +2254,6 @@ button { font: inherit; }
    Tarefas: lista por prazo e atalhos
    --------------------------------------------------------- */
 
-.task-cuts { flex-wrap: wrap; margin: -4px 0 14px; }
-.chip--late { border-color: #f5c2bd; color: var(--danger); background: #fdf4f3; }
-.chip--late.chip--active { border-color: var(--danger); }
 
 .task-list { overflow: hidden; }
 .task-list__group + .task-list__group { border-top: 1px solid var(--border); }
@@ -2579,33 +2578,92 @@ button { font: inherit; }
   .toast-stack { bottom: calc(76px + env(safe-area-inset-bottom)); left: 12px; right: 12px; max-width: none; }
 }
 
-/* Busca e filtros (Tarefas, Projetos, Voluntarios): no computador ficam na barra; no celular, recolhidos no botao
-   "Filtros", e o painel aberto vai para baixo de tudo o que esta na barra. */
+/* Busca e filtros (Projetos, Voluntarios): no computador ficam na barra; no celular, recolhidos no botao "Filtros", e
+   o painel aberto vai para baixo de tudo o que esta na barra. */
 .filters-panel { display: contents; }
 .filters-toggle { display: none; }
-.filters-toggle__count--mobile { display: none; }
-/* Filtros que ficam no botao tambem no computador (Tarefas): a busca fica a mostra e o botao abre o resto numa
-   linha embaixo da barra. */
-@media (min-width: 761px) {
-  .filters-toggle--split { display: inline-flex; order: 1; }
-  .filters-toggle--on-desktop { border-color: var(--accent); color: var(--accent-text); }
-  .filters-panel--split { display: contents; }
-  .filters-panel--split .filters-extra { display: none; }
-  .filters-panel--split.filters-panel--open .filters-extra { display: flex; flex-wrap: wrap; gap: 10px; flex-basis: 100%; order: 2; }
-  .filters-panel--split ~ .toolbar__right--after-filters { order: 1; }
-}
 @media (max-width: 760px) {
   .filters-toggle { display: inline-flex; }
   .filters-toggle--on { border-color: var(--accent); color: var(--accent-text); }
-  .filters-toggle--on-desktop:not(.filters-toggle--on) { border-color: var(--border-strong); color: var(--text); }
-  .filters-toggle__count--mobile { display: inline; }
-  .filters-toggle__count--desktop { display: none; }
-  .filters-extra { display: grid; gap: 8px; }
   .filters-panel { display: none; }
   .filters-panel--open { display: grid; gap: 8px; width: 100%; order: 1; }
   .filters-panel--open .search, .filters-panel--open .select { max-width: none; width: 100%; }
-  /* "Limpar filtros" das Tarefas vem depois do painel aberto (o Lista|Mapa de Projetos fica em cima). */
-  .toolbar__right--after-filters { order: 2; }
+}
+
+/* Filtros num painel (Tarefas): no computador, preso ao botao; no celular, uma folha que sobe de baixo. */
+.filter-sheet { position: relative; }
+.filter-sheet__toggle { gap: 7px; }
+.filter-sheet__toggle--on { border-color: var(--accent); color: var(--accent-text); }
+.filter-sheet__backdrop { display: none; }
+.filter-sheet__panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 45;
+  display: grid;
+  gap: 14px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+}
+.filter-sheet__head { display: flex; align-items: center; justify-content: space-between; }
+.filter-sheet__head strong { font-size: 14px; }
+.filter-sheet__fields { display: grid; gap: 12px; }
+.filter-sheet__fields .select,
+.filter-sheet__fields .search { width: 100%; max-width: none; min-width: 0; }
+/* Dentro do campo rotulado (coluna), a busca nao cresce como na barra. */
+.filter-sheet__fields .search { flex: none; }
+.filter-sheet__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+.filter-sheet__mobile-only { display: none; }
+@media (max-width: 760px) {
+  .filter-sheet { position: static; }
+  .filter-sheet__backdrop { display: block; position: fixed; inset: 0; z-index: 50; background: rgba(16, 24, 40, 0.4); }
+  .filter-sheet__panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 51;
+    width: auto;
+    max-width: none;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+  .filter-sheet__mobile-only { display: block; }
+}
+
+/* Barra das Tarefas: no celular a busca vai para o painel de filtros. */
+.task-toolbar__search { display: flex; flex: 1 1 220px; max-width: 360px; }
+.task-toolbar__search .search { max-width: none; }
+.segmented--icons .segmented__option { padding: 0 9px; }
+.link-button.summary-line__late { color: var(--danger); }
+@media (max-width: 760px) {
+  .task-toolbar { flex-wrap: nowrap; }
+  .task-toolbar__search { display: none; }
+}
+
+/* Etiquetas dos filtros ligados, cada uma com o x que tira o filtro. */
+.filter-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -4px 0 14px; }
+.filter-chip svg { opacity: 0.7; }
+.filter-chip--mobile,
+.filter-chips--mobile { display: none; }
+@media (max-width: 760px) {
+  .filter-chip--mobile { display: inline-flex; }
+  .filter-chips--mobile { display: flex; }
 }
 
 /* Ajuda: perguntas que abrem ao toque, agrupadas por assunto. */

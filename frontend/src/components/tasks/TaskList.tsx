@@ -18,11 +18,11 @@ interface Group {
   items: Activity[];
 }
 
-/** Em aberto, por prazo: vencidas, proximos 7 dias, depois e sem prazo. */
+/** Em aberto, por prazo: atrasadas, proximos 7 dias, depois e sem prazo. */
 export function groupByDue(activities: Activity[]): Group[] {
   const open = activities.filter((activity) => activity.status !== 'Concluida').sort(compareOpen);
   const groups: Group[] = [
-    { key: 'late', title: 'Vencidas', late: true, items: open.filter((a) => isOverdue(a)) },
+    { key: 'late', title: 'Atrasadas', late: true, items: open.filter((a) => isOverdue(a)) },
     {
       key: 'week',
       title: 'Próximos 7 dias',

@@ -196,6 +196,28 @@ export const IconListBullet = (p: IconProps) =>
     p
   );
 
+/** Quadro (kanban): tres colunas de alturas diferentes. */
+export const IconBoard = (p: IconProps) =>
+  svg(
+    <>
+      <rect x="3" y="4" width="5" height="16" rx="1.5" />
+      <rect x="10" y="4" width="5" height="11" rx="1.5" />
+      <rect x="17" y="4" width="4" height="7" rx="1.5" />
+    </>,
+    p
+  );
+
+/** Filtros: tres linhas com marcadores. */
+export const IconFilter = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+      <circle cx="16" cy="7" r="2" />
+      <circle cx="10" cy="17" r="2" />
+    </>,
+    p
+  );
+
 export const IconListOrdered = (p: IconProps) =>
   svg(
     <>

@@ -7,10 +7,10 @@ import { ActivityFormModal } from '../components/projects/ActivityFormModal';
 import { TaskList } from '../components/tasks/TaskList';
 import { isOverdue, normalize, withStatus } from '../components/tasks/taskUtils';
 import { Button } from '../components/ui/Button';
-import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
-import { Select, TextInput } from '../components/ui/Field';
+import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, Loading } from '../components/ui/Feedback';
-import { IconPlus, IconSearch } from '../components/ui/Icons';
+import { FilterSheet } from '../components/ui/FilterSheet';
+import { IconBoard, IconClose, IconListBullet, IconPlus, IconSearch } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Activity, ActivityStatus, Volunteer } from '../types/api';
@@ -22,21 +22,28 @@ const TaskBoard = lazy(() => import('../components/tasks/TaskBoard').then((modul
 /** Valor do filtro de responsavel para tarefas sem ninguem atribuido. */
 const UNASSIGNED = 'nenhum';
 
-/** Atalhos (recortes) da tela: cada um mostra so as tarefas daquele tipo. */
-type Cut = 'atrasadas' | 'bloqueadas' | 'sem-responsavel' | 'concluidas';
+/** Situacao (filtro "Situacao" e etiqueta): cada uma mostra so as tarefas daquele tipo. */
+type Cut = 'atrasadas' | 'bloqueadas' | 'concluidas';
 
-const CUTS: Array<{ key: Cut; label: string; tone?: 'late' }> = [
-  { key: 'atrasadas', label: 'Atrasadas', tone: 'late' },
-  { key: 'bloqueadas', label: 'Bloqueadas' },
-  { key: 'sem-responsavel', label: 'Sem responsável' },
-  { key: 'concluidas', label: 'Concluídas nos últimos 30 dias' }
+const CUTS: Array<{ key: Cut; label: string; chip: string }> = [
+  { key: 'atrasadas', label: 'Atrasadas', chip: 'Atrasadas' },
+  { key: 'bloqueadas', label: 'Bloqueadas', chip: 'Bloqueadas' },
+  { key: 'concluidas', label: 'Concluídas nos últimos 30 dias', chip: 'Concluídas (30 dias)' }
 ];
 
 function matchesCut(activity: Activity, cut: Cut) {
   if (cut === 'atrasadas') return isOverdue(activity);
   if (cut === 'bloqueadas') return activity.status === 'Bloqueada';
-  if (cut === 'sem-responsavel') return activity.status !== 'Concluida' && !activity.assignedVolunteerId;
   return activity.status === 'Concluida';
+}
+
+/** Etiqueta de um filtro ligado: o x aplica `clear` na URL. */
+interface FilterChip {
+  key: string;
+  label: string;
+  clear: Record<string, string | null>;
+  /** A busca ja esta a mostra na barra do computador: a etiqueta dela e so do celular. */
+  mobileOnly?: boolean;
 }
 
 /** Pares [id, nome] sem repeticao, em ordem alfabetica. */
@@ -97,6 +104,13 @@ export function TasksPage() {
     const timer = window.setTimeout(() => updateParams({ busca: search.trim() || null }), 300);
     return () => window.clearTimeout(timer);
   }, [search, updateParams]);
+
+  // Links antigos: o atalho "Sem responsavel" virou a opcao do filtro Responsavel.
+  useEffect(() => {
+    if (searchParams.get('recorte') === 'sem-responsavel') {
+      updateParams({ recorte: null, responsavel: UNASSIGNED, de: 'todas' });
+    }
+  }, [searchParams, updateParams]);
 
   /** silent: recarrega sem trocar a tela pelo "Carregando" (depois de salvar). */
   const load = useCallback(async (silent = false) => {
@@ -166,20 +180,60 @@ export function TasksPage() {
   const visible = cut ? filtered.filter((activity) => matchesCut(activity, cut)) : filtered;
 
   const hasFilters = Boolean(term || scopeParam || programFilter || projectFilter || assigneeFilter || cut);
-  const activeFilters = [term, programFilter, projectFilter, assigneeFilter].filter(Boolean).length;
-  // No computador a busca fica a mostra; o botao conta so programa, projeto e responsavel.
-  const extraFilters = [programFilter, projectFilter, assigneeFilter].filter(Boolean).length;
+  // O botao conta o que esta no painel; a busca fica a mostra no computador (no celular, vira etiqueta).
+  const sheetFilters = [cut, programFilter, projectFilter, assigneeFilter].filter(Boolean).length;
   const openCount = filtered.filter((activity) => activity.status !== 'Concluida').length;
   const lateCount = filtered.filter((activity) => isOverdue(activity)).length;
+  // O que a tela mostra: a lista so tem as concluidas na situacao "Concluidas"; o quadro tem a coluna delas.
+  const shownCount =
+    showBoard || cut === 'concluidas' ? visible.length : visible.filter((activity) => activity.status !== 'Concluida').length;
+  const nameOf = (options: Array<[string, string]>, id: string) => options.find(([key]) => key === id)?.[1] ?? '';
+
+  // Etiquetas do que esta ligado, cada uma com o x que tira o filtro.
+  const chips = ([
+    cut ? { key: 'recorte', label: CUTS.find((item) => item.key === cut)!.chip, clear: { recorte: null } } : null,
+    programFilter
+      ? { key: 'programa', label: nameOf(programOptions, programFilter) || 'Programa', clear: { programa: null, projeto: null } }
+      : null,
+    projectFilter
+      ? {
+          key: 'projeto',
+          label: nameOf(projectOptions, projectFilter) || activeProjects.find((p) => p.id === projectFilter)?.name || 'Projeto',
+          clear: { projeto: null }
+        }
+      : null,
+    assigneeFilter
+      ? {
+          key: 'responsavel',
+          label: assigneeFilter === UNASSIGNED ? 'Sem responsável' : nameOf(assigneeOptions, assigneeFilter) || 'Responsável',
+          clear: { responsavel: null }
+        }
+      : null,
+    term ? { key: 'busca', label: `"${query.trim()}"`, clear: { busca: null }, mobileOnly: true } : null
+  ] as Array<FilterChip | null>).filter((chip): chip is FilterChip => chip !== null);
 
   const projectChoices = programFilter
     ? activeProjects.filter((project) => project.programId === programFilter)
     : activeProjects;
 
+  /** Limpa busca e filtros; Minhas | Todas fica como esta. */
   function clearFilters() {
     setSearch('');
-    updateParams({ busca: null, de: null, programa: null, projeto: null, responsavel: null, recorte: null });
+    updateParams({ busca: null, programa: null, projeto: null, responsavel: null, recorte: null });
   }
+
+  const searchField = (id: string) => (
+    <span className="search">
+      <IconSearch className="search__icon" />
+      <TextInput
+        id={id}
+        placeholder="Buscar tarefa ou projeto"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        aria-label="Buscar tarefas"
+      />
+    </span>
+  );
 
   /** Bloquear pergunta antes o que esta travando; os demais status mudam direto. */
   function requestStatus(activity: Activity, status: ActivityStatus) {
@@ -207,8 +261,20 @@ export function TasksPage() {
         <div className="page-head__text">
           <h1>Tarefas</h1>
           <p className="page-head__desc">
-            {mine ? 'Suas tarefas' : 'Tarefas'} em aberto nos projetos em planejamento e em andamento: {openCount}
-            {lateCount > 0 ? <span className="summary-line__late"> · {lateCount} atrasada{lateCount === 1 ? '' : 's'}</span> : null}
+            {openCount} em aberto
+            {lateCount > 0 ? (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="link-button summary-line__late"
+                  title={cut === 'atrasadas' ? 'Mostrar todas' : 'Mostrar só as atrasadas'}
+                  onClick={() => updateParams({ recorte: cut === 'atrasadas' ? null : 'atrasadas' })}
+                >
+                  {lateCount} atrasada{lateCount === 1 ? '' : 's'}
+                </button>
+              </>
+            ) : null}
           </p>
         </div>
         <div className="page-head__actions">
@@ -218,26 +284,8 @@ export function TasksPage() {
         </div>
       </div>
 
-      <div className="toolbar">
-        <div className="segmented" role="group" aria-label="Exibir como">
-          <button
-            type="button"
-            className={`segmented__option${showBoard ? '' : ' segmented__option--active'}`}
-            aria-pressed={!showBoard}
-            onClick={() => updateParams({ visao: null })}
-          >
-            Lista
-          </button>
-          <button
-            type="button"
-            className={`segmented__option${showBoard ? ' segmented__option--active' : ''}`}
-            aria-pressed={showBoard}
-            onClick={() => updateParams({ visao: 'quadro' })}
-          >
-            Quadro
-          </button>
-        </div>
-
+      {/* Uma linha so: de quem, busca, filtros e, no canto, lista ou quadro. */}
+      <div className="toolbar task-toolbar">
         <div className="segmented" role="group" aria-label="De quem">
           <button
             type="button"
@@ -257,93 +305,133 @@ export function TasksPage() {
           </button>
         </div>
 
-        <CollapsibleFilters
-          active={activeFilters}
-          extraActive={extraFilters}
-          extra={
-            <>
-              <Select
-                value={programFilter}
-                onChange={(event) => updateParams({ programa: event.target.value || null, projeto: null })}
-                aria-label="Programa"
-              >
-                <option value="">Todos os programas</option>
-                {programOptions.map(([id, name]) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </Select>
+        <div className="task-toolbar__search">{searchField('task-search')}</div>
 
-              <Select
-                value={projectFilter}
-                onChange={(event) => updateParams({ projeto: event.target.value || null })}
-                aria-label="Projeto"
-              >
-                <option value="">Todos os projetos</option>
-                {projectOptions.map(([id, name]) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </Select>
-
-              {!wantsMine ? (
-                <Select
-                  value={assigneeFilter}
-                  onChange={(event) => updateParams({ responsavel: event.target.value || null })}
-                  aria-label="Responsável"
-                >
-                  <option value="">Todos os responsáveis</option>
-                  {assigneeOptions.map(([id, name]) => (
-                    <option key={id} value={id}>
-                      {name}
-                    </option>
-                  ))}
-                  <option value={UNASSIGNED}>Sem responsável</option>
-                </Select>
-              ) : null}
-            </>
-          }
+        <FilterSheet
+          active={sheetFilters}
+          canClear={sheetFilters > 0 || Boolean(term)}
+          onClear={clearFilters}
+          resultLabel={`Ver ${shownCount} ${shownCount === 1 ? 'tarefa' : 'tarefas'}`}
         >
-          <span className="search">
-            <IconSearch className="search__icon" />
-            <TextInput
-              placeholder="Buscar tarefa ou projeto"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              aria-label="Buscar tarefas"
-            />
-          </span>
-        </CollapsibleFilters>
+          {/* No celular a busca nao cabe na barra: fica aqui. */}
+          <div className="filter-sheet__mobile-only">
+            <Field label="Buscar" htmlFor="task-search-sheet">
+              {searchField('task-search-sheet')}
+            </Field>
+          </div>
 
-        {hasFilters ? (
-          <div className="toolbar__right toolbar__right--after-filters">
-            <button type="button" className="link-button" onClick={clearFilters}>
-              Limpar filtros
+          <Field label="Situação" htmlFor="task-cut">
+            <Select id="task-cut" value={cut ?? ''} onChange={(event) => updateParams({ recorte: event.target.value || null })}>
+              <option value="">Todas</option>
+              {CUTS.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.label}
+                  {item.key !== 'concluidas' ? ` (${filtered.filter((activity) => matchesCut(activity, item.key)).length})` : ''}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field label="Programa" htmlFor="task-program">
+            <Select
+              id="task-program"
+              value={programFilter}
+              onChange={(event) => updateParams({ programa: event.target.value || null, projeto: null })}
+            >
+              <option value="">Todos os programas</option>
+              {programOptions.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field label="Projeto" htmlFor="task-project">
+            <Select id="task-project" value={projectFilter} onChange={(event) => updateParams({ projeto: event.target.value || null })}>
+              <option value="">Todos os projetos</option>
+              {projectOptions.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          {!wantsMine ? (
+            <Field label="Responsável" htmlFor="task-assignee">
+              <Select
+                id="task-assignee"
+                value={assigneeFilter}
+                onChange={(event) => updateParams({ responsavel: event.target.value || null })}
+              >
+                <option value="">Todos os responsáveis</option>
+                {assigneeOptions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+                <option value={UNASSIGNED}>Sem responsável</option>
+              </Select>
+            </Field>
+          ) : null}
+        </FilterSheet>
+
+        <div className="toolbar__right">
+          <div className="segmented segmented--icons" role="group" aria-label="Exibir como">
+            <button
+              type="button"
+              className={`segmented__option${showBoard ? '' : ' segmented__option--active'}`}
+              aria-pressed={!showBoard}
+              aria-label="Lista"
+              title="Lista"
+              onClick={() => updateParams({ visao: null })}
+            >
+              <IconListBullet size={16} />
+            </button>
+            <button
+              type="button"
+              className={`segmented__option${showBoard ? ' segmented__option--active' : ''}`}
+              aria-pressed={showBoard}
+              aria-label="Quadro"
+              title="Quadro"
+              onClick={() => updateParams({ visao: 'quadro' })}
+            >
+              <IconBoard size={16} />
             </button>
           </div>
-        ) : null}
+        </div>
       </div>
 
-      <div className="chip-group task-cuts" role="group" aria-label="Atalhos">
-        {CUTS.map((item) => {
-          const count = filtered.filter((activity) => matchesCut(activity, item.key)).length;
-          const active = cut === item.key;
-          return (
+      {chips.length > 0 ? (
+        <div
+          className={`filter-chips${chips.every((chip) => chip.mobileOnly) ? ' filter-chips--mobile' : ''}`}
+          role="group"
+          aria-label="Filtros ligados"
+        >
+          {chips.map((chip) => (
             <button
-              key={item.key}
+              key={chip.key}
               type="button"
-              className={`chip${active ? ' chip--active' : ''}${item.tone === 'late' && count > 0 ? ' chip--late' : ''}`}
-              aria-pressed={active}
-              onClick={() => updateParams({ recorte: active ? null : item.key })}
+              className={`chip chip--active filter-chip${chip.mobileOnly ? ' filter-chip--mobile' : ''}`}
+              title="Tirar este filtro"
+              aria-label={`Tirar o filtro ${chip.label}`}
+              onClick={() => {
+                if (chip.key === 'busca') setSearch('');
+                updateParams(chip.clear);
+              }}
             >
-              {item.label}
-              {item.key !== 'concluidas' ? <span className="chip__count num">{count}</span> : null}
+              {chip.label}
+              <IconClose size={12} />
             </button>
-          );
-        })}
-      </div>
+          ))}
+          {chips.length > 1 ? (
+            <button type="button" className="link-button" onClick={clearFilters}>
+              Limpar tudo
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {error ? <Alert kind="error">{error}</Alert> : null}
 

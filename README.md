@@ -237,11 +237,15 @@ linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no 
 sozinha a cada toque num campo).
 
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
-vencidas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
-abaixo). **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), busca e filtros de programa,
-projeto e responsável, todos na URL. A busca fica à mostra; programa, projeto e responsável ficam no botão "Filtros"
-(com quantos estão ligados), que abre uma linha embaixo da barra. No celular, a busca também fica no botão. Atalhos com contagem: Atrasadas, Bloqueadas, Sem responsável e Concluídas nos
-últimos 30 dias. Links antigos do quadro (`/projetos?visao=quadro`) levam para cá com os mesmos filtros.
+atrasadas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
+abaixo). Embaixo do título, "7 em aberto · 2 atrasadas" (tocar nas atrasadas filtra só elas). Uma linha só de
+controles: **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), a busca, o botão **Filtros** e,
+no canto, Lista e Quadro (ícones). Filtros abre os campos com rótulo — **Situação** (atrasadas, bloqueadas ou
+concluídas nos últimos 30 dias, com contagem), programa, projeto e responsável (com "Sem responsável") — num painel
+preso ao botão; no celular, numa folha que sobe de baixo, com a busca e o botão "Ver N tarefas". Os filtros ligados
+aparecem como **etiquetas com ×** embaixo da barra (no celular, a busca também) e "Limpar tudo" tira todos menos
+Minhas | Todas. Tudo fica na URL; links antigos (`?recorte=sem-responsavel`, `/projetos?visao=quadro`) continuam
+funcionando.
 
 **Quadro (em Tarefas)** — kanban com as tarefas de todos os projetos em planejamento ou em andamento (não
 arquivados), em quatro colunas: **Não iniciadas**, **Em andamento**, **Bloqueadas** e **Concluídas** (só as dos últimos 30
@@ -254,7 +258,7 @@ Tarefas e para o Início. Para mudar o status, arraste o card para outra coluna 
 segure o card um instante e arraste, e o quadro rola sozinho ao chegar na borda) ou, no celular, use o selo de status
 do card. Clicar no card abre a janela da tarefa, e o botão "Nova tarefa" cria uma pelo próprio quadro,
 escolhendo o projeto no formulário (filtrando por um programa, só os projetos dele aparecem); o responsável é
-escolhido depois do projeto, entre a equipe dele. O quadro só é baixado quando a visão Quadro é aberta. Os filtros e atalhos são os da tela Tarefas. No celular as colunas ficam lado a lado e o quadro rola na
+escolhido depois do projeto, entre a equipe dele. O quadro só é baixado quando a visão Quadro é aberta. Os filtros são os da tela Tarefas. No celular as colunas ficam lado a lado e o quadro rola na
 horizontal, uma coluna por vez. O status do projeto em si é alterado na página do projeto. O arrastar e soltar usa
 [dnd-kit](https://dndkit.com/) (`@dnd-kit/core`).
 

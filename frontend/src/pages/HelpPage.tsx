@@ -62,9 +62,9 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <p>
             No Início, em <strong>Minhas tarefas</strong>, e na tela <strong>Tarefas</strong> com o botão{' '}
-            <strong>Minhas</strong> marcado. Lá também há atalhos como <strong>Atrasadas</strong> e{' '}
-            <strong>Bloqueadas</strong>, e a visão <strong>Quadro</strong>, com uma coluna para cada status. No celular,
-            a busca e os filtros ficam no botão <strong>Filtros</strong>.
+            <strong>Minhas</strong> marcado. Em <strong>Filtros</strong>, a <strong>Situação</strong> mostra só as
+            atrasadas, as bloqueadas ou as concluídas, e o ícone de quadro, no canto, mostra uma coluna para cada
+            status. No celular, a busca também fica em <strong>Filtros</strong>.
           </p>
         )
       },
