@@ -49,6 +49,9 @@ import type {
   SignedDocument,
   SignTermPayload,
   MyTerm,
+  ProjectHours,
+  ProjectHourEntry,
+  SaveHourEntryPayload,
   UnreadNotifications,
   UpdateProgramPayload,
   User,
@@ -213,9 +216,11 @@ export const filesApi = {
 
 export const projectUpdatesApi = {
   listByProject: (projectId: string) => http.request<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
-  create: async (projectId: string, text: string, files: File[]) => {
+  /** hours: as horas que quem registra dedicou hoje (opcional, vira um lancamento de horas). */
+  create: async (projectId: string, text: string, files: File[], hours?: number | null) => {
     const formData = new FormData();
     formData.append('text', text);
+    if (hours) formData.append('hours', String(hours));
     (await Promise.all(files.map(shrinkImage))).forEach((file) => formData.append('files', file));
     return http.request<ProjectUpdate>(`/api/projects/${projectId}/updates`, { method: 'POST', formData });
   },
@@ -332,6 +337,16 @@ export const documentsApi = {
   download: (document: SignedDocument) =>
     http.download(`/api/documents/${document.id}/download`, undefined, document.fileName),
   remove: (id: string) => http.request<void>(`/api/documents/${id}`, { method: 'DELETE' })
+};
+
+/** Horas de voluntariado por projeto: cada um lanca as suas; a coordenacao, as de qualquer um da equipe. */
+export const projectHoursApi = {
+  list: (projectId: string) => http.request<ProjectHours>(`/api/projects/${projectId}/hours`),
+  create: (projectId: string, payload: SaveHourEntryPayload) =>
+    http.request<ProjectHourEntry>(`/api/projects/${projectId}/hours`, { method: 'POST', body: payload }),
+  update: (id: string, payload: SaveHourEntryPayload) =>
+    http.request<ProjectHourEntry>(`/api/hours/${id}`, { method: 'PUT', body: payload }),
+  remove: (id: string) => http.request<void>(`/api/hours/${id}`, { method: 'DELETE' })
 };
 
 /** Termo de adesao do proprio voluntario: ler, assinar online e baixar a via assinada. */

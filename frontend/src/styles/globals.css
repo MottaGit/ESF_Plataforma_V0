@@ -2843,3 +2843,34 @@ button { font: inherit; }
   .term-sign__choices { grid-template-columns: 1fr; }
   .term-doc { max-height: 38vh; }
 }
+
+/* ---------------------------------------------------------
+   Horas por projeto (aba Equipe e registro de andamento)
+   --------------------------------------------------------- */
+
+.project-hours { margin-top: 20px; }
+.hours-list { list-style: none; margin: 0; padding: 0; }
+.hours-list__item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.hours-list__item:first-child { border-top: 0; }
+.hours-list__main { min-width: 0; font-size: 13.5px; }
+.hours-list__what { margin-top: 2px; color: var(--text-muted); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.hours-list__hours { font-weight: 600; font-size: 13.5px; padding-top: 4px; white-space: nowrap; }
+.hours-list__item .row-actions { margin-top: -2px; }
+.hours-list__more { padding: 8px 12px 12px; border-top: 1px solid var(--border-soft); }
+
+.composer-hours { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
+.composer-hours label { font-weight: 500; }
+.composer-hours .input { width: 96px; }
+.composer-hours .field__hint { margin: 0; }
+
+@media (max-width: 560px) {
+  .hours-list__item { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 12px 14px; }
+  .hours-list__item .row-actions { grid-column: 2 / -1; justify-self: start; margin-top: 0; }
+}

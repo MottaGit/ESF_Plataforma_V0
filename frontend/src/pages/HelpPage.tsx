@@ -187,6 +187,17 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Como lanço as horas que trabalhei num projeto?',
+        answer: (
+          <p>
+            Ao registrar o andamento, preencha <strong>Suas horas hoje</strong>: o texto do registro vira o que você fez.
+            Para outro dia, abra o projeto, aba <strong>Equipe</strong>, e use <strong>Lançar horas</strong> (dia, horas e
+            o que fez). Você corrige ou apaga os seus lançamentos ali mesmo; a coordenação corrige os de todos. As horas
+            entram no relatório e no certificado do projeto.
+          </p>
+        )
+      },
+      {
         question: 'Como assino o termo de adesão?',
         answer: (
           <p>

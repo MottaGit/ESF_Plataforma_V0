@@ -873,3 +873,31 @@ export interface ImportResult {
   newPrograms: Array<{ name: string; archived: boolean }>;
   applied: boolean;
 }
+
+/** Um lancamento de horas num projeto. */
+export interface ProjectHourEntry {
+  id: string;
+  volunteerId: string;
+  volunteerName: string;
+  photoUrl: string | null;
+  date: string;
+  hours: number;
+  description: string | null;
+  /** Quem esta logado pode corrigir ou apagar. */
+  canEdit: boolean;
+}
+
+/** Horas lancadas num projeto: total, por pessoa e os lancamentos (mais novos primeiro). */
+export interface ProjectHours {
+  total: number;
+  people: Array<{ volunteerId: string; name: string; hours: number }>;
+  entries: ProjectHourEntry[];
+}
+
+export interface SaveHourEntryPayload {
+  /** Vazio: as horas sao de quem esta logado. */
+  volunteerId: string | null;
+  date: string;
+  hours: number;
+  description: string | null;
+}

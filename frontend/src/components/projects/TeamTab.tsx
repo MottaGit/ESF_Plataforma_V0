@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
-import { volunteersApi } from '../../api/endpoints';
+import { projectHoursApi, volunteersApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { ProjectDetail, ProjectVolunteer, Volunteer } from '../../types/api';
-import { formatDate, sectorLabel } from '../../utils/format';
+import type { ProjectDetail, ProjectHours, ProjectVolunteer, Volunteer } from '../../types/api';
+import { formatDate, formatHours, sectorLabel } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { LateBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -13,19 +13,35 @@ import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconPlus, IconTrash } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 import { EmailLink, PhoneLink } from '../volunteers/ContactLinks';
+import { ProjectHoursPanel } from './ProjectHoursPanel';
 
 interface TeamTabProps {
   project: ProjectDetail;
   onChanged: () => void;
 }
 
-/** Equipe do projeto: quem participa, o papel de cada um e quanto trabalho tem em aberto. */
+/** Equipe do projeto: quem participa, o papel de cada um, quanto trabalho tem em aberto e as horas lancadas. */
 export function TeamTab({ project, onChanged }: TeamTabProps) {
   const { notify, notifyError } = useToast();
   const [allVolunteers, setAllVolunteers] = useState<Volunteer[]>([]);
   const [linkOpen, setLinkOpen] = useState(false);
   const [removing, setRemoving] = useState<ProjectVolunteer | null>(null);
   const [busy, setBusy] = useState(false);
+  const [hours, setHours] = useState<ProjectHours | null>(null);
+
+  const projectId = project.id;
+  const loadHours = useCallback(() => {
+    projectHoursApi
+      .list(projectId)
+      .then(setHours)
+      .catch(() => setHours({ total: 0, people: [], entries: [] }));
+  }, [projectId]);
+
+  useEffect(() => {
+    loadHours();
+  }, [loadHours]);
+
+  const hoursOf = (volunteerId: string) => hours?.people.find((person) => person.volunteerId === volunteerId)?.hours ?? 0;
 
   useEffect(() => {
     volunteersApi
@@ -106,6 +122,7 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                   <th>Voluntário</th>
                   <th>Papel no projeto</th>
                   <th>Tarefas</th>
+                  <th className="right">Horas</th>
                   <th>Contato</th>
                   <th className="tight">Desde</th>
                   <th className="right">Ações</th>
@@ -147,6 +164,9 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                           </>
                         )}
                       </td>
+                      <td className="tight num right" data-label="Horas">
+                        {hoursOf(volunteer.volunteerId) > 0 ? formatHours(hoursOf(volunteer.volunteerId)) : '—'}
+                      </td>
                       <td className="cell--wide">
                         <EmailLink email={volunteer.email} />
                         {volunteer.phone ? (
@@ -181,6 +201,8 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
           </div>
         )}
       </div>
+
+      <ProjectHoursPanel project={project} hours={hours} onChanged={loadHours} />
 
       {linkOpen ? (
         <LinkVolunteerModal

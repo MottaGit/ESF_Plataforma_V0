@@ -101,6 +101,11 @@ export function todayInputValue() {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
+/** Horas lancadas: 3 -> "3 h", 2.5 -> "2,5 h". */
+export function formatHours(value: number) {
+  return `${formatNumber(value)} h`;
+}
+
 export function formatNumber(value: number) {
   return Number.isInteger(value)
     ? value.toLocaleString('pt-BR')

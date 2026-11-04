@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { projectUpdatesApi } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
-import { SENSITIVE_DATA_HINT, formatDateTime } from '../../utils/format';
+import { SENSITIVE_DATA_HINT, formatDateTime, formatHours } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
+import { TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconTrash, IconUpload } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
@@ -27,8 +29,12 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
     if (focusComposer) composerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }, [focusComposer]);
 
+  const { user } = useAuth();
   const { notify, notifyError } = useToast();
   const [text, setText] = useState('');
+  // Horas do dia (opcional), so para quem esta na equipe: viram um lancamento de horas no projeto.
+  const [hours, setHours] = useState('');
+  const inTeam = project.volunteers.some((member) => member.volunteerId === user?.volunteerId);
   const [plainText, setPlainText] = useState('');
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [posting, setPosting] = useState(false);
@@ -52,15 +58,21 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
       setFormError('O registro precisa ter pelo menos 3 caracteres.');
       return;
     }
+    const hoursValue = hours.trim() === '' ? null : Number(hours.replace(',', '.'));
+    if (hoursValue !== null && !(hoursValue > 0 && hoursValue <= 24)) {
+      setFormError('Informe de 0,25 a 24 horas (ou deixe as horas em branco).');
+      return;
+    }
     setFormError(null);
 
     setPosting(true);
     try {
-      await projectUpdatesApi.create(project.id, text, stagedFiles);
+      await projectUpdatesApi.create(project.id, text, stagedFiles, hoursValue);
       setText('');
       setPlainText('');
       setStagedFiles([]);
-      notify('Registro publicado.');
+      setHours('');
+      notify(hoursValue ? `Registro publicado, com ${formatHours(hoursValue)} lançadas.` : 'Registro publicado.');
       onChanged();
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível publicar o registro.');
@@ -117,6 +129,20 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
             <p className="field__hint" style={{ marginTop: 8 }}>
               {SENSITIVE_DATA_HINT} Fotos de pessoas, só com autorização de uso de imagem.
             </p>
+
+            {inTeam ? (
+              <div className="composer-hours">
+                <label htmlFor="update-hours">Suas horas hoje</label>
+                <TextInput
+                  id="update-hours"
+                  inputMode="decimal"
+                  placeholder="opcional"
+                  value={hours}
+                  onChange={(event) => setHours(event.target.value)}
+                />
+                <span className="field__hint">entram nas horas do projeto, com este registro como o que você fez</span>
+              </div>
+            ) : null}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
               <Button type="button" small icon={<IconUpload size={15} />} onClick={() => fileInputRef.current?.click()}>

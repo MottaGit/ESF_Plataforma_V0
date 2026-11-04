@@ -18,6 +18,7 @@ const ENTITY_TYPES = [
   'Arquivo',
   'Indicador',
   'Equipe',
+  'Horas',
   'Voluntário',
   'Histórico de status',
   'Documento assinado',
@@ -50,6 +51,11 @@ function describe(entry: AuditEntry) {
     if (entry.action === 'Created') return `incluiu no modelo do programa: ${entry.entityLabel}`;
     if (entry.action === 'Deleted') return `tirou do modelo do programa: ${entry.entityLabel}`;
     return `alterou no modelo do programa: ${entry.entityLabel}`;
+  }
+  if (entry.entityType === 'Horas') {
+    if (entry.action === 'Created') return `lançou horas: ${entry.entityLabel}`;
+    if (entry.action === 'Deleted') return `apagou horas lançadas: ${entry.entityLabel}`;
+    return `corrigiu horas lançadas: ${entry.entityLabel}`;
   }
   if (entry.entityType === 'Histórico de status') {
     if (entry.action === 'Created') return `registrou no histórico de status: ${entry.entityLabel}`;
