@@ -47,6 +47,8 @@ import type {
   SaveVolunteerPayload,
   SearchResults,
   SignedDocument,
+  SignTermPayload,
+  MyTerm,
   UnreadNotifications,
   UpdateProgramPayload,
   User,
@@ -330,6 +332,13 @@ export const documentsApi = {
   download: (document: SignedDocument) =>
     http.download(`/api/documents/${document.id}/download`, undefined, document.fileName),
   remove: (id: string) => http.request<void>(`/api/documents/${id}`, { method: 'DELETE' })
+};
+
+/** Termo de adesao do proprio voluntario: ler, assinar online e baixar a via assinada. */
+export const myTermApi = {
+  get: () => http.request<MyTerm>('/api/me/term'),
+  sign: (payload: SignTermPayload) => http.request<MyTerm>('/api/me/term/sign', { method: 'POST', body: payload }),
+  download: () => http.download('/api/me/term/download', undefined, 'termo-de-adesao.pdf')
 };
 
 /** Historico de alteracoes (so administradores). */

@@ -557,6 +557,38 @@ export interface SignedDocument {
   signedOn: string;
   uploadedAt: string;
   uploadedByName: string | null;
+  /** Assinado online pelo proprio voluntario (sem arquivo enviado). */
+  signedOnline: boolean;
+  /** Momento da assinatura online. */
+  signedAt: string | null;
+  /** Resposta sobre uso de imagem na assinatura online. */
+  imageAuthorized: boolean | null;
+}
+
+/** Texto do termo de adesao (o mesmo do PDF). */
+export interface VolunteerTermText {
+  title: string;
+  opening: string;
+  commitment: string;
+  clauses: Array<{ title: string; text: string }>;
+}
+
+/** Termo de adesao do voluntario logado. */
+export interface MyTerm {
+  volunteerName: string;
+  email: string | null;
+  phone: string | null;
+  /** Precisa assinar: ativo ou afastado e sem termo. */
+  pending: boolean;
+  signed: { signedOn: string; signedAt: string | null; signedOnline: boolean; imageAuthorized: boolean | null } | null;
+  text: VolunteerTermText;
+}
+
+export interface SignTermPayload {
+  fullName: string;
+  cpf: string;
+  imageAuthorized: boolean | null;
+  accepted: boolean;
 }
 
 /** O que gerou o aviso do sininho. */

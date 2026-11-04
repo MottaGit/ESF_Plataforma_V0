@@ -3,6 +3,7 @@ import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { ApiError, assetUrl } from '../api/client';
 import { authApi, organizationApi, usersApi, volunteersApi } from '../api/endpoints';
 import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
+import { MyTermPanel } from '../components/documents/MyTermPanel';
 import { AuditSection } from '../components/settings/AuditSection';
 import { SpreadsheetsSection } from '../components/settings/SpreadsheetsSection';
 import { Avatar } from '../components/ui/Avatar';
@@ -832,35 +833,39 @@ function AccountSection() {
         </form>
       </section>
 
-      <section className="panel" style={{ alignSelf: 'start' }}>
-        <div className="panel__head">
-          <h2>Sua conta</h2>
-        </div>
-        <div className="panel__body">
-          <div className="meta-list">
-            <div>
-              <div className="meta__label">Nome</div>
-              <div className="meta__value">{user?.name}</div>
-            </div>
-            <div>
-              <div className="meta__label">E-mail</div>
-              <div className="meta__value">{user?.email}</div>
-            </div>
-            <div>
-              <div className="meta__label">Perfil</div>
-              <div className="meta__value">{user ? roleLabel(user.role) : ''}</div>
-              <div className="field__hint">{user ? roleDescription[user.role] : ''}</div>
-            </div>
-            <div>
-              <div className="meta__label">Voluntário vinculado</div>
-              <div className="meta__value">{user?.volunteerName ?? 'Nenhum'}</div>
-              {!user?.volunteerName ? (
-                <div className="field__hint">Peça a um administrador para vincular seu acesso ao seu cadastro.</div>
-              ) : null}
+      <div className="detail-col">
+        <section className="panel">
+          <div className="panel__head">
+            <h2>Sua conta</h2>
+          </div>
+          <div className="panel__body">
+            <div className="meta-list">
+              <div>
+                <div className="meta__label">Nome</div>
+                <div className="meta__value">{user?.name}</div>
+              </div>
+              <div>
+                <div className="meta__label">E-mail</div>
+                <div className="meta__value">{user?.email}</div>
+              </div>
+              <div>
+                <div className="meta__label">Perfil</div>
+                <div className="meta__value">{user ? roleLabel(user.role) : ''}</div>
+                <div className="field__hint">{user ? roleDescription[user.role] : ''}</div>
+              </div>
+              <div>
+                <div className="meta__label">Voluntário vinculado</div>
+                <div className="meta__value">{user?.volunteerName ?? 'Nenhum'}</div>
+                {!user?.volunteerName ? (
+                  <div className="field__hint">Peça a um administrador para vincular seu acesso ao seu cadastro.</div>
+                ) : null}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <MyTermPanel volunteerId={user?.volunteerId ?? null} />
+      </div>
     </div>
   );
 }

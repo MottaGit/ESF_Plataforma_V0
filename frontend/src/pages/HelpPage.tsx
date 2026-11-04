@@ -187,6 +187,16 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Como assino o termo de adesão?',
+        answer: (
+          <p>
+            Enquanto faltar, o Início mostra <strong>Assine seu termo de adesão</strong>. Leia o texto, responda se
+            autoriza o uso da sua imagem, informe o CPF, marque que concorda e digite o nome completo. Depois, a via
+            assinada fica em <strong>Minha conta</strong> e no seu perfil, para baixar quando quiser.
+          </p>
+        )
+      },
+      {
         question: 'Como troco minha senha?',
         answer: (
           <p>
@@ -252,10 +262,13 @@ const SECTIONS: HelpSection[] = [
                 Em <strong>Voluntários</strong>, use <strong>Novo voluntário</strong>.
               </li>
               <li>
-                Na página da pessoa, use <strong>Gerar termo para assinar</strong> e colha a assinatura.
+                Dê acesso à plataforma: no primeiro acesso, o Início pede para a pessoa ler e assinar o termo online.
               </li>
-              <li>Envie a cópia assinada no mesmo lugar, com a data da assinatura.</li>
             </ol>
+            <p>
+              Quem não tem acesso assina no papel: na página da pessoa, use <strong>Gerar termo para assinar</strong>,
+              colha a assinatura e envie a cópia no mesmo lugar, com a data da assinatura.
+            </p>
             <p>
               Quem ainda está sem termo aparece com um <strong>!</strong> vermelho na foto, e o topo da lista de
               voluntários mostra quantos faltam.

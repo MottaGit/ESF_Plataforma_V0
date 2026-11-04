@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { certificatesApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
+import { MyTermPanel } from '../components/documents/MyTermPanel';
 import { SignedDocumentsPanel } from '../components/documents/SignedDocumentsPanel';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
@@ -30,7 +31,7 @@ import { VolunteerFormModal } from './VolunteersPage';
 
 export function VolunteerDetailPage() {
   const { id = '' } = useParams();
-  const { canManage, isAdmin } = useAuth();
+  const { user, canManage, isAdmin } = useAuth();
   const { notify, notifyError } = useToast();
   const navigate = useNavigate();
 
@@ -224,10 +225,12 @@ export function VolunteerDetailPage() {
             <SignedDocumentsPanel
               owner={{ type: 'volunteer', id: volunteer.id }}
               title="Termo de adesão e uso de imagem"
-              description="Exigido pela Lei do Voluntariado (9.608/98). Gere o termo com os dados do voluntário, colha a assinatura e envie a cópia assinada."
+              description="Exigido pela Lei do Voluntariado (9.608/98). Quem tem acesso à plataforma assina online, na própria conta. Sem acesso: gere o termo, colha a assinatura no papel e envie a cópia."
               templateLabel="Gerar termo para assinar"
               onChanged={() => void load()}
             />
+          ) : user?.volunteerId === volunteer.id ? (
+            <MyTermPanel volunteerId={volunteer.id} />
           ) : null}
         </div>
       </div>

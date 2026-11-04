@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { activitiesApi, dashboardApi, volunteersApi } from '../api/endpoints';
+import { TermCallout } from '../components/documents/MyTermPanel';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
@@ -100,6 +101,8 @@ export function HomePage() {
           </p>
         </div>
       </div>
+
+      <TermCallout volunteerId={user?.volunteerId ?? null} />
 
       {isAdmin && data.setup ? <FirstSteps setup={data.setup} /> : null}
 
