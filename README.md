@@ -487,7 +487,7 @@ pessoais). **Exportar planilha** abre uma lista do que entra no arquivo do Excel
 situação, datas, responsável, uma coluna para cada indicador nacional, até três pares Indicador/Valor para os
 específicos — mais, se algum programa tiver mais —, equipe com o papel de cada um, local e a autorização de imagem; vem
 junto a aba **Programas**, um resumo só de consulta) e **Voluntários** (contatos, setor, situação, entrada e saída tiradas
-do histórico de status, aniversário, termo, horas e acesso; anonimizados ficam de fora). O mesmo atalho fica no "⋯" ao lado
+do histórico de status, aniversário, termo, horas e acesso; anonimizados ficam de fora). O mesmo atalho é o botão **Exportar** ao lado
 de Novo projeto e de Novo voluntário (já marcado com o que é daquela tela). Cada exportação entra no histórico de
 alterações. **Importar** tem três passos: baixar o **modelo vazio** (o mesmo formato, sem linhas e sem as colunas
 calculadas, com as listas suspensas de programas, pessoas e indicadores do núcleo), preencher (à mão ou entregando o

@@ -299,7 +299,8 @@ const SECTIONS: HelpSection[] = [
           <>
             <p>
               Em <strong>Configurações › Planilhas</strong> (só administradores). <strong>Exportar planilha</strong> deixa
-              escolher o que vai no arquivo do Excel: projetos (com o resumo dos programas), voluntários ou os dois.
+              escolher o que vai no arquivo do Excel: projetos (com o resumo dos programas), voluntários ou os dois. O
+              botão <strong>Exportar</strong> nas telas de Projetos e de Voluntários abre a mesma escolha.
             </p>
             <p>
               Para importar, baixe o <strong>modelo vazio</strong>, preencha (à mão ou entregando o modelo e as suas

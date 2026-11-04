@@ -10,7 +10,6 @@ import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
 import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
 import { IconDownload, IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
-import { Menu } from '../components/ui/Menu';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { ContactIcons } from '../components/volunteers/ContactLinks';
@@ -84,6 +83,11 @@ export function VolunteersPage() {
         </div>
         {canManage ? (
           <div className="page-head__actions">
+            {isAdmin ? (
+              <Button icon={<IconDownload size={15} />} onClick={() => setExporting(true)}>
+                Exportar
+              </Button>
+            ) : null}
             <Button
               variant="primary"
               icon={<IconPlus size={15} />}
@@ -91,11 +95,6 @@ export function VolunteersPage() {
             >
               Novo voluntário
             </Button>
-            {isAdmin ? (
-              <Menu
-                items={[{ label: 'Exportar planilha', icon: <IconDownload size={15} />, onSelect: () => setExporting(true) }]}
-              />
-            ) : null}
           </div>
         ) : null}
       </div>

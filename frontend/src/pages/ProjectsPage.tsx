@@ -256,14 +256,14 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         </div>
         {canManage ? (
           <div className="page-head__actions">
+            {isAdmin ? (
+              <Button icon={<IconDownload size={15} />} onClick={() => setExporting(true)}>
+                Exportar
+              </Button>
+            ) : null}
             <Button variant="primary" icon={<IconPlus size={15} />} onClick={openNewProject}>
               Novo projeto
             </Button>
-            {isAdmin ? (
-              <Menu
-                items={[{ label: 'Exportar planilha', icon: <IconDownload size={15} />, onSelect: () => setExporting(true) }]}
-              />
-            ) : null}
           </div>
         ) : null}
       </div>
