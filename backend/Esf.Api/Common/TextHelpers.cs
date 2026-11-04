@@ -27,4 +27,8 @@ public static class TextHelpers
 
     /// <summary>"07 de outubro de 2025" (a API roda sem dados de cultura, entao os meses ficam aqui).</summary>
     public static string LongDate(DateOnly date) => $"{date.Day:00} de {MonthNames[date.Month - 1]} de {date.Year}";
+
+    /// <summary>Horario de Brasilia (UTC-3, sem horario de verao desde 2019) de um momento em UTC.</summary>
+    public static DateTime BrasiliaTime(DateTime utc) =>
+        DateTime.SpecifyKind(utc, DateTimeKind.Utc).AddHours(-3);
 }

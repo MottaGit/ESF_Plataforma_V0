@@ -72,6 +72,23 @@ public class FileStorageService
         return (storedName, contentType, buffer.Length, originalName);
     }
 
+    /// <summary>Registra um arquivo gerado pela propria API (ex.: o termo assinado online), como no <see cref="SaveAsync"/>.</summary>
+    public (string StoredName, string ContentType, long Size) SaveGenerated(byte[] content, string extension, bool isPrivate)
+    {
+        var storedName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
+        var contentType = ContentTypeFor(storedName);
+        _db.StoredFiles.Add(new StoredFile
+        {
+            StoredName = storedName,
+            ContentType = contentType,
+            SizeBytes = content.Length,
+            Content = content,
+            IsPrivate = isPrivate,
+            CreatedAt = DateTime.UtcNow
+        });
+        return (storedName, contentType, content.Length);
+    }
+
     /// <summary>Apaga na hora (sem esperar um SaveChanges): usado depois que o registro dono ja saiu.</summary>
     public Task DeleteAsync(string? storedName) =>
         string.IsNullOrWhiteSpace(storedName) ? Task.CompletedTask : DeleteManyAsync(new[] { storedName });

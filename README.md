@@ -97,7 +97,9 @@ relacionamento), não cria e não referencia dados do outro (tarefa, responsáve
 voluntário, acesso, relatório); o login acha qualquer núcleo e o token leva o núcleo; o e-mail é único na plataforma.
 Também cobre a planilha: o modelo e a exportação são reconhecidos, reimportar uma exportação não cria nada, a
 importação cria programa, projeto (com indicadores e equipe) e voluntário (com o histórico das datas), linha com erro e
-linha repetida ficam de fora, outro arquivo é recusado e cada núcleo só compara e cria no próprio.
+linha repetida ficam de fora, outro arquivo é recusado e cada núcleo só compara e cria no próprio. E o termo assinado
+online: sem aceite, sem a resposta sobre imagem, com nome diferente do cadastro ou CPF inválido não assina; o PDF sai
+com o registro e o SHA-256 bate; assina uma vez só; a coordenação vê o termo assinado.
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
 ```bash
@@ -352,7 +354,14 @@ lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superio
 nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos registros de andamento
 e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
-**Termo de adesão e uso de imagem** — na página do voluntário, a coordenação (administrador e coordenador) gera o
+**Termo de adesão e uso de imagem** — o próprio voluntário assina online, na conta dele: o Início mostra "Assine seu
+termo de adesão" (ativos e afastados sem termo) e Configurações › Minha conta tem o termo para ler, assinar e, depois,
+baixar. Para assinar, ele lê o texto na tela, responde se autoriza o uso da imagem, informa o CPF, marca "Li e concordo"
+e digita o nome completo igual ao do cadastro (assinatura eletrônica simples, MP 2.200-2/2001, art. 10, § 2º). A
+plataforma gera na hora o PDF com o registro da assinatura no fim (nome, CPF, conta, data e hora de Brasília, endereço de
+rede) e guarda junto o navegador, a versão do texto (`DocumentTemplates.VolunteerTermVersion`: mude a data ao mudar as
+cláusulas) e o SHA-256 do arquivo. O CPF só fica dentro do PDF, não numa coluna. Quem não tem acesso à plataforma
+assina no papel: na página do voluntário, a coordenação (administrador e coordenador) gera o
 termo em PDF, num documento só: adesão ao serviço voluntário (Lei 9.608/98) e autorização de uso de imagem, já com o
 nome do voluntário e os dados da organização (CPF, RG e endereço ficam em branco, para preencher à mão — a plataforma
 não guarda esses dados). Depois de assinado, envia a cópia (PDF, JPG ou PNG) com a data da assinatura, e a página
@@ -675,6 +684,9 @@ A documentação interativa fica em `/swagger`.
 | POST/DELETE | `/api/organization/signature` | imagem da assinatura usada nos certificados (privada) |
 | GET | `/api/audit` | histórico de alterações (só administradores), com filtros por projeto, pessoa, tipo e período |
 | GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
+| GET | `/api/me/term` | termo de adesão do voluntário logado: texto, se falta assinar e quando assinou |
+| POST | `/api/me/term/sign` | assina online (nome completo, CPF, resposta sobre imagem, aceite); gera e guarda o PDF |
+| GET | `/api/me/term/download` | baixa a via assinada do próprio termo |
 | POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos (na criação, `useTemplate` aplica o modelo do programa) |
 | PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |

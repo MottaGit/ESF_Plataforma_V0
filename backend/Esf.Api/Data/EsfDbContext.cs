@@ -266,6 +266,11 @@ public class EsfDbContext : DbContext
             e.Property(x => x.FileName).HasMaxLength(260).IsRequired();
             e.Property(x => x.StoredName).HasMaxLength(160).IsRequired();
             e.Property(x => x.ContentType).HasMaxLength(160).IsRequired();
+            e.Property(x => x.SignerName).HasMaxLength(160);
+            e.Property(x => x.SignerIp).HasMaxLength(200);
+            e.Property(x => x.SignerUserAgent).HasMaxLength(400);
+            e.Property(x => x.TermVersion).HasMaxLength(20);
+            e.Property(x => x.ContentHash).HasMaxLength(64);
             e.HasIndex(x => x.VolunteerId);
             e.HasIndex(x => x.ProjectId);
 

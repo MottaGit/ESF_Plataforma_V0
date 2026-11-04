@@ -138,7 +138,10 @@ public class SignedDocumentService
                 _db.Users
                     .Where(u => u.Id == d.UploadedByUserId)
                     .Select(u => u.Volunteer != null ? u.Volunteer.Name : u.Name)
-                    .FirstOrDefault()))
+                    .FirstOrDefault(),
+                d.SignerName != null,
+                d.SignedAt,
+                d.ImageAuthorized))
             .ToListAsync();
 
     private async Task<Organization> OrganizationAsync() =>
