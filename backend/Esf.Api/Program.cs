@@ -63,6 +63,8 @@ builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<SearchService>();
 builder.Services.AddScoped<NationalService>();
 builder.Services.AddScoped<NationalIndicatorService>();
+builder.Services.AddScoped<SpreadsheetService>();
+builder.Services.AddScoped<SpreadsheetImportService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

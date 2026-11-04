@@ -857,7 +857,7 @@ public static class DbSeeder
         {
             Name = "Pessoas beneficiadas",
             Unit = "pessoas",
-            Description = "Moradores que usam a obra no dia a dia; não conte visitantes nem quem só passou por uma oficina."
+            Description = "Pessoas que usam a obra ou o serviço no dia a dia (moradores, alunos, funcionários); não conte visitantes nem quem só passou por uma oficina."
         };
         db.NationalIndicators.AddRange(nFamilias, nPessoas);
 

@@ -95,6 +95,9 @@ dotnet ef migrations add NomeDaMigration      # criar a próxima
 núcleos que têm um registro em cada tabela, quem é de um núcleo não lê (lista, busca por id, inclusão pelo
 relacionamento), não cria e não referencia dados do outro (tarefa, responsável, programa, equipe, ficha de
 voluntário, acesso, relatório); o login acha qualquer núcleo e o token leva o núcleo; o e-mail é único na plataforma.
+Também cobre a planilha: o modelo e a exportação são reconhecidos, reimportar uma exportação não cria nada, a
+importação cria programa, projeto (com indicadores e equipe) e voluntário (com o histórico das datas), linha com erro e
+linha repetida ficam de fora, outro arquivo é recusado e cada núcleo só compara e cria no próprio.
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
 ```bash
@@ -532,6 +535,7 @@ Monólito simples, sem microserviços, filas, cache distribuído ou CQRS. As res
 | DTOs | `Dtos/` | Contratos de entrada e saída. Entidades nunca são expostas na API. |
 | Infra comum | `Common/` | Erros, opções de configuração, JWT, usuário atual, políticas. |
 | Relatórios | `Reports/` | Composição do PDF (QuestPDF), isolada do resto. |
+| Planilhas | `Spreadsheets/` | Formato da planilha (colunas, listas), montagem do .xlsx e leitura das células (ClosedXML). |
 
 Os serviços não conhecem HTTP e os controllers não conhecem EF Core. É esse acoplamento baixo que permite, na V1,
 reorganizar o projeto em módulos com Clean Architecture e DDD sem reescrever as regras.
@@ -550,7 +554,7 @@ entrar de novo. Na atualização, a migração `AddNucleos` põe todos os dados 
 mesmo registro usado nos termos e certificados); um banco com dados e sem esse registro ganha um.
 
 **Bibliotecas usadas:** Npgsql/EF Core (persistência), BCrypt.Net (hash de senha), JwtBearer (autenticação),
-QuestPDF (relatórios), Swashbuckle (Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
+QuestPDF (relatórios), ClosedXML (planilhas, licença MIT), Swashbuckle (Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
 
 ---
 
@@ -570,6 +574,7 @@ ESF_Plataforma_V0/
 │     ├─ Domain/          Entities/ e Enums
 │     ├─ Dtos/            contratos da API
 │     ├─ Reports/         ProjectReportBuilder (PDF) e ReportModel
+│     ├─ Spreadsheets/    formato da planilha, montagem do .xlsx e leitura (exportar/importar)
 │     ├─ Services/        regras de aplicação
 │     ├─ Program.cs       composição da aplicação
 │     └─ appsettings.json
@@ -673,6 +678,9 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
 | POST | `/api/reports/projects` | gera o PDF consolidado (projetos, partes incluídas e período de referência `from`/`to`, opcional) |
+| POST | `/api/spreadsheets/export` | planilha .xlsx com o que foi escolhido (`projects`, `volunteers`); entra no histórico (administrador) |
+| GET | `/api/spreadsheets/template` | modelo vazio de importação, com as listas do núcleo (administrador) |
+| POST | `/api/spreadsheets/import?confirm=` | planilha preenchida (multipart): sem `confirm`, só a conferência linha a linha; com `confirm=true`, cria o que é novo e sem erro (administrador) |
 | GET/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários (acesso novo só pelo voluntário, abaixo) |
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |

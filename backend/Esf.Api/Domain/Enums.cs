@@ -90,5 +90,7 @@ public enum AuditAction
 {
     Created = 0,
     Updated = 1,
-    Deleted = 2
+    Deleted = 2,
+    /// <summary>Exportou dados (planilha): fica no historico porque leva dados pessoais.</summary>
+    Exported = 3
 }
