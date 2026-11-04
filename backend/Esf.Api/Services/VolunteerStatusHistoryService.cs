@@ -214,7 +214,7 @@ public class VolunteerStatusHistoryService
     }
 
     /// <summary>Periodos com status (os intervalos sem registro ficam de fora), do mais antigo ao atual.</summary>
-    private static List<VolunteerStatusPeriodDto> Periods(IReadOnlyList<VolunteerStatusChange> changes)
+    public static List<VolunteerStatusPeriodDto> Periods(IReadOnlyList<VolunteerStatusChange> changes)
     {
         var periods = new List<VolunteerStatusPeriodDto>();
         for (var i = 0; i < changes.Count; i++)

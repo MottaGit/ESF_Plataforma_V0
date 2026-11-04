@@ -1,3 +1,4 @@
+using Esf.Api.Common;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -8,18 +9,39 @@ namespace Esf.Api.Reports;
 public record CertificateModel(
     string OrganizationName,
     string? Cnpj,
-    string? City,
     string VolunteerName,
     string? Cpf,
-    int WeeklyHours,
-    string StartDate,
-    string EndDate,
-    int TotalHours,
+    CertificateText Text,
     string? SignatoryName,
     string? SignatoryRole,
     string? SignatoryNote,
     byte[]? Signature,
     byte[]? Logo);
+
+/// <summary>
+/// O que o certificado diz: o voluntariado num periodo (carga semanal e total de horas) ou a participacao num projeto
+/// (programa, periodo, horas lancadas quando houver, um resumo do projeto e o que a pessoa fez).
+/// </summary>
+public record CertificateText(
+    bool IsProject,
+    int WeeklyHours,
+    string StartDate,
+    string EndDate,
+    string? TotalHours,
+    string? City,
+    string? ProjectName = null,
+    string? ProgramName = null,
+    string? ProjectSummary = null,
+    string? Activities = null)
+{
+    public static CertificateText General(int weeklyHours, string start, string end, int totalHours, string? city) =>
+        new(false, weeklyHours, start, end, $"{totalHours} {(totalHours == 1 ? "hora" : "horas")}", city);
+
+    public static CertificateText ForProject(string project, string? program, string? city, string start, string end,
+        decimal? hours, string? summary, string? activities) =>
+        new(true, 0, start, end, hours is null ? null : $"{TextHelpers.Hours(hours.Value)} {(hours == 1 ? "hora" : "horas")}",
+            city, project, program, summary, activities);
+}
 
 /// <summary>
 /// Certificado de participacao no voluntariado, no modelo usado pela organizacao: A4 deitado, faixas azuis nos
@@ -53,6 +75,62 @@ public static class CertificateBuilder
           <path d="M51 13 L42 27" stroke="#1B2028" stroke-width="3.5" stroke-linecap="round"/>
         </svg>
         """;
+
+    /// <summary>Voluntariado num periodo: carga semanal, periodo e total de horas.</summary>
+    private static void ComposeGeneral(ColumnDescriptor col, CertificateText t) =>
+        col.Item().AlignCenter().Text(text =>
+        {
+            text.AlignCenter();
+            text.Span("por prestar trabalho voluntário com média de ");
+            text.Span($"{t.WeeklyHours} {(t.WeeklyHours == 1 ? "hora semanal" : "horas semanais")}").Bold();
+            text.Span(", no período entre ");
+            text.Span(t.StartDate).Bold();
+            text.Span(" a ");
+            text.Span(t.EndDate).Bold();
+            text.Span(", dedicando-se de forma comprometida e responsável ao desenvolvimento de atividades " +
+                      "relacionadas aos objetivos da organização, atuando em projetos sociais");
+            text.Span(string.IsNullOrWhiteSpace(t.City) ? "" : $" no município de {t.City}");
+            text.Span(", totalizando ");
+            text.Span(t.TotalHours).Bold();
+            text.Span(" no período.");
+        });
+
+    /// <summary>Participacao num projeto: projeto, programa, periodo, horas (se houver), resumo do projeto e atuacao.</summary>
+    private static void ComposeProject(ColumnDescriptor col, CertificateText t)
+    {
+        col.Item().AlignCenter().Text(text =>
+        {
+            text.AlignCenter();
+            text.Span("por participar como voluntário(a) do projeto ");
+            text.Span(t.ProjectName).Bold();
+            if (!string.IsNullOrWhiteSpace(t.ProgramName)) text.Span($", do programa {t.ProgramName}");
+            text.Span(", desenvolvido pela organização");
+            text.Span(string.IsNullOrWhiteSpace(t.City) ? "" : $" no município de {t.City}");
+            text.Span(", no período entre ");
+            text.Span(t.StartDate).Bold();
+            text.Span(" a ");
+            text.Span(t.EndDate).Bold();
+            if (t.TotalHours is not null)
+            {
+                text.Span(", com ");
+                text.Span(t.TotalHours).Bold();
+                text.Span(" de trabalho voluntário");
+            }
+            text.Span(".");
+        });
+
+        foreach (var (label, value) in new[] { ("Sobre o projeto: ", t.ProjectSummary), ("Atuação: ", t.Activities) })
+        {
+            if (string.IsNullOrWhiteSpace(value)) continue;
+            col.Item().PaddingTop(6).PaddingHorizontal(20).AlignCenter().Text(text =>
+            {
+                text.AlignCenter();
+                text.DefaultTextStyle(style => style.FontSize(11).FontColor("#3A4150"));
+                text.Span(label).SemiBold();
+                text.Span(value);
+            });
+        }
+    }
 
     public static byte[] Build(CertificateModel model) =>
         Document.Create(container => container.Page(page =>
@@ -96,25 +174,15 @@ public static class CertificateBuilder
                     }
                 });
 
-                col.Item().PaddingVertical(12).AlignCenter().Text(model.VolunteerName)
-                    .FontSize(36).Bold().FontColor(Navy).LineHeight(1.1f);
+                var t = model.Text;
+                // No certificado por projeto o nome fica um pouco menor: sobra espaco para o resumo e a atuacao.
+                col.Item().PaddingVertical(t.IsProject ? 8 : 12).AlignCenter().Text(model.VolunteerName)
+                    .FontSize(t.IsProject ? 32 : 36).Bold().FontColor(Navy).LineHeight(1.1f);
 
-                col.Item().AlignCenter().Text(text =>
-                {
-                    text.AlignCenter();
-                    text.Span("por prestar trabalho voluntário com média de ");
-                    text.Span($"{model.WeeklyHours} {(model.WeeklyHours == 1 ? "hora semanal" : "horas semanais")}").Bold();
-                    text.Span(", no período entre ");
-                    text.Span(model.StartDate).Bold();
-                    text.Span(" a ");
-                    text.Span(model.EndDate).Bold();
-                    text.Span(", dedicando-se de forma comprometida e responsável ao desenvolvimento de atividades " +
-                              "relacionadas aos objetivos da organização, atuando em projetos sociais");
-                    text.Span(string.IsNullOrWhiteSpace(model.City) ? "" : $" no município de {model.City}");
-                    text.Span(", totalizando ");
-                    text.Span($"{model.TotalHours} {(model.TotalHours == 1 ? "hora" : "horas")}").Bold();
-                    text.Span(" no período.");
-                });
+                if (t.IsProject)
+                    ComposeProject(col, t);
+                else
+                    ComposeGeneral(col, t);
 
                 col.Item().ExtendVertical().AlignBottom().Row(row =>
                 {

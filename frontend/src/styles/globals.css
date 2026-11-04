@@ -2874,3 +2874,10 @@ button { font: inherit; }
   .hours-list__item { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 12px 14px; }
   .hours-list__item .row-actions { grid-column: 2 / -1; justify-self: start; margin-top: 0; }
 }
+
+/* Janela do certificado: o tipo (periodo completo, especifico ou por projeto) em cartoes de escolha. */
+.certificate-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+.term-choice--disabled { cursor: not-allowed; opacity: 0.55; }
+@media (max-width: 640px) {
+  .certificate-kinds { grid-template-columns: 1fr; }
+}

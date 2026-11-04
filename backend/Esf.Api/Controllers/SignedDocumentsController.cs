@@ -53,6 +53,12 @@ public class SignedDocumentsController : ControllerBase
         return File(content, "application/pdf", fileName);
     }
 
+    /// <summary>Periodo completo e projetos da pessoa, ja calculados, para a janela do certificado.</summary>
+    [HttpGet("volunteers/{volunteerId:guid}/certificate/options")]
+    public async Task<ActionResult<CertificateOptionsDto>> CertificateOptions(Guid volunteerId,
+        [FromServices] CertificateService certificates)
+        => Ok(await certificates.OptionsAsync(volunteerId));
+
     /// <summary>Certificado de participacao no voluntariado em PDF (o CPF informado nao e guardado).</summary>
     [HttpPost("volunteers/{volunteerId:guid}/certificate")]
     public async Task<IActionResult> Certificate(Guid volunteerId, CertificateRequest request,

@@ -8,6 +8,7 @@ import type {
   ActivityDetails,
   AuditFilters,
   AuditPage,
+  CertificateOptions,
   CertificatePayload,
   ChecklistItem,
   Dashboard,
@@ -398,6 +399,7 @@ export const organizationApi = {
 
 /** Certificado de participacao no voluntariado (PDF gerado na hora; o CPF nao e guardado). */
 export const certificatesApi = {
+  options: (volunteerId: string) => http.request<CertificateOptions>(`/api/volunteers/${volunteerId}/certificate/options`),
   download: (volunteerId: string, payload: CertificatePayload) =>
     http.download(`/api/volunteers/${volunteerId}/certificate`, payload, 'certificado.pdf')
 };

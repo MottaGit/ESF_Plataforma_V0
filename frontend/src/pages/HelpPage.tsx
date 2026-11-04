@@ -291,8 +291,10 @@ const SECTIONS: HelpSection[] = [
         question: 'Como gero um certificado de voluntariado?',
         answer: (
           <p>
-            Na página do voluntário, use <strong>Gerar certificado</strong> e confira o período e as horas por semana. O
-            CPF é opcional e não fica salvo na plataforma.
+            Na página do voluntário, use <strong>Gerar certificado</strong> e escolha: <strong>período completo</strong>{' '}
+            (todo o tempo como Ativo, com as horas que a plataforma calcula), <strong>período específico</strong> (as
+            datas e as horas por semana que você quiser) ou <strong>por projeto</strong> (com um resumo do projeto, o que
+            a pessoa fez e as horas lançadas nele, tudo já sugerido e editável). O CPF é opcional e não fica salvo.
           </p>
         )
       },

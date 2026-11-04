@@ -101,7 +101,8 @@ linha repetida ficam de fora, outro arquivo é recusado e cada núcleo só compa
 online: sem aceite, sem a resposta sobre imagem, com nome diferente do cadastro ou CPF inválido não assina; o PDF sai
 com o registro e o SHA-256 bate; assina uma vez só; a coordenação vê o termo assinado. E as horas por projeto: cada um lança as próprias (só estando
 na equipe), não lança nem corrige as dos outros, a coordenação lança e corrige qualquer uma, o registro de andamento leva
-as horas do dia e o relatório soma no período.
+as horas do dia e o relatório soma no período. E o certificado: o período completo e os projetos vêm sugeridos (período, horas, o que
+a pessoa fez), cada opção gera o PDF e o certificado por projeto exige que a pessoa participe dele.
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
 ```bash
@@ -380,11 +381,16 @@ observações, aniversário e foto, a situação passa a ex-membro, o acesso vin
 são apagados. Projetos, tarefas e documentos assinados continuam, sem identificar a pessoa, e o cadastro não pode
 mais ser editado. A exclusão definitiva continua na API, só para administrador.
 
-**Certificado de voluntariado** — na página do voluntário, "Gerar certificado" (coordenação) pede o período, as horas
-por semana (6 por padrão) e, se quiser, o CPF, que só vai para o PDF e não fica salvo. O certificado sai em A4 deitado,
-no modelo da organização: nome e CNPJ, CPF, o nome do voluntário em destaque, o período por extenso e o total de horas
-— semanas do período (contando o primeiro e o último dia) vezes a carga semanal, arredondado para baixo; de 07/10 a
-31/12/2025, com 6 h/semana, são 73 horas. Embaixo vão a assinatura (imagem enviada em Configurações › Organização, que
+**Certificado de voluntariado** — na página do voluntário, "Gerar certificado" (coordenação) abre três opções, além do
+CPF opcional (só vai para o PDF e não fica salvo): **período completo** (do início ao fim dos períodos como Ativo no
+histórico, com as horas que a plataforma calcula: as mesmas da página do voluntário), **período específico** (datas e
+horas por semana, 6 por padrão; o total é semanas do período, contando o primeiro e o último dia, vezes a carga semanal,
+arredondado para baixo: de 07/10 a 31/12/2025, com 6 h/semana, são 73 horas) e **por projeto** (um dos projetos da
+pessoa: o certificado diz o projeto, o programa, o período e as horas lançadas nele, quando há, seguidos de "Sobre o
+projeto" — sugerido pelo objetivo — e "Atuação" — sugerida pelo papel na equipe e pelo que a pessoa lançou que fez;
+os dois textos são editáveis, até 300 e 400 caracteres, e o período sugerido vai da entrada na equipe ou da primeira
+hora lançada até hoje ou até o fim do projeto). O certificado sai em A4 deitado, no modelo da organização: nome e CNPJ,
+CPF, o nome do voluntário em destaque e o texto da opção escolhida. Embaixo vão a assinatura (imagem enviada em Configurações › Organização, que
 fica privada; sem ela, a linha sai em branco para assinar à mão), o nome, o cargo e uma linha opcional (ex.: "Gestão
 2025") de quem assina, e o logo da organização.
 
@@ -690,7 +696,8 @@ A documentação interativa fica em `/swagger`.
 | GET/PUT | `/api/programs/{id}/template` | modelo do programa (PUT grava o modelo inteiro; coordenação) |
 | GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
-| POST | `/api/volunteers/{id}/certificate` | certificado de voluntariado em PDF (período, horas por semana e CPF opcional, que não é guardado) |
+| GET | `/api/volunteers/{id}/certificate/options` | período completo e projetos da pessoa, já calculados, para a janela do certificado |
+| POST | `/api/volunteers/{id}/certificate` | certificado em PDF: período completo, período específico ou por projeto (CPF opcional, não é guardado) |
 | POST/DELETE | `/api/organization/signature` | imagem da assinatura usada nos certificados (privada) |
 | GET | `/api/audit` | histórico de alterações (só administradores), com filtros por projeto, pessoa, tipo e período |
 | GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |

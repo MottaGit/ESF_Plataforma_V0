@@ -744,11 +744,37 @@ export interface SaveOrganizationPayload {
 }
 
 /** Certificado de voluntariado: periodo e carga semanal; o CPF so vai para o PDF. */
+/** Periodo completo (do historico), periodo especifico ou por projeto. */
+export type CertificateKind = 'Full' | 'Period' | 'Project';
+
 export interface CertificatePayload {
-  startDate: string;
-  endDate: string;
+  kind: CertificateKind;
+  /** Periodo escolhido ou do projeto (no periodo completo, vem do historico). */
+  startDate: string | null;
+  endDate: string | null;
   weeklyHours: number;
   cpf: string | null;
+  projectId: string | null;
+  projectSummary: string | null;
+  activities: string | null;
+  /** Por projeto: inclui as horas lancadas no periodo. */
+  includeHours: boolean;
+}
+
+/** O que a janela do certificado ja mostra preenchido. */
+export interface CertificateOptions {
+  full: { start: string; end: string; hours: number; weeklyHours: number } | null;
+  projects: Array<{
+    projectId: string;
+    name: string;
+    programName: string;
+    status: ProjectStatus;
+    start: string;
+    end: string;
+    hours: number;
+    summary: string | null;
+    activities: string | null;
+  }>;
 }
 
 export interface ReportPayload {
