@@ -746,7 +746,8 @@ export interface ProjectFilters {
 
 /* ---------- historico de alteracoes ---------- */
 
-export type AuditAction = 'Created' | 'Updated' | 'Deleted';
+/** Exported: alguem exportou a planilha (fica no historico porque leva dados pessoais). */
+export type AuditAction = 'Created' | 'Updated' | 'Deleted' | 'Exported';
 
 export interface AuditChange {
   field: string;
@@ -799,4 +800,44 @@ export interface SearchResults {
   volunteers: Array<{ id: string; name: string; sector: VolunteerSector; photoUrl: string | null }>;
   /** Relatos: trecho do texto em volta do termo. */
   updates: Array<{ id: string; projectId: string; projectName: string; createdAt: string; snippet: string }>;
+}
+
+// ---------- planilha (exportar e importar) ----------
+
+/** O que entra na planilha exportada (ao menos um). */
+export interface ExportSpreadsheetPayload {
+  /** Aba Projetos, com o resumo dos programas. */
+  projects: boolean;
+  /** Aba Voluntarios (dados pessoais). */
+  volunteers: boolean;
+}
+
+/** New: vai ser criado; Existing: ja esta na plataforma (ignorado); Error: nao entra. */
+export type ImportRowResult = 'New' | 'Existing' | 'Error';
+
+export interface ImportRow {
+  /** Numero da linha no Excel. */
+  row: number;
+  label: string;
+  detail: string | null;
+  result: ImportRowResult;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface ImportSheet {
+  new: number;
+  existing: number;
+  errors: number;
+  rows: ImportRow[];
+}
+
+/** Conferencia (applied = false) ou o que foi gravado (applied = true); aba ausente no arquivo vem null. */
+export interface ImportResult {
+  sourceNucleo: string | null;
+  fileWarnings: string[];
+  projects: ImportSheet | null;
+  volunteers: ImportSheet | null;
+  newPrograms: Array<{ name: string; archived: boolean }>;
+  applied: boolean;
 }

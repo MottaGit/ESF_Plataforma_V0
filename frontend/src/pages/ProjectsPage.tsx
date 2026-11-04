@@ -11,7 +11,8 @@ import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconEdit, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
+import { IconDownload, IconEdit, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
@@ -108,6 +109,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const [busy, setBusy] = useState(false);
   const [programForm, setProgramForm] = useState<Program | 'new' | null>(null);
   const [removingProgram, setRemovingProgram] = useState<Program | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => updateParams({ busca: search.trim() || null }), 300);
@@ -257,6 +259,11 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
             <Button variant="primary" icon={<IconPlus size={15} />} onClick={openNewProject}>
               Novo projeto
             </Button>
+            {isAdmin ? (
+              <Menu
+                items={[{ label: 'Exportar planilha', icon: <IconDownload size={15} />, onSelect: () => setExporting(true) }]}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -544,6 +551,8 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           onConfirm={() => void handleDeleteProgram()}
         />
       ) : null}
+
+      {exporting ? <ExportSpreadsheetDialog initial={{ projects: true, volunteers: false }} onClose={() => setExporting(false)} /> : null}
     </>
   );
 }

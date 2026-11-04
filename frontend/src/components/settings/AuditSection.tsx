@@ -24,11 +24,13 @@ const ENTITY_TYPES = [
   'Programa',
   'Modelo do programa',
   'Usuário',
-  'Organização'
+  'Organização',
+  'Planilha'
 ];
 
 /** "alterou a atividade", "criou o projeto"... (Equipe tem frase propria). */
 function describe(entry: AuditEntry) {
+  if (entry.action === 'Exported') return `exportou a planilha (${entry.entityLabel.toLowerCase()})`;
   if (entry.entityType === 'Equipe') {
     if (entry.action === 'Created') return `adicionou ${entry.entityLabel} à equipe`;
     if (entry.action === 'Deleted') return `tirou ${entry.entityLabel} da equipe`;

@@ -11,6 +11,8 @@ import type {
   CertificatePayload,
   ChecklistItem,
   Dashboard,
+  ExportSpreadsheetPayload,
+  ImportResult,
   Indicator,
   LoginResponse,
   Mentionable,
@@ -229,6 +231,19 @@ export const projectUpdatesApi = {
 
 export const reportsApi = {
   generate: (payload: ReportPayload) => http.download('/api/reports/projects', payload, 'relatorio-projetos.pdf')
+};
+
+/** Planilha de programas, projetos e voluntarios (so administradores). */
+export const spreadsheetsApi = {
+  export: (payload: ExportSpreadsheetPayload) =>
+    http.download('/api/spreadsheets/export', payload, 'exportacao.xlsx'),
+  template: () => http.download('/api/spreadsheets/template', undefined, 'modelo-importacao.xlsx'),
+  /** confirm = false: so a conferencia; true: importa o que e novo e sem erro. */
+  import: (file: File, confirm: boolean) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return http.request<ImportResult>('/api/spreadsheets/import', { method: 'POST', formData, query: { confirm } });
+  }
 };
 
 export const usersApi = {

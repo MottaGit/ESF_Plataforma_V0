@@ -4,6 +4,7 @@ import { ApiError, assetUrl } from '../api/client';
 import { authApi, organizationApi, usersApi, volunteersApi } from '../api/endpoints';
 import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
 import { AuditSection } from '../components/settings/AuditSection';
+import { SpreadsheetsSection } from '../components/settings/SpreadsheetsSection';
 import { Avatar } from '../components/ui/Avatar';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -24,12 +25,13 @@ import type {
 } from '../types/api';
 import { USER_ROLES, emptyToNull, roleDescription, roleLabel } from '../utils/format';
 
-type TabKey = 'organization' | 'users' | 'history' | 'account';
+type TabKey = 'organization' | 'users' | 'spreadsheets' | 'history' | 'account';
 
 // A aba aberta fica na URL (?aba=conta), para o menu da conta e links diretos cairem no lugar certo.
 const tabs: Array<{ key: TabKey; label: string; slug: string; adminOnly?: boolean; manageOnly?: boolean }> = [
   { key: 'organization', label: 'Organização', slug: 'organizacao', manageOnly: true },
   { key: 'users', label: 'Acessos', slug: 'acessos', manageOnly: true },
+  { key: 'spreadsheets', label: 'Planilhas', slug: 'planilhas', adminOnly: true },
   { key: 'history', label: 'Histórico', slug: 'historico', adminOnly: true },
   { key: 'account', label: 'Minha conta', slug: 'conta' }
 ];
@@ -75,6 +77,7 @@ export function SettingsPage() {
 
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
       {tab === 'users' ? <UsersSection canEdit={isAdmin} /> : null}
+      {tab === 'spreadsheets' ? <SpreadsheetsSection /> : null}
       {tab === 'history' ? <AuditSection /> : null}
       {tab === 'account' ? <AccountSection /> : null}
     </>

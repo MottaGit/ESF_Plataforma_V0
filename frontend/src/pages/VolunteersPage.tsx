@@ -8,7 +8,9 @@ import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
+import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
+import { IconDownload, IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
+import { Menu } from '../components/ui/Menu';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { ContactIcons } from '../components/volunteers/ContactLinks';
@@ -34,7 +36,7 @@ function needsTerm(volunteer: Volunteer) {
 }
 
 export function VolunteersPage() {
-  const { canManage } = useAuth();
+  const { canManage, isAdmin } = useAuth();
   const { notify } = useToast();
 
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -47,6 +49,7 @@ export function VolunteersPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(search), 300);
@@ -88,6 +91,11 @@ export function VolunteersPage() {
             >
               Novo voluntário
             </Button>
+            {isAdmin ? (
+              <Menu
+                items={[{ label: 'Exportar planilha', icon: <IconDownload size={15} />, onSelect: () => setExporting(true) }]}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -271,6 +279,7 @@ export function VolunteersPage() {
         />
       ) : null}
 
+      {exporting ? <ExportSpreadsheetDialog initial={{ projects: false, volunteers: true }} onClose={() => setExporting(false)} /> : null}
     </>
   );
 }

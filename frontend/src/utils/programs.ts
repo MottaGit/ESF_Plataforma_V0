@@ -5,7 +5,8 @@ import type { Program } from '../types/api';
  * no mesmo estilo dos icones do app. As chaves sao as mesmas da API (Common/ProgramAppearance.cs); uma chave
  * desconhecida cai no padrao. A ordem agrupa por assunto (e a da grade de escolha); `color` e a cor da familia, que o
  * programa novo recebe junto com o icone; `keywords` sao inicios de palavra (sem acento) que, no nome do programa,
- * sugerem o icone.
+ * sugerem o icone. A API tem a mesma tabela de sugestao (ProgramAppearance.Suggest), para os programas criados na
+ * importacao de planilha: mudou aqui, mude la.
  */
 export const PROGRAM_ICONS: Array<{ key: string; label: string; color: string; keywords: string[]; body: string }> = [
   {

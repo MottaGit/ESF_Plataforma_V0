@@ -470,7 +470,32 @@ administra cada núcleo. A primeira conta vem da configuração do servidor (`Na
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
-aberta fica na URL (`?aba=organizacao`, `acessos`, `historico` ou `conta`; o antigo `usuarios` leva a Acessos).
+aberta fica na URL (`?aba=organizacao`, `acessos`, `planilhas`, `historico` ou `conta`; o antigo `usuarios` leva a
+Acessos).
+
+**Planilhas (exportar e importar)** — em Configurações › Planilhas (só administradores, porque o arquivo leva dados
+pessoais). **Exportar planilha** abre uma lista do que entra no arquivo do Excel (.xlsx): **Projetos** (um por linha, com
+situação, datas, responsável, uma coluna para cada indicador nacional, até três pares Indicador/Valor para os
+específicos — mais, se algum programa tiver mais —, equipe com o papel de cada um, local e a autorização de imagem; vem
+junto a aba **Programas**, um resumo só de consulta) e **Voluntários** (contatos, setor, situação, entrada e saída tiradas
+do histórico de status, aniversário, termo, horas e acesso; anonimizados ficam de fora). O mesmo atalho fica no "⋯" ao lado
+de Novo projeto e de Novo voluntário (já marcado com o que é daquela tela). Cada exportação entra no histórico de
+alterações. **Importar** tem três passos: baixar o **modelo vazio** (o mesmo formato, sem linhas e sem as colunas
+calculadas, com as listas suspensas de programas, pessoas e indicadores do núcleo), preencher (à mão ou entregando o
+modelo e anotações soltas a uma IA: a aba **Instruções** tem regras numeradas, como reconhecer o que já existe, um
+dicionário com cada coluna e um exemplo de texto solto virando linhas — foi testada com agentes que não conheciam a
+plataforma) e enviar. Antes de gravar aparece a **conferência**: para cada linha, Novo, Já existe ou Erro, com os erros
+e avisos (pessoa não encontrada, homônimo, Saiu em ignorado…), filtro "Erros e avisos" e os programas que serão criados.
+A importação **só cria**: voluntário é reconhecido pelo e-mail (sem e-mail aqui ou lá, pelo nome completo), projeto pelo
+nome dentro do programa e programa pelo nome (sem diferença de acento e maiúscula); o que já existe é ignorado, nunca
+alterado — reimportar uma exportação não duplica nada. Programa novo recebe o ícone e a cor sugeridos pelo nome e entra
+arquivado quando todos os projetos dele estão concluídos ou cancelados; projeto novo recebe todos os nacionais (vazio =
+não informado), não recebe as tarefas do modelo do programa e não gera avisos. Voluntário novo ganha o histórico de
+status a partir das datas (Ativo desde Entrou em; Ex-membro a partir do dia seguinte a Saiu em), que dá as horas. Linha
+com erro fica de fora e as outras entram; ao confirmar, o arquivo é enviado e conferido de novo (nada fica guardado
+entre a conferência e a confirmação). O arquivo é reconhecido pela aba oculta **Listas** (tipo e versão do modelo) e
+pelos títulos das colunas; outro arquivo é recusado com a explicação, e uma planilha de outro núcleo gera um aviso. O
+formato fica num lugar só (`Spreadsheets/SpreadsheetLayout.cs`), usado para gerar e para ler.
 
 **Privacidade (LGPD)** — a política de privacidade e os termos de uso ficam em `/privacidade`, aberta a qualquer pessoa
 (link na tela de login). No primeiro acesso, e de novo sempre que o texto muda, uma janela pede o aceite antes de usar
@@ -479,7 +504,8 @@ a plataforma; a data e a versão aceita ficam registradas. Para publicar uma nov
 
 **Histórico de alterações** — toda criação, alteração ou exclusão feita por uma pessoa logada (projetos, tarefas,
 registros de andamento, arquivos, indicadores, equipe, voluntários, histórico de status, documentos assinados, programas, usuários e dados da organização)
-fica registrada automaticamente, com quem fez, quando e o valor antes e depois de cada campo. Em Configurações ›
+fica registrada automaticamente, com quem fez, quando e o valor antes e depois de cada campo, e também cada exportação de
+planilha ("exportou a planilha (projetos e voluntários)"). Em Configurações ›
 Histórico (só administradores) a lista aparece em frases ("Ana alterou a tarefa…"), com filtros por projeto, pessoa,
 tipo e período, 50 por vez. Dados pessoais do cadastro de voluntário (nome, contatos, aniversário, observações, foto) só
 registram que mudaram, sem o valor, e nomes de voluntários são resolvidos na hora de exibir — quem for anonimizado
@@ -499,7 +525,7 @@ só "Minha conta", sem abas), **Ajuda** e **Sair**.
 **Ajuda** (`/ajuda`) — perguntas frequentes que abrem ao toque, agrupadas em Primeiros passos, Tarefas, Projetos e
 andamento e Avisos e sua conta (registrar andamento passo a passo, concluir tarefa, @menção, sininho, perfil e horas,
 senha). A coordenação vê também "Para a coordenação" (acompanhar a organização, criar projeto, modelo do programa,
-voluntário e termo de adesão, certificado, relatórios, dar acesso). O texto fica em `pages/HelpPage.tsx`: ao mudar um
+voluntário e termo de adesão, certificado, relatórios, dar acesso, planilhas). O texto fica em `pages/HelpPage.tsx`: ao mudar um
 botão ou uma tela, confira se a resposta correspondente continua certa. Ao lado fica o **sininho**
 de avisos, com a quantidade de não lidos: clicar abre a lista (todos os não lidos, destacados, e os lidos mais recentes
 completando 15 itens; cada aviso com o projeto e há quanto tempo), e abrir um aviso o marca como lido e leva à aba

@@ -281,6 +281,23 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Como exporto ou importo uma planilha?',
+        answer: (
+          <>
+            <p>
+              Em <strong>Configurações › Planilhas</strong> (só administradores). <strong>Exportar planilha</strong> deixa
+              escolher o que vai no arquivo do Excel: projetos (com o resumo dos programas), voluntários ou os dois.
+            </p>
+            <p>
+              Para importar, baixe o <strong>modelo vazio</strong>, preencha (à mão ou entregando o modelo e as suas
+              anotações a uma IA: a aba Instruções explica cada coluna) e use <strong>Enviar planilha</strong>. Antes de
+              gravar aparece a conferência, linha por linha. A importação só cria: o que já existe na plataforma não muda,
+              e linhas com erro ficam de fora até você corrigir e enviar de novo.
+            </p>
+          </>
+        )
+      },
+      {
         question: 'Como dou acesso à plataforma para alguém?',
         answer: (
           <>
