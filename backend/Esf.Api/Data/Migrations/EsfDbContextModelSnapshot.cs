@@ -643,6 +643,44 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("ProjectFiles");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectHourEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<decimal>("Hours")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VolunteerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VolunteerId");
+
+                    b.HasIndex("ProjectId", "VolunteerId");
+
+                    b.ToTable("ProjectHourEntries");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectProgram", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1185,6 +1223,25 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("ProjectUpdate");
 
                     b.Navigation("UploadedByUser");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectHourEntry", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Esf.Api.Domain.Entities.Volunteer", "Volunteer")
+                        .WithMany()
+                        .HasForeignKey("VolunteerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Volunteer");
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectProgram", b =>

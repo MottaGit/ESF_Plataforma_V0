@@ -71,7 +71,8 @@ public class ReportService
             IncludeTasks = request.IncludeTasks,
             From = request.From,
             To = request.To,
-            ProgramResults = ProgramResults(projects, templates)
+            ProgramResults = ProgramResults(projects, templates),
+            Hours = await ProjectHoursService.TotalsAsync(_db, ids, request.From, request.To)
         };
 
         // Fotos ficam atreladas a atualizacao (ProjectUpdate) que as recebeu, nao ao projeto todo -

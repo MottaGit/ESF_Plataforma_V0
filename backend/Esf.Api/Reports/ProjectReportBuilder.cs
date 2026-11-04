@@ -1,3 +1,4 @@
+using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Services;
@@ -157,7 +158,9 @@ public static class ProjectReportBuilder
             col.Item().Row(row =>
             {
                 row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, projects.Count, "projetos", byStatus));
-                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, volunteers, "voluntários nas equipes", null));
+                var hours = projects.Sum(p => model.HoursOf(p.Id));
+                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, volunteers, "voluntários nas equipes",
+                    hours > 0 ? $"{TextHelpers.Hours(hours)} horas de voluntariado lançadas{inPeriod}" : null));
                 row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, updates, $"registros de andamento{inPeriod}", null));
                 row.RelativeItem().Element(c => StatCard(c, doneTasks, $"tarefas concluídas{inPeriod}", null));
             });
@@ -307,7 +310,7 @@ public static class ProjectReportBuilder
                 col.Item().Element(c => ComposeIndicators(c, p));
 
             if (model.IncludeVolunteers && p.Volunteers.Count > 0)
-                col.Item().Element(c => ComposeVolunteers(c, p));
+                col.Item().Element(c => ComposeVolunteers(c, model, p));
 
             if (model.IncludeTasks && doneTasks.Count > 0)
                 col.Item().Element(c => ComposeTasks(c, model, doneTasks));
@@ -369,11 +372,20 @@ public static class ProjectReportBuilder
             });
     }
 
-    private static void ComposeVolunteers(IContainer container, Project p)
+    /// <summary>Equipe do projeto; com horas lancadas (no periodo, quando ha), ganha a coluna Horas e o total.</summary>
+    private static void ComposeVolunteers(IContainer container, ReportModel model, Project p)
     {
+        var hours = model.Hours.GetValueOrDefault(p.Id) ?? new Dictionary<Guid, decimal>();
+        var total = hours.Values.Sum();
         container.EnsureSpace(70).Column(col =>
         {
-            col.Item().Text($"Voluntários envolvidos ({p.Volunteers.Count})").FontSize(10).SemiBold();
+            col.Item().Text(text =>
+            {
+                text.Span($"Voluntários envolvidos ({p.Volunteers.Count})").FontSize(10).SemiBold();
+                if (total > 0)
+                    text.Span($" · {TextHelpers.Hours(total)} horas de voluntariado{(model.HasPeriod ? " no período" : "")}")
+                        .FontSize(9).FontColor(Muted);
+            });
             col.Item().PaddingTop(4).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
@@ -381,6 +393,7 @@ public static class ProjectReportBuilder
                     columns.RelativeColumn(3);
                     columns.RelativeColumn(3);
                     columns.RelativeColumn(3);
+                    if (total > 0) columns.RelativeColumn(1);
                 });
 
                 table.Header(header =>
@@ -388,6 +401,7 @@ public static class ProjectReportBuilder
                     header.Cell().Element(HeadCell).Text("Nome");
                     header.Cell().Element(HeadCell).Text("Papel no projeto");
                     header.Cell().Element(HeadCell).Text("Contato");
+                    if (total > 0) header.Cell().Element(HeadCell).AlignRight().Text("Horas");
                 });
 
                 foreach (var v in p.Volunteers.OrderBy(v => v.Volunteer?.Name))
@@ -395,6 +409,9 @@ public static class ProjectReportBuilder
                     table.Cell().Element(BodyCell).Text(v.Volunteer?.Name ?? "-");
                     table.Cell().Element(BodyCell).Text(v.RoleInProject ?? "-");
                     table.Cell().Element(BodyCell).Text(v.Volunteer?.Email ?? v.Volunteer?.Phone ?? "-");
+                    if (total > 0)
+                        table.Cell().Element(BodyCell).AlignRight()
+                            .Text(hours.TryGetValue(v.VolunteerId, out var h) ? TextHelpers.Hours(h) : "-");
                 }
             });
         });

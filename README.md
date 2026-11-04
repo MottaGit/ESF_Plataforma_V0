@@ -99,7 +99,9 @@ Também cobre a planilha: o modelo e a exportação são reconhecidos, reimporta
 importação cria programa, projeto (com indicadores e equipe) e voluntário (com o histórico das datas), linha com erro e
 linha repetida ficam de fora, outro arquivo é recusado e cada núcleo só compara e cria no próprio. E o termo assinado
 online: sem aceite, sem a resposta sobre imagem, com nome diferente do cadastro ou CPF inválido não assina; o PDF sai
-com o registro e o SHA-256 bate; assina uma vez só; a coordenação vê o termo assinado.
+com o registro e o SHA-256 bate; assina uma vez só; a coordenação vê o termo assinado. E as horas por projeto: cada um lança as próprias (só estando
+na equipe), não lança nem corrige as dos outros, a coordenação lança e corrige qualquer uma, o registro de andamento leva
+as horas do dia e o relatório soma no período.
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
 ```bash
@@ -395,6 +397,14 @@ incluir de novo; remover faz o status anterior valer também nessas datas. Datas
 registro ou entre um período antigo e a volta da pessoa) não contam horas. Voluntários que já existiam começam com o
 status atual desde a data do cadastro. Todos veem o total; o histórico só aparece para a coordenação e para o próprio
 voluntário, e só a coordenação edita. O certificado já abre com o período do primeiro ao último período como Ativo.
+
+**Horas por projeto** — além das horas gerais (que saem do histórico de status), cada projeto tem as horas lançadas
+por quem trabalhou nele: dia, horas (de 0,25 a 24) e, se quiser, o que fez. Quem está na equipe lança as próprias, na aba
+Equipe ou junto com o registro de andamento ("Suas horas hoje", opcional: o texto do registro vira o "o que fez");
+administrador e coordenador lançam, corrigem e apagam as de qualquer um da equipe. A aba Equipe mostra o total do projeto,
+as horas de cada pessoa e os lançamentos. O relatório em PDF ganha a coluna Horas na equipe de cada projeto (no período de
+referência, quando há) e o total no bloco Resultados; o certificado por projeto usa essas horas. As duas contas ficam
+separadas, para a mesma hora não contar duas vezes.
 
 **Indicadores** — número simples de resultado por projeto (nome, valor e unidade, sem meta nem barra de progresso).
 Todo projeto tem os **indicadores nacionais** ativos (vêm primeiro, com a etiqueta "nacional"); os demais são
@@ -712,7 +722,9 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |
 | GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart; com `activityId`, anexo de uma tarefa) |
 | GET/PUT/DELETE | `/api/files/{id}[/download]` | download, edição da legenda e exclusão |
-| GET/POST | `/api/projects/{id}/updates` | registros de andamento (texto + fotos, multipart) |
+| GET/POST | `/api/projects/{id}/updates` | registros de andamento (texto + fotos e, opcional, as horas do dia; multipart) |
+| GET/POST | `/api/projects/{id}/hours` | horas lançadas no projeto (total, por pessoa e lançamentos) e novo lançamento |
+| PUT/DELETE | `/api/hours/{id}` | corrige ou apaga um lançamento de horas (a própria pessoa ou a coordenação) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
 | POST | `/api/reports/projects` | gera o PDF consolidado (projetos, partes incluídas e período de referência `from`/`to`, opcional) |

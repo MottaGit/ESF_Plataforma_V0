@@ -90,6 +90,10 @@ public static class AuditTrail
         [typeof(ActivityComment)] = new() { ["Text"] = "Texto" },
         [typeof(ProjectVolunteer)] = new() { ["RoleInProject"] = "Função" },
         [typeof(SignedDocument)] = new() { ["SignedOn"] = "Assinado em" },
+        [typeof(ProjectHourEntry)] = new()
+        {
+            ["VolunteerId"] = "Voluntário", ["Date"] = "Data", ["Hours"] = "Horas", ["Description"] = "O que fez"
+        },
         [typeof(VolunteerStatusChange)] = new() { ["Status"] = "Status", ["StartsOn"] = "A partir de" },
         [typeof(Organization)] = new()
         {
@@ -171,6 +175,9 @@ public static class AuditTrail
         ProjectUpdate u => ("Registro de andamento", Truncate(RichText.ToPlainText(u.Text), 80), u.Id, u.ProjectId),
         ProjectProgram g => ("Programa", g.Name, g.Id, null),
         ProjectVolunteer pv => ("Equipe", VolunteerRef(pv.VolunteerId), pv.VolunteerId, pv.ProjectId),
+        ProjectHourEntry h => ("Horas",
+            $"{VolunteerRef(h.VolunteerId)}: {TextHelpers.Hours(h.Hours)} h em {h.Date:dd/MM/yyyy}",
+            h.Id, h.ProjectId),
         SignedDocument d => ("Documento assinado",
             d.Kind == SignedDocumentKind.VolunteerTerm
                 ? $"Termo de adesão de {VolunteerRef(d.VolunteerId)}"

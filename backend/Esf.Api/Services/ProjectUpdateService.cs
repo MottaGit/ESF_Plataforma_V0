@@ -11,11 +11,13 @@ public class ProjectUpdateService
 {
     private readonly EsfDbContext _db;
     private readonly FileStorageService _storage;
+    private readonly ICurrentUser _currentUser;
 
-    public ProjectUpdateService(EsfDbContext db, FileStorageService storage)
+    public ProjectUpdateService(EsfDbContext db, FileStorageService storage, ICurrentUser currentUser)
     {
         _db = db;
         _storage = storage;
+        _currentUser = currentUser;
     }
 
     public async Task<List<ProjectUpdateDto>> ListByProjectAsync(Guid projectId)
@@ -48,6 +50,12 @@ public class ProjectUpdateService
         };
 
         _db.ProjectUpdates.Add(update);
+
+        // As horas do dia entram junto com o registro (e o que foi escrito vira o "o que fez").
+        if (request.Hours is > 0)
+            _db.ProjectHourEntries.Add(await ProjectHoursService.NewEntryAsync(_db, _currentUser, projectId, null,
+                DateOnly.FromDateTime(TextHelpers.BrasiliaTime(DateTime.UtcNow)), request.Hours.Value,
+                RichText.ToPlainText(update.Text)));
 
         foreach (var file in request.Files)
             update.Attachments.Add(await SaveAttachmentAsync(projectId, file, authorUserId));

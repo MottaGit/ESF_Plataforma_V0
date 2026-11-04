@@ -28,4 +28,7 @@ public class CreateProjectUpdateRequest
     public string Text { get; set; } = string.Empty;
 
     public List<IFormFile> Files { get; set; } = new();
+
+    /// <summary>Horas que quem registra dedicou hoje ao projeto (opcional): viram um lancamento de horas.</summary>
+    public decimal? Hours { get; set; }
 }

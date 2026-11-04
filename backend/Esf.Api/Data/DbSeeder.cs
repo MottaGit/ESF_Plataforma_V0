@@ -85,6 +85,18 @@ public static class DbSeeder
                 JoinedAt = project.CreatedAt
             }));
 
+        // Horas lancadas no projeto: (voluntario, dia, horas, o que fez).
+        void Hours(Project project, params (Volunteer Volunteer, int On, decimal Hours, string What)[] entries) =>
+            db.ProjectHourEntries.AddRange(entries.Select(e => new ProjectHourEntry
+            {
+                Project = project,
+                Volunteer = e.Volunteer,
+                Date = Day(e.On),
+                Hours = e.Hours,
+                Description = e.What,
+                CreatedAt = At(e.On)
+            }));
+
         void Results(Project project, params (string Name, string Unit, decimal Value)[] indicators) =>
             db.Indicators.AddRange(indicators.Select(i => new Indicator
             {
@@ -372,6 +384,14 @@ public static class DbSeeder
             (vFrancielly, "Compras"),
             (vMariaAntonia, "Vistoria de qualidade"),
             (vAlice, "Registro fotográfico"));
+        Hours(bJulia,
+            (vAna, -211, 4, "Visita técnica e levantamento com a família"),
+            (vAdriano, -204, 6, "Projeto do banheiro acessível"),
+            (vAna, -196, 3, "Orçamento e contrato com o construtor"),
+            (vLeonardo, -188, 5, "Acompanhamento da obra"),
+            (vLeonardo, -176, 4, "Acompanhamento da obra e ajustes no piso"),
+            (vMariaAntonia, -168, 3, "Vistoria de qualidade e entrega à família"),
+            (vAlice, -168, 2, "Registro fotográfico da entrega"));
         db.Activities.AddRange(
             new Activity
             {
@@ -447,6 +467,13 @@ public static class DbSeeder
             (vEdu, "Instalações elétricas"),
             (vFrancielly, "Compras"),
             (vMariaAntonia, "Vistoria de qualidade"));
+        Hours(bBeatriz,
+            (vFausto, -45, 3, "Visita técnica e conversa com a família"),
+            (vLeonardo, -40, 5, "Projeto hidrossanitário"),
+            (vAdriano, -33, 4, "Cálculo da estrutura"),
+            (vFrancielly, -24, 2.5m, "Cotação e compra dos materiais"),
+            (vFausto, -10, 4, "Acompanhamento da obra"),
+            (vEdu, -6, 3, "Instalação elétrica do banheiro"));
         var beatrizObra = new Activity
         {
             Project = bBeatriz, Title = "Execução da obra", Status = ActivityStatus.EmAndamento, Priority = ActivityPriority.Alta,

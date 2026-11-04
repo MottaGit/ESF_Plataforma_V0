@@ -31,4 +31,8 @@ public static class TextHelpers
     /// <summary>Horario de Brasilia (UTC-3, sem horario de verao desde 2019) de um momento em UTC.</summary>
     public static DateTime BrasiliaTime(DateTime utc) =>
         DateTime.SpecifyKind(utc, DateTimeKind.Utc).AddHours(-3);
+
+    /// <summary>12 -> "12"; 1.5 -> "1,5"; 2.25 -> "2,25" (horas lancadas).</summary>
+    public static string Hours(decimal hours) =>
+        Math.Round(hours, 2).ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ',');
 }

@@ -59,6 +59,7 @@ builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<SignedDocumentService>();
 builder.Services.AddScoped<MyTermService>();
+builder.Services.AddScoped<ProjectHoursService>();
 builder.Services.AddScoped<CertificateService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<SearchService>();

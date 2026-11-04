@@ -36,6 +36,7 @@ public class EsfDbContext : DbContext
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<Indicator> Indicators => Set<Indicator>();
     public DbSet<ProjectVolunteer> ProjectVolunteers => Set<ProjectVolunteer>();
+    public DbSet<ProjectHourEntry> ProjectHourEntries => Set<ProjectHourEntry>();
     public DbSet<ProjectFile> ProjectFiles => Set<ProjectFile>();
     public DbSet<ProjectUpdate> ProjectUpdates => Set<ProjectUpdate>();
     public DbSet<Organization> Organizations => Set<Organization>();
@@ -234,6 +235,17 @@ public class EsfDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        b.Entity<ProjectHourEntry>(e =>
+        {
+            e.Property(x => x.Hours).HasPrecision(5, 2);
+            e.Property(x => x.Description).HasMaxLength(300);
+            e.HasIndex(x => new { x.ProjectId, x.VolunteerId });
+            e.HasIndex(x => x.VolunteerId);
+
+            e.HasOne(x => x.Project).WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Volunteer).WithMany().HasForeignKey(x => x.VolunteerId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<ProjectVolunteer>(e =>
         {
             e.HasKey(x => new { x.ProjectId, x.VolunteerId });
@@ -389,6 +401,7 @@ public class EsfDbContext : DbContext
         b.Entity<ProjectUpdate>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ProjectFile>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ProjectVolunteer>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProjectHourEntry>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ActivityChecklistItem>()
             .HasQueryFilter(x => AllOrganizations || x.Activity!.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ActivityComment>()

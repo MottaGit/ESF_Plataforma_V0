@@ -32,6 +32,11 @@ public record ReportModel
     /// <summary>Fotos ja lidas do disco, por atualizacao (ProjectUpdate.Id) - limitadas pelo servico.</summary>
     public Dictionary<Guid, List<ReportPhoto>> Photos { get; init; } = new();
 
+    /// <summary>Horas lancadas por projeto e por pessoa (no periodo de referencia, quando houver).</summary>
+    public Dictionary<Guid, Dictionary<Guid, decimal>> Hours { get; init; } = new();
+
+    public decimal HoursOf(Guid projectId) => Hours.TryGetValue(projectId, out var people) ? people.Values.Sum() : 0;
+
     /// <summary>Indicadores padrao de cada programa somados nos projetos do relatorio (bloco Resultados).</summary>
     public List<ReportProgramResults> ProgramResults { get; init; } = new();
 }
