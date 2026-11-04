@@ -152,6 +152,21 @@ public class MyTermTests
         await Assert.ThrowsAsync<AppException>(() => new MyTermService(db, Storage(db), national).GetAsync());
     }
 
+    [Fact]
+    public async Task CoordinationCannotDeleteASignedTerm()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var user = await VolunteerLoginAsync(f, f.A);
+        await SignAsync(f, user, Request());
+        await using var db = f.Context(f.A.Admin);
+        var service = new SignedDocumentService(db, Storage(db), f.A.Admin);
+        var term = (await service.ListForVolunteerAsync(f.A.VolunteerWithoutAccessId)).Single();
+
+        var error = await Assert.ThrowsAsync<AppException>(() => service.DeleteAsync(term.Id));
+
+        Assert.Contains("não pode ser apagado", error.Message);
+    }
+
     [Theory]
     [InlineData("52998224725", "529.982.247-25")]
     [InlineData("529.982.247-25", "529.982.247-25")]

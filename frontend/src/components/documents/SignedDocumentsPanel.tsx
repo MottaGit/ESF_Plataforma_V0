@@ -3,7 +3,7 @@ import { ApiError } from '../../api/client';
 import { documentsApi, type DocumentOwner } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { SignedDocument } from '../../types/api';
-import { formatDate, formatDateTime, formatFileSize, todayInputValue } from '../../utils/format';
+import { formatDate, formatFileSize, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, Loading } from '../ui/Feedback';
@@ -22,9 +22,9 @@ interface SignedDocumentsPanelProps {
 }
 
 /**
- * Documento assinado (termo de adesao do voluntario ou autorizacao de imagem do projeto): baixar o modelo,
- * enviar a copia assinada e abrir o arquivo (inclusive o termo que o voluntario assinou online). So a coordenacao ve;
- * os arquivos nao ficam publicos.
+ * Autorizacao de uso de imagem dos beneficiarios de um projeto (assinada no papel pelas familias): baixar o modelo,
+ * enviar a copia assinada e abrir o arquivo. So a coordenacao ve; os arquivos nao ficam publicos. (O termo de adesao do
+ * voluntario e assinado online: ver VolunteerTermPanel e MyTermPanel.)
  */
 export function SignedDocumentsPanel({ owner, title, description, templateLabel, onChanged }: SignedDocumentsPanelProps) {
   const { notify, notifyError } = useToast();
@@ -104,13 +104,7 @@ export function SignedDocumentsPanel({ owner, title, description, templateLabel,
           <Button small loading={generating} icon={<IconDownload size={15} />} onClick={() => void generateTemplate()}>
             {templateLabel}
           </Button>
-          {/* No termo do voluntario o envio e o plano B (assinatura no papel): o normal e ele assinar online. */}
-          <Button
-            small
-            variant={owner.type === 'project' ? 'primary' : undefined}
-            icon={<IconUpload size={15} />}
-            onClick={() => setUploading(true)}
-          >
+          <Button small variant="primary" icon={<IconUpload size={15} />} onClick={() => setUploading(true)}>
             Enviar documento assinado
           </Button>
         </div>
@@ -128,17 +122,8 @@ export function SignedDocumentsPanel({ owner, title, description, templateLabel,
                     {document.fileName}
                   </button>
                   <div className="table__secondary">
-                    {document.signedOnline ? (
-                      <>
-                        Assinado online em {formatDateTime(document.signedAt)}
-                        {document.imageAuthorized === false ? ' · não autorizou o uso de imagem' : ''}
-                      </>
-                    ) : (
-                      <>
-                        Assinado em {formatDate(document.signedOn)} · {formatFileSize(document.sizeBytes)}
-                        {document.uploadedByName ? ` · enviado por ${document.uploadedByName}` : ''}
-                      </>
-                    )}
+                    Assinado em {formatDate(document.signedOn)} · {formatFileSize(document.sizeBytes)}
+                    {document.uploadedByName ? ` · enviado por ${document.uploadedByName}` : ''}
                   </div>
                 </div>
                 <Button

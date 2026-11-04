@@ -126,7 +126,8 @@ resultado; ligada ao indicador nacional, ganha o nome dele.
 
 Os voluntários cobrem os seis setores e vêm com e-mail, telefone, competências, observações, aniversário e histórico
 de situação (as horas de voluntariado saem dele). Há um afastado, um ex-membro e um que já teve afastamento e voltou.
-Onze têm o termo de adesão assinado; Carol e Alice ficam pendentes, para o aviso de termo aparecer. Dois aniversários
+Oito têm o termo de adesão assinado online; ficam pendentes as três contas de demonstração (Ana, Leonardo e Fausto),
+para dar para assinar, e Carol e Alice, sem acesso. Dois aniversários
 caem perto do dia em que o banco é criado, para o painel de aniversariantes do Início não ficar vazio.
 
 Os projetos mostram uma situação diferente cada um:
@@ -357,22 +358,22 @@ lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superio
 nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos registros de andamento
 e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
-**Termo de adesão e uso de imagem** — o próprio voluntário assina online, na conta dele: o Início mostra "Assine seu
-termo de adesão" (ativos e afastados sem termo) e Configurações › Minha conta tem o termo para ler, assinar e, depois,
-baixar. Para assinar, ele lê o texto na tela, responde se autoriza o uso da imagem, informa o CPF, marca "Li e concordo"
-e digita o nome completo igual ao do cadastro (assinatura eletrônica simples, MP 2.200-2/2001, art. 10, § 2º). A
-plataforma gera na hora o PDF com o registro da assinatura no fim (nome, CPF, conta, data e hora de Brasília, endereço de
-rede) e guarda junto o navegador, a versão do texto (`DocumentTemplates.VolunteerTermVersion`: mude a data ao mudar as
-cláusulas) e o SHA-256 do arquivo. O CPF só fica dentro do PDF, não numa coluna. Quem não tem acesso à plataforma
-assina no papel: na página do voluntário, a coordenação (administrador e coordenador) gera o
-termo em PDF, num documento só: adesão ao serviço voluntário (Lei 9.608/98) e autorização de uso de imagem, já com o
-nome do voluntário e os dados da organização (CPF, RG e endereço ficam em branco, para preencher à mão — a plataforma
-não guarda esses dados). Depois de assinado, envia a cópia (PDF, JPG ou PNG) com a data da assinatura, e a página
-mostra "Assinado em dd/mm/aaaa". Na lista de voluntários, a coordenação vê no topo quantos ativos e afastados
-estão sem termo, com o botão "Ver quem falta" (filtra a lista), e cada um deles ganha um ponto vermelho com "!" no
-canto da foto. O status do termo só aparece por extenso na página do voluntário. Os documentos assinados não ficam em `/uploads`: só abrem pelo
-download com login da coordenação. Quem assina pela organização (nome e cargo) é configurado em Configurações ›
-Organização.
+**Termo de adesão e uso de imagem** — quem assina é sempre o próprio voluntário, online, na conta dele (qualquer perfil
+de acesso, inclusive administrador e coordenador): o Início mostra "Assine seu termo de adesão" (ativos e afastados sem
+termo), e Configurações › Minha conta e o próprio perfil têm o botão "Ler e assinar" e, depois, o download da via
+assinada. Para assinar, ele lê o texto na tela (o mesmo do PDF: adesão ao serviço voluntário, Lei 9.608/98, e
+autorização de uso de imagem), responde se autoriza o uso da imagem, informa o CPF, marca "Li e concordo" e digita o nome
+completo igual ao do cadastro (assinatura eletrônica simples, MP 2.200-2/2001, art. 10, § 2º). A plataforma gera na
+hora o PDF com o registro da assinatura no fim (nome, CPF, conta, data e hora de Brasília, endereço de rede) e guarda
+junto o navegador, a versão do texto (`DocumentTemplates.VolunteerTermVersion`: mude a data ao mudar as cláusulas) e o
+SHA-256 do arquivo. O CPF só fica dentro do PDF, não numa coluna. Assina uma vez só, e o termo assinado não pode ser
+apagado. A coordenação (administrador e coordenador) não gera nem envia termo: na página do voluntário, vê a situação
+("Aguardando a assinatura online", ou o que falta, como dar acesso à plataforma) e baixa a via assinada. Na lista de
+voluntários, a coordenação vê no topo quantos ativos e afastados estão sem termo, com o botão "Ver quem falta" (filtra a
+lista), e cada um deles ganha um ponto vermelho com "!" no canto da foto. Os documentos assinados não ficam em
+`/uploads`: só abrem pelo download com login. Quem responde pela organização (nome e cargo) é configurado em
+Configurações › Organização. Termos enviados como arquivo antes da assinatura online continuam valendo e aparecem como
+"Assinado em dd/mm/aaaa".
 
 **Anonimizar voluntário** — na página do voluntário, a coordenação usa "Anonimizar dados" (no menu "⋯" ao lado de "Editar voluntário")
 no lugar de excluir (quando a pessoa sai da
@@ -694,13 +695,13 @@ A documentação interativa fica em `/swagger`.
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
 | GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos e resultados somados; edita nome, ícone e cor e arquiva/reativa; exclui só programa sem projetos |
 | GET/PUT | `/api/programs/{id}/template` | modelo do programa (PUT grava o modelo inteiro; coordenação) |
-| GET/POST | `/api/volunteers/{id}/documents` | termos assinados do voluntário (coordenação); `/template` gera o termo em PDF |
+| GET | `/api/volunteers/{id}/documents` | termo assinado do voluntário (coordenação; quem assina é o voluntário, em `/api/me/term`) |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
 | GET | `/api/volunteers/{id}/certificate/options` | período completo e projetos da pessoa, já calculados, para a janela do certificado |
 | POST | `/api/volunteers/{id}/certificate` | certificado em PDF: período completo, período específico ou por projeto (CPF opcional, não é guardado) |
 | POST/DELETE | `/api/organization/signature` | imagem da assinatura usada nos certificados (privada) |
 | GET | `/api/audit` | histórico de alterações (só administradores), com filtros por projeto, pessoa, tipo e período |
-| GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) ou remove um documento assinado |
+| GET/DELETE | `/api/documents/{id}/download` · `/api/documents/{id}` | baixa (com login) um documento assinado ou remove uma autorização de imagem (o termo de adesão não se apaga) |
 | GET | `/api/me/term` | termo de adesão do voluntário logado: texto, se falta assinar e quando assinou |
 | POST | `/api/me/term/sign` | assina online (nome completo, CPF, resposta sobre imagem, aceite); gera e guarda o PDF |
 | GET | `/api/me/term/download` | baixa a via assinada do próprio termo |

@@ -57,6 +57,15 @@ public class DemoDataTests
             Assert.Equal(3, await curitibaDb.SignedDocuments.CountAsync());
         }
 
+        // Os termos de demonstracao foram assinados online (com CPF valido no PDF); as contas de demonstracao ficam
+        // sem termo, para dar para assinar.
+        var terms = await system.SignedDocuments.Where(d => d.Kind == SignedDocumentKind.VolunteerTerm).ToListAsync();
+        Assert.Equal(11, terms.Count);
+        Assert.All(terms, t => Assert.NotNull(t.SignerName));
+        var demoLogins = await system.Users.Where(u => u.VolunteerId != null && u.OrganizationId == poa.Id)
+            .Select(u => u.VolunteerId).ToListAsync();
+        Assert.DoesNotContain(terms, t => demoLogins.Contains(t.VolunteerId));
+
         // Painel: os indicadores nacionais somam os dois nucleos (a horta de POA passou a "Famílias atendidas").
         var user = new TestUser { Id = national.Id, IsNational = true };
         await using var panelDb = new EsfDbContext(options, user);

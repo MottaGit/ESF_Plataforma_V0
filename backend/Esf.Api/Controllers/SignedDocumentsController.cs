@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Esf.Api.Controllers;
 
 /// <summary>
-/// Termos de adesao e autorizacoes de uso de imagem. Trazem CPF, endereco e assinatura, por isso so a
-/// coordenacao (administrador e coordenador) ve, envia e baixa.
+/// Termos de adesao (assinados online pelo proprio voluntario: a coordenacao ve e baixa) e autorizacoes de uso de
+/// imagem dos projetos (assinadas no papel pelas familias: a coordenacao gera, envia e baixa). Trazem CPF e assinatura,
+/// por isso so a coordenacao (administrador e coordenador) chega aqui.
 /// </summary>
 [ApiController]
 [Authorize(Policy = Policies.ManageProjects)]
@@ -22,19 +23,6 @@ public class SignedDocumentsController : ControllerBase
     [HttpGet("volunteers/{volunteerId:guid}/documents")]
     public async Task<ActionResult<List<SignedDocumentDto>>> ListForVolunteer(Guid volunteerId)
         => Ok(await _documents.ListForVolunteerAsync(volunteerId));
-
-    [HttpPost("volunteers/{volunteerId:guid}/documents")]
-    [RequestSizeLimit(20 * 1024 * 1024)]
-    public async Task<ActionResult<SignedDocumentDto>> UploadForVolunteer(Guid volunteerId, [FromForm] UploadSignedDocumentRequest request)
-        => Ok(await _documents.UploadForVolunteerAsync(volunteerId, request));
-
-    /// <summary>Termo de adesao em PDF, com o nome do voluntario, para imprimir e assinar.</summary>
-    [HttpGet("volunteers/{volunteerId:guid}/documents/template")]
-    public async Task<IActionResult> VolunteerTermTemplate(Guid volunteerId)
-    {
-        var (content, fileName) = await _documents.VolunteerTermTemplateAsync(volunteerId);
-        return File(content, "application/pdf", fileName);
-    }
 
     [HttpGet("projects/{projectId:guid}/documents")]
     public async Task<ActionResult<List<SignedDocumentDto>>> ListForProject(Guid projectId)

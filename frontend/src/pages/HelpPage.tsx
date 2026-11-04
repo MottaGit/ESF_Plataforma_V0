@@ -202,8 +202,9 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <p>
             Enquanto faltar, o Início mostra <strong>Assine seu termo de adesão</strong>. Leia o texto, responda se
-            autoriza o uso da sua imagem, informe o CPF, marque que concorda e digite o nome completo. Depois, a via
-            assinada fica em <strong>Minha conta</strong> e no seu perfil, para baixar quando quiser.
+            autoriza o uso da sua imagem, informe o CPF, marque que concorda e digite o nome completo. O botão{' '}
+            <strong>Ler e assinar</strong> também fica em <strong>Minha conta</strong> e no seu perfil, onde depois você
+            baixa a via assinada.
           </p>
         )
       },
@@ -277,8 +278,8 @@ const SECTIONS: HelpSection[] = [
               </li>
             </ol>
             <p>
-              Quem não tem acesso assina no papel: na página da pessoa, use <strong>Gerar termo para assinar</strong>,
-              colha a assinatura e envie a cópia no mesmo lugar, com a data da assinatura.
+              Quem assina é sempre a própria pessoa, na conta dela. Depois, a coordenação baixa o termo assinado na
+              página do voluntário.
             </p>
             <p>
               Quem ainda está sem termo aparece com um <strong>!</strong> vermelho na foto, e o topo da lista de

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
@@ -116,10 +117,9 @@ public static class DbSeeder
                 CreatedAt = At(on)
             });
 
-        // Documento assinado de demonstracao: o proprio modelo em PDF, guardado como se a coordenacao o tivesse enviado
-        // (por padrao a Ana; no outro nucleo, quem o administra).
-        void SignedDocument(SignedDocumentKind kind, Volunteer? volunteer, Project? project, byte[] content,
-            string fileName, int signedOn, User? uploadedBy = null)
+        // Documento assinado de demonstracao, guardado como se a coordenacao o tivesse enviado (por padrao a Ana).
+        SignedDocument SignedDocument(SignedDocumentKind kind, Volunteer? volunteer, Project? project, byte[] content,
+            string fileName, int signedOn, User? uploadedBy = null, Guid? id = null)
         {
             var storedName = $"{Guid.NewGuid():N}.pdf";
             db.StoredFiles.Add(new StoredFile
@@ -131,8 +131,9 @@ public static class DbSeeder
                 IsPrivate = true,
                 CreatedAt = At(signedOn)
             });
-            db.SignedDocuments.Add(new SignedDocument
+            var document = new SignedDocument
             {
+                Id = id ?? Guid.NewGuid(),
                 Kind = kind,
                 VolunteerId = volunteer?.Id,
                 ProjectId = project?.Id,
@@ -143,7 +144,27 @@ public static class DbSeeder
                 SignedOn = Day(signedOn),
                 UploadedAt = At(signedOn),
                 UploadedByUserId = (uploadedBy ?? ana).Id
-            });
+            };
+            db.SignedDocuments.Add(document);
+            return document;
+        }
+
+        // Termo de adesao assinado online pelo proprio voluntario no dia da entrada, com um CPF de demonstracao valido.
+        var demoTerms = 0;
+        void SignedTerm(Organization organization, Volunteer volunteer, int on)
+        {
+            var id = Guid.NewGuid();
+            var signedAt = At(on);
+            var pdf = DocumentTemplates.VolunteerTerm(organization, volunteer, new TermSignature(
+                id, volunteer.Name, DemoCpf(++demoTerms), volunteer.Email ?? "", signedAt, null, ImageAuthorized: true));
+            var document = SignedDocument(SignedDocumentKind.VolunteerTerm, volunteer, null, pdf,
+                $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}-assinado.pdf", on, id: id);
+            document.UploadedByUserId = null;
+            document.SignerName = volunteer.Name;
+            document.SignedAt = signedAt;
+            document.TermVersion = DocumentTemplates.VolunteerTermVersion;
+            document.ContentHash = Convert.ToHexString(SHA256.HashData(pdf)).ToLowerInvariant();
+            document.ImageAuthorized = true;
         }
 
         void ImageAuthorization(Project project, int signedOn) =>
@@ -161,9 +182,7 @@ public static class DbSeeder
             db.VolunteerStatusChanges.AddRange(changes.Select(c =>
                 new VolunteerStatusChange { VolunteerId = volunteer.Id, Status = c.Status, StartsOn = Day(c.On) }));
 
-            if (signedTerm)
-                SignedDocument(SignedDocumentKind.VolunteerTerm, volunteer, null, DocumentTemplates.VolunteerTerm(org, volunteer),
-                    $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}-assinado.pdf", on);
+            if (signedTerm) SignedTerm(org, volunteer, on);
         }
 
         // ---------------------------------------------------------------
@@ -281,10 +300,11 @@ public static class DbSeeder
         db.Volunteers.AddRange(vLeonardo, vAna, vFausto, vAdriano, vEdu, vLuca, vGuilherme, vCarol, vJulia, vAlice,
             vYasminM, vFrancielly, vMariaAntonia);
 
-        // Fausto teve um afastamento e voltou; Edu esta afastado; Yasmin saiu. Termo pendente: Carol, que acabou de
-        // entrar, e Alice, que entrou antes de o termo existir.
-        Joined(vAna, -1250, signedTerm: true);
-        Joined(vLeonardo, -1020, signedTerm: true);
+        // Fausto teve um afastamento e voltou; Edu esta afastado; Yasmin saiu. Termo pendente: as tres contas de
+        // demonstracao (Ana, Leonardo e Fausto), para dar para assinar online; Carol, que acabou de entrar; e Alice,
+        // que entrou antes de o termo existir (as duas sem acesso).
+        Joined(vAna, -1250, signedTerm: false);
+        Joined(vLeonardo, -1020, signedTerm: false);
         Joined(vGuilherme, -900, signedTerm: true);
         Joined(vJulia, -800, signedTerm: true);
         Joined(vYasminM, -760, signedTerm: true, (-60, VolunteerStatus.ExMembro));
@@ -292,7 +312,7 @@ public static class DbSeeder
         Joined(vEdu, -650, signedTerm: true, (-20, VolunteerStatus.Afastado));
         Joined(vFrancielly, -600, signedTerm: true);
         Joined(vLuca, -560, signedTerm: true);
-        Joined(vFausto, -480, signedTerm: true, (-300, VolunteerStatus.Afastado), (-240, VolunteerStatus.Ativo));
+        Joined(vFausto, -480, signedTerm: false, (-300, VolunteerStatus.Afastado), (-240, VolunteerStatus.Ativo));
         Joined(vMariaAntonia, -450, signedTerm: true);
         Joined(vAlice, -400, signedTerm: false);
         Joined(vCarol, -100, signedTerm: false);
@@ -788,8 +808,7 @@ public static class DbSeeder
 
         // Termos do nucleo de Curitiba (com os dados dele); o do Rafael, que chegou ha pouco, ainda falta.
         foreach (var (volunteer, on) in new[] { (cMarina, -420), (cPedro, -310), (cCamila, -150) })
-            SignedDocument(SignedDocumentKind.VolunteerTerm, volunteer, null, DocumentTemplates.VolunteerTerm(curitiba, volunteer),
-                $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}-assinado.pdf", on, marina);
+            SignedTerm(curitiba, volunteer, on);
 
         var pReforma = new ProjectProgram
         {
@@ -941,5 +960,19 @@ public static class DbSeeder
         await ProjectTeam.SyncAllAsync(db);
         logger.LogInformation("Dados iniciais criados: {Nucleos} nucleos, {Users} usuarios, {Volunteers} voluntarios, {Projects} projetos.",
             db.Organizations.Local.Count, db.Users.Local.Count, db.Volunteers.Local.Count, db.Projects.Local.Count);
+    }
+
+    /// <summary>CPF de demonstracao com os digitos verificadores certos, diferente para cada numero.</summary>
+    private static string DemoCpf(int seed)
+    {
+        var digits = (100_000_000 + seed * 7_654_321 % 899_999_999).ToString("D9").Select(c => c - '0').ToList();
+        for (var length = 9; length <= 10; length++)
+        {
+            var sum = 0;
+            for (var i = 0; i < length; i++) sum += digits[i] * (length + 1 - i);
+            digits.Add(sum * 10 % 11 % 10);
+        }
+        var text = string.Concat(digits);
+        return $"{text[..3]}.{text[3..6]}.{text[6..9]}-{text[9..]}";
     }
 }

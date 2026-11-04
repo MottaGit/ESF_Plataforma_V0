@@ -8,9 +8,9 @@ using QuestPDF.Infrastructure;
 namespace Esf.Api.Reports;
 
 /// <summary>
-/// Modelos em PDF para imprimir e assinar: o termo de adesao do voluntario (com a autorizacao de uso de imagem)
-/// e a autorizacao de uso de imagem dos beneficiarios de um projeto. CPF, RG e endereco ficam em branco para
-/// preencher a mao: a plataforma nao guarda esses dados.
+/// Documentos em PDF: o termo de adesao do voluntario (com a autorizacao de uso de imagem), na via assinada online, e a
+/// autorizacao de uso de imagem dos beneficiarios de um projeto, para imprimir e assinar (CPF, RG e endereco ficam em
+/// branco para preencher a mao: a plataforma nao guarda esses dados).
 /// </summary>
 public static class DocumentTemplates
 {
@@ -80,10 +80,10 @@ public static class DocumentTemplates
     public const string ImageClauseTitle = "6. Uso de imagem.";
 
     /// <summary>
-    /// Termo de adesao (com autorizacao de uso de imagem). Sem <paramref name="signature"/>: para imprimir e assinar a
-    /// mao, com CPF, RG e endereco em branco. Com ela: a via assinada online, com o registro da assinatura no fim.
+    /// Via assinada online do termo de adesao (com autorizacao de uso de imagem): o texto, o CPF informado, a resposta
+    /// sobre imagem e o registro da assinatura no fim.
     /// </summary>
-    public static byte[] VolunteerTerm(Organization org, Volunteer volunteer, TermSignature? signature = null)
+    public static byte[] VolunteerTerm(Organization org, Volunteer volunteer, TermSignature signature)
     {
         var content = VolunteerTermContent(org, volunteer);
         return Build(org, content.Title, col =>
@@ -98,15 +98,7 @@ public static class DocumentTemplates
                     text.Span("Nome: ");
                     text.Span(volunteer.Name).SemiBold();
                 });
-                if (signature is null)
-                {
-                    person.Item().Text("CPF: ________________________________     RG: ________________________________");
-                    person.Item().Text("Endereço: ____________________________________________________________________________");
-                }
-                else
-                {
-                    person.Item().Text($"CPF: {signature.Cpf}");
-                }
+                person.Item().Text($"CPF: {signature.Cpf}");
                 person.Item().Text(
                     $"Telefone: {Blank(volunteer.Phone, 26)}     E-mail: {Blank(volunteer.Email, 34)}");
             });
@@ -117,17 +109,12 @@ public static class DocumentTemplates
             {
                 Clause(col, clause.Title, clause.Text);
                 if (clause.Title != ImageClauseTitle) continue;
-                var (yes, no) = signature is null ? (" ", " ") : signature.ImageAuthorized ? ("X", " ") : (" ", "X");
+                var (yes, no) = signature.ImageAuthorized ? ("X", " ") : (" ", "X");
                 col.Item().PaddingLeft(14).Text($"(  {yes}  ) Autorizo o uso da minha imagem          (  {no}  ) Não autorizo");
             }
 
-            if (signature is null)
-                Closing(col, org, ("VOLUNTÁRIO(A)", volunteer.Name), ("ORGANIZAÇÃO", OrgSignatory(org)));
-            else
-                ElectronicClosing(col, org, signature);
-        }, signature is null
-            ? "Gerado pela plataforma de gestão de projetos — preencher, assinar e enviar a cópia assinada."
-            : $"Documento assinado eletronicamente na plataforma de gestão de projetos · registro {signature.RecordId}");
+            ElectronicClosing(col, org, signature);
+        }, $"Documento assinado eletronicamente na plataforma de gestão de projetos · registro {signature.RecordId}");
     }
 
     /// <summary>

@@ -70,7 +70,7 @@ export function TermCallout({ volunteerId }: { volunteerId: string | null }) {
  * Termo de adesao na conta do proprio voluntario (Minha conta e Meu perfil): assinar, se falta, ou baixar a via
  * assinada.
  */
-export function MyTermPanel({ volunteerId }: { volunteerId: string | null }) {
+export function MyTermPanel({ volunteerId, onSigned }: { volunteerId: string | null; onSigned?: () => void }) {
   const { notify, notifyError } = useToast();
   const [term, setTerm] = useMyTerm(Boolean(volunteerId));
   const [open, setOpen] = useState(false);
@@ -130,6 +130,7 @@ export function MyTermPanel({ volunteerId }: { volunteerId: string | null }) {
           onSigned={(signed) => {
             setTerm(signed);
             notify('Termo assinado.');
+            onSigned?.();
           }}
         />
       ) : null}

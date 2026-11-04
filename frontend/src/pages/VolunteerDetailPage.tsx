@@ -4,7 +4,7 @@ import { ApiError } from '../api/client';
 import { projectsApi, volunteersApi } from '../api/endpoints';
 import { GrantAccessModal, NewAccessLinkModal } from '../components/access/AccessLinkModals';
 import { MyTermPanel } from '../components/documents/MyTermPanel';
-import { SignedDocumentsPanel } from '../components/documents/SignedDocumentsPanel';
+import { VolunteerTermPanel } from '../components/documents/VolunteerTermPanel';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -214,16 +214,11 @@ export function VolunteerDetailPage() {
             />
           ) : null}
 
-          {canManage ? (
-            <SignedDocumentsPanel
-              owner={{ type: 'volunteer', id: volunteer.id }}
-              title="Termo de adesão e uso de imagem"
-              description="Exigido pela Lei do Voluntariado (9.608/98). Quem tem acesso à plataforma assina online, na própria conta. Sem acesso: gere o termo, colha a assinatura no papel e envie a cópia."
-              templateLabel="Gerar termo para assinar"
-              onChanged={() => void load()}
-            />
-          ) : user?.volunteerId === volunteer.id ? (
-            <MyTermPanel volunteerId={volunteer.id} />
+          {/* No proprio perfil (qualquer perfil de acesso), o botao de assinar; nos outros, a coordenacao so ve e baixa. */}
+          {user?.volunteerId === volunteer.id ? (
+            <MyTermPanel volunteerId={volunteer.id} onSigned={() => void load()} />
+          ) : canManage ? (
+            <VolunteerTermPanel volunteer={volunteer} />
           ) : null}
         </div>
       </div>

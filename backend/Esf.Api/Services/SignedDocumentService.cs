@@ -9,8 +9,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Esf.Api.Services;
 
 /// <summary>
-/// Termos de adesao de voluntarios e autorizacoes de uso de imagem dos beneficiarios: modelo em PDF para
-/// assinar, envio do arquivo assinado e download. Os arquivos sao privados (nao saem por /uploads).
+/// Documentos assinados: os termos de adesao dos voluntarios (assinados online, em <see cref="MyTermService"/>; aqui so
+/// a lista e o download) e as autorizacoes de uso de imagem dos beneficiarios (modelo em PDF, envio do arquivo assinado
+/// e download). Os arquivos sao privados (nao saem por /uploads).
 /// </summary>
 public class SignedDocumentService
 {
@@ -36,12 +37,6 @@ public class SignedDocumentService
     public Task<List<SignedDocumentDto>> ListForProjectAsync(Guid projectId) =>
         ToDtos(_db.SignedDocuments.Where(d => d.ProjectId == projectId));
 
-    public async Task<SignedDocumentDto> UploadForVolunteerAsync(Guid volunteerId, UploadSignedDocumentRequest request)
-    {
-        if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId)) throw AppException.NotFound("Voluntario");
-        return await UploadAsync(SignedDocumentKind.VolunteerTerm, volunteerId, null, request);
-    }
-
     public async Task<SignedDocumentDto> UploadForProjectAsync(Guid projectId, UploadSignedDocumentRequest request)
     {
         if (!await _db.Projects.AnyAsync(p => p.Id == projectId)) throw AppException.NotFound("Projeto");
@@ -59,18 +54,12 @@ public class SignedDocumentService
     public async Task DeleteAsync(Guid id)
     {
         var document = await _db.SignedDocuments.FirstOrDefaultAsync(d => d.Id == id) ?? throw AppException.NotFound("Documento");
+        // O termo de adesao e assinado pelo proprio voluntario: a coordenacao so ve e baixa.
+        if (document.Kind == SignedDocumentKind.VolunteerTerm)
+            throw new AppException("O termo de adesão assinado não pode ser apagado.");
         _db.SignedDocuments.Remove(document);
         await _db.SaveChangesAsync();
         await _storage.DeleteAsync(document.StoredName);
-    }
-
-    /// <summary>Termo de adesao (com autorizacao de uso de imagem) ja com o nome do voluntario, para imprimir e assinar.</summary>
-    public async Task<(byte[] Content, string FileName)> VolunteerTermTemplateAsync(Guid volunteerId)
-    {
-        var volunteer = await _db.Volunteers.AsNoTracking().FirstOrDefaultAsync(v => v.Id == volunteerId)
-                        ?? throw AppException.NotFound("Voluntario");
-        var org = await OrganizationAsync();
-        return (DocumentTemplates.VolunteerTerm(org, volunteer), $"termo-de-adesao-{TextHelpers.Slug(volunteer.Name)}.pdf");
     }
 
     /// <summary>Autorizacao de uso de imagem para as familias do projeto assinarem (uma por familia).</summary>
