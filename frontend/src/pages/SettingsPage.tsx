@@ -355,24 +355,10 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
           <h2>Logo</h2>
         </div>
         <div className="panel__body">
-          <div
-            style={{
-              height: 130,
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              display: 'grid',
-              placeItems: 'center',
-              background: 'var(--surface-soft)',
-              overflow: 'hidden',
-              marginBottom: 12
-            }}
-          >
+          {/* Sem logo, so uma faixa baixa avisando; a moldura alta fica para mostrar a imagem enviada. */}
+          <div className={`logo-preview${organization?.logoUrl ? '' : ' logo-preview--empty'}`}>
             {organization?.logoUrl ? (
-              <img
-                src={assetUrl(organization.logoUrl)}
-                alt={`Logo de ${organization.name}`}
-                style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-              />
+              <img src={assetUrl(organization.logoUrl)} alt={`Logo de ${organization.name}`} />
             ) : (
               <span className="field__hint">Nenhum logo enviado</span>
             )}

@@ -154,10 +154,10 @@ const SECTIONS: HelpSection[] = [
         question: 'Como gero o relatório de um projeto?',
         answer: (
           <p>
-            No topo do projeto, use <strong>Gerar relatório</strong>: abrem as mesmas opções da tela Relatórios (período
-            de referência, tarefas concluídas, fotos e observação). Sai um PDF com os resultados, a equipe e a linha do
-            tempo com as fotos, pronto para enviar a parceiros. Com um período (por exemplo, o trimestre que o parceiro
-            pediu), entram só os registros e as tarefas concluídas dentro dele.
+            No topo do projeto, use <strong>Gerar relatório</strong> (no celular, fica no <strong>⋯</strong>): abrem as
+            mesmas opções da tela Relatórios (período de referência, tarefas concluídas, fotos e observação). Sai um PDF
+            com os resultados, a equipe e a linha do tempo com as fotos, pronto para enviar a parceiros. Com um período
+            (por exemplo, o trimestre que o parceiro pediu), entram só os registros e as tarefas concluídas dentro dele.
           </p>
         )
       }
@@ -330,7 +330,7 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <>
             <p>
-              Na página do voluntário, use <strong>Dar acesso</strong> (ou, em <strong>Configurações › Usuários</strong>,{' '}
+              Na página do voluntário, use <strong>Dar acesso</strong> (ou, em <strong>Configurações › Acessos</strong>,{' '}
               <strong>Novo acesso</strong>; só administradores). Escolha o perfil: o login é o e-mail do cadastro.
             </p>
             <p>

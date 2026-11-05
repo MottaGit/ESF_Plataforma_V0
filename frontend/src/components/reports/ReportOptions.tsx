@@ -33,7 +33,7 @@ function periodShortcuts(today = new Date()) {
     { label: 'Mês passado', from: inputDate(new Date(year, month - 1, 1)), to: inputDate(new Date(year, month, 0)) },
     { label: 'Últimos 3 meses', from: inputDate(new Date(year, month - 3, today.getDate())), to: inputDate(today) },
     { label: 'Este ano', from: inputDate(new Date(year, 0, 1)), to: inputDate(today) },
-    { label: 'Todo o histórico', from: '', to: '' }
+    { label: 'Tudo', from: '', to: '' }
   ];
 }
 
@@ -118,7 +118,7 @@ export function ReportOptionsFields({ value, onChange, withoutImageAuthorization
           <span className="field__error">{periodError}</span>
         ) : (
           <span className="field__hint">
-            Em branco, todo o histórico. Com período, entram só os registros (com as fotos) e as tarefas concluídas
+            Em branco (Tudo), todo o histórico. Com período, entram só os registros (com as fotos) e as tarefas concluídas
             dentro dele; indicadores e equipe saem como estão hoje.
           </span>
         )}

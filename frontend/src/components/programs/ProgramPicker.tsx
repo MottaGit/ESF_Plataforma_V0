@@ -28,7 +28,7 @@ const SEARCH_FROM = 8;
 /**
  * Escolha do programa na tela Projetos: um botao com o icone e o nome do programa escolhido que abre a lista (com
  * busca, os arquivados agrupados embaixo e, para a coordenacao, "Novo programa"). Substitui as abas, que nao cabiam
- * quando o nucleo tem dezenas de programas.
+ * quando o nucleo tem dezenas de programas. Fica na barra de filtros, na mesma altura da busca.
  */
 export function ProgramPicker({ programs, selectedId, onSelect, onCreate }: ProgramPickerProps) {
   const { open, setOpen, ref } = usePopover();
@@ -131,14 +131,14 @@ export function ProgramPicker({ programs, selectedId, onSelect, onCreate }: Prog
         onClick={() => setOpen((current) => !current)}
       >
         {selected ? (
-          <ProgramMark icon={selected.icon} color={selected.color} size={30} />
+          <ProgramMark icon={selected.icon} color={selected.color} size={24} />
         ) : (
-          <span className="program-picker__all program-picker__all--large" aria-hidden="true">
-            <IconProjects size={16} />
+          <span className="program-picker__all program-picker__all--small" aria-hidden="true">
+            <IconProjects size={14} />
           </span>
         )}
         <span className="program-picker__label">
-          <span className="program-picker__caption">Programa</span>
+          <span className="sr-only">Programa: </span>
           <span className="program-picker__value">{selected ? selected.name : 'Todos os programas'}</span>
         </span>
         <IconChevronDown size={16} className="program-picker__chevron" />

@@ -254,8 +254,9 @@ export function VolunteersPage() {
                       </td>
                       <td>{sectorLabel(volunteer.sector)}</td>
                       <td className="cell--desktop">{currentPrograms.length > 0 ? currentPrograms.join(', ') : '—'}</td>
-                      <td>
-                        <VolunteerStatusBadge status={volunteer.status} />
+                      {/* Celula vazia (ativo) nao ocupa lugar no cartao do celular. */}
+                      <td className={volunteer.status === 'Ativo' ? 'cell--desktop' : undefined}>
+                        <VolunteerStatusBadge status={volunteer.status} onlyException />
                       </td>
                     </tr>
                   );

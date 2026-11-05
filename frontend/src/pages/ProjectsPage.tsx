@@ -6,7 +6,7 @@ import { ProgramFormModal } from '../components/programs/ProgramFormModal';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ProgramPicker } from '../components/programs/ProgramPicker';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
-import { LateBadge, StatusBadge } from '../components/ui/Badge';
+import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
@@ -268,26 +268,15 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         ) : null}
       </div>
 
-      <div className="program-bar">
+      {/* Programa, busca e status numa linha so; a visao geral do programa escolhido vem logo abaixo. */}
+      <div className="toolbar">
         <ProgramPicker
           programs={programs}
           selectedId={programId}
           onSelect={(id) => updateParams({ programa: id })}
           onCreate={canManage ? () => setProgramForm('new') : undefined}
         />
-      </div>
 
-      {selected ? (
-        <ProgramOverview
-          program={selected}
-          canManage={canManage}
-          onEdit={() => setProgramForm(selected)}
-          onToggleArchived={() => void toggleProgramArchived(selected)}
-          onDelete={() => setRemovingProgram(selected)}
-        />
-      ) : null}
-
-      <div className="toolbar">
         <CollapsibleFilters active={activeFilters}>
           <span className="search">
             <IconSearch className="search__icon" />
@@ -322,22 +311,24 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
             </Select>
           ) : null}
 
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={onlyLate}
-              onChange={(event) => updateParams({ atrasados: event.target.checked ? '1' : null })}
-            />
-            Só atrasados
-          </label>
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={includeArchived}
-              onChange={(event) => updateParams({ arquivados: event.target.checked ? '1' : null })}
-            />
-            Incluir arquivados
-          </label>
+          <div className="toolbar__chips" role="group" aria-label="Mais filtros">
+            <button
+              type="button"
+              className={`chip${onlyLate ? ' chip--active' : ''}`}
+              aria-pressed={onlyLate}
+              onClick={() => updateParams({ atrasados: onlyLate ? null : '1' })}
+            >
+              Só atrasados
+            </button>
+            <button
+              type="button"
+              className={`chip${includeArchived ? ' chip--active' : ''}`}
+              aria-pressed={includeArchived}
+              onClick={() => updateParams({ arquivados: includeArchived ? null : '1' })}
+            >
+              Incluir arquivados
+            </button>
+          </div>
         </CollapsibleFilters>
 
         <div className="toolbar__right">
@@ -372,6 +363,16 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
             <span className="sr-only">Tirar este filtro</span>
           </button>
         </div>
+      ) : null}
+
+      {selected ? (
+        <ProgramOverview
+          program={selected}
+          canManage={canManage}
+          onEdit={() => setProgramForm(selected)}
+          onToggleArchived={() => void toggleProgramArchived(selected)}
+          onDelete={() => setRemovingProgram(selected)}
+        />
       ) : null}
 
       {error ? <Alert kind="error">{error}</Alert> : null}
@@ -436,17 +437,14 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                                 {[!selected ? project.programName : null, project.district, project.isArchived ? 'arquivado' : null]
                                   .filter(Boolean)
                                   .join(' · ')}
+                                {/* Atraso em texto vermelho, como o prazo das tarefas: o status fica num selo so. */}
+                                {project.isLate ? <span className="late-text"> · prazo vencido</span> : null}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td>
                           <StatusBadge status={project.status} />
-                          {project.isLate ? (
-                            <div style={{ marginTop: 4 }}>
-                              <LateBadge />
-                            </div>
-                          ) : null}
                         </td>
                         <td className="cell--desktop">{project.ownerName ?? '—'}</td>
                         <td className="cell--grow" style={{ minWidth: 120 }}>

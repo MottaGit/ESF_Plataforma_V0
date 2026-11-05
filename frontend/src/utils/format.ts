@@ -267,7 +267,7 @@ export function whatsAppHref(phone: string | null | undefined) {
 
 /** Quando o acesso nao esta vinculado a um voluntario, nao ha como saber quais atividades sao da pessoa. */
 export const UNLINKED_MESSAGE =
-  'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais tarefas são suas. Peça a um administrador para fazer o vínculo em Configurações › Usuários.';
+  'Seu acesso ainda não está vinculado a um voluntário, então não dá para saber quais tarefas são suas. Peça a um administrador para fazer o vínculo em Configurações › Acessos.';
 
 /**
  * Quando algo aconteceu, em texto curto: "agora", "há 5 min", "há 2 h", "ontem", "há 3 dias" e, a partir de uma semana,

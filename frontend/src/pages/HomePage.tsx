@@ -11,7 +11,7 @@ import { isOverdue } from '../components/tasks/taskUtils';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge } from '../components/ui/Badge';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
-import { IconCheck } from '../components/ui/Icons';
+import { IconCheck, IconChevronRight } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -231,7 +231,7 @@ function OrgStrip({ data }: { data: Dashboard }) {
     { to: '/tarefas?de=todas&recorte=atrasadas', value: org.lateTasks, label: 'Tarefas atrasadas', alert: org.lateTasks > 0 },
     { to: '/tarefas?de=todas&recorte=bloqueadas', value: org.blockedTasks, label: 'Bloqueadas', alert: false },
     { to: '/tarefas?de=todas&responsavel=nenhum', value: org.unassignedTasks, label: 'Sem responsável', alert: false },
-    { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos parados', hint: 'sem registro há 30 dias', alert: false }
+    { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos sem registro há 30 dias', alert: false }
   ];
   return (
     <section className="section" aria-label="Na organização">
@@ -241,7 +241,10 @@ function OrgStrip({ data }: { data: Dashboard }) {
           <Link key={tile.label} className="stat stat--link" to={tile.to}>
             <div className={`stat__value num${tile.alert ? ' stat__value--alert' : ''}`}>{tile.value}</div>
             <div className="stat__label">{tile.label}</div>
-            <div className="stat__hint">{tile.hint ?? 'ver a lista'}</div>
+            <div className="stat__more">
+              Ver a lista
+              <IconChevronRight size={13} />
+            </div>
           </Link>
         ))}
       </div>

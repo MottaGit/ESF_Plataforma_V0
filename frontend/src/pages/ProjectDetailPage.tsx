@@ -15,6 +15,7 @@ import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, Loading } from '../components/ui/Feedback';
 import { IconCalendar, IconCheck, IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
+import { Menu } from '../components/ui/Menu';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -193,13 +194,26 @@ export function ProjectDetailPage() {
         </div>
 
         <div className="page-head__actions">
-          <Button icon={<IconDownload size={15} />} onClick={() => setReporting(true)}>
+          {/* No celular, com o Editar ao lado, o relatorio vai para o "..." e sobra espaco para o conteudo. */}
+          <Button
+            className={canManage ? 'only-desktop' : undefined}
+            icon={<IconDownload size={15} />}
+            onClick={() => setReporting(true)}
+          >
             Gerar relatório
           </Button>
           {canManage ? (
-            <Button variant="primary" icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
-              Editar projeto
-            </Button>
+            <>
+              <Button variant="primary" icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
+                Editar projeto
+              </Button>
+              <span className="only-mobile">
+                <Menu
+                  label={`Mais ações de ${project.name}`}
+                  items={[{ label: 'Gerar relatório', icon: <IconDownload size={14} />, onSelect: () => setReporting(true) }]}
+                />
+              </span>
+            </>
           ) : null}
         </div>
       </div>
@@ -238,7 +252,7 @@ export function ProjectDetailPage() {
       </ScrollTabs>
 
       {tab === 'updates' ? (
-        <AndamentoTab project={project} onChanged={() => void load()} focusComposer={registering} />
+        <AndamentoTab project={project} onChanged={() => void load()} onOpenTab={openTab} focusComposer={registering} />
       ) : null}
       {tab === 'activities' ? (
         <ActivitiesTab

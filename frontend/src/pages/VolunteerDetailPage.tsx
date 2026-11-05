@@ -89,6 +89,17 @@ export function VolunteerDetailPage() {
   const current = volunteer.projects.filter((item) => !isPastProjectStatus(item.projectStatus));
   const history = volunteer.projects.filter((item) => isPastProjectStatus(item.projectStatus));
 
+  const anonymizeItem = { label: 'Anonimizar dados', danger: true, onSelect: () => setAnonymizing(true) };
+
+  const birthday = birthdayLabel(volunteer.birthDay, volunteer.birthMonth);
+  const profileFields = [
+    volunteer.email ? { label: 'E-mail', value: <EmailLink email={volunteer.email} /> } : null,
+    volunteer.phone ? { label: 'Telefone', value: <PhoneLink phone={volunteer.phone} /> } : null,
+    birthday ? { label: 'Aniversário', value: birthday } : null,
+    volunteer.skills ? { label: 'Competências', value: volunteer.skills } : null,
+    volunteer.notes ? { label: 'Outras informações relevantes', value: volunteer.notes } : null
+  ].filter((field) => field !== null);
+
   return (
     <>
       <div style={{ marginBottom: 12 }}>
@@ -104,26 +115,38 @@ export function VolunteerDetailPage() {
           <div>
             <h1>{volunteer.name}</h1>
             <p className="page-head__desc">{sectorLabel(volunteer.sector)}</p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-              <VolunteerStatusBadge status={volunteer.status} />
-              {isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? <BirthdayBadge /> : null}
-            </div>
+            {/* "Ativo" e o normal: so a excecao (afastado, inativo) ganha etiqueta; o historico fica em Horas. */}
+            {volunteer.status !== 'Ativo' || isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? (
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                <VolunteerStatusBadge status={volunteer.status} onlyException />
+                {isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? <BirthdayBadge /> : null}
+              </div>
+            ) : null}
           </div>
         </div>
 
         {canManage && !volunteer.anonymized ? (
           <div className="page-head__actions">
-            <Button icon={<IconDownload size={15} />} onClick={() => setCertificateOpen(true)}>
+            <Button className="only-desktop" icon={<IconDownload size={15} />} onClick={() => setCertificateOpen(true)}>
               Gerar certificado
             </Button>
             <Button variant="primary" icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
               Editar voluntário
             </Button>
-            {/* Acao rara e sem volta: fica no menu, nunca solta na tela. */}
-            <Menu
-              label={`Mais ações de ${volunteer.name}`}
-              items={[{ label: 'Anonimizar dados', danger: true, onSelect: () => setAnonymizing(true) }]}
-            />
+            {/* Anonimizar e acao rara e sem volta: fica no menu, nunca solta na tela. No celular, o certificado
+                tambem vai para o menu, para os botoes caberem numa linha. */}
+            <span className="only-desktop">
+              <Menu label={`Mais ações de ${volunteer.name}`} items={[anonymizeItem]} />
+            </span>
+            <span className="only-mobile">
+              <Menu
+                label={`Mais ações de ${volunteer.name}`}
+                items={[
+                  { label: 'Gerar certificado', icon: <IconDownload size={14} />, onSelect: () => setCertificateOpen(true) },
+                  anonymizeItem
+                ]}
+              />
+            </span>
           </div>
         ) : null}
       </div>
@@ -144,34 +167,19 @@ export function VolunteerDetailPage() {
               <h2>Contato e perfil</h2>
             </div>
             <div className="panel__body">
-              <div className="meta-list">
-                <div>
-                  <div className="meta__label">E-mail</div>
-                  <div className="meta__value">
-                    <EmailLink email={volunteer.email} />
-                  </div>
+              {/* So o que foi preenchido; o que falta se completa em "Editar voluntário". */}
+              {profileFields.length === 0 ? (
+                <p className="meta__value">Nenhum contato ou dado de perfil cadastrado.</p>
+              ) : (
+                <div className="meta-list">
+                  {profileFields.map((field) => (
+                    <div key={field.label}>
+                      <div className="meta__label">{field.label}</div>
+                      <div className="meta__value">{field.value}</div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <div className="meta__label">Telefone</div>
-                  <div className="meta__value">
-                    <PhoneLink phone={volunteer.phone} />
-                  </div>
-                </div>
-                <div>
-                  <div className="meta__label">Aniversário</div>
-                  <div className="meta__value">{birthdayLabel(volunteer.birthDay, volunteer.birthMonth) ?? '—'}</div>
-                </div>
-                <div>
-                  <div className="meta__label">Competências</div>
-                  <p className="meta__value">{volunteer.skills ?? 'Nada registrado.'}</p>
-                </div>
-                {volunteer.notes ? (
-                  <div>
-                    <div className="meta__label">Outras informações relevantes</div>
-                    <p className="meta__value">{volunteer.notes}</p>
-                  </div>
-                ) : null}
-              </div>
+              )}
             </div>
           </section>
 
@@ -284,19 +292,20 @@ function AccessPanel({ volunteer, canEdit, onChanged }: { volunteer: Volunteer; 
             Sem acesso. {volunteer.email ? 'O login será o e-mail do cadastro.' : 'Para dar acesso, cadastre antes o e-mail (é o login).'}
           </p>
         ) : (
+          // "Ativo" ja e a situacao do voluntario: aqui o acesso diz o que acontece com o login.
           <div className="meta-list">
             <div>
-              <div className="meta__label">Perfil</div>
+              <div className="meta__label">Perfil de acesso</div>
               <div className="meta__value">{roleLabel(access.role)}</div>
             </div>
             <div>
-              <div className="meta__label">Situação</div>
+              <div className="meta__label">Login</div>
               <div className="meta__value">
                 {!access.isActive
-                  ? 'Desativado (reative em Configurações › Usuários)'
+                  ? 'Desativado (reative em Configurações › Acessos)'
                   : access.pending
                     ? 'Aguardando o primeiro acesso'
-                    : 'Ativo'}
+                    : 'Liberado: entra com o e-mail e a própria senha'}
               </div>
             </div>
           </div>
@@ -364,54 +373,39 @@ function ProjectsPanel({
       <div className="panel__head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>{title}</h2>
         {allowLinking && canManage ? (
-          <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => setLinkOpen(true)}>
+          <Button small icon={<IconPlus size={15} />} onClick={() => setLinkOpen(true)}>
             Vincular a um projeto
           </Button>
         ) : null}
       </div>
-      <div className="panel__body">
-        {items.length === 0 ? (
+      {items.length === 0 ? (
+        <div className="panel__body">
           <EmptyState title={emptyText} />
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Projeto</th>
-                  <th>Função</th>
-                  {canManage ? <th className="right">Ações</th> : null}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.projectId}>
-                    <td>
-                      <Link className="row-link" to={`/projetos/${item.projectId}`}>
-                        {item.projectName}
-                      </Link>
-                    </td>
-                    <td>{item.roleInProject ?? '—'}</td>
-                    {canManage ? (
-                      <td>
-                        <div className="row-actions">
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconTrash size={15} />}
-                            title="Desvincular"
-                            aria-label={`Desvincular de ${item.projectName}`}
-                            onClick={() => setRemoving(item)}
-                          />
-                        </div>
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <ul className="person-projects">
+          {items.map((item) => (
+            <li key={item.projectId} className="person-projects__item">
+              <div className="person-projects__main">
+                <Link className="row-link" to={`/projetos/${item.projectId}`}>
+                  {item.projectName}
+                </Link>
+                {item.roleInProject ? <div className="table__secondary">{item.roleInProject}</div> : null}
+              </div>
+              {canManage ? (
+                <Button
+                  small
+                  variant="ghost"
+                  icon={<IconTrash size={15} />}
+                  title="Desvincular"
+                  aria-label={`Desvincular de ${item.projectName}`}
+                  onClick={() => setRemoving(item)}
+                />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {linkOpen ? (
         <LinkProjectModal

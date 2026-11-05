@@ -10,7 +10,10 @@ import { NotificationBell } from './NotificationBell';
 import { TermsGate } from './TermsGate';
 import { Sidebar } from './Sidebar';
 
-/** Nome da secao no topo, igual ao item marcado no menu (o nome do projeto ou da pessoa ja vem logo abaixo). */
+/**
+ * Nome da secao no topo, igual ao item marcado no menu (o nome do projeto ou da pessoa ja vem logo abaixo). So aparece
+ * quando o menu lateral esta recolhido (celular) ou nao ha busca no topo (conta so da gestao nacional).
+ */
 const titles: Array<{ match: RegExp; title: string }> = [
   { match: /^\/$/, title: 'Início' },
   { match: /^\/projetos/, title: 'Projetos' },
@@ -56,7 +59,7 @@ export function AppLayout() {
       {menuOpen ? <div className="scrim" onClick={() => setMenuOpen(false)} /> : null}
 
       <div className="main">
-        <header className="header">
+        <header className={`header${hasNucleo ? ' header--search' : ''}`}>
           <button
             type="button"
             className="icon-button sidebar__toggle"

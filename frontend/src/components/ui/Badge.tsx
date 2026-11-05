@@ -24,9 +24,10 @@ const activityStatusClass: Record<ActivityStatus, string> = {
   Concluida: 'badge--done'
 };
 
+// Laranja fica para o que pede atencao (pausado, urgente, pendente): afastamento e uma situacao, nao um alerta.
 const volunteerStatusClass: Record<VolunteerStatus, string> = {
-  Ativo: 'badge--run',
-  Afastado: 'badge--pause',
+  Ativo: 'badge--done',
+  Afastado: 'badge--neutral',
   Inativo: 'badge--cancel',
   ExMembro: 'badge--cancel'
 };
@@ -94,7 +95,9 @@ export function UrgentBadge({ priority }: { priority: ActivityPriority }) {
   return priority === 'Alta' ? <span className="badge badge--urgent">Urgente</span> : null;
 }
 
-export function VolunteerStatusBadge({ status }: { status: VolunteerStatus }) {
+/** Situacao do voluntario. Com onlyException, "Ativo" (o normal) nao ganha etiqueta: so afastado, inativo etc. */
+export function VolunteerStatusBadge({ status, onlyException }: { status: VolunteerStatus; onlyException?: boolean }) {
+  if (onlyException && status === 'Ativo') return null;
   return <span className={`badge ${volunteerStatusClass[status]}`}>{volunteerStatusLabel(status)}</span>;
 }
 
