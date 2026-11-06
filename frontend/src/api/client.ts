@@ -1,3 +1,5 @@
+import { reportConnection } from '../offline/offline';
+
 const BASE_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 const TOKEN_KEY = 'esf.token';
@@ -90,8 +92,12 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       body: formData ?? (body !== undefined ? JSON.stringify(body) : undefined)
     });
   } catch {
+    if (!navigator.onLine) throw new ApiError('Sem internet. Conecte-se e tente de novo.', 0);
     throw new ApiError('Nao foi possivel falar com o servidor. Verifique se a API esta em execucao.', 0);
   }
+
+  // Sem internet, o service worker devolve a ultima copia guardada (ou um 503 explicando) com este cabecalho.
+  reportConnection(response.headers.get('X-Esf-Offline') === '1');
 
   if (response.status === 401 && !skipAuthRedirect) {
     tokenStore.clear();

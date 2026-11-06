@@ -1462,6 +1462,8 @@ button { font: inherit; }
 .alert--error { border-left-color: var(--danger); background: var(--danger-bg); color: #7a1c14; border-color: #f3c6c1; }
 .alert--warning { border-left-color: var(--warning); background: var(--st-pause-bg); color: #7a4a0a; border-color: #f0dcc0; }
 .alert--info { border-left-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); border-color: #cfe2dd; }
+/* Sem internet: faixa no topo de todas as telas (OfflineBanner). */
+.offline-banner { margin-bottom: 16px; }
 
 .toast-stack {
   position: fixed;

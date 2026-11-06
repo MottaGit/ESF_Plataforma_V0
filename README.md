@@ -246,8 +246,26 @@ tabela (Projetos, Voluntários, Equipe do projeto, Relatórios, Acessos e as da 
 linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no iPhone, letra menor faz a tela ampliar
 sozinha a cada toque num campo). Dá para pôr a plataforma na tela de início do celular ("Adicionar à Tela de Início"
 no Safari, "Instalar app" no Chrome): vira o ícone **CtrlESF** (o globo do logo da ESF) e abre em tela cheia
-(`frontend/public/manifest.json` e `frontend/public/icons/`; a Ajuda explica o passo a passo). Ainda não funciona sem
-internet.
+(`frontend/public/manifest.json` e `frontend/public/icons/`; a Ajuda explica o passo a passo).
+
+**Sem internet (consulta)** — o que foi aberto com internet fica guardado no aparelho e continua abrindo sem conexão,
+com a faixa "Sem internet" no topo; os projetos de "Meus projetos" ficam guardados sozinhos quando o Início abre, mesmo
+os que a pessoa não abriu. Tela nunca aberta mostra "Sem internet, e esta informação ainda não foi aberta neste
+aparelho com internet". Salvar (registro, tarefa, horas) ainda precisa de internet: sem ela, o aviso de erro diz "Sem
+internet. Conecte-se e tente de novo.". Ao sair (ou entrar com outra pessoa), os dados guardados são apagados. Como
+funciona: `frontend/service-worker.js` vira o `/sw.js` no build (o `vite.config.ts` põe a lista de arquivos e a
+versão); só existe no build de produção, não no `npm run dev`.
+- App (HTML, JS, CSS, ícones): guardado inteiro no primeiro acesso. A página vem da rede primeiro (com a rede lenta,
+  depois de 4 s, da cópia); a versão nova assume assim que termina de se guardar, e a cópia da anterior fica até a
+  próxima versão (abas abertas com ela continuam achando os arquivos dela).
+- Dados (`GET /api/...` em JSON, menos a busca e os links de acesso): da rede, guardando cada resposta (até 300);
+  sem internet ou depois de 8 s sem resposta, a última cópia, com o cabeçalho `X-Esf-Offline: 1` (é o que liga a
+  faixa). Fotos e arquivos (`/uploads/...`): cópia guardada primeiro (até 200), já que o nome nunca muda.
+- O nginx manda `Cache-Control: no-cache` para `index.html` e `sw.js` (o navegador sempre confere se há versão nova).
+- Para desligar numa emergência: publicar um `sw.js` que só faz `self.registration.unregister()` no `activate`
+  (está no comentário do topo do `service-worker.js`).
+- Só cobre a API no mesmo endereço do site (como no nginx do Docker); com `VITE_API_URL` apontando para outro
+  domínio, os dados não ficam guardados.
 
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 atrasadas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
+import { OfflineBanner } from '../../offline/OfflineBanner';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
 import { BottomBar } from './BottomBar';
@@ -86,6 +87,7 @@ export function AppLayout() {
         </header>
 
         <main className="content">
+          <OfflineBanner />
           <Outlet />
         </main>
 

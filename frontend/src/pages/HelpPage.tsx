@@ -65,6 +65,24 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Dá para usar sem internet?',
+        answer: (
+          <>
+            <p>
+              Para <strong>consultar</strong>, sim. O que você abre com internet fica guardado neste aparelho, e os
+              seus projetos (os de Meus projetos) ficam guardados sozinhos quando você abre o Início. Sem internet,
+              aparece a faixa <strong>Sem internet</strong> e as telas mostram o que foi carregado da última vez.
+            </p>
+            <p>
+              Para <strong>salvar</strong> (registrar andamento, concluir tarefa, lançar horas), ainda precisa de
+              internet. Antes de ir a campo, abra a plataforma com internet, de preferência o Início e os projetos que
+              vai visitar.
+            </p>
+            <p>Ao sair da conta, o que estava guardado no aparelho é apagado.</p>
+          </>
+        )
+      },
+      {
         question: 'Como encontro um projeto, uma tarefa ou uma pessoa?',
         answer: (
           <p>

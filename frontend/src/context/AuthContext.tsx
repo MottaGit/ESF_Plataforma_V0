@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authApi } from '../api/endpoints';
 import { onUnauthorized, tokenStore } from '../api/client';
+import { clearOfflineData } from '../offline/offline';
 import type { LoginResponse, User } from '../types/api';
 
 interface AuthContextValue {
@@ -29,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     tokenStore.clear();
+    void clearOfflineData();
     setUser(null);
   }, []);
 
@@ -45,7 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const current = await authApi.me();
         if (active) setUser(current);
       } catch {
-        tokenStore.clear();
+        // Sessao invalida (401): o client ja apagou o token. Sem internet ou com o servidor fora do ar, o token
+        // fica guardado para a proxima vez (antes, qualquer falha aqui deslogava a pessoa).
       } finally {
         if (active) setInitializing(false);
       }
@@ -57,7 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => onUnauthorized(() => setUser(null)), []);
+  useEffect(
+    () =>
+      onUnauthorized(() => {
+        void clearOfflineData();
+        setUser(null);
+      }),
+    []
+  );
 
   const refreshUser = useCallback(async () => {
     try {
@@ -68,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startSession = useCallback((result: LoginResponse) => {
+    // O que estava guardado para uso sem internet pode ser de quem usou o aparelho antes.
+    void clearOfflineData();
     tokenStore.set(result.token);
     setUser(result.user);
   }, []);

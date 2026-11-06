@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { activitiesApi, dashboardApi, volunteersApi } from '../api/endpoints';
+import { activitiesApi, dashboardApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { TermCallout } from '../components/documents/MyTermPanel';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
@@ -15,6 +15,7 @@ import { IconCheck, IconChevronRight } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { keepForOffline } from '../offline/offline';
 import type { Activity, Dashboard, HomeProject, IdleVolunteer, SetupStatus, Volunteer } from '../types/api';
 import {
   UNLINKED_MESSAGE,
@@ -75,6 +76,11 @@ export function HomePage() {
       .then(setVolunteers)
       .catch(() => setVolunteers([]));
   }, [load]);
+
+  // Os projetos da pessoa ficam guardados no aparelho para consultar em campo, mesmo os que ela nao abriu.
+  useEffect(() => {
+    data?.myProjects.forEach((project) => keepForOffline(`project:${project.id}`, () => projectsApi.get(project.id)));
+  }, [data]);
 
   if (loading) return <Loading label="Carregando…" />;
 
