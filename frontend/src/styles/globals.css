@@ -475,6 +475,11 @@ button { font: inherit; }
   box-shadow: var(--focus);
 }
 .input:disabled, .select:disabled, .textarea:disabled { background: var(--surface-soft); color: var(--text-muted); }
+/*
+ * Senha com a letra do sistema: o Safari do iPhone esconde a senha com "●", que a Inter (so letras latinas) nao tem,
+ * e sem buscar outra fonte mostrava caixinhas "NO GLYPH" no lugar dos pontinhos.
+ */
+input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
 .input--invalid, .select--invalid, .textarea--invalid { border-color: var(--danger); }
 .textarea { min-height: 86px; resize: vertical; line-height: 1.45; }
 .select { appearance: none; background-image: none; cursor: pointer; }
