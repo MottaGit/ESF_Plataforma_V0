@@ -244,7 +244,10 @@ com busca) e abre o projeto já no registro de andamento, com o cursor no campo;
 no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmação aparecem acima da barra. As listas em
 tabela (Projetos, Voluntários, Equipe do projeto, Relatórios, Acessos e as da área Nacional) viram cartões, um por
 linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no iPhone, letra menor faz a tela ampliar
-sozinha a cada toque num campo).
+sozinha a cada toque num campo). Dá para pôr a plataforma na tela de início do celular ("Adicionar à Tela de Início"
+no Safari, "Instalar app" no Chrome): vira o ícone **CtrlESF** (o globo do logo da ESF) e abre em tela cheia
+(`frontend/public/manifest.json` e `frontend/public/icons/`; a Ajuda explica o passo a passo). Ainda não funciona sem
+internet.
 
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 atrasadas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban

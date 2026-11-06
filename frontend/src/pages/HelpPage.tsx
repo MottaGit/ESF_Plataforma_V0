@@ -43,6 +43,28 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Como coloco a plataforma na tela do celular?',
+        answer: (
+          <>
+            <p>
+              Ela vira um ícone, o <strong>CtrlESF</strong>, e abre em tela cheia, como um aplicativo. Não precisa
+              baixar nada da loja.
+            </p>
+            <ul>
+              <li>
+                <strong>iPhone:</strong> abra a plataforma no Safari, toque em <strong>Compartilhar</strong> (o quadrado
+                com a seta para cima) e depois em <strong>Adicionar à Tela de Início</strong>.
+              </li>
+              <li>
+                <strong>Android:</strong> abra no Chrome, toque nos três pontinhos e depois em{' '}
+                <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.
+              </li>
+            </ul>
+            <p>Na primeira vez que abrir pelo ícone, entre com o seu e-mail e a sua senha.</p>
+          </>
+        )
+      },
+      {
         question: 'Como encontro um projeto, uma tarefa ou uma pessoa?',
         answer: (
           <p>
