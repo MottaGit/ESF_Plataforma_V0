@@ -178,9 +178,10 @@ próximos 14 (o bloco some quando não há nenhum). Os avisos ficam só no sinin
 pedir o vínculo.
 Datas recentes aparecem em tempo relativo até uma semana ("há 3 dias", "ontem") e, depois disso, como data curta
 ("último registro em 09/10"; o ano só aparece quando não é o atual), igual em todas as telas. Para
-a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, bloqueadas, sem responsável e projetos
-parados, isto é, em andamento sem registro há mais de 30 dias; cada número abre a lista filtrada) e **Quem está mais
-carregado** (cada pessoa leva às tarefas dela). Num núcleo que ainda não tem nenhum projeto, a administração vê no
+a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, tarefas bloqueadas e projetos parados,
+isto é, em andamento sem registro há mais de 30 dias; cada número abre a lista filtrada) e **Quem está sem tarefa**
+(voluntários ativos sem nenhuma tarefa em aberto, primeiro quem não está em nenhum projeto; mostra 6 e "Ver todas";
+cada nome leva à página da pessoa). Num núcleo que ainda não tem nenhum projeto, a administração vê no
 lugar da faixa os **Primeiros passos**: dados do núcleo (CNPJ e quem assina), um programa, mais alguém com acesso e o
 primeiro projeto; cada passo se marca sozinho e o quadro some quando o primeiro projeto é criado.
 

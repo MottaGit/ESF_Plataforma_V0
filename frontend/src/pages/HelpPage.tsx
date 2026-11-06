@@ -226,9 +226,10 @@ const SECTIONS: HelpSection[] = [
         question: 'Como acompanho a organização?',
         answer: (
           <p>
-            No Início, <strong>Na organização</strong> mostra as tarefas atrasadas, bloqueadas e sem responsável e os
-            projetos parados (sem registro há 30 dias). Cada número abre a lista já filtrada. Mais abaixo,{' '}
-            <strong>Quem está mais carregado</strong> ajuda a dividir as tarefas.
+            No Início, <strong>Na organização</strong> mostra as tarefas atrasadas e bloqueadas e os projetos parados
+            (sem registro há 30 dias). Cada número abre a lista já filtrada. Mais abaixo,{' '}
+            <strong>Quem está sem tarefa</strong> lista os voluntários ativos sem nenhuma tarefa em aberto (primeiro
+            quem não está em nenhum projeto), para chamar quem está parado.
           </p>
         )
       },

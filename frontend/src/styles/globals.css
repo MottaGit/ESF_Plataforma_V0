@@ -381,18 +381,17 @@ button { font: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
 }
 
+/* Uma linha so, tambem no celular (sao 3 numeros). */
 .stat {
   padding: 16px 18px;
   border-right: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
   min-width: 0;
 }
-.stat:nth-child(4n) { border-right: 0; }
-.stat:nth-last-child(-n + 4) { border-bottom: 0; }
+.stat:last-child { border-right: 0; }
 
 .stat__value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
 .stat__label { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
@@ -675,8 +674,9 @@ button { font: inherit; }
 }
 .birthday-notice__icon { font-size: 18px; line-height: 1; }
 
-/* Visao geral: numeros clicaveis, "Precisa de atencao" e carga da equipe. */
+/* Visao geral: numeros clicaveis (a setinha no canto indica) e quem esta sem tarefa. */
 .stat--link {
+  position: relative;
   display: block;
   border-top: 0;
   border-left: 0;
@@ -687,8 +687,15 @@ button { font: inherit; }
   cursor: pointer;
 }
 .stat--link:hover { background: var(--surface-soft); text-decoration: none; }
-.stat__more { display: inline-flex; align-items: center; gap: 2px; margin-top: 6px; font-size: 12.5px; font-weight: 500; color: var(--accent-text); }
-.stat--link:hover .stat__more { text-decoration: underline; }
+.stat__go {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  display: flex;
+  color: var(--text-soft);
+  transition: color 0.15s, transform 0.15s;
+}
+.stat--link:hover .stat__go { color: var(--accent-text); transform: translateX(2px); }
 .stat__value--alert { color: var(--danger); }
 .summary-line__late { color: var(--danger); font-weight: 500; }
 .late-text { color: var(--danger); }
@@ -739,11 +746,11 @@ button { font: inherit; }
   cursor: pointer;
 }
 .link-button:hover { text-decoration: underline; }
-.team-load { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.team-load__item { display: flex; align-items: center; gap: 10px; }
-.team-load__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
-.team-load__count { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
-.team-load__late { color: var(--danger); }
+.idle-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.idle-list__item { display: flex; align-items: center; gap: 10px; }
+.idle-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.idle-list__projects { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+.idle-list__more { margin-top: 12px; font-size: 13px; }
 
 /* Aniversariantes do mes (Dashboard). */
 .birthday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
@@ -1712,11 +1719,6 @@ button { font: inherit; }
 
 @media (max-width: 1080px) {
   .grid-sidebar, .grid-3 { grid-template-columns: minmax(0, 1fr); }
-  .stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .stat:nth-child(4n) { border-right: 1px solid var(--border); }
-  .stat:nth-child(2n) { border-right: 0; }
-  .stat:nth-last-child(-n + 4) { border-bottom: 1px solid var(--border); }
-  .stat:nth-last-child(-n + 2) { border-bottom: 0; }
 }
 
 @media (max-width: 900px) {
@@ -1799,8 +1801,9 @@ button { font: inherit; }
   .act-row__side { width: 100%; padding-left: 29px; }
   .lightbox__stage { padding: 0 6px; }
   .lightbox__nav { width: 36px; height: 36px; background: rgba(0, 0, 0, 0.45); }
-  /* A visao geral tem so 4 numeros: no celular ficam em 2x2 (regras de 1080px), com menos espaco. */
+  /* Os 3 numeros da visao geral continuam lado a lado, com menos espaco. */
   .stat { padding: 12px 14px; }
+  .stat__go { top: 10px; right: 8px; }
   .stat__value { font-size: 20px; }
   .header__user-name, .header__user-role { display: none; }
   .page-head { flex-direction: column; }

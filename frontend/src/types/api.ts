@@ -491,12 +491,13 @@ export interface ProjectDetail {
   programColor: string;
 }
 
-export interface VolunteerWorkload {
+/** Voluntario ativo sem nenhuma tarefa em aberto (Inicio da coordenacao). */
+export interface IdleVolunteer {
   volunteerId: string;
   name: string;
   photoUrl: string | null;
-  openActivities: number;
-  lateActivities: number;
+  /** Projetos em planejamento ou em andamento em que a pessoa e responsavel ou esta na equipe. */
+  projects: number;
 }
 
 /** Numeros do usuario logado (so quando o acesso esta vinculado a um voluntario). */
@@ -522,7 +523,6 @@ export interface HomeProject {
 export interface OrgSummary {
   lateTasks: number;
   blockedTasks: number;
-  unassignedTasks: number;
   /** Projetos em andamento sem relato ha mais de 30 dias. */
   staleProjects: number;
 }
@@ -534,7 +534,8 @@ export interface Dashboard {
   myTasks: Activity[];
   myProjects: HomeProject[];
   org: OrgSummary;
-  workload: VolunteerWorkload[];
+  /** Voluntarios ativos sem tarefa em aberto: primeiro quem nao esta em nenhum projeto. */
+  idle: IdleVolunteer[];
   /** Primeiros passos de um nucleo que esta comecando (null quando ja tem projeto). */
   setup: SetupStatus | null;
 }

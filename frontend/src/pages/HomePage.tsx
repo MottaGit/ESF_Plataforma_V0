@@ -15,7 +15,7 @@ import { IconCheck, IconChevronRight } from '../components/ui/Icons';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import type { Activity, Dashboard, HomeProject, SetupStatus, Volunteer, VolunteerWorkload } from '../types/api';
+import type { Activity, Dashboard, HomeProject, IdleVolunteer, SetupStatus, Volunteer } from '../types/api';
 import {
   UNLINKED_MESSAGE,
   birthdayLabel,
@@ -29,6 +29,9 @@ import {
 /** Quantas das minhas tarefas aparecem no Inicio (o resto fica em Tarefas). */
 const MY_TASKS_VISIBLE = 8;
 
+/** Quantas pessoas sem tarefa aparecem antes do "Ver todas". */
+const IDLE_VISIBLE = 6;
+
 /** Janela de aniversarios: os que passaram ha poucos dias e os que vem pela frente. */
 const BIRTHDAYS_DAYS_BACK = 5;
 const BIRTHDAYS_DAYS_AHEAD = 14;
@@ -40,7 +43,7 @@ function plural(count: number, singular: string, pluralForm: string) {
 
 /**
  * Inicio: o que a pessoa logada tem para fazer (as tarefas e os projetos dela) e os aniversarios. A coordenacao ve
- * tambem o resumo da organizacao e a carga da equipe; a administracao de um nucleo que esta comecando, os primeiros
+ * tambem o resumo da organizacao e quem esta sem tarefa; a administracao de um nucleo que esta comecando, os primeiros
  * passos.
  */
 export function HomePage() {
@@ -111,7 +114,7 @@ export function HomePage() {
       <div className="grid-sidebar home">
         <div className="home__col">
           <MyTasksPanel tasks={data.myTasks} total={data.mine?.open ?? 0} onOpen={setOpened} onChanged={() => void load(true)} />
-          {canManage ? <WorkloadPanel workload={data.workload} /> : null}
+          {canManage ? <IdlePanel people={data.idle} /> : null}
         </div>
 
         <div className="home__col">
@@ -224,14 +227,13 @@ function FirstSteps({ setup }: { setup: SetupStatus }) {
   );
 }
 
-/** Coordenacao: o que pede atencao na organizacao. Cada numero abre a lista correspondente. */
+/** Coordenacao: o que pede atencao na organizacao. Cada numero abre a lista correspondente (a setinha no canto). */
 function OrgStrip({ data }: { data: Dashboard }) {
   const { org } = data;
   const tiles = [
     { to: '/tarefas?de=todas&recorte=atrasadas', value: org.lateTasks, label: 'Tarefas atrasadas', alert: org.lateTasks > 0 },
-    { to: '/tarefas?de=todas&recorte=bloqueadas', value: org.blockedTasks, label: 'Bloqueadas', alert: false },
-    { to: '/tarefas?de=todas&responsavel=nenhum', value: org.unassignedTasks, label: 'Sem responsável', alert: false },
-    { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos sem registro há 30 dias', alert: false }
+    { to: '/tarefas?de=todas&recorte=bloqueadas', value: org.blockedTasks, label: 'Tarefas bloqueadas', alert: false },
+    { to: '/projetos?parados=1', value: org.staleProjects, label: 'Projetos parados', hint: 'sem registro há 30 dias', alert: false }
   ];
   return (
     <section className="section" aria-label="Na organização">
@@ -239,12 +241,12 @@ function OrgStrip({ data }: { data: Dashboard }) {
       <div className="stat-strip">
         {tiles.map((tile) => (
           <Link key={tile.label} className="stat stat--link" to={tile.to}>
+            <span className="stat__go" aria-hidden="true">
+              <IconChevronRight size={16} />
+            </span>
             <div className={`stat__value num${tile.alert ? ' stat__value--alert' : ''}`}>{tile.value}</div>
             <div className="stat__label">{tile.label}</div>
-            <div className="stat__more">
-              Ver a lista
-              <IconChevronRight size={13} />
-            </div>
+            {tile.hint ? <div className="stat__hint">{tile.hint}</div> : null}
           </Link>
         ))}
       </div>
@@ -418,41 +420,44 @@ function MyProjectsPanel({ projects }: { projects: HomeProject[] }) {
   );
 }
 
-/** Coordenacao: quem esta com mais tarefas em aberto. */
-function WorkloadPanel({ workload }: { workload: VolunteerWorkload[] }) {
+/**
+ * Coordenacao: voluntarios ativos sem nenhuma tarefa em aberto, para chamar quem esta parado. Quem nao esta em nenhum
+ * projeto vem primeiro (a API ja manda nessa ordem).
+ */
+function IdlePanel({ people }: { people: IdleVolunteer[] }) {
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? people : people.slice(0, IDLE_VISIBLE);
+
   return (
     <section className="panel">
       <div className="panel__head">
-        <h2>Quem está mais carregado</h2>
-        <div className="panel__actions">
-          <Link className="btn btn--sm" to="/tarefas?de=todas">
-            Ver em Tarefas
-          </Link>
-        </div>
+        <h2>Quem está sem tarefa</h2>
+        {people.length > 0 ? <span className="tab__count num">{people.length}</span> : null}
       </div>
       <div className="panel__body">
-        {workload.length === 0 ? (
-          <p className="field__hint">Ninguém está com tarefas em aberto.</p>
+        {people.length === 0 ? (
+          <p className="field__hint">Todos os voluntários ativos têm alguma tarefa em aberto.</p>
         ) : (
-          <ul className="team-load">
-            {workload.map((item) => (
-              <li key={item.volunteerId} className="team-load__item">
-                <Avatar name={item.name} photoUrl={item.photoUrl} size={28} />
-                <Link className="row-link team-load__name" to={`/tarefas?de=todas&responsavel=${item.volunteerId}`}>
-                  {item.name}
-                </Link>
-                <span className="team-load__count num">
-                  {item.openActivities} em aberto
-                  {item.lateActivities > 0 ? (
-                    <span className="team-load__late">
-                      {' · '}
-                      {plural(item.lateActivities, 'atrasada', 'atrasadas')}
-                    </span>
-                  ) : null}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="idle-list">
+              {shown.map((person) => (
+                <li key={person.volunteerId} className="idle-list__item">
+                  <Avatar name={person.name} photoUrl={person.photoUrl} size={28} />
+                  <Link className="row-link idle-list__name" to={`/voluntarios/${person.volunteerId}`}>
+                    {person.name}
+                  </Link>
+                  <span className="idle-list__projects">
+                    {person.projects === 0 ? 'sem projeto' : `em ${plural(person.projects, 'projeto', 'projetos')}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {people.length > IDLE_VISIBLE ? (
+              <button type="button" className="link-button idle-list__more" onClick={() => setShowAll(!showAll)}>
+                {showAll ? 'Mostrar menos' : `Ver todas as ${people.length} pessoas`}
+              </button>
+            ) : null}
+          </>
         )}
       </div>
     </section>
