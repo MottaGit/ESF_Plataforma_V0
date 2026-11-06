@@ -11,8 +11,8 @@ public record DashboardDto(
     // Projetos em planejamento ou em andamento em que a pessoa e responsavel ou esta na equipe.
     IReadOnlyList<HomeProjectDto> MyProjects,
     OrgSummaryDto Org,
-    // Voluntarios com mais tarefas em aberto (carga da equipe).
-    IReadOnlyList<VolunteerWorkloadDto> Workload,
+    // Voluntarios ativos sem nenhuma tarefa em aberto: primeiro quem tambem nao esta em nenhum projeto.
+    IReadOnlyList<IdleVolunteerDto> Idle,
     // Primeiros passos de um nucleo que esta comecando (null quando o nucleo ja tem projeto).
     SetupDto? Setup);
 
@@ -36,15 +36,14 @@ public record HomeProjectDto(
 public record OrgSummaryDto(
     int LateTasks,
     int BlockedTasks,
-    int UnassignedTasks,
     // Projetos em andamento sem relato ha mais de 30 dias.
     int StaleProjects);
 
-public record VolunteerWorkloadDto(
+public record IdleVolunteerDto(
     Guid VolunteerId,
     string Name,
     string? PhotoUrl,
-    int OpenActivities,
-    int LateActivities);
+    // Projetos em planejamento ou em andamento em que a pessoa e responsavel ou esta na equipe.
+    int Projects);
 
 public record MyActivitiesDto(int Open, int Late, int Blocked);

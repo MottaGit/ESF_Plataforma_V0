@@ -11,8 +11,6 @@ public class DashboardService
     /// <summary>Projeto em andamento sem relato ha mais que isso aparece como "parado".</summary>
     public const int StaleDays = 30;
 
-    private const int WorkloadLimit = 6;
-
     /// <summary>Limite de "Minhas tarefas" (a tela agrupa por prazo e mostra as primeiras).</summary>
     private const int MyTasksLimit = 50;
 
@@ -38,30 +36,12 @@ public class DashboardService
         bool IsLate(Activity a) => a.DueDate.HasValue && a.DueDate.Value < today;
         bool IsBlocked(Activity a) => a.Status == ActivityStatus.Bloqueada;
 
-        // Agrupa pelo Id: sem rastreamento, cada tarefa traz sua propria instancia do voluntario.
-        var workload = open
-            .Where(a => a.AssignedVolunteer is not null)
-            .GroupBy(a => a.AssignedVolunteerId!.Value)
-            .Select(g => new VolunteerWorkloadDto(
-                g.Key,
-                g.First().AssignedVolunteer!.Name,
-                Mapping.PhotoUrl(g.First().AssignedVolunteer!.PhotoStoredName),
-                g.Count(),
-                g.Count(IsLate)))
-            .OrderByDescending(w => w.OpenActivities)
-            .ThenByDescending(w => w.LateActivities)
-            .ThenBy(w => w.Name)
-            .Take(WorkloadLimit)
-            .ToList();
+        var idle = await IdleVolunteersAsync(open);
 
         var staleSince = DateTime.UtcNow.AddDays(-StaleDays);
         var staleProjects = await StaleProjectsQuery(_db, staleSince).CountAsync();
 
-        var org = new OrgSummaryDto(
-            open.Count(IsLate),
-            open.Count(IsBlocked),
-            open.Count(a => a.AssignedVolunteerId == null),
-            staleProjects);
+        var org = new OrgSummaryDto(open.Count(IsLate), open.Count(IsBlocked), staleProjects);
 
         MyActivitiesDto? mine = null;
         var myTasks = new List<ActivityDto>();
@@ -110,7 +90,42 @@ public class DashboardService
                 .ToList();
         }
 
-        return new DashboardDto(mine, myTasks, myProjects, org, workload, await SetupAsync());
+        return new DashboardDto(mine, myTasks, myProjects, org, idle, await SetupAsync());
+    }
+
+    /// <summary>
+    /// Voluntarios ativos (nao anonimizados) sem nenhuma tarefa em aberto, para a coordenacao chamar quem esta parado.
+    /// Quem nao esta em nenhum projeto em planejamento ou em andamento vem primeiro; depois, por nome.
+    /// </summary>
+    private async Task<List<IdleVolunteerDto>> IdleVolunteersAsync(List<Activity> open)
+    {
+        var busy = open
+            .Where(a => a.AssignedVolunteerId.HasValue)
+            .Select(a => a.AssignedVolunteerId!.Value)
+            .ToHashSet();
+
+        var volunteers = await _db.Volunteers
+            .AsNoTracking()
+            .Where(v => v.Status == VolunteerStatus.Ativo && v.AnonymizedAt == null)
+            .Select(v => new { v.Id, v.Name, v.PhotoStoredName })
+            .ToListAsync();
+
+        var projects = await _db.Projects
+            .AsNoTracking()
+            .Where(p => !p.IsArchived
+                        && (p.Status == ProjectStatus.Planejamento || p.Status == ProjectStatus.EmAndamento))
+            .Select(p => new { p.OwnerVolunteerId, Team = p.Volunteers.Select(v => v.VolunteerId).ToList() })
+            .ToListAsync();
+
+        int ProjectsOf(Guid volunteerId) =>
+            projects.Count(p => p.OwnerVolunteerId == volunteerId || p.Team.Contains(volunteerId));
+
+        return volunteers
+            .Where(v => !busy.Contains(v.Id))
+            .Select(v => new IdleVolunteerDto(v.Id, v.Name, Mapping.PhotoUrl(v.PhotoStoredName), ProjectsOf(v.Id)))
+            .OrderBy(v => v.Projects > 0)
+            .ThenBy(v => v.Name)
+            .ToList();
     }
 
     /// <summary>Primeiros passos, so enquanto o nucleo nao tem nenhum projeto (nem arquivado).</summary>
