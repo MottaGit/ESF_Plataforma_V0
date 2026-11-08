@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -27,12 +28,12 @@ public partial class AuditService
         if (!string.IsNullOrWhiteSpace(q.EntityType)) query = query.Where(a => a.EntityType == q.EntityType);
         if (q.From.HasValue)
         {
-            var from = q.From.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            var from = TextHelpers.BrasiliaDayStartUtc(q.From.Value);
             query = query.Where(a => a.At >= from);
         }
         if (q.To.HasValue)
         {
-            var to = q.To.Value.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            var to = TextHelpers.BrasiliaDayStartUtc(q.To.Value.AddDays(1));
             query = query.Where(a => a.At < to);
         }
 

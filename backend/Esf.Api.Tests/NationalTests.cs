@@ -134,7 +134,7 @@ public class NationalTests
     {
         var f = await TwoNucleos.CreateAsync();
         var id = await CreateNationalAccountAsync(f);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = Mapping.Today;
 
         // A conclui a tarefa dele; os dois ligam o mesmo indicador nacional.
         await using (var system = f.SystemContext())

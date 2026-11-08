@@ -62,7 +62,7 @@ public static class ProjectReportBuilder
 
                 row.ConstantItem(180).AlignRight().Column(col =>
                 {
-                    col.Item().AlignRight().Text($"Emitido em {model.GeneratedAt.ToLocalTime():dd/MM/yyyy HH:mm}")
+                    col.Item().AlignRight().Text($"Emitido em {TextHelpers.BrasiliaTime(model.GeneratedAt):dd/MM/yyyy HH:mm}")
                         .FontSize(8).FontColor(Muted);
                     col.Item().AlignRight().Text($"Por {model.GeneratedBy}").FontSize(8).FontColor(Muted);
                     col.Item().AlignRight().Text($"{model.Projects.Count} projeto(s)").FontSize(8).FontColor(Muted);
@@ -444,7 +444,7 @@ public static class ProjectReportBuilder
                 {
                     table.Cell().Element(BodyCell).Text(task.Title);
                     table.Cell().Element(BodyCell).Text(task.AssignedVolunteer?.Name ?? "-");
-                    table.Cell().Element(BodyCell).Text(task.CompletedAt!.Value.ToLocalTime().ToString("dd/MM/yyyy"));
+                    table.Cell().Element(BodyCell).Text(TextHelpers.BrasiliaDay(task.CompletedAt!.Value).ToString("dd/MM/yyyy"));
                 }
             });
         });
@@ -556,7 +556,7 @@ public static class ProjectReportBuilder
     /// <summary>Data curta sem depender de dados de cultura (o host roda com InvariantGlobalization).</summary>
     private static string ShortDate(DateTime value)
     {
-        var local = value.ToLocalTime();
+        var local = TextHelpers.BrasiliaTime(value);
         return $"{local.Day:00} {MonthAbbreviations[local.Month - 1]} {local.Year}";
     }
 

@@ -239,7 +239,7 @@ public static class AuditTrail
             bool flag => flag ? "sim" : "não",
             decimal number => Math.Round(number, 2).ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ','),
             DateOnly date => date.ToString("dd/MM/yyyy"),
-            DateTime moment => moment.ToString("dd/MM/yyyy HH:mm"),
+            DateTime moment => TextHelpers.BrasiliaTime(moment).ToString("dd/MM/yyyy HH:mm"),
             ProjectStatus status => status switch
             {
                 ProjectStatus.Planejamento => "Planejamento",

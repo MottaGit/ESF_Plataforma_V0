@@ -16,7 +16,7 @@ namespace Esf.Api.Tests;
 /// </summary>
 public class NucleoIsolationTests
 {
-    private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.UtcNow);
+    private static readonly DateOnly Today = Mapping.Today;
 
     private static JwtTokenService Jwt() => new(Options.Create(new JwtOptions
     {

@@ -180,7 +180,7 @@ public class ProjectHoursService
 
     private static DateOnly ValidDate(DateOnly date)
     {
-        if (date > DateOnly.FromDateTime(TextHelpers.BrasiliaTime(DateTime.UtcNow)))
+        if (date > Mapping.Today)
             throw new AppException("O dia das horas não pode estar no futuro.");
         if (date.Year < 1990) throw new AppException("Confira o dia das horas.");
         return date;

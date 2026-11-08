@@ -12,7 +12,7 @@ namespace Esf.Api.Tests;
 /// </summary>
 public class CertificateTests
 {
-    private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.UtcNow);
+    private static readonly DateOnly Today = Mapping.Today;
 
     private static CertificateService Service(Data.EsfDbContext db) =>
         new(db, new FileStorageService(db, Options.Create(new StorageOptions())));

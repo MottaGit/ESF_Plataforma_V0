@@ -64,9 +64,10 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   `Common/Policies.cs` e as regras em `Program.cs` (`AddAuthorization`), então política nova mexe nos dois. A gestão
   nacional só vê números agregados, nunca dados pessoais dos núcleos. O token vale 12 h e, nesse período, não
   reconfere a permissão nem se o acesso foi desativado (`CurrentUser` só lê as claims).
-- **Datas:** o banco guarda em UTC. Para "hoje" e para mostrar data e hora, use o horário de Brasília
-  (`TextHelpers.BrasiliaTime`), como fazem o termo assinado e as horas. Cuidado: `Mapping.Today` ainda é o dia em UTC
-  (que vira às 21 h de Brasília) e o PDF do relatório e as planilhas usam `ToLocalTime()`, que no Docker é UTC.
+- **Datas:** o banco guarda em UTC e o servidor roda em UTC (que vira o dia às 21 h de Brasília). "Hoje" é
+  `Mapping.Today` (dia de Brasília); para mostrar, `TextHelpers.BrasiliaTime`/`BrasiliaDay`; para filtrar um período
+  em dias, `TextHelpers.BrasiliaDayStartUtc`. Nunca `ToLocalTime()`, `DateTime.UtcNow.Date` nem
+  `DateOnly.FromDateTime(DateTime.UtcNow)`.
 - **Histórico de alterações:** o `AuditInterceptor` (em `Services/AuditTrail.cs`) grava `AuditEntries` no mesmo
   `SaveChanges`, só quando há pessoa logada. Só entram as entidades e campos listados em `AuditTrail.Fields`; dados
   pessoais ficam em `MaskedFields` (registra que mudou, sem o valor). Campo novo que deve aparecer no histórico precisa

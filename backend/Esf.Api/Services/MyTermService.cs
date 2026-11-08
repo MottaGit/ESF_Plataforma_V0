@@ -69,7 +69,7 @@ public partial class MyTermService
         document.StoredName = saved.StoredName;
         document.ContentType = saved.ContentType;
         document.SizeBytes = saved.Size;
-        document.SignedOn = DateOnly.FromDateTime(TextHelpers.BrasiliaTime(now));
+        document.SignedOn = TextHelpers.BrasiliaDay(now);
         document.UploadedAt = now;
         document.UploadedByUserId = user.Id;
         document.SignerName = volunteer.Name;

@@ -57,8 +57,9 @@ public class NationalService
     {
         if (from.HasValue && to.HasValue && to < from)
             throw new AppException("O fim do periodo nao pode ser antes do inicio.");
-        var fromUtc = from?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var toUtc = to?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        // O periodo e em dias de Brasilia: o que foi feito as 22 h conta no proprio dia.
+        var fromUtc = from.HasValue ? TextHelpers.BrasiliaDayStartUtc(from.Value) : (DateTime?)null;
+        var toUtc = to.HasValue ? TextHelpers.BrasiliaDayStartUtc(to.Value.AddDays(1)) : (DateTime?)null;
 
         var nucleos = await _db.Organizations.AsNoTracking().OrderBy(o => o.Name).ToListAsync();
 

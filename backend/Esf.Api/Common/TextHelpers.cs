@@ -32,6 +32,13 @@ public static class TextHelpers
     public static DateTime BrasiliaTime(DateTime utc) =>
         DateTime.SpecifyKind(utc, DateTimeKind.Utc).AddHours(-3);
 
+    /// <summary>Dia (no horario de Brasilia) de um momento em UTC: um registro das 22 h fica no proprio dia.</summary>
+    public static DateOnly BrasiliaDay(DateTime utc) => DateOnly.FromDateTime(BrasiliaTime(utc));
+
+    /// <summary>Momento em UTC em que o dia comeca em Brasilia (00:00 de Brasilia = 03:00 UTC), para filtrar periodos.</summary>
+    public static DateTime BrasiliaDayStartUtc(DateOnly day) =>
+        DateTime.SpecifyKind(day.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc).AddHours(3);
+
     /// <summary>12 -> "12"; 1.5 -> "1,5"; 2.25 -> "2,25" (horas lancadas).</summary>
     public static string Hours(decimal hours) =>
         Math.Round(hours, 2).ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ',');

@@ -37,7 +37,7 @@ public class MyTermTests
         {
             VolunteerId = nucleo.VolunteerWithoutAccessId,
             Status = VolunteerStatus.Ativo,
-            StartsOn = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-20)
+            StartsOn = Mapping.Today.AddDays(-20)
         });
         await db.SaveChangesAsync();
         return new TestUser { Id = user.Id, Name = user.Name, Role = UserRole.Usuario, OrganizationId = nucleo.OrganizationId };

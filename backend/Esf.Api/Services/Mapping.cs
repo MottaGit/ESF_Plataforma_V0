@@ -10,7 +10,8 @@ public static class Mapping
 {
     public const string UploadsUrlPrefix = "/uploads";
 
-    public static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
+    /// <summary>Hoje no horario de Brasilia (o servidor roda em UTC, que ja vira o dia as 21 h).</summary>
+    public static DateOnly Today => TextHelpers.BrasiliaDay(DateTime.UtcNow);
 
     public static bool IsProjectLate(ProjectStatus status, DateOnly? endForecast) =>
         endForecast.HasValue

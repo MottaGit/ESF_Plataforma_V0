@@ -54,7 +54,7 @@ public class ProjectUpdateService
         // As horas do dia entram junto com o registro (e o que foi escrito vira o "o que fez").
         if (request.Hours is > 0)
             _db.ProjectHourEntries.Add(await ProjectHoursService.NewEntryAsync(_db, _currentUser, projectId, null,
-                DateOnly.FromDateTime(TextHelpers.BrasiliaTime(DateTime.UtcNow)), request.Hours.Value,
+                Mapping.Today, request.Hours.Value,
                 RichText.ToPlainText(update.Text)));
 
         foreach (var file in request.Files)

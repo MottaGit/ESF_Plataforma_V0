@@ -1,3 +1,4 @@
+using Esf.Api.Common;
 using Esf.Api.Domain.Entities;
 
 namespace Esf.Api.Reports;
@@ -22,10 +23,10 @@ public record ReportModel
 
     public bool HasPeriod => From.HasValue || To.HasValue;
 
-    /// <summary>Data (no fuso em que o PDF mostra as datas) dentro do periodo de referencia.</summary>
+    /// <summary>Data (no horario de Brasilia, o mesmo em que o PDF mostra as datas) dentro do periodo de referencia.</summary>
     public bool InPeriod(DateTime value)
     {
-        var day = DateOnly.FromDateTime(value.ToLocalTime());
+        var day = TextHelpers.BrasiliaDay(value);
         return (From is null || day >= From) && (To is null || day <= To);
     }
 

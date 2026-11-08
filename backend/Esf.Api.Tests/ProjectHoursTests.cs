@@ -15,7 +15,7 @@ namespace Esf.Api.Tests;
 /// </summary>
 public class ProjectHoursTests
 {
-    private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-3));
+    private static readonly DateOnly Today = Mapping.Today;
 
     /// <summary>Acesso de perfil Usuario para o voluntario "Sem acesso" (opcionalmente ja na equipe do projeto).</summary>
     private static async Task<TestUser> MemberLoginAsync(TwoNucleos f, Nucleo nucleo, bool inTeam = true)

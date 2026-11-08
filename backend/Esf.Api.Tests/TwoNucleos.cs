@@ -2,6 +2,7 @@ using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esf.Api.Tests;
@@ -42,7 +43,7 @@ public sealed class TwoNucleos
     private async Task<Nucleo> AddNucleoAsync(string name, string slug)
     {
         await using var db = SystemContext();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = Mapping.Today;
 
         var org = new Organization { Name = name };
         var volunteer = new Volunteer { OrganizationId = org.Id, Name = $"Voluntario {slug}", Email = $"voluntario.{slug}@teste.org" };

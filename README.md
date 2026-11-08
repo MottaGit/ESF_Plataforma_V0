@@ -177,7 +177,9 @@ planejamento ou andamento em que a pessoa é responsável ou está na equipe, co
 próximos 14 (o bloco some quando não há nenhum). Os avisos ficam só no sininho. Sem voluntário vinculado, explica como
 pedir o vínculo.
 Datas recentes aparecem em tempo relativo até uma semana ("há 3 dias", "ontem") e, depois disso, como data curta
-("último registro em 09/10"; o ano só aparece quando não é o atual), igual em todas as telas. Para
+("último registro em 09/10"; o ano só aparece quando não é o atual), igual em todas as telas. O "hoje" das contas
+(atrasada, vence hoje, prazo vencido) e as datas e horas do PDF, das planilhas, do histórico e dos períodos seguem o
+horário de Brasília, mesmo com o servidor em UTC: o que é feito às 22 h fica no próprio dia. Para
 a coordenação, entram também a faixa **Na organização** (tarefas atrasadas, tarefas bloqueadas e projetos parados,
 isto é, em andamento sem registro há mais de 30 dias; cada número abre a lista filtrada) e **Quem está sem tarefa**
 (voluntários ativos sem nenhuma tarefa em aberto, primeiro quem não está em nenhum projeto; mostra 6 e "Ver todas";
@@ -462,7 +464,7 @@ referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês pass
 ano** e **Todo o histórico**) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
 andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico). As datas
-seguem o fuso do servidor, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
+seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
 **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em mais
 de um), registros de andamento e tarefas concluídas no período e, para cada programa com indicadores padrão no
 modelo, esses indicadores somados nos projetos do relatório (mesma comparação de nomes da visão do programa). Títulos

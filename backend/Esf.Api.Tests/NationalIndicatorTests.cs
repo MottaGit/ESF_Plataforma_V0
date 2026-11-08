@@ -83,7 +83,7 @@ public class NationalIndicatorTests
         await using var db = f.Context(f.A.Admin);
         var created = await new ProjectService(db, new NotificationService(db, f.A.Admin)).CreateAsync(new SaveProjectRequest
         {
-            Name = "Projeto novo", ProgramId = f.A.ProgramId, StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            Name = "Projeto novo", ProgramId = f.A.ProgramId, StartDate = Mapping.Today,
             Status = ProjectStatus.Planejamento, UseTemplate = true
         });
 

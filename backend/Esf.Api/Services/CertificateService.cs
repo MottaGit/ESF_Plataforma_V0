@@ -180,7 +180,7 @@ public class CertificateService
                 var membership = memberships.FirstOrDefault(m => m.ProjectId == p.Id);
                 var mine = entries.Where(e => e.ProjectId == p.Id).ToList();
 
-                var start = membership is null ? p.StartDate : Max(p.StartDate, DateOnly.FromDateTime(membership.JoinedAt));
+                var start = membership is null ? p.StartDate : Max(p.StartDate, TextHelpers.BrasiliaDay(membership.JoinedAt));
                 if (mine.Count > 0 && mine[0].Date < start) start = mine[0].Date;
                 if (start > today) start = today;
 
