@@ -6,6 +6,7 @@ using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -110,6 +111,10 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim(CurrentUser.NationalClaim));
 });
 
+// Endereco real de quem acessa, atras do proxy (ver ClientAddress): vale para o limite de tentativas e para o
+// registro da assinatura do termo.
+builder.Services.Configure<ForwardedHeadersOptions>(options => ClientAddress.Configure(options, builder.Configuration));
+
 // Links de acesso (rotas publicas): poucas tentativas por minuto de cada endereco.
 builder.Services.AddRateLimiter(options =>
 {
@@ -203,6 +208,8 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // ---------- pipeline ----------
+// Primeiro de tudo: troca o endereco do proxy pelo de quem acessa.
+app.UseForwardedHeaders();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseSwagger();

@@ -74,6 +74,9 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   `SaveChanges`, só quando há pessoa logada. Só entram as entidades e campos listados em `AuditTrail.Fields`; dados
   pessoais ficam em `MaskedFields` (registra que mudou, sem o valor). Campo novo que deve aparecer no histórico precisa
   entrar nesse dicionário.
+- **Endereço de quem acessa:** a API fica atrás de proxy; `app.UseForwardedHeaders()` (configurado em
+  `Common/ClientAddress.cs`, chaves `ForwardedHeaders:*`) põe o endereço real em `Connection.RemoteIpAddress`. Use
+  esse, nunca o `X-Forwarded-For` cru (o navegador pode inventar).
 - **Arquivos:** ficam no banco (`StoredFiles`), não em disco, porque o disco do servidor some a cada deploy. Saem
   públicos em `/uploads/{nome}` (nome imutável, cache longo); documentos assinados são privados e só baixam com login.
 - **Busca sem acento:** funções do Postgres `esf_fold`/`esf_fold_html` (migração `AddSearchFunctions`), mapeadas como

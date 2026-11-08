@@ -393,7 +393,8 @@ termo), e Configurações › Minha conta e o próprio perfil têm o botão "Ler
 assinada. Para assinar, ele lê o texto na tela (o mesmo do PDF: adesão ao serviço voluntário, Lei 9.608/98, e
 autorização de uso de imagem), responde se autoriza o uso da imagem, informa o CPF, marca "Li e concordo" e digita o nome
 completo igual ao do cadastro (assinatura eletrônica simples, MP 2.200-2/2001, art. 10, § 2º). A plataforma gera na
-hora o PDF com o registro da assinatura no fim (nome, CPF, conta, data e hora de Brasília, endereço de rede) e guarda
+hora o PDF com o registro da assinatura no fim (nome, CPF, conta, data e hora de Brasília, endereço de rede — o que o
+nosso proxy informou; se a cadeia trazia outros antes dele, vão junto como "não conferido") e guarda
 junto o navegador, a versão do texto (`DocumentTemplates.VolunteerTermVersion`: mude a data ao mudar as cláusulas) e o
 SHA-256 do arquivo. O CPF só fica dentro do PDF, não numa coluna. Assina uma vez só, e o termo assinado não pode ser
 apagado. A coordenação (administrador e coordenador) não gera nem envia termo: na página do voluntário, vê a situação
@@ -483,7 +484,8 @@ cria a própria senha, aceita a política de privacidade e já entra; ninguém d
 O link vale 7 dias e uma vez só; só o hash do código fica no banco (tabela `AccessLinks`). Enquanto não for usado, o
 acesso aparece como "Aguardando o primeiro acesso" e o login com senha é recusado. Para quem perdeu o link ou esqueceu
 a senha, **Gerar link de acesso** (página do voluntário ou ícone da chave em Acessos) faz um link novo e anula os
-anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas por minuto por endereço. A lista de
+anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas por minuto por endereço (o endereço real de quem acessa, não o do
+proxy; ver `ForwardedHeaders` em Configuração). A lista de
 voluntários mostra uma chave ao lado de quem tem acesso (cinza enquanto aguarda o primeiro acesso), e a página do
 voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo. O nome e
 o e-mail do acesso vêm do cadastro do voluntário: mudar o e-mail no cadastro muda o login (não pode ficar em branco
@@ -839,6 +841,8 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | `Nacional:AdminEmail` | (vazio) | conta inicial da gestão nacional, criada na subida do servidor enquanto não existe nenhuma; se o e-mail já for o login de alguém, essa pessoa ganha a permissão |
 | `Nacional:AdminPassword` | (vazio) | senha dessa conta inicial (mín. 6 caracteres; troque em Minha conta depois de entrar) |
 | `Nacional:AdminName` | `Gestão nacional` | nome da conta inicial |
+| `ForwardedHeaders:ForwardLimit` | `1` | quantos proxies nossos ficam na frente da API (nginx do Docker = 1). O endereço de quem acessa sai do fim do `X-Forwarded-For`, que é o que o nosso proxy acrescentou; o que o navegador mandou antes não vale |
+| `ForwardedHeaders:ClientIpHeader` | (vazio = `X-Forwarded-For`) | cabeçalho com o endereço real, quando a hospedagem preenche um. No Render (Cloudflare na frente, e o `X-Forwarded-For` só acrescenta), use `True-Client-IP` e confira |
 
 No frontend, `VITE_API_URL` só é necessário se a API não estiver atrás do proxy (Vite em desenvolvimento, nginx em Docker).
 
