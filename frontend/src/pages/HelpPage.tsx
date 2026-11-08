@@ -221,6 +221,16 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Como mostro um programa a um parceiro ou financiador?',
+        answer: (
+          <p>
+            Em <strong>Projetos</strong>, escolha o programa e use <strong>Página pública</strong>: ligue, escreva o
+            "Sobre o programa" e mande o link. Ele abre sem login, com os projetos, os resultados e os números da equipe,
+            sem dados pessoais. Desligar invalida o link.
+          </p>
+        )
+      },
+      {
         question: 'O que é um indicador nacional?',
         answer: (
           <p>

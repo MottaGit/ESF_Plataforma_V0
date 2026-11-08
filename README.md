@@ -542,7 +542,12 @@ endereço, mapa, nomes de voluntários, tarefas, o texto dos registros, fotos ne
 o histórico (só que a página foi ligada, desligada ou trocada). Na tela (`pages/PublicProgramPage.tsx`, fora do login),
 "Planejamento" aparece como "Em preparação", a barra de progresso só aparece em andamento e pausado, e o link desligado
 mostra "Página indisponível" (sem mandar para o login). A página fica fora dos buscadores (`noindex`), tem o nome do
-programa no título da aba e não instala o uso sem internet (quem é de fora não precisa guardar o app).
+programa no título da aba e não instala o uso sem internet (quem é de fora não precisa guardar o app). Para a
+coordenação, a visão do programa (Projetos › programa) tem o botão **Página pública**: a janela explica o que aparece,
+liga e desliga (desligar avisa que o link deixa de abrir), guarda o "Sobre o programa" (até 1.500 caracteres) e, com a
+página ligada, mostra o link com **Copiar link**, **Enviar pelo WhatsApp** (escolhendo o contato) e **Ver como o
+público vê**. Salvar não fecha a janela, para o link aparecer logo depois de ligar; com a página ligada, a visão do
+programa diz "página pública ligada".
 
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de

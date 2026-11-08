@@ -789,6 +789,9 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .access-mark { display: inline-flex; margin-left: 6px; vertical-align: -2px; color: var(--accent-text); }
 .access-mark--pending { color: var(--text-soft); }
 .access-link { display: grid; gap: 12px; }
+.public-page-dialog { display: grid; gap: 14px; }
+.public-page-dialog > .field__hint { margin: 0; }
+.public-page-dialog__toggle { font-size: 14px; font-weight: 500; }
 
 /* Indicador ligado a um indicador nacional (entra na soma de todos os nucleos). */
 .national-mark {

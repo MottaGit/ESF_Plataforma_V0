@@ -5,6 +5,7 @@ import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { ProgramFormModal } from '../components/programs/ProgramFormModal';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ProgramPicker } from '../components/programs/ProgramPicker';
+import { PublicPageDialog } from '../components/programs/PublicPageDialog';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -12,7 +13,7 @@ import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
-import { IconDownload, IconEdit, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { IconDownload, IconEdit, IconGlobe, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
@@ -109,6 +110,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const [busy, setBusy] = useState(false);
   const [programForm, setProgramForm] = useState<Program | 'new' | null>(null);
   const [removingProgram, setRemovingProgram] = useState<Program | null>(null);
+  const [publicPageProgram, setPublicPageProgram] = useState<Program | null>(null);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -370,6 +372,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           program={selected}
           canManage={canManage}
           onEdit={() => setProgramForm(selected)}
+          onPublicPage={() => setPublicPageProgram(selected)}
           onToggleArchived={() => void toggleProgramArchived(selected)}
           onDelete={() => setRemovingProgram(selected)}
         />
@@ -513,6 +516,14 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         />
       ) : null}
 
+      {publicPageProgram ? (
+        <PublicPageDialog
+          program={publicPageProgram}
+          onClose={() => setPublicPageProgram(null)}
+          onChanged={() => loadPrograms()}
+        />
+      ) : null}
+
       {programForm ? (
         <ProgramFormModal
           program={programForm === 'new' ? null : programForm}
@@ -559,12 +570,13 @@ interface ProgramOverviewProps {
   program: Program;
   canManage: boolean;
   onEdit: () => void;
+  onPublicPage: () => void;
   onToggleArchived: () => void;
   onDelete: () => void;
 }
 
 /** Visao do programa escolhido: numeros, resultados somados e (para a coordenacao) modelo e edicao. */
-function ProgramOverview({ program, canManage, onEdit, onToggleArchived, onDelete }: ProgramOverviewProps) {
+function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArchived, onDelete }: ProgramOverviewProps) {
   const archived = program.status === 'Arquivado';
   const numbers = [
     { key: 'active', value: String(program.activeProjectsCount), label: 'em andamento', title: undefined as string | undefined },
@@ -592,6 +604,7 @@ function ProgramOverview({ program, canManage, onEdit, onToggleArchived, onDelet
             {archived
               ? 'Programa arquivado: não aparece em novos projetos.'
               : `${program.projectsCount} ${program.projectsCount === 1 ? 'projeto' : 'projetos'} no programa`}
+            {canManage && program.publicPage ? ' · página pública ligada' : ''}
           </span>
         </div>
         {canManage ? (
@@ -601,6 +614,9 @@ function ProgramOverview({ program, canManage, onEdit, onToggleArchived, onDelet
             </Link>
             <Button icon={<IconEdit size={15} />} onClick={onEdit}>
               Editar
+            </Button>
+            <Button icon={<IconGlobe size={15} />} onClick={onPublicPage}>
+              Página pública
             </Button>
             <Menu
               label="Mais ações do programa"
