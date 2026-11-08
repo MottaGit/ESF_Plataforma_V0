@@ -543,11 +543,12 @@ o histórico (só que a página foi ligada, desligada ou trocada). Na tela (`pag
 "Planejamento" aparece como "Em preparação", a barra de progresso só aparece em andamento e pausado, e o link desligado
 mostra "Página indisponível" (sem mandar para o login). A página fica fora dos buscadores (`noindex`), tem o nome do
 programa no título da aba e não instala o uso sem internet (quem é de fora não precisa guardar o app). Para a
-coordenação, a visão do programa (Projetos › programa) tem o botão **Página pública**: a janela explica o que aparece,
-liga e desliga (desligar avisa que o link deixa de abrir), guarda o "Sobre o programa" (até 1.500 caracteres) e, com a
-página ligada, mostra o link com **Copiar link**, **Enviar pelo WhatsApp** (escolhendo o contato) e **Ver como o
-público vê**. Salvar não fecha a janela, para o link aparecer logo depois de ligar; com a página ligada, a visão do
-programa diz "página pública ligada".
+coordenação, a visão do programa (Projetos › programa) tem o botão **Página pública**. A janela explica o que aparece
+e tem o "Sobre o programa" (até 1.500 caracteres, salvo sozinho ao sair do campo). Sem link, **Gerar link** liga a
+página na hora e o link aparece ali mesmo, com **Copiar link** e **Ver como o público vê**; com link, **Desligar link**
+(com confirmação) faz ele parar de abrir, e gerar de novo cria outro. As gravações vão uma de cada vez, na ordem (sair
+do texto e clicar num botão logo depois não se atropelam). Com o link ligado, a visão do programa diz "página pública
+ligada".
 
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
@@ -871,6 +872,17 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | `ForwardedHeaders:ClientIpHeader` | (vazio = `X-Forwarded-For`) | cabeçalho com o endereço real, quando a hospedagem preenche um. No Render (Cloudflare na frente, e o `X-Forwarded-For` só acrescenta), use `True-Client-IP` e confira |
 
 No frontend, `VITE_API_URL` só é necessário se a API não estiver atrás do proxy (Vite em desenvolvimento, nginx em Docker).
+
+### Hospedagem no Render
+
+- **Frontend como Static Site:** precisa da regra **Redirects/Rewrites** com Source `/*`, Destination `/index.html` e
+  Action **Rewrite** (não Redirect). Sem ela, o Render só conhece os arquivos do build e qualquer endereço aberto
+  direto dá "Not Found": a página pública (`/publico/...`), o link de primeiro acesso (`/acesso/...`) e recarregar uma
+  tela (`/projetos/...`). As telas abertas clicando dentro do app funcionam mesmo sem a regra, por isso o problema só
+  aparece em link mandado para alguém ou ao recarregar. No Docker isso não acontece (o `nginx.conf` já devolve o
+  `index.html`).
+- **API:** `ForwardedHeaders__ClientIpHeader=True-Client-IP` (ver a tabela acima) e `Seed__Enabled=false` num banco de
+  produção.
 
 ---
 

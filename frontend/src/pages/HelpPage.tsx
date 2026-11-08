@@ -224,9 +224,9 @@ const SECTIONS: HelpSection[] = [
         question: 'Como mostro um programa a um parceiro ou financiador?',
         answer: (
           <p>
-            Em <strong>Projetos</strong>, escolha o programa e use <strong>Página pública</strong>: ligue, escreva o
-            "Sobre o programa" e mande o link. Ele abre sem login, com os projetos, os resultados e os números da equipe,
-            sem dados pessoais. Desligar invalida o link.
+            Em <strong>Projetos</strong>, escolha o programa, abra <strong>Página pública</strong>, use{' '}
+            <strong>Gerar link</strong> e mande o link. Ele abre sem login, com os projetos, os resultados e os números
+            da equipe, sem dados pessoais. <strong>Desligar link</strong> faz ele parar de abrir.
           </p>
         )
       },

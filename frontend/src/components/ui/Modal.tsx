@@ -16,8 +16,6 @@ interface ModalProps {
    * sem querer) perguntam antes de fechar. O X e o "Cancelar" continuam fechando direto.
    */
   guardChanges?: boolean;
-  /** Janela que salva sem fechar: mude este valor depois de salvar, para ela voltar a fechar sem perguntar. */
-  guardResetKey?: unknown;
 }
 
 // Modais abertos, do mais antigo ao mais recente: um pode abrir por cima de outro (ex.: "Novo programa" dentro do
@@ -32,8 +30,7 @@ export function Modal({
   footer,
   children,
   closable = true,
-  guardChanges = false,
-  guardResetKey
+  guardChanges = false
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   // Algo foi digitado ou escolhido dentro da janela (eventos input/change de qualquer campo, inclusive o editor).
@@ -48,10 +45,10 @@ export function Modal({
     else onClose();
   };
 
-  // Trocar de modo (ex.: ler -> editar) ou salvar sem fechar recomeca a contagem do que foi preenchido.
+  // Trocar de modo (ex.: ler -> editar) recomeca a contagem do que foi preenchido.
   useEffect(() => {
     touchedRef.current = false;
-  }, [guardChanges, guardResetKey]);
+  }, [guardChanges]);
 
   useEffect(() => {
     const node = dialogRef.current;
