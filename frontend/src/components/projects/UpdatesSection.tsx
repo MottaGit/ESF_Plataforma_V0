@@ -4,7 +4,8 @@ import { projectUpdatesApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
-import { SENSITIVE_DATA_HINT, formatDateTime, formatHours } from '../../utils/format';
+import { clearDraft, loadDraft, progressDraftKey, saveDraft } from '../../utils/drafts';
+import { SENSITIVE_DATA_HINT, formatDateTime, formatHours, timeAgoPhrase } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
@@ -31,11 +32,14 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
 
   const { user } = useAuth();
   const { notify, notifyError } = useToast();
-  const [text, setText] = useState('');
+  // Rascunho guardado no aparelho: o texto volta ao abrir o projeto de novo (trocar de tela, recarregar, sessao vencida).
+  const draftKey = user ? progressDraftKey(user.id, project.id) : null;
+  const [restoredDraft, setRestoredDraft] = useState(() => (draftKey ? loadDraft(draftKey) : null));
+  const [text, setText] = useState(restoredDraft?.html ?? '');
   // Horas do dia (opcional), so para quem esta na equipe: viram um lancamento de horas no projeto.
-  const [hours, setHours] = useState('');
+  const [hours, setHours] = useState(restoredDraft?.hours ?? '');
   const inTeam = project.volunteers.some((member) => member.volunteerId === user?.volunteerId);
-  const [plainText, setPlainText] = useState('');
+  const [plainText, setPlainText] = useState(() => (restoredDraft ? htmlToPlainText(restoredDraft.html) : ''));
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [posting, setPosting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -44,6 +48,21 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updates = project.updates;
+
+  // Grava a cada mudanca (sem esperar: quem sai da tela logo depois de digitar nao perde a ultima frase).
+  useEffect(() => {
+    if (!draftKey) return;
+    if (plainText.trim() === '' && hours.trim() === '') clearDraft(draftKey);
+    else saveDraft(draftKey, text, hours);
+  }, [draftKey, text, plainText, hours]);
+
+  function discardDraft() {
+    setText('');
+    setPlainText('');
+    setHours('');
+    setRestoredDraft(null);
+    if (draftKey) clearDraft(draftKey);
+  }
 
   function handleStageFiles(event: ChangeEvent<HTMLInputElement>) {
     const chosen = Array.from(event.target.files ?? []);
@@ -72,6 +91,8 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
       setPlainText('');
       setStagedFiles([]);
       setHours('');
+      setRestoredDraft(null);
+      if (draftKey) clearDraft(draftKey);
       notify(hoursValue ? `Registro publicado, com ${formatHours(hoursValue)} lançadas.` : 'Registro publicado.');
       onChanged();
     } catch (err) {
@@ -120,6 +141,15 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
                 setPlainText(plain);
               }}
             />
+
+            {restoredDraft && plainText.trim() !== '' ? (
+              <p className="field__hint composer-draft">
+                Rascunho guardado neste aparelho {timeAgoPhrase(new Date(restoredDraft.savedAt).toISOString())}.{' '}
+                <button type="button" className="link-button" onClick={discardDraft}>
+                  Descartar rascunho
+                </button>
+              </p>
+            ) : null}
 
             <StagedFiles
               files={stagedFiles}

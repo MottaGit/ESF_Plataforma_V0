@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { authApi } from '../api/endpoints';
 import { onUnauthorized, tokenStore } from '../api/client';
 import { clearOfflineData } from '../offline/offline';
+import { clearAllDrafts } from '../utils/drafts';
 import type { LoginResponse, User } from '../types/api';
 
 interface AuthContextValue {
@@ -31,6 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     tokenStore.clear();
     void clearOfflineData();
+    // Rascunhos so somem no "Sair" (o aparelho pode ser de outra pessoa); com a sessao vencida eles ficam, para quem
+    // entrar de novo nao perder o que estava escrevendo.
+    clearAllDrafts();
     setUser(null);
   }, []);
 

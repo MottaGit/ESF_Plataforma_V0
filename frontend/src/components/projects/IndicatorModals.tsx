@@ -78,6 +78,7 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
 
   return (
     <Modal
+      guardChanges
       title={isNational ? indicator!.name : indicator ? 'Editar indicador' : 'Novo indicador'}
       subtitle={
         isNational
@@ -187,6 +188,7 @@ export function IndicatorValueModal({ indicator, onClose, onSaved }: IndicatorVa
 
   return (
     <Modal
+      guardChanges
       title={indicator.name}
       subtitle={
         indicator.nationalIndicatorId

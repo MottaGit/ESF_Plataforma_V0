@@ -195,6 +195,7 @@ function HourEntryModal({ project, entry, onClose, onSaved }: HourEntryModalProp
 
   return (
     <Modal
+      guardChanges
       title={entry ? 'Corrigir horas' : 'Lançar horas'}
       subtitle={project.name}
       size="narrow"

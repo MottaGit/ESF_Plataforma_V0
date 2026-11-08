@@ -366,6 +366,7 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
 
   return (
     <Modal
+      guardChanges
       title={volunteer ? 'Editar voluntário' : 'Novo voluntário'}
       subtitle="Dados básicos de contato, setor e situação na organização."
       onClose={onClose}

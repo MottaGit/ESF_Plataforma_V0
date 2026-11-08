@@ -319,6 +319,7 @@ export function ActivityFormModal({
   // ---------- formulario (nova tarefa ou edicao) ----------
   return (
     <Modal
+      guardChanges
       title={activity ? 'Editar tarefa' : 'Nova tarefa'}
       subtitle={
         activity

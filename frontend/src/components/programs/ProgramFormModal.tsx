@@ -84,6 +84,7 @@ export function ProgramFormModal({ program, onClose, onSaved }: ProgramFormModal
 
   return (
     <Modal
+      guardChanges
       title={program ? 'Editar programa' : 'Novo programa'}
       subtitle="Programas agrupam projetos, como os banheiros ou as hortas. Um programa pode ter um projeto só."
       size="narrow"

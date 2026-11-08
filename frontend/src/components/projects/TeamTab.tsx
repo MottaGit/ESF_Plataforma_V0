@@ -265,6 +265,7 @@ function LinkVolunteerModal({ projectId, available, onClose, onSaved }: LinkVolu
 
   return (
     <Modal
+      guardChanges
       title="Vincular voluntário"
       subtitle="Escolha alguém já cadastrado na organização."
       onClose={onClose}

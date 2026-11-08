@@ -67,6 +67,7 @@ export function CloseProjectDialog({ project, status, onCancel, onClosed, onOpen
 
   return (
     <Modal
+      guardChanges
       title={concluding ? 'Concluir projeto' : 'Cancelar projeto'}
       subtitle={project.name}
       onClose={onCancel}

@@ -204,6 +204,7 @@ function UploadSignedDocumentModal({
 
   return (
     <Modal
+      guardChanges
       title="Enviar documento assinado"
       subtitle="A cópia assinada (digitalizada ou foto legível) fica guardada só para a coordenação."
       size="narrow"

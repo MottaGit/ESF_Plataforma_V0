@@ -88,6 +88,7 @@ export function SignTermDialog({ term, onClose, onSigned }: SignTermDialogProps)
 
   return (
     <Modal
+      guardChanges
       title="Termo de adesão ao voluntariado"
       subtitle="Leia o termo inteiro. A assinatura online vale como a assinatura no papel."
       onClose={onClose}

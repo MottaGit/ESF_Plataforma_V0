@@ -467,6 +467,7 @@ function NucleoFormModal({
 
   return (
     <Modal
+      guardChanges
       title={nucleo ? 'Editar núcleo' : 'Novo núcleo'}
       subtitle={nucleo ? nucleo.name : 'O núcleo já nasce com quem vai administrá-lo.'}
       onClose={onClose}
@@ -556,6 +557,7 @@ function PersonFormModal({
 
   return (
     <Modal
+      guardChanges
       title={title}
       subtitle={subtitle}
       onClose={onClose}
@@ -738,6 +740,7 @@ function NationalIndicatorFormModal({
 
   return (
     <Modal
+      guardChanges
       title={indicator ? 'Editar indicador nacional' : 'Novo indicador nacional'}
       subtitle={indicator ? 'Nome e unidade novos valem para todos os núcleos.' : 'Entra em todos os projetos de todos os núcleos, em branco até cada um informar.'}
       onClose={onClose}

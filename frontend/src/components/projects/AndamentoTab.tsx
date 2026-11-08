@@ -25,7 +25,8 @@ export function AndamentoTab({ project, onChanged, onOpenTab, focusComposer }: A
   return (
     <div className="feed-layout">
       <div className="feed">
-        <UpdatesSection project={project} onChanged={onChanged} focusComposer={focusComposer} />
+        {/* key: ao ir de um projeto para outro, o campo de registro recomeca com o rascunho do projeto novo */}
+        <UpdatesSection key={project.id} project={project} onChanged={onChanged} focusComposer={focusComposer} />
       </div>
       <aside className="feed-side" aria-label="Resumo do projeto">
         <NextTasks project={project} onOpenTab={onOpenTab} />

@@ -254,6 +254,7 @@ export function ProjectFormModal({
   return (
     <>
       <Modal
+        guardChanges
         title={project ? 'Editar projeto' : 'Novo projeto'}
         subtitle={project ? project.name : 'Só o essencial agora; descrição, objetivo, comunidade e o resto você completa depois em Sobre.'}
         size="wide"

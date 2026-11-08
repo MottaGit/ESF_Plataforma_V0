@@ -662,6 +662,7 @@ function AccessFormModal({ user, volunteers, onClose, onSaved }: AccessFormModal
 
   return (
     <Modal
+      guardChanges
       title="Editar acesso"
       subtitle={`${user.volunteerName ?? user.name} · ${user.email}`}
       size="narrow"

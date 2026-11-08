@@ -482,6 +482,7 @@ function LinkProjectModal({ volunteerId, linkedProjectIds, onClose, onSaved }: L
 
   return (
     <Modal
+      guardChanges
       title="Vincular a um projeto"
       subtitle="Escolha um projeto já cadastrado."
       onClose={onClose}

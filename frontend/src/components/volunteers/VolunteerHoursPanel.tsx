@@ -184,6 +184,7 @@ function StatusPeriodModal({ volunteerId, period, onClose, onSaved }: StatusPeri
 
   return (
     <Modal
+      guardChanges
       title={period ? 'Editar período' : 'Incluir período'}
       subtitle={
         isCurrent

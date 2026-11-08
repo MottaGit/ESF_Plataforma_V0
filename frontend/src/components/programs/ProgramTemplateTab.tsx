@@ -386,6 +386,7 @@ function TemplateActivityModal({
 
   return (
     <Modal
+      guardChanges
       title={activity ? 'Editar tarefa padrão' : 'Nova tarefa padrão'}
       subtitle="Entra em cada projeto novo do programa, sem responsável."
       size="narrow"
@@ -485,6 +486,7 @@ function TemplateIndicatorModal({
 
   return (
     <Modal
+      guardChanges
       title={indicator ? 'Editar indicador padrão' : 'Novo indicador padrão'}
       subtitle="Entra zerado em cada projeto novo do programa."
       size="narrow"
@@ -565,6 +567,7 @@ function TemplateTextsModal({
 
   return (
     <Modal
+      guardChanges
       title="Textos sugeridos"
       subtitle="Preenchem os campos do projeto novo que ficarem em branco; dá para ajustar depois em Sobre."
       onClose={onClose}

@@ -104,7 +104,9 @@ const SECTIONS: HelpSection[] = [
           <p>
             Toque em <strong>Registrar</strong> ao lado do projeto, em Meus projetos no Início (no celular,{' '}
             <strong>+ Registrar</strong> na barra de baixo), ou abra o projeto na aba <strong>Andamento</strong>.
-            Escreva o que foi feito, anexe fotos se quiser e publique. As fotos entram no relatório do projeto.
+            Escreva o que foi feito, anexe fotos se quiser e publique. As fotos entram no relatório do projeto. Se
+            sair no meio, o texto fica guardado como rascunho neste aparelho (as fotos não) e volta quando você abrir
+            o projeto de novo.
           </p>
         )
       },

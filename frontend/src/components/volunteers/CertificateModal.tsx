@@ -135,6 +135,7 @@ export function CertificateModal({ volunteer, onClose }: { volunteer: Volunteer;
 
   return (
     <Modal
+      guardChanges
       title="Gerar certificado"
       subtitle={`Certificado de voluntariado de ${volunteer.name}.`}
       onClose={onClose}

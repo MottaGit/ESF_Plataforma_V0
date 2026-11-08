@@ -360,7 +360,12 @@ o feed com data e autor, do mais recente para o mais antigo. Editável depois
 de publicado, e cada registro pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
 largura confortável de leitura. Os anexos aparecem compactos (até 4 miniaturas, depois "+N"; documentos numa linha) e
 as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Editar, anexar e excluir ficam no menu
-"..." de cada registro, e remover um anexo pede confirmação. Os nomes são sempre os mesmos: **Andamento** é a aba,
+"..." de cada registro, e remover um anexo pede confirmação. O texto que está sendo escrito vira **rascunho** guardado
+no aparelho (localStorage, por pessoa e por projeto, a cada letra): trocar de tela, recarregar, fechar o navegador ou
+perder a sessão não apaga, e ao abrir o projeto de novo o texto volta com o aviso "Rascunho guardado neste aparelho" e
+"Descartar rascunho". Publicar apaga o rascunho; as horas do dia entram nele, as fotos escolhidas não. Os rascunhos
+somem no "Sair" (o aparelho pode ser compartilhado) e depois de 30 dias esquecidos (`utils/drafts.ts`). Os nomes são
+sempre os mesmos: **Andamento** é a aba,
 **Registrar andamento** é a ação e cada item publicado é um **registro** ("Publicar registro", "Último registro").
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
@@ -516,6 +521,12 @@ cadastro de voluntário, pode ser ligado a um ali.
 A gestão nacional não vê voluntários, projetos, tarefas nem registros de dentro dos núcleos: só contagens e quem
 administra cada núcleo. A primeira conta vem da configuração do servidor (`Nacional:AdminEmail` e
 `Nacional:AdminPassword`, ver Configuração), criada na subida enquanto não existe nenhuma.
+
+**Janelas de formulário** — depois que algo foi digitado ou escolhido numa janela de formulário (projeto, tarefa,
+voluntário, programa, indicador, horas, equipe, certificado, termo, núcleo, acesso…), clicar fora dela ou apertar Esc
+pergunta "Descartar o que foi preenchido?" (Continuar preenchendo | Descartar), porque esses dois fecham a janela sem
+querer. O X e o Cancelar continuam fechando direto. Janela em que nada foi mexido fecha como antes. Fica no componente
+`Modal` (`guardChanges`), que percebe a digitação pelos eventos dos campos, inclusive o editor de texto.
 
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
