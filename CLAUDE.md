@@ -60,7 +60,9 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   pela navegação até o pai (`x.Project!.OrganizationId`…). Ao criar entidade nova:
   inclua o filtro e um caso em `Esf.Api.Tests` (`TwoNucleos` tem um registro de cada tabela em dois núcleos).
   `AllOrganizations = true` só para rotinas internas (seed) e números agregados da gestão nacional;
-  `IgnoreQueryFilters` só no login, no link de acesso e na checagem de e-mail único (e-mail é único na plataforma).
+  `IgnoreQueryFilters` só no login, no link de acesso, na checagem de e-mail único (e-mail é único na plataforma) e
+  na página pública do programa (`PublicProgramService`: acha o programa pelo código do link e fixa
+  `OrganizationOverride`, para o resto passar pelo filtro).
 - **Perfis:** `Administrador`, `Coordenador`, `Usuario` (por núcleo) + permissão de gestão nacional (claim `nacional`,
   pode ser conta sem núcleo). Políticas: `ManageProjects` (admin/coord), `AdminOnly`, `National`; os nomes ficam em
   `Common/Policies.cs` e as regras em `Program.cs` (`AddAuthorization`), então política nova mexe nos dois. A gestão

@@ -530,6 +530,17 @@ pergunta "Descartar o que foi preenchido?" (Continuar preenchendo | Descartar), 
 querer. O X e o Cancelar continuam fechando direto. Janela em que nada foi mexido fecha como antes. Fica no componente
 `Modal` (`guardChanges`), que percebe a digitação pelos eventos dos campos, inclusive o editor de texto.
 
+**Página pública do programa** — um link que abre sem login e só para leitura, para mandar a parceiros e financiadores
+no lugar do PDF (ou virar QR code na placa da obra). Fica desligada em todo programa; a coordenação liga e desliga, e
+desligar invalida o link (ligar de novo gera outro, `/publico/{código}`). Mostra o programa (nome, ícone e o "Sobre o
+programa", texto escrito para quem não conhece o núcleo), os **resultados até hoje** (quantos projetos concluídos, em
+andamento, em preparação e pausados; os indicadores nacionais e os do modelo do programa somados, só os que têm valor;
+quantos voluntários participaram, sem repetir, e as horas lançadas), um cartão por projeto (nome, situação, bairro e
+cidade, início e previsão de término, progresso das tarefas, os indicadores informados e quando foi o último registro)
+e, no rodapé, o nome, o CNPJ e o e-mail do núcleo. Projetos cancelados e arquivados ficam de fora. Nunca aparecem
+endereço, mapa, nomes de voluntários, tarefas, o texto dos registros, fotos nem arquivos. O código do link não vai para
+o histórico (só que a página foi ligada, desligada ou trocada).
+
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
@@ -641,8 +652,10 @@ programa, links de acesso) herda o do projeto, do voluntário, da tarefa ou do p
 `EsfDbContext`, num **filtro global por núcleo** em todas essas tabelas: toda consulta só enxerga o núcleo de quem está
 logado (vem no token, claim `org`), sem depender de cada tela lembrar. Registro novo de voluntário, programa ou
 projeto entra sozinho no núcleo atual ao salvar, e as validações de "existe?" usam consultas filtradas, então um id de
-outro núcleo é recusado. Só três pontos olham todos os núcleos, de propósito e com `IgnoreQueryFilters`: o login (o
-e-mail é único na plataforma inteira), o link de acesso (rota pública) e a checagem de e-mail repetido. Rotinas
+outro núcleo é recusado. Só quatro pontos olham todos os núcleos, de propósito e com `IgnoreQueryFilters`: o login (o
+e-mail é único na plataforma inteira), o link de acesso (rota pública), a checagem de e-mail repetido e a página
+pública do programa (acha o programa pelo código do link e, dali em diante, fixa o núcleo dele em
+`OrganizationOverride`, então o resto da consulta passa pelo filtro normal). Rotinas
 internas (dados de demonstração) usam `AllOrganizations`. Sessões de antes dos núcleos (token sem `org`) pedem para
 entrar de novo. Na atualização, a migração `AddNucleos` põe todos os dados existentes no núcleo já cadastrado (o
 mesmo registro usado nos termos e certificados); um banco com dados e sem esse registro ganha um.
@@ -698,7 +711,7 @@ ESF_Plataforma_V0/
 | `Users` | acesso à plataforma (nome, e-mail, hash da senha — vazio até o primeiro acesso —, perfil, ativo, voluntário vinculado) |
 | `AccessLinks` | links de acesso (hash do código, validade, uso), para criar a senha no primeiro acesso ou depois de esquecê-la |
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
-| `Programs` | programas (nome, situação, ícone, cor e os textos sugeridos do modelo) |
+| `Programs` | programas (nome, situação, ícone, cor, os textos sugeridos do modelo e a página pública: código do link — vazio com ela desligada — e o "Sobre o programa") |
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa |
 | `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
@@ -785,6 +798,8 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |
 | GET/POST | `/api/access/{código}` | públicas: dados do link e criação da senha (com o aceite da política), já devolvendo o login |
+| GET/PUT | `/api/programs/{id}/public-page` | página pública do programa (coordenação): se está ligada, o código do link e o "Sobre o programa"; o PUT liga/desliga (desligar invalida o link; ligar de novo gera outro) e grava o texto |
+| GET | `/api/public/programs/{código}` | pública, sem login (60 acessos por minuto por endereço): a página pública do programa, só com os dados liberados |
 | GET | `/api/national/panel?from=&to=` | gestão nacional: painel com os números de todos os núcleos (total e por núcleo) e os indicadores nacionais somados; o período vale para horas, tarefas e registros |
 | GET/POST/PUT | `/api/national/nucleos[/{id}]` | gestão nacional: núcleos com números gerais e administradores; núcleo novo já com quem administra (devolve o link) |
 | POST | `/api/national/nucleos/{id}/admins[/{userId}/access-link]` | gestão nacional: mais um administrador para o núcleo; link novo para um administrador |

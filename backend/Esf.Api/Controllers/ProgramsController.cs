@@ -31,6 +31,17 @@ public class ProgramsController : ControllerBase
     public async Task<ActionResult<ProgramTemplateDto>> SaveTemplate(Guid id, SaveProgramTemplateRequest request)
         => Ok(await _programs.SaveTemplateAsync(id, request));
 
+    /// <summary>Pagina publica do programa (link sem login para parceiros e financiadores).</summary>
+    [HttpGet("{id:guid}/public-page")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<ProgramPublicPageDto>> PublicPage(Guid id) => Ok(await _programs.GetPublicPageAsync(id));
+
+    /// <summary>Liga/desliga a pagina publica e grava o "Sobre o programa"; desligar invalida o link.</summary>
+    [HttpPut("{id:guid}/public-page")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<ProgramPublicPageDto>> SavePublicPage(Guid id, SaveProgramPublicPageRequest request)
+        => Ok(await _programs.SavePublicPageAsync(id, request));
+
     [HttpPost]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramDto>> Create(SaveProgramRequest request)

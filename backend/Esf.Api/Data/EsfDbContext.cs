@@ -156,6 +156,9 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Icon).HasMaxLength(20).IsRequired();
             e.Property(x => x.Color).HasMaxLength(20).IsRequired();
             e.Property(x => x.TemplateTargetAudience).HasMaxLength(300);
+            e.Property(x => x.PublicToken).HasMaxLength(40);
+            e.HasIndex(x => x.PublicToken).IsUnique();
+            e.Property(x => x.PublicDescription).HasMaxLength(1500);
         });
 
         b.Entity<ProgramTemplateActivity>(e =>

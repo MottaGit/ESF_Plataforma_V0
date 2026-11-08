@@ -31,6 +31,14 @@ public class ProjectProgram : IOrganizationOwned
     public string? TemplateObjective { get; set; }
     public string? TemplateTargetAudience { get; set; }
 
+    // ---------- pagina publica (link sem login, so leitura, para parceiros e financiadores) ----------
+
+    /// <summary>Codigo do link publico (/publico/{codigo}); vazio = pagina desligada. Desligar e ligar gera outro.</summary>
+    public string? PublicToken { get; set; }
+
+    /// <summary>"Sobre o programa" escrito para quem nao conhece o nucleo (topo da pagina publica).</summary>
+    public string? PublicDescription { get; set; }
+
     public ICollection<ProgramTemplateActivity> TemplateActivities { get; set; } = new List<ProgramTemplateActivity>();
     public ICollection<ProgramTemplateIndicator> TemplateIndicators { get; set; } = new List<ProgramTemplateIndicator>();
 

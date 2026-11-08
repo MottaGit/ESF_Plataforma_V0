@@ -78,7 +78,8 @@ public static class AuditTrail
         {
             ["Name"] = "Nome", ["Status"] = "Situação", ["Icon"] = "Ícone", ["Color"] = "Cor",
             ["TemplateDescription"] = "Descrição sugerida", ["TemplateObjective"] = "Objetivo sugerido",
-            ["TemplateTargetAudience"] = "Quem se beneficia (sugerido)"
+            ["TemplateTargetAudience"] = "Quem se beneficia (sugerido)",
+            ["PublicToken"] = "Link da página pública", ["PublicDescription"] = "Sobre o programa (página pública)"
         },
         [typeof(ProgramTemplateActivity)] = new()
         {
@@ -109,7 +110,9 @@ public static class AuditTrail
     {
         [typeof(Volunteer)] = new() { "Name", "Email", "Phone", "Skills", "Notes", "BirthDay", "BirthMonth", "PhotoStoredName" },
         [typeof(User)] = new() { "PasswordHash" },
-        [typeof(Organization)] = new() { "LogoUrl", "SignatureStoredName" }
+        [typeof(Organization)] = new() { "LogoUrl", "SignatureStoredName" },
+        // O codigo do link publico nao vai para o historico: so que a pagina foi ligada, desligada ou trocada.
+        [typeof(ProjectProgram)] = new() { "PublicToken" }
     };
 
     public static async Task RecordAsync(EsfDbContext db, Guid userId, CancellationToken cancellationToken)

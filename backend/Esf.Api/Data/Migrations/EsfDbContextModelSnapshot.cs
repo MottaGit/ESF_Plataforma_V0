@@ -708,6 +708,14 @@ namespace Esf.Api.Data.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("PublicDescription")
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)");
+
+                    b.Property<string>("PublicToken")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -722,6 +730,9 @@ namespace Esf.Api.Data.Migrations
                         .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PublicToken")
+                        .IsUnique();
 
                     b.HasIndex("OrganizationId", "Name")
                         .IsUnique();

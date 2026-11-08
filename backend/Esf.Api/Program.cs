@@ -68,6 +68,7 @@ builder.Services.AddScoped<NationalService>();
 builder.Services.AddScoped<NationalIndicatorService>();
 builder.Services.AddScoped<SpreadsheetService>();
 builder.Services.AddScoped<SpreadsheetImportService>();
+builder.Services.AddScoped<PublicProgramService>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services
@@ -124,6 +125,10 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(AccessService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
+    // Pagina publica do programa: aberta por parceiros e financiadores, com folga para recarregar.
+    options.AddPolicy(PublicProgramService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // ---------- API ----------

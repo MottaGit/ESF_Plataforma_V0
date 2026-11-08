@@ -19,10 +19,58 @@ public record ProgramDto(
     int TemplateActivitiesCount,
     int TemplateIndicatorsCount,
     bool HasTemplateTexts,
+    // A pagina publica do programa esta ligada.
+    bool PublicPage,
     // Resultados do programa: cada indicador padrao do modelo somado nos projetos (nao arquivados) do programa.
     List<ProgramResultDto> Results);
 
 public record ProgramResultDto(string Name, string? Unit, decimal Total);
+
+/// <summary>Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada).</summary>
+public record ProgramPublicPageDto(bool Enabled, string? Token, string? Description);
+
+public class SaveProgramPublicPageRequest
+{
+    public bool Enabled { get; set; }
+
+    [StringLength(1500, ErrorMessage = "O texto sobre o programa deve ter no máximo 1500 caracteres.")]
+    public string? Description { get; set; }
+}
+
+/// <summary>
+/// Pagina publica do programa (sem login). So o que pode ser visto por qualquer pessoa: nada de endereco, pessoas,
+/// tarefas, registros, fotos ou arquivos.
+/// </summary>
+public record PublicProgramDto(
+    string Name,
+    string Icon,
+    string Color,
+    string? About,
+    PublicNucleoDto Nucleo,
+    PublicProgramTotalsDto Totals,
+    // Indicadores somados nos projetos mostrados (nacionais e os do modelo do programa); so os que tem valor.
+    List<PublicIndicatorDto> Results,
+    List<PublicProjectDto> Projects,
+    // Ultimo registro de andamento entre os projetos mostrados.
+    DateTime? UpdatedAt);
+
+public record PublicNucleoDto(string Name, string? LogoUrl, string? Cnpj, string? Email, string? City, string? State);
+
+public record PublicProgramTotalsDto(int Concluded, int InProgress, int Planning, int Paused, int Volunteers, decimal Hours);
+
+public record PublicIndicatorDto(string Name, string? Unit, decimal Value, bool National);
+
+public record PublicProjectDto(
+    string Name,
+    ProjectStatus Status,
+    string? District,
+    string? City,
+    string? State,
+    DateOnly StartDate,
+    DateOnly? EndDateForecast,
+    int Progress,
+    List<PublicIndicatorDto> Indicators,
+    DateTime? LastUpdateAt);
 
 public record TemplateActivityDto(Guid Id, string Title, string? Description, ActivityPriority Priority, int? DueDays);
 
