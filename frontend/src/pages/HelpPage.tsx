@@ -185,6 +185,15 @@ const SECTIONS: HelpSection[] = [
             Na sua foto, no canto de cima, escolha <strong>Minha conta</strong>.
           </p>
         )
+      },
+      {
+        question: 'Esqueci minha senha. E agora?',
+        answer: (
+          <p>
+            Peça à coordenação do seu núcleo um link novo de acesso. Ele chega pelo WhatsApp ou por e-mail e, ao abrir,
+            você cria uma senha nova.
+          </p>
+        )
       }
     ]
   },

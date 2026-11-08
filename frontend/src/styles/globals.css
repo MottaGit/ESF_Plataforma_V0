@@ -1964,6 +1964,19 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .legal__text li { margin-bottom: 4px; }
 .legal__version { color: var(--text-muted); font-size: 13px; }
 .login__legal { margin-top: 18px; font-size: 12.5px; text-align: center; }
+.login__forgot { margin-top: 14px; text-align: center; }
+.login__forgot .link-button { font-size: 13px; }
+.login__forgot-text {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: left;
+}
+.login__forgot-text strong { color: var(--text); }
 .terms-gate ul { margin: 0 0 12px; padding-left: 18px; line-height: 1.55; }
 .terms-gate li { margin-bottom: 4px; }
 .terms-gate__check { margin-top: 14px; font-weight: 500; }

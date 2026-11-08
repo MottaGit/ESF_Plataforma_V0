@@ -577,7 +577,10 @@ demonstração, rotinas internas) não é registrado.
 
 **Proteção do login** — depois de 10 senhas erradas seguidas, o acesso fica bloqueado por 15 minutos (nem a senha
 certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acerto antes disso zera a contagem, e a
-senha criada por um link de acesso libera o acesso na hora. Os campos de texto livre (observações e registros de andamento) lembram
+senha criada por um link de acesso libera o acesso na hora. Embaixo do "Entrar" fica **Esqueci minha senha**, que
+explica o caminho (não há envio por e-mail): pedir à coordenação do núcleo um link novo de acesso, que chega pelo
+WhatsApp ou por e-mail e deixa criar uma senha nova. Depois de uma senha recusada, de um acesso bloqueado ou desativado,
+a explicação já aparece aberta. A Ajuda tem a mesma resposta. Os campos de texto livre (observações e registros de andamento) lembram
 de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
 
 **Topo da tela** — mostra o nome da seção, igual ao item marcado no menu ("Projetos" também dentro de um projeto),

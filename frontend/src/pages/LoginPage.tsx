@@ -14,6 +14,9 @@ export function LoginPage() {
   const [email, setEmail] = useState('leonardo.motta@esf.org.br');
   const [password, setPassword] = useState('Esf@2026');
   const [error, setError] = useState<string | null>(null);
+  // Senha errada, acesso bloqueado ou desativado: o caminho para quem esqueceu a senha ja aparece aberto.
+  const [credentialsRefused, setCredentialsRefused] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   if (!initializing && user) return <Navigate to="/" replace />;
@@ -28,6 +31,7 @@ export function LoginPage() {
       navigate('/', { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível entrar. Tente novamente.');
+      setCredentialsRefused(err instanceof ApiError && [401, 403, 429].includes(err.status));
     } finally {
       setSubmitting(false);
     }
@@ -85,6 +89,20 @@ export function LoginPage() {
           <Button type="submit" variant="primary" block loading={submitting}>
             Entrar
           </Button>
+
+          {/* Nao ha "esqueci minha senha" por e-mail: quem gera o link novo e a coordenacao do nucleo. */}
+          <div className="login__forgot">
+            {showForgot || credentialsRefused ? (
+              <p className="login__forgot-text" role="note">
+                <strong>Esqueceu a senha?</strong> Peça à coordenação do seu núcleo um link novo de acesso. Ele chega
+                pelo WhatsApp ou por e-mail e, ao abrir, você cria uma senha nova.
+              </p>
+            ) : (
+              <button type="button" className="link-button" onClick={() => setShowForgot(true)}>
+                Esqueci minha senha
+              </button>
+            )}
+          </div>
 
           <div className="login__demo">
             <strong>Acessos de demonstração</strong>
