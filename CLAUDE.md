@@ -34,11 +34,15 @@ cd frontend && npm run build       # tsc + vite build (gera também o /sw.js)
 cd frontend && npm run dev         # :5173, proxy de /api e /uploads para :5080
 ```
 
-Tudo junto: `docker compose up --build` (front :5173, API :5080/swagger, Postgres :5432 `esf`/`esf`).
+Tudo junto: `docker compose up --build` (front :5173, API :5080/swagger, Postgres :5432, usuário `esf`). O compose
+lê de um `.env` na raiz (fora do git, sem `.env.example`): `POSTGRES_PASSWORD`, `JWT_KEY` (mín. 32 caracteres, senão a
+API não sobe) e `SEED_DEMO_PASSWORD`. Ele roda a API como `Development`.
 
 A API aplica as migrações sozinha ao iniciar (`Database.Migrate()` com novas tentativas) e, com o banco vazio, o
 `DbSeeder` cria a demonstração (dois núcleos e gestão nacional; senha `Esf@2026`; datas contadas a partir do dia da
-criação). Para recriar: `docker compose down -v`.
+criação). Para recriar: `docker compose down -v`. `Seed:Enabled` vem `true` no `appsettings.json`: num banco de
+produção vazio, desligue antes de subir. Os acessos de demonstração também estão fixos na tela de login
+(`pages/LoginPage.tsx`, login já preenchido): mudou o seed, mude lá.
 
 ## Arquitetura do backend (`backend/Esf.Api`)
 
@@ -56,9 +60,13 @@ criação). Para recriar: `docker compose down -v`.
   `AllOrganizations = true` só para rotinas internas (seed) e números agregados da gestão nacional;
   `IgnoreQueryFilters` só no login, no link de acesso e na checagem de e-mail único (e-mail é único na plataforma).
 - **Perfis:** `Administrador`, `Coordenador`, `Usuario` (por núcleo) + permissão de gestão nacional (claim `nacional`,
-  pode ser conta sem núcleo). Políticas em `Common/Policies.cs`: `ManageProjects` (admin/coord), `AdminOnly`,
-  `National`. A gestão nacional só vê números agregados, nunca dados pessoais dos núcleos. O token vale 12 h e não
-  reconfere a permissão nesse período.
+  pode ser conta sem núcleo). Políticas: `ManageProjects` (admin/coord), `AdminOnly`, `National`; os nomes ficam em
+  `Common/Policies.cs` e as regras em `Program.cs` (`AddAuthorization`), então política nova mexe nos dois. A gestão
+  nacional só vê números agregados, nunca dados pessoais dos núcleos. O token vale 12 h e, nesse período, não
+  reconfere a permissão nem se o acesso foi desativado (`CurrentUser` só lê as claims).
+- **Datas:** o banco guarda em UTC. Para "hoje" e para mostrar data e hora, use o horário de Brasília
+  (`TextHelpers.BrasiliaTime`), como fazem o termo assinado e as horas. Cuidado: `Mapping.Today` ainda é o dia em UTC
+  (que vira às 21 h de Brasília) e o PDF do relatório e as planilhas usam `ToLocalTime()`, que no Docker é UTC.
 - **Histórico de alterações:** o `AuditInterceptor` (em `Services/AuditTrail.cs`) grava `AuditEntries` no mesmo
   `SaveChanges`, só quando há pessoa logada. Só entram as entidades e campos listados em `AuditTrail.Fields`; dados
   pessoais ficam em `MaskedFields` (registra que mudou, sem o valor). Campo novo que deve aparecer no histórico precisa
@@ -126,7 +134,8 @@ criação). Para recriar: `docker compose down -v`.
 ## Convenções
 
 - Comentários do código em português, sem acento. Texto visível (telas, PDFs, mensagens de erro) com acentuação
-  correta; mensagens antigas do backend sem acento ainda existem.
+  correta. Exceção ainda não corrigida: quase todas as mensagens de erro do backend (`AppException` e as de validação
+  nos `Dtos/`) e as mensagens padrão de `api/client.ts` estão sem acento; as novas já devem vir com acento.
 - `.editorconfig`: LF, 4 espaços em C#, 2 em TS/CSS/JSON.
 - Commits no estilo Conventional Commits, em português sem acento, com escopo em português:
   `feat(tarefas): ...`, `fix(login): ...`. Quando um pedido é dividido em partes, numere: `feat(horas): 2/4 ...`.
