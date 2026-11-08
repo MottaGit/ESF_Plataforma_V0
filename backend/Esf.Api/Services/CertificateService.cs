@@ -38,14 +38,14 @@ public class CertificateService
     /// <summary>O que a janela do certificado mostra ja preenchido: o periodo completo e os projetos da pessoa.</summary>
     public async Task<CertificateOptionsDto> OptionsAsync(Guid volunteerId)
     {
-        if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId)) throw AppException.NotFound("Voluntario");
+        if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId)) throw AppException.NotFound("Voluntário");
         return new CertificateOptionsDto(await FullPeriodAsync(volunteerId), await ProjectsAsync(volunteerId));
     }
 
     public async Task<(byte[] Content, string FileName)> GenerateAsync(Guid volunteerId, CertificateRequest request)
     {
         var volunteer = await _db.Volunteers.AsNoTracking().FirstOrDefaultAsync(v => v.Id == volunteerId)
-                        ?? throw AppException.NotFound("Voluntario");
+                        ?? throw AppException.NotFound("Voluntário");
         var org = await _db.Organizations.AsNoTracking().OrderBy(o => o.UpdatedAt).FirstOrDefaultAsync()
                   ?? new Organization { Name = "Engenheiros Sem Fronteiras" };
 
@@ -125,7 +125,7 @@ public class CertificateService
     private static (DateOnly Start, DateOnly End) Period(CertificateRequest request)
     {
         if (request.StartDate is null || request.EndDate is null) throw new AppException("Informe o início e o fim do período.");
-        if (request.EndDate < request.StartDate) throw new AppException("O fim do periodo nao pode ser antes do inicio.");
+        if (request.EndDate < request.StartDate) throw new AppException("O fim do período não pode ser antes do início.");
         return (request.StartDate.Value, request.EndDate.Value);
     }
 

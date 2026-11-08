@@ -47,7 +47,7 @@ public class SignedDocumentService
     {
         var document = await _db.SignedDocuments.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id)
                        ?? throw AppException.NotFound("Documento");
-        var content = await _storage.TryReadAsync(document.StoredName) ?? throw AppException.NotFound("Conteudo do documento");
+        var content = await _storage.TryReadAsync(document.StoredName) ?? throw AppException.NotFound("Conteúdo do documento");
         return (content, FileStorageService.ContentTypeFor(document.StoredName), document.FileName);
     }
 
@@ -89,7 +89,7 @@ public class SignedDocumentService
 
         var today = Mapping.Today;
         var signedOn = request.SignedOn ?? today;
-        if (signedOn > today) throw new AppException("A data da assinatura nao pode estar no futuro.");
+        if (signedOn > today) throw new AppException("A data da assinatura não pode estar no futuro.");
 
         var saved = await _storage.SaveAsync(file, isPrivate: true);
         var document = new SignedDocument

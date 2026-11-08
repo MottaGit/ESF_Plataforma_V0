@@ -56,7 +56,7 @@ public class SaveVolunteerRequest
     [StringLength(160, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 160 caracteres.")]
     public string Name { get; set; } = string.Empty;
 
-    [EmailAddress(ErrorMessage = "E-mail invalido.")]
+    [EmailAddress(ErrorMessage = "E-mail inválido.")]
     [StringLength(200)]
     public string? Email { get; set; }
 
@@ -69,20 +69,20 @@ public class SaveVolunteerRequest
     public string? Skills { get; set; }
     public string? Notes { get; set; }
 
-    [Required(ErrorMessage = "Selecione a situacao.")]
+    [Required(ErrorMessage = "Selecione a situação.")]
     public VolunteerStatus? Status { get; set; }
 
     /// <summary>Aniversario (opcional): dia e mes, sem ano.</summary>
-    [Range(1, 31, ErrorMessage = "Dia de aniversario invalido.")]
+    [Range(1, 31, ErrorMessage = "Dia de aniversário inválido.")]
     public int? BirthDay { get; set; }
 
-    [Range(1, 12, ErrorMessage = "Mes de aniversario invalido.")]
+    [Range(1, 12, ErrorMessage = "Mês de aniversário inválido.")]
     public int? BirthMonth { get; set; }
 }
 
 public class AddProjectVolunteerRequest
 {
-    [Required(ErrorMessage = "Selecione o voluntario.")]
+    [Required(ErrorMessage = "Selecione o voluntário.")]
     public Guid? VolunteerId { get; set; }
 
     [StringLength(120)]
@@ -104,7 +104,7 @@ public class SaveStatusPeriodRequest
     [Required(ErrorMessage = "Selecione o status.")]
     public VolunteerStatus? Status { get; set; }
 
-    [Required(ErrorMessage = "Informe a data de inicio.")]
+    [Required(ErrorMessage = "Informe a data de início.")]
     public DateOnly? StartsOn { get; set; }
 
     /// <summary>Vazio: continua ate hoje (vira o status atual).</summary>

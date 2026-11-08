@@ -247,7 +247,7 @@ public class ActivityService
     private async Task EnsureAssigneeExistsAsync(Guid? volunteerId)
     {
         if (volunteerId.HasValue && !await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
-            throw new AppException("O responsavel informado nao existe.");
+            throw new AppException("O responsável informado não existe.");
     }
 
     private async Task TouchProjectAsync(Guid projectId)

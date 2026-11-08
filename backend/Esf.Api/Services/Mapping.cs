@@ -87,7 +87,7 @@ public static class Mapping
 
     public static ProjectVolunteerDto ToDto(ProjectVolunteer pv) =>
         new(pv.VolunteerId,
-            pv.Volunteer?.Name ?? "Voluntario removido",
+            pv.Volunteer?.Name ?? "Voluntário removido",
             pv.Volunteer?.Email,
             pv.Volunteer?.Phone,
             pv.Volunteer?.Sector ?? default,

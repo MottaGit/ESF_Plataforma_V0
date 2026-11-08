@@ -26,9 +26,9 @@ public class ReportService
     {
         var ids = request.ProjectIds.Distinct().ToList();
         if (ids.Count == 0)
-            throw new AppException("Selecione ao menos um projeto para gerar o relatorio.");
+            throw new AppException("Selecione ao menos um projeto para gerar o relatório.");
         if (request.From.HasValue && request.To.HasValue && request.To < request.From)
-            throw new AppException("O fim do periodo nao pode ser antes do inicio.");
+            throw new AppException("O fim do período não pode ser antes do início.");
 
         var projects = await _db.Projects
             .AsNoTracking()

@@ -118,7 +118,7 @@ public class SaveProjectRequest
     [Range(-180, 180, ErrorMessage = "Longitude deve estar entre -180 e 180.")]
     public double? Longitude { get; set; }
 
-    [Required(ErrorMessage = "Informe a data de inicio.")]
+    [Required(ErrorMessage = "Informe a data de início.")]
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDateForecast { get; set; }

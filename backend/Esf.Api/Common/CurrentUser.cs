@@ -46,5 +46,5 @@ public class CurrentUser : ICurrentUser
 
     public bool IsNational => _principal?.FindFirst(NationalClaim) is not null;
 
-    public Guid RequireId() => Id ?? throw new AppException("Sessao invalida.", StatusCodes.Status401Unauthorized);
+    public Guid RequireId() => Id ?? throw new AppException("Sessão inválida.", StatusCodes.Status401Unauthorized);
 }

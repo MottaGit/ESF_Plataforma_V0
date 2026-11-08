@@ -37,19 +37,19 @@ public class AccessService
     public async Task<AccessLinkDto> GrantAsync(Guid volunteerId, UserRole role)
     {
         var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == volunteerId)
-                        ?? throw AppException.NotFound("Voluntario");
+                        ?? throw AppException.NotFound("Voluntário");
 
         if (volunteer.AnonymizedAt.HasValue)
-            throw new AppException("Os dados deste voluntario foram anonimizados.");
+            throw new AppException("Os dados deste voluntário foram anonimizados.");
         if (await _db.Users.AnyAsync(u => u.VolunteerId == volunteerId))
-            throw AppException.Conflict("Este voluntario ja tem acesso. Para quem esqueceu a senha, gere um link novo.");
+            throw AppException.Conflict("Este voluntário já tem acesso. Para quem esqueceu a senha, gere um link novo.");
 
         var email = volunteer.Email?.Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(email))
-            throw new AppException("Cadastre o e-mail do voluntario antes de dar acesso: ele e o login.");
+            throw new AppException("Cadastre o e-mail do voluntário antes de dar acesso: ele é o login.");
         // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
         if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email.ToLower() == email))
-            throw AppException.Conflict("Ja existe um acesso com este e-mail.");
+            throw AppException.Conflict("Já existe um acesso com este e-mail.");
 
         var user = new User
         {
@@ -72,9 +72,9 @@ public class AccessService
     /// <summary>Link novo para um acesso que ja existe (primeiro acesso perdido ou senha esquecida).</summary>
     public async Task<AccessLinkDto> NewLinkAsync(Guid userId)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId) ?? throw AppException.NotFound("Usuario");
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId) ?? throw AppException.NotFound("Usuário");
         if (!user.IsActive)
-            throw new AppException("Este acesso esta desativado. Reative antes de gerar um link.");
+            throw new AppException("Este acesso está desativado. Reative antes de gerar um link.");
 
         // Um link novo anula os que ainda nao foram usados.
         _db.AccessLinks.RemoveRange(await _db.AccessLinks.Where(l => l.UserId == userId && l.UsedAt == null).ToListAsync());
@@ -95,7 +95,7 @@ public class AccessService
     {
         var (link, user) = await FindValidAsync(token);
         if (!request.AcceptTerms)
-            throw new AppException("Para entrar, aceite a politica de privacidade e os termos de uso.");
+            throw new AppException("Para entrar, aceite a política de privacidade e os termos de uso.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
         user.FailedLoginCount = 0;
@@ -133,7 +133,7 @@ public class AccessService
 
         if (link?.User is null || link.UsedAt.HasValue || link.ExpiresAt < DateTime.UtcNow || !link.User.IsActive)
             throw new AppException(
-                "Este link nao vale mais: ja foi usado, venceu ou foi trocado por um novo. Peca outro a quem te deu o acesso.",
+                "Este link não vale mais: já foi usado, venceu ou foi trocado por um novo. Peça outro a quem te deu o acesso.",
                 StatusCodes.Status410Gone);
 
         return (link, link.User);

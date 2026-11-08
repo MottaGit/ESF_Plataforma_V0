@@ -268,19 +268,19 @@ public class ProjectService
     {
         if (request.EndDateForecast.HasValue && request.StartDate.HasValue
             && request.EndDateForecast.Value < request.StartDate.Value)
-            throw new AppException("A previsao de termino nao pode ser anterior a data de inicio.");
+            throw new AppException("A previsão de término não pode ser anterior à data de início.");
     }
 
     private async Task EnsureProgramExistsAsync(Guid? programId)
     {
         if (!await _db.Programs.AnyAsync(p => p.Id == programId!.Value))
-            throw new AppException("O programa informado nao existe.");
+            throw new AppException("O programa informado não existe.");
     }
 
     private async Task EnsureOwnerExistsAsync(Guid? volunteerId)
     {
         if (volunteerId.HasValue && !await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
-            throw new AppException("O responsavel informado nao existe.");
+            throw new AppException("O responsável informado não existe.");
     }
 
     private static void Apply(Project project, SaveProjectRequest r)

@@ -73,7 +73,7 @@ public class OrganizationService
     public async Task<OrganizationDto> UpdateSignatureAsync(IFormFile? file)
     {
         if (file is not null && !new[] { ".png", ".jpg", ".jpeg" }.Contains(Path.GetExtension(file.FileName).ToLowerInvariant()))
-            throw new AppException("Envie a assinatura como imagem PNG (de preferencia com fundo transparente) ou JPG.");
+            throw new AppException("Envie a assinatura como imagem PNG (de preferência com fundo transparente) ou JPG.");
 
         var org = await GetEntityAsync();
         var previous = org.SignatureStoredName;
@@ -87,7 +87,7 @@ public class OrganizationService
 
     /// <summary>O nucleo de quem esta logado (o filtro por nucleo deixa so ele visivel).</summary>
     private async Task<Organization> GetEntityAsync() =>
-        await _db.Organizations.FirstOrDefaultAsync() ?? throw AppException.NotFound("Nucleo");
+        await _db.Organizations.FirstOrDefaultAsync() ?? throw AppException.NotFound("Núcleo");
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

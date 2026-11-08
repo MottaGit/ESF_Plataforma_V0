@@ -20,7 +20,7 @@ public record NucleoAdminResultDto(NucleoDto Nucleo, AccessLinkDto? Link);
 
 public class SaveNucleoRequest
 {
-    [Required(ErrorMessage = "Informe o nome do nucleo.")]
+    [Required(ErrorMessage = "Informe o nome do núcleo.")]
     [StringLength(200, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 200 caracteres.")]
     public string Name { get; set; } = string.Empty;
 
@@ -33,12 +33,12 @@ public class SaveNucleoRequest
 
 public class CreateNucleoRequest : SaveNucleoRequest
 {
-    [Required(ErrorMessage = "Informe o nome de quem vai administrar o nucleo.")]
+    [Required(ErrorMessage = "Informe o nome de quem vai administrar o núcleo.")]
     [StringLength(160, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 160 caracteres.")]
     public string AdminName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Informe o e-mail de quem vai administrar o nucleo.")]
-    [EmailAddress(ErrorMessage = "E-mail invalido.")]
+    [Required(ErrorMessage = "Informe o e-mail de quem vai administrar o núcleo.")]
+    [EmailAddress(ErrorMessage = "E-mail inválido.")]
     [StringLength(200)]
     public string AdminEmail { get; set; } = string.Empty;
 }
@@ -51,7 +51,7 @@ public class PersonRequest
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Informe o e-mail.")]
-    [EmailAddress(ErrorMessage = "E-mail invalido.")]
+    [EmailAddress(ErrorMessage = "E-mail inválido.")]
     [StringLength(200)]
     public string Email { get; set; } = string.Empty;
 }
@@ -79,11 +79,11 @@ public class SaveNationalIndicatorRequest
     [StringLength(200, MinimumLength = 2, ErrorMessage = "O nome deve ter entre 2 e 200 caracteres.")]
     public string Name { get; set; } = string.Empty;
 
-    [StringLength(60, ErrorMessage = "A unidade deve ter no maximo 60 caracteres.")]
+    [StringLength(60, ErrorMessage = "A unidade deve ter no máximo 60 caracteres.")]
     public string? Unit { get; set; }
 
     /// <summary>Como contar, para todos os nucleos contarem do mesmo jeito.</summary>
-    [StringLength(600, ErrorMessage = "A explicacao deve ter no maximo 600 caracteres.")]
+    [StringLength(600, ErrorMessage = "A explicação deve ter no máximo 600 caracteres.")]
     public string? Description { get; set; }
 }
 

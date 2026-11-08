@@ -58,22 +58,36 @@ function buildUrl(path: string, query?: RequestOptions['query']) {
   return qs ? `${url}?${qs}` : url;
 }
 
+/** Mensagem para quando a resposta nao traz a explicacao da API (pagina de erro do proxy, servidor reiniciando). */
+function statusMessage(status: number) {
+  if (status === 401) return 'Sessão expirada. Entre novamente.';
+  if (status === 403) return 'Você não tem permissão para esta ação.';
+  if (status === 404) return 'Registro não encontrado.';
+  if (status === 413) return 'O arquivo é grande demais para enviar.';
+  if (status >= 500) return 'O servidor não respondeu. Tente de novo em instantes.';
+  return 'Não foi possível concluir a operação.';
+}
+
 async function parseError(response: Response): Promise<ApiError> {
-  let message = 'Nao foi possivel concluir a operacao.';
+  let message = statusMessage(response.status);
   let fieldErrors: Record<string, string[]> | undefined;
 
   try {
     const data = await response.json();
+    // So a mensagem da propria API ({ message }); o "title" padrao do ASP.NET vem em ingles.
     if (typeof data?.message === 'string') message = data.message;
-    else if (typeof data?.title === 'string') message = data.title;
     if (data?.errors && typeof data.errors === 'object') fieldErrors = data.errors;
   } catch {
-    if (response.status === 401) message = 'Sessao expirada. Entre novamente.';
-    if (response.status === 403) message = 'Voce nao tem permissao para esta acao.';
-    if (response.status === 404) message = 'Registro nao encontrado.';
+    // sem JSON: fica a mensagem do status
   }
 
   return new ApiError(message, response.status, fieldErrors);
+}
+
+/** Falha antes de chegar resposta: sem internet ou servidor fora do ar. */
+function connectionError() {
+  if (!navigator.onLine) return new ApiError('Sem internet. Conecte-se e tente de novo.', 0);
+  return new ApiError('Não foi possível falar com o servidor. Confira a internet e tente de novo em instantes.', 0);
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -92,8 +106,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       body: formData ?? (body !== undefined ? JSON.stringify(body) : undefined)
     });
   } catch {
-    if (!navigator.onLine) throw new ApiError('Sem internet. Conecte-se e tente de novo.', 0);
-    throw new ApiError('Nao foi possivel falar com o servidor. Verifique se a API esta em execucao.', 0);
+    throw connectionError();
   }
 
   // Sem internet, o service worker devolve a ultima copia guardada (ou um 503 explicando) com este cabecalho.
@@ -123,14 +136,19 @@ async function download(path: string, body: unknown, fallbackName: string) {
   const token = tokenStore.get();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response =
-    body === undefined
-      ? await fetch(buildUrl(path), { headers })
-      : await fetch(buildUrl(path), {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
+  let response: Response;
+  try {
+    response =
+      body === undefined
+        ? await fetch(buildUrl(path), { headers })
+        : await fetch(buildUrl(path), {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+  } catch {
+    throw connectionError();
+  }
 
   if (!response.ok) throw await parseError(response);
 

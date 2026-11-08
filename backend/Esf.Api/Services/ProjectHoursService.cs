@@ -82,7 +82,7 @@ public class ProjectHoursService
 
     public async Task<ProjectHourEntryDto> UpdateAsync(Guid id, SaveHourEntryRequest request)
     {
-        var entry = await _db.ProjectHourEntries.FirstOrDefaultAsync(h => h.Id == id) ?? throw AppException.NotFound("Lancamento de horas");
+        var entry = await _db.ProjectHourEntries.FirstOrDefaultAsync(h => h.Id == id) ?? throw AppException.NotFound("Lançamento de horas");
         await EnsureCanEditAsync(entry);
 
         var volunteerId = request.VolunteerId ?? entry.VolunteerId;
@@ -102,7 +102,7 @@ public class ProjectHoursService
 
     public async Task DeleteAsync(Guid id)
     {
-        var entry = await _db.ProjectHourEntries.FirstOrDefaultAsync(h => h.Id == id) ?? throw AppException.NotFound("Lancamento de horas");
+        var entry = await _db.ProjectHourEntries.FirstOrDefaultAsync(h => h.Id == id) ?? throw AppException.NotFound("Lançamento de horas");
         await EnsureCanEditAsync(entry);
         _db.ProjectHourEntries.Remove(entry);
         await _db.SaveChangesAsync();
@@ -174,7 +174,7 @@ public class ProjectHoursService
     {
         if (await db.ProjectVolunteers.AnyAsync(pv => pv.ProjectId == projectId && pv.VolunteerId == volunteerId)) return;
         var name = await db.Volunteers.Where(v => v.Id == volunteerId).Select(v => v.Name).FirstOrDefaultAsync()
-                   ?? throw AppException.NotFound("Voluntario");
+                   ?? throw AppException.NotFound("Voluntário");
         throw new AppException($"{name} não está na equipe do projeto. Vincule a pessoa na aba Equipe antes de lançar as horas.");
     }
 

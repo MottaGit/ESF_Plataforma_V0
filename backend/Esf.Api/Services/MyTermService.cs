@@ -90,7 +90,7 @@ public partial class MyTermService
     {
         var (_, volunteer) = await MineAsync();
         var document = await TermsOf(volunteer.Id).FirstOrDefaultAsync() ?? throw AppException.NotFound("Termo assinado");
-        var content = await _storage.TryReadAsync(document.StoredName) ?? throw AppException.NotFound("Conteudo do documento");
+        var content = await _storage.TryReadAsync(document.StoredName) ?? throw AppException.NotFound("Conteúdo do documento");
         return (content, FileStorageService.ContentTypeFor(document.StoredName), document.FileName);
     }
 
@@ -114,7 +114,7 @@ public partial class MyTermService
     private async Task<(User User, Volunteer Volunteer)> MineAsync()
     {
         var userId = _currentUser.RequireId();
-        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId) ?? throw AppException.NotFound("Usuario");
+        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId) ?? throw AppException.NotFound("Usuário");
         var volunteer = user.VolunteerId is null
             ? null
             : await _db.Volunteers.AsNoTracking().FirstOrDefaultAsync(v => v.Id == user.VolunteerId);

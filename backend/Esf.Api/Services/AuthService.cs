@@ -38,7 +38,7 @@ public class AuthService
         // Acesso criado por link e ainda sem senha: a pessoa entra pelo link de primeiro acesso.
         if (user.PasswordHash.Length == 0)
             throw new AppException(
-                "Este acesso ainda nao foi ativado. Use o link de primeiro acesso que voce recebeu ou peca um novo a coordenacao.",
+                "Este acesso ainda não foi ativado. Use o link de primeiro acesso que você recebeu ou peça um novo à coordenação.",
                 StatusCodes.Status401Unauthorized);
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -57,7 +57,7 @@ public class AuthService
         }
 
         if (!user.IsActive)
-            throw new AppException("Este acesso esta desativado. Fale com um administrador.", StatusCodes.Status403Forbidden);
+            throw new AppException("Este acesso está desativado. Fale com um administrador.", StatusCodes.Status403Forbidden);
 
         if (user.FailedLoginCount != 0 || user.LockedUntil.HasValue)
         {
@@ -74,14 +74,14 @@ public class AuthService
     {
         var minutes = Math.Max(1, (int)Math.Ceiling((until - DateTime.UtcNow).TotalMinutes));
         return new AppException(
-            $"Muitas tentativas com a senha errada. Por seguranca, este acesso esta bloqueado; tente de novo em {minutes} minuto(s).",
+            $"Muitas tentativas com a senha errada. Por segurança, este acesso está bloqueado; tente de novo em {minutes} minuto(s).",
             StatusCodes.Status429TooManyRequests);
     }
 
     public async Task<UserDto> MeAsync(Guid userId)
     {
         var user = await _db.Users.AsNoTracking().Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Id == userId)
-                   ?? throw AppException.NotFound("Usuario");
+                   ?? throw AppException.NotFound("Usuário");
         return Mapping.ToDto(user);
     }
 
@@ -89,7 +89,7 @@ public class AuthService
     public async Task<UserDto> AcceptTermsAsync(Guid userId)
     {
         var user = await _db.Users.Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Id == userId)
-                   ?? throw AppException.NotFound("Usuario");
+                   ?? throw AppException.NotFound("Usuário");
 
         user.TermsAcceptedAt = DateTime.UtcNow;
         user.TermsVersion = PrivacyTerms.CurrentVersion;
@@ -100,10 +100,10 @@ public class AuthService
     public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId)
-                   ?? throw AppException.NotFound("Usuario");
+                   ?? throw AppException.NotFound("Usuário");
 
         if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
-            throw new AppException("A senha atual nao confere.");
+            throw new AppException("A senha atual não confere.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await _db.SaveChangesAsync();

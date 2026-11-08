@@ -11,11 +11,11 @@ public class AppException : Exception
     }
 
     public static AppException NotFound(string what, bool feminine = false) =>
-        new($"{what} nao encontrad{(feminine ? "a" : "o")}.", StatusCodes.Status404NotFound);
+        new($"{what} não encontrad{(feminine ? "a" : "o")}.", StatusCodes.Status404NotFound);
 
     public static AppException Conflict(string message) =>
         new(message, StatusCodes.Status409Conflict);
 
-    public static AppException Forbidden(string message = "Voce nao tem permissao para esta acao.") =>
+    public static AppException Forbidden(string message = "Você não tem permissão para esta ação.") =>
         new(message, StatusCodes.Status403Forbidden);
 }

@@ -50,7 +50,9 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   conhecem HTTP) → `Data/EsfDbContext`. Entrada e saída só por `Dtos/`; a conversão fica em `Services/Mapping.cs` e
   entidades nunca saem na API. Serviço novo precisa ser registrado à mão em `Program.cs` (`AddScoped`).
 - **Erros:** os serviços lançam `AppException` (`NotFound`, `Conflict`, `Forbidden`); o `ErrorHandlingMiddleware` e o
-  `InvalidModelStateResponseFactory` devolvem sempre `{ message, errors }`, e o frontend mostra o `message`.
+  `InvalidModelStateResponseFactory` devolvem sempre `{ message, errors }`, e o frontend mostra o `message`. As
+  mensagens em inglês que o próprio ASP.NET gera (JSON em formato errado) não viram `message`: dê sempre um
+  `ErrorMessage` em português aos atributos de validação.
 - **Núcleos (multi-tenant):** `Organization` é o núcleo. No fim de `OnModelCreating` do `EsfDbContext` há um filtro
   global por núcleo em cada tabela, usando `CurrentOrganizationId` (claim `org` do JWT). `Volunteer`, `ProjectProgram`
   e `Project` implementam `IOrganizationOwned` e recebem o núcleo sozinhos no `SaveChanges`; `User` e `AuditEntry`
@@ -134,9 +136,8 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 
 ## Convenções
 
-- Comentários do código em português, sem acento. Texto visível (telas, PDFs, mensagens de erro) com acentuação
-  correta. Exceção ainda não corrigida: quase todas as mensagens de erro do backend (`AppException` e as de validação
-  nos `Dtos/`) e as mensagens padrão de `api/client.ts` estão sem acento; as novas já devem vir com acento.
+- Comentários do código em português, sem acento. Texto visível (telas, PDFs, planilhas, mensagens de erro do
+  `AppException` e dos atributos dos `Dtos/`) com acentuação correta. Logs ficam sem acento.
 - `.editorconfig`: LF, 4 espaços em C#, 2 em TS/CSS/JSON.
 - Commits no estilo Conventional Commits, em português sem acento, com escopo em português:
   `feat(tarefas): ...`, `fix(login): ...`. Quando um pedido é dividido em partes, numere: `feat(horas): 2/4 ...`.

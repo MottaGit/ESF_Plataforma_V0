@@ -23,7 +23,7 @@ public class SaveIndicatorRequest
     public string? Unit { get; set; }
 
     /// <summary>Vazio: ainda nao informado (nao entra nas somas como zero).</summary>
-    [Range(0, 999999999, ErrorMessage = "Valor invalido.")]
+    [Range(0, 999999999, ErrorMessage = "Valor inválido.")]
     public decimal? Value { get; set; }
 
     /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele (o que vier em Name e Unit e ignorado).</summary>

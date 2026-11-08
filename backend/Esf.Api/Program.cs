@@ -141,7 +141,17 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
                 entry => entry.Key,
                 entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
 
-        var first = errors.SelectMany(pair => pair.Value).FirstOrDefault() ?? "Dados invalidos.";
+        // As mensagens dos Dtos sao em portugues; as que o proprio ASP.NET gera (JSON em formato errado, campo
+        // obrigatorio sem atributo) vem em ingles e nao vao para a tela.
+        static bool FromFramework(string key, string message) =>
+            key.StartsWith('$') || message.StartsWith("The ", StringComparison.Ordinal)
+                                || message.Contains(" is not valid", StringComparison.Ordinal);
+
+        var first = errors
+            .SelectMany(pair => pair.Value.Select(message => (pair.Key, Message: message)))
+            .Where(error => !FromFramework(error.Key, error.Message))
+            .Select(error => error.Message)
+            .FirstOrDefault() ?? "Algum campo veio num formato que não foi reconhecido. Confira os dados e tente de novo.";
         return new BadRequestObjectResult(new { message = first, errors });
     };
 });

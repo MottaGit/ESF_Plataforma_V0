@@ -95,7 +95,7 @@ public class ProjectFileService
                    ?? throw AppException.NotFound("Arquivo");
 
         var content = await _storage.TryReadAsync(file.StoredName)
-                      ?? throw AppException.NotFound("Conteudo do arquivo");
+                      ?? throw AppException.NotFound("Conteúdo do arquivo");
 
         return (content, FileStorageService.ContentTypeFor(file.StoredName), file.FileName);
     }

@@ -25,7 +25,7 @@ public record OrganizationDto(
 
 public class SaveOrganizationRequest
 {
-    [Required(ErrorMessage = "Informe o nome da organizacao.")]
+    [Required(ErrorMessage = "Informe o nome da organização.")]
     [StringLength(200, MinimumLength = 2)]
     public string Name { get; set; } = string.Empty;
 
@@ -38,7 +38,7 @@ public class SaveOrganizationRequest
     public string? Mission { get; set; }
     public string? About { get; set; }
 
-    [EmailAddress(ErrorMessage = "E-mail invalido.")]
+    [EmailAddress(ErrorMessage = "E-mail inválido.")]
     [StringLength(200)]
     public string? Email { get; set; }
 

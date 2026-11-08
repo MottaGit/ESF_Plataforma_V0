@@ -58,8 +58,8 @@ public record MentionableDto(Guid VolunteerId, string Name, string? PhotoUrl, bo
 
 public class SaveCommentRequest
 {
-    [Required(ErrorMessage = "Escreva o comentario.")]
-    [StringLength(2000, MinimumLength = 1, ErrorMessage = "O comentario deve ter ate 2000 caracteres.")]
+    [Required(ErrorMessage = "Escreva o comentário.")]
+    [StringLength(2000, MinimumLength = 1, ErrorMessage = "O comentário deve ter até 2000 caracteres.")]
     public string Text { get; set; } = string.Empty;
 
     /// <summary>Voluntarios mencionados com @ (recebem aviso).</summary>
@@ -69,14 +69,14 @@ public class SaveCommentRequest
 public class SaveChecklistItemRequest
 {
     [Required(ErrorMessage = "Escreva o item.")]
-    [StringLength(300, MinimumLength = 1, ErrorMessage = "O item deve ter ate 300 caracteres.")]
+    [StringLength(300, MinimumLength = 1, ErrorMessage = "O item deve ter até 300 caracteres.")]
     public string Text { get; set; } = string.Empty;
 }
 
 /// <summary>Marcar/desmarcar e/ou reescrever um item (o que vier vazio fica como esta).</summary>
 public class UpdateChecklistItemRequest
 {
-    [StringLength(300, MinimumLength = 1, ErrorMessage = "O item deve ter ate 300 caracteres.")]
+    [StringLength(300, MinimumLength = 1, ErrorMessage = "O item deve ter até 300 caracteres.")]
     public string? Text { get; set; }
 
     public bool? Done { get; set; }
@@ -84,8 +84,8 @@ public class UpdateChecklistItemRequest
 
 public class SaveActivityRequest
 {
-    [Required(ErrorMessage = "Informe o titulo da tarefa.")]
-    [StringLength(200, MinimumLength = 3, ErrorMessage = "O titulo deve ter entre 3 e 200 caracteres.")]
+    [Required(ErrorMessage = "Informe o título da tarefa.")]
+    [StringLength(200, MinimumLength = 3, ErrorMessage = "O título deve ter entre 3 e 200 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
     public string? Description { get; set; }
@@ -100,7 +100,7 @@ public class SaveActivityRequest
     public DateOnly? DueDate { get; set; }
 
     /// <summary>Opcional; so e guardado quando o status e Bloqueada.</summary>
-    [StringLength(300, ErrorMessage = "Descreva o bloqueio em ate 300 caracteres.")]
+    [StringLength(300, ErrorMessage = "Descreva o bloqueio em até 300 caracteres.")]
     public string? BlockedReason { get; set; }
 }
 
@@ -110,6 +110,6 @@ public class UpdateActivityStatusRequest
     public ActivityStatus? Status { get; set; }
 
     /// <summary>Opcional; so e guardado quando o status e Bloqueada.</summary>
-    [StringLength(300, ErrorMessage = "Descreva o bloqueio em ate 300 caracteres.")]
+    [StringLength(300, ErrorMessage = "Descreva o bloqueio em até 300 caracteres.")]
     public string? BlockedReason { get; set; }
 }

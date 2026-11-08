@@ -51,7 +51,7 @@ public class FileStorageService
         var extension = Path.GetExtension(originalName);
 
         if (string.IsNullOrWhiteSpace(extension) || !AllowedExtensions.Contains(extension))
-            throw new AppException("Formato de arquivo nao permitido.");
+            throw new AppException("Formato de arquivo não permitido.");
 
         var storedName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
         var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? ContentTypeFor(storedName) : file.ContentType;

@@ -46,7 +46,7 @@ public class IndicatorService
     {
         var indicator = await _db.Indicators.FirstOrDefaultAsync(i => i.Id == id) ?? throw AppException.NotFound("Indicador");
         if (request.NationalIndicatorId != indicator.NationalIndicatorId && await IsMandatoryAsync(indicator))
-            throw new AppException("Indicador nacional e obrigatorio em todo projeto: so o valor pode mudar.");
+            throw new AppException("Indicador nacional é obrigatório em todo projeto: só o valor pode mudar.");
 
         await ApplyAsync(indicator, request);
         await _db.SaveChangesAsync();
@@ -59,7 +59,7 @@ public class IndicatorService
         var indicator = await _db.Indicators.FirstOrDefaultAsync(i => i.Id == id) ?? throw AppException.NotFound("Indicador");
         if (await IsMandatoryAsync(indicator))
             throw new AppException(
-                "Indicador nacional e obrigatorio em todo projeto e nao pode ser excluido. Se o numero ainda nao foi apurado, deixe o valor em branco.");
+                "Indicador nacional é obrigatório em todo projeto e não pode ser excluído. Se o número ainda não foi apurado, deixe o valor em branco.");
 
         _db.Indicators.Remove(indicator);
         await _db.SaveChangesAsync();
@@ -84,7 +84,7 @@ public class IndicatorService
             var national = await NationalIndicatorService.FindForUseAsync(_db, r.NationalIndicatorId.Value, indicator.NationalIndicatorId);
             if (await _db.Indicators.AnyAsync(i =>
                     i.ProjectId == indicator.ProjectId && i.NationalIndicatorId == national.Id && i.Id != indicator.Id))
-                throw AppException.Conflict("Este projeto ja tem este indicador nacional.");
+                throw AppException.Conflict("Este projeto já tem este indicador nacional.");
 
             indicator.NationalIndicatorId = national.Id;
             indicator.Name = national.Name;

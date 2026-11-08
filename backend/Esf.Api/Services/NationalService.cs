@@ -56,7 +56,7 @@ public class NationalService
     public async Task<NationalPanelDto> PanelAsync(DateOnly? from, DateOnly? to)
     {
         if (from.HasValue && to.HasValue && to < from)
-            throw new AppException("O fim do periodo nao pode ser antes do inicio.");
+            throw new AppException("O fim do período não pode ser antes do início.");
         // O periodo e em dias de Brasilia: o que foi feito as 22 h conta no proprio dia.
         var fromUtc = from.HasValue ? TextHelpers.BrasiliaDayStartUtc(from.Value) : (DateTime?)null;
         var toUtc = to.HasValue ? TextHelpers.BrasiliaDayStartUtc(to.Value.AddDays(1)) : (DateTime?)null;
@@ -170,7 +170,7 @@ public class NationalService
 
     public async Task<NucleoDto> UpdateNucleoAsync(Guid id, SaveNucleoRequest request)
     {
-        var nucleo = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == id) ?? throw AppException.NotFound("Nucleo");
+        var nucleo = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == id) ?? throw AppException.NotFound("Núcleo");
         await ApplyAsync(nucleo, request);
         nucleo.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -180,7 +180,7 @@ public class NationalService
     /// <summary>Mais um administrador para um nucleo (por exemplo, quando quem administrava saiu).</summary>
     public async Task<NucleoAdminResultDto> AddAdminAsync(Guid nucleoId, PersonRequest request)
     {
-        var nucleo = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == nucleoId) ?? throw AppException.NotFound("Nucleo");
+        var nucleo = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == nucleoId) ?? throw AppException.NotFound("Núcleo");
         var link = await AddAdminAsync(nucleo, request.Name, request.Email);
         return new NucleoAdminResultDto(await GetNucleoAsync(nucleoId), link);
     }
@@ -215,8 +215,8 @@ public class NationalService
 
         if (user is not null)
         {
-            if (user.IsNational) throw AppException.Conflict("Esta pessoa ja faz parte da gestao nacional.");
-            if (!user.IsActive) throw new AppException("Este acesso esta desativado. Peca ao nucleo para reativar antes.");
+            if (user.IsNational) throw AppException.Conflict("Esta pessoa já faz parte da gestão nacional.");
+            if (!user.IsActive) throw new AppException("Este acesso está desativado. Peça ao núcleo para reativar antes.");
             user.IsNational = true;
             await _db.SaveChangesAsync();
             return new NationalPersonResultDto(ToPerson(user, names), null);
@@ -242,10 +242,10 @@ public class NationalService
     public async Task RemovePersonAsync(Guid userId)
     {
         if (userId == _currentUser.Id)
-            throw new AppException("Voce nao pode tirar a propria permissao da gestao nacional.");
+            throw new AppException("Você não pode tirar a própria permissão da gestão nacional.");
 
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsNational)
-                   ?? throw AppException.NotFound("Pessoa da gestao nacional", feminine: true);
+                   ?? throw AppException.NotFound("Pessoa da gestão nacional", feminine: true);
         user.IsNational = false;
         if (user.OrganizationId is null) user.IsActive = false;
         await _db.SaveChangesAsync();
@@ -255,7 +255,7 @@ public class NationalService
     public async Task<AccessLinkDto> NewPersonLinkAsync(Guid userId)
     {
         if (!await _db.Users.AnyAsync(u => u.Id == userId && u.IsNational && u.OrganizationId == null))
-            throw AppException.NotFound("Conta da gestao nacional", feminine: true);
+            throw AppException.NotFound("Conta da gestão nacional", feminine: true);
         return await _access.NewLinkAsync(userId);
     }
 
@@ -311,7 +311,7 @@ public class NationalService
         if (user is not null)
         {
             if (user.OrganizationId != nucleo.Id)
-                throw AppException.Conflict("Este e-mail ja e o login de outra pessoa na plataforma.");
+                throw AppException.Conflict("Este e-mail já é o login de outra pessoa na plataforma.");
             user.Role = UserRole.Administrador;
             user.IsActive = true;
             await _db.SaveChangesAsync();
@@ -343,7 +343,7 @@ public class NationalService
     {
         var name = request.Name.Trim();
         if (await _db.Organizations.AnyAsync(o => o.Id != nucleo.Id && o.Name.ToLower() == name.ToLower()))
-            throw AppException.Conflict("Ja existe um nucleo com este nome.");
+            throw AppException.Conflict("Já existe um núcleo com este nome.");
 
         nucleo.Name = name;
         nucleo.City = string.IsNullOrWhiteSpace(request.City) ? null : request.City.Trim();

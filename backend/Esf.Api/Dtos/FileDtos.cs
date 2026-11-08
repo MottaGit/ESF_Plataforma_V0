@@ -23,6 +23,6 @@ public record ProjectFileDto(
 public class SaveFileDescriptionRequest
 {
     /// <summary>Legenda do arquivo (vazia remove a legenda).</summary>
-    [StringLength(300, ErrorMessage = "A legenda deve ter no maximo 300 caracteres.")]
+    [StringLength(300, ErrorMessage = "A legenda deve ter no máximo 300 caracteres.")]
     public string? Description { get; set; }
 }

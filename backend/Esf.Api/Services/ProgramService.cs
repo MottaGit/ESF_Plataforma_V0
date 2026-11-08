@@ -216,6 +216,6 @@ public class ProgramService
     private async Task EnsureNameAvailableAsync(string name, Guid? exceptId)
     {
         if (await _db.Programs.AnyAsync(p => p.Id != exceptId && EF.Functions.ILike(p.Name, name)))
-            throw AppException.Conflict("Ja existe um programa com este nome.");
+            throw AppException.Conflict("Já existe um programa com este nome.");
     }
 }

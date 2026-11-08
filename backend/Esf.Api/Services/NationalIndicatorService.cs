@@ -117,9 +117,9 @@ public class NationalIndicatorService
     public static async Task<NationalIndicator> FindForUseAsync(EsfDbContext db, Guid id, Guid? currentlyLinked)
     {
         var indicator = await db.NationalIndicators.AsNoTracking().FirstOrDefaultAsync(n => n.Id == id)
-                        ?? throw new AppException("O indicador nacional informado nao existe.");
+                        ?? throw new AppException("O indicador nacional informado não existe.");
         if (indicator.IsArchived && indicator.Id != currentlyLinked)
-            throw new AppException("Este indicador nacional foi arquivado pela gestao nacional e nao pode ser usado em indicadores novos.");
+            throw new AppException("Este indicador nacional foi arquivado pela gestão nacional e não pode ser usado em indicadores novos.");
         return indicator;
     }
 
@@ -130,7 +130,7 @@ public class NationalIndicatorService
     {
         var name = request.Name.Trim();
         if (await _db.NationalIndicators.AnyAsync(n => n.Id != indicator.Id && n.Name.ToLower() == name.ToLower()))
-            throw AppException.Conflict("Ja existe um indicador nacional com este nome.");
+            throw AppException.Conflict("Já existe um indicador nacional com este nome.");
 
         indicator.Name = name;
         indicator.Unit = string.IsNullOrWhiteSpace(request.Unit) ? null : request.Unit.Trim();

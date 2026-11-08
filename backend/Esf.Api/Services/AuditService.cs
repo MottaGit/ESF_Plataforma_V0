@@ -50,7 +50,7 @@ public partial class AuditService
             ? new List<AuditChange>()
             : JsonSerializer.Deserialize<List<AuditChange>>(r.Changes) ?? new List<AuditChange>());
 
-        // Referencias a voluntarios e programas: nome atual (anonimizado aparece como "Voluntario removido").
+        // Referencias a voluntarios e programas: nome atual (anonimizado aparece como "Voluntário removido").
         var references = rows
             .SelectMany(r => new[] { r.EntityLabel }.Concat(changes[r.Id].SelectMany(c => new[] { c.Before, c.After })))
             .SelectMany(text => ReferencePattern().Matches(text).Select(m => (Kind: m.Groups[1].Value, Id: Guid.Parse(m.Groups[2].Value))))

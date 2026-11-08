@@ -84,9 +84,9 @@ public class ActivityCommentService
     public async Task<CommentDto> UpdateAsync(Guid commentId, SaveCommentRequest request)
     {
         var comment = await _db.ActivityComments.Include(c => c.Activity).FirstOrDefaultAsync(c => c.Id == commentId)
-                      ?? throw AppException.NotFound("Comentario");
+                      ?? throw AppException.NotFound("Comentário");
         if (comment.AuthorUserId != _currentUser.RequireId())
-            throw new AppException("So quem escreveu pode editar o comentario.", StatusCodes.Status403Forbidden);
+            throw new AppException("Só quem escreveu pode editar o comentário.", StatusCodes.Status403Forbidden);
 
         var mentions = await ValidMentionsAsync(request.MentionedVolunteerIds);
         var newMentions = mentions.Except(comment.MentionedVolunteerIds).ToList();
@@ -104,9 +104,9 @@ public class ActivityCommentService
     public async Task DeleteAsync(Guid commentId)
     {
         var comment = await _db.ActivityComments.Include(c => c.Activity).FirstOrDefaultAsync(c => c.Id == commentId)
-                      ?? throw AppException.NotFound("Comentario");
+                      ?? throw AppException.NotFound("Comentário");
         if (comment.AuthorUserId != _currentUser.RequireId() && !CanModerate)
-            throw new AppException("Voce so pode apagar os seus comentarios.", StatusCodes.Status403Forbidden);
+            throw new AppException("Você só pode apagar os seus comentários.", StatusCodes.Status403Forbidden);
 
         _db.ActivityComments.Remove(comment);
         await _db.SaveChangesAsync();

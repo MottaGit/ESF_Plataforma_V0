@@ -782,8 +782,13 @@ A documentação interativa fica em `/swagger`.
 Erros seguem sempre o mesmo formato:
 
 ```json
-{ "message": "A previsao de termino nao pode ser anterior a data de inicio.", "errors": { "campo": ["..."] } }
+{ "message": "A previsão de término não pode ser anterior à data de início.", "errors": { "campo": ["..."] } }
 ```
+
+O `message` é o que a tela mostra, sempre em português com acento. As mensagens que o próprio ASP.NET gera em inglês
+(um valor em formato que ele não reconhece) não viram `message`: no lugar, "Algum campo veio num formato que não foi
+reconhecido". Sem resposta da API (sem internet, servidor reiniciando, arquivo grande demais para o proxy), a tela
+explica o motivo em vez de um erro técnico.
 
 ---
 

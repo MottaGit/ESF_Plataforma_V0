@@ -37,10 +37,10 @@ public class UserService
     /// </summary>
     public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request, Guid currentUserId)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Usuario");
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Usuário");
 
         if (id == currentUserId && !request.IsActive)
-            throw new AppException("Voce nao pode desativar o proprio acesso.");
+            throw new AppException("Você não pode desativar o próprio acesso.");
 
         if (request.VolunteerId.HasValue && request.VolunteerId != user.VolunteerId)
         {
@@ -48,10 +48,10 @@ public class UserService
             var volunteer = await _db.Volunteers.FirstAsync(v => v.Id == request.VolunteerId.Value);
             var email = volunteer.Email?.Trim().ToLowerInvariant();
             if (string.IsNullOrEmpty(email))
-                throw new AppException("Cadastre o e-mail do voluntario antes: ele e o login.");
+                throw new AppException("Cadastre o e-mail do voluntário antes: ele é o login.");
             // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
             if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id != id && u.Email.ToLower() == email))
-                throw AppException.Conflict("Ja existe um acesso com o e-mail deste voluntario.");
+                throw AppException.Conflict("Já existe um acesso com o e-mail deste voluntário.");
 
             user.VolunteerId = volunteer.Id;
             user.Name = volunteer.Name;
@@ -68,9 +68,9 @@ public class UserService
     public async Task DeleteAsync(Guid id, Guid currentUserId)
     {
         if (id == currentUserId)
-            throw new AppException("Voce nao pode excluir o proprio usuario.");
+            throw new AppException("Você não pode excluir o próprio usuário.");
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Usuario");
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Usuário");
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
@@ -79,7 +79,7 @@ public class UserService
     private async Task<UserDto> GetDtoAsync(Guid id)
     {
         var user = await _db.Users.AsNoTracking().Include(u => u.Volunteer).FirstOrDefaultAsync(u => u.Id == id)
-                   ?? throw AppException.NotFound("Usuario");
+                   ?? throw AppException.NotFound("Usuário");
         return Mapping.ToDto(user);
     }
 
@@ -89,9 +89,9 @@ public class UserService
         if (!volunteerId.HasValue) return;
 
         if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
-            throw AppException.NotFound("Voluntario");
+            throw AppException.NotFound("Voluntário");
 
         if (await _db.Users.AnyAsync(u => u.VolunteerId == volunteerId.Value && u.Id != userId))
-            throw AppException.Conflict("Este voluntario ja esta vinculado a outro usuario.");
+            throw AppException.Conflict("Este voluntário já está vinculado a outro usuário.");
     }
 }

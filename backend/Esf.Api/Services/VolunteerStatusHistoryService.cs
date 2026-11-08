@@ -33,7 +33,7 @@ public class VolunteerStatusHistoryService
     public async Task<VolunteerHoursDto> GetAsync(Guid volunteerId)
     {
         if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId))
-            throw AppException.NotFound("Voluntario");
+            throw AppException.NotFound("Voluntário");
 
         var changes = await _db.VolunteerStatusChanges.AsNoTracking()
             .Where(c => c.VolunteerId == volunteerId)
@@ -72,7 +72,7 @@ public class VolunteerStatusHistoryService
         var volunteer = await LoadEditableAsync(volunteerId);
         var changes = await LoadChangesAsync(_db, volunteerId);
         var period = changes.FirstOrDefault(c => c.Id == periodId && c.Status.HasValue)
-                     ?? throw AppException.NotFound("Periodo");
+                     ?? throw AppException.NotFound("Período");
 
         var points = Without(ToPoints(changes), period.StartsOn);
         Save(_db, volunteer, changes, WithPeriod(points, request.Status!.Value, from, to));
@@ -86,12 +86,12 @@ public class VolunteerStatusHistoryService
         var volunteer = await LoadEditableAsync(volunteerId);
         var changes = await LoadChangesAsync(_db, volunteerId);
         var period = changes.FirstOrDefault(c => c.Id == periodId && c.Status.HasValue)
-                     ?? throw AppException.NotFound("Periodo");
+                     ?? throw AppException.NotFound("Período");
 
         var points = Without(ToPoints(changes), period.StartsOn);
         if (points.Count == 0 || points[^1].Status is null)
             throw new AppException(
-                "Nao da para tirar esse periodo: o historico ficaria sem o status atual. Edite o periodo para corrigir.");
+                "Não dá para tirar esse período: o histórico ficaria sem o status atual. Edite o período para corrigir.");
 
         Save(_db, volunteer, changes, points);
         await _db.SaveChangesAsync();
@@ -121,9 +121,9 @@ public class VolunteerStatusHistoryService
     private async Task<Volunteer> LoadEditableAsync(Guid volunteerId)
     {
         var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == volunteerId)
-                        ?? throw AppException.NotFound("Voluntario");
+                        ?? throw AppException.NotFound("Voluntário");
         if (volunteer.AnonymizedAt.HasValue)
-            throw new AppException("Os dados deste voluntario foram anonimizados e nao podem mais ser editados.");
+            throw new AppException("Os dados deste voluntário foram anonimizados e não podem mais ser editados.");
         return volunteer;
     }
 
@@ -136,11 +136,11 @@ public class VolunteerStatusHistoryService
         var to = request.EndsOn;
         var today = Mapping.Today;
 
-        if (from < MinDate) throw new AppException("Data de inicio invalida.");
-        if (from > today) throw new AppException("A data de inicio nao pode ser no futuro.");
-        if (to.HasValue && to.Value < from) throw new AppException("A data final deve ser depois da data de inicio.");
+        if (from < MinDate) throw new AppException("Data de início inválida.");
+        if (from > today) throw new AppException("A data de início não pode ser no futuro.");
+        if (to.HasValue && to.Value < from) throw new AppException("A data final deve ser depois da data de início.");
         if (to.HasValue && to.Value >= today)
-            throw new AppException("A data final deve ser antes de hoje. Se o periodo continua, deixe a data final em branco.");
+            throw new AppException("A data final deve ser antes de hoje. Se o período continua, deixe a data final em branco.");
         return (from, to);
     }
 
@@ -191,7 +191,7 @@ public class VolunteerStatusHistoryService
     private static void Save(EsfDbContext db, Volunteer volunteer, List<VolunteerStatusChange> existing, List<Point> points)
     {
         if (points.Count == 0 || points[^1].Status is null)
-            throw new AppException("O historico precisa terminar no status atual do voluntario.");
+            throw new AppException("O histórico precisa terminar no status atual do voluntário.");
 
         var byDate = existing.ToDictionary(c => c.StartsOn);
         foreach (var point in points)

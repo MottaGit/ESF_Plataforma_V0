@@ -114,7 +114,7 @@ public class VolunteerService
         var volunteer = await _db.Volunteers
             .AsNoTracking()
             .Include(v => v.Projects).ThenInclude(pv => pv.Project).ThenInclude(p => p!.Program)
-            .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+            .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
         return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
@@ -124,7 +124,7 @@ public class VolunteerService
     private static void EnsureNotAnonymized(Volunteer volunteer)
     {
         if (volunteer.AnonymizedAt.HasValue)
-            throw new AppException("Os dados deste voluntario foram anonimizados e nao podem mais ser editados.");
+            throw new AppException("Os dados deste voluntário foram anonimizados e não podem mais ser editados.");
     }
 
     /// <summary>Data do termo de adesao assinado mais recente (null: pendente).</summary>
@@ -159,7 +159,7 @@ public class VolunteerService
         ValidateBirthday(request);
         var volunteer = await _db.Volunteers
             .Include(v => v.Projects).ThenInclude(pv => pv.Project).ThenInclude(p => p!.Program)
-            .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+            .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
 
         EnsureNotAnonymized(volunteer);
         var previousStatus = volunteer.Status;
@@ -188,10 +188,10 @@ public class VolunteerService
         if (volunteer.Email == previousEmail) return;
 
         if (string.IsNullOrEmpty(volunteer.Email))
-            throw new AppException("Este voluntario tem acesso a plataforma: o e-mail e o login e nao pode ficar em branco.");
+            throw new AppException("Este voluntário tem acesso à plataforma: o e-mail é o login e não pode ficar em branco.");
         // O e-mail e o login em toda a plataforma: nao pode repetir nem em outro nucleo.
         if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id != access.Id && u.Email.ToLower() == volunteer.Email))
-            throw AppException.Conflict("Ja existe um acesso com este e-mail.");
+            throw AppException.Conflict("Já existe um acesso com este e-mail.");
         access.Email = volunteer.Email;
     }
 
@@ -202,8 +202,8 @@ public class VolunteerService
     /// </summary>
     public async Task<VolunteerDto> AnonymizeAsync(Guid id)
     {
-        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
-        if (volunteer.AnonymizedAt.HasValue) throw new AppException("Os dados deste voluntario ja foram anonimizados.");
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
+        if (volunteer.AnonymizedAt.HasValue) throw new AppException("Os dados deste voluntário já foram anonimizados.");
 
         var photo = volunteer.PhotoStoredName;
         volunteer.Name = "Voluntário removido";
@@ -230,7 +230,7 @@ public class VolunteerService
 
     public async Task DeleteAsync(Guid id)
     {
-        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
 
         // Os documentos assinados saem junto (cascata); os arquivos deles sao apagados depois.
         var documentFiles = await SignedDocumentService.StoredNamesAsync(_db, id, null);
@@ -245,7 +245,7 @@ public class VolunteerService
     /// <summary>Troca a foto do voluntario (a imagem ja chega recortada pelo navegador).</summary>
     public async Task<VolunteerDto> SetPhotoAsync(Guid id, IFormFile file)
     {
-        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
         EnsureNotAnonymized(volunteer);
 
         if (file is null || !PhotoExtensions.Contains(Path.GetExtension(file.FileName))
@@ -264,7 +264,7 @@ public class VolunteerService
 
     public async Task<VolunteerDto> RemovePhotoAsync(Guid id)
     {
-        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntario");
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
 
         var previous = volunteer.PhotoStoredName;
         volunteer.PhotoStoredName = null;
@@ -296,10 +296,10 @@ public class VolunteerService
 
         var volunteerId = request.VolunteerId!.Value;
         if (!await _db.Volunteers.AnyAsync(v => v.Id == volunteerId))
-            throw AppException.NotFound("Voluntario");
+            throw AppException.NotFound("Voluntário");
 
         if (await _db.ProjectVolunteers.AnyAsync(pv => pv.ProjectId == projectId && pv.VolunteerId == volunteerId))
-            throw AppException.Conflict("Este voluntario ja participa do projeto.");
+            throw AppException.Conflict("Este voluntário já participa do projeto.");
 
         var link = new ProjectVolunteer
         {
@@ -321,10 +321,10 @@ public class VolunteerService
     {
         var link = await _db.ProjectVolunteers
             .FirstOrDefaultAsync(pv => pv.ProjectId == projectId && pv.VolunteerId == volunteerId)
-            ?? throw AppException.NotFound("Vinculo do voluntario");
+            ?? throw AppException.NotFound("Vínculo do voluntário");
 
         if (await _db.Projects.AnyAsync(p => p.Id == projectId && p.OwnerVolunteerId == volunteerId))
-            throw new AppException("Este voluntario e o responsavel pelo projeto. Troque o responsavel antes de desvincula-lo.");
+            throw new AppException("Este voluntário é o responsável pelo projeto. Troque o responsável antes de desvinculá-lo.");
 
         _db.ProjectVolunteers.Remove(link);
         await _db.SaveChangesAsync();
@@ -347,9 +347,9 @@ public class VolunteerService
     private static void ValidateBirthday(SaveVolunteerRequest r)
     {
         if (r.BirthDay.HasValue != r.BirthMonth.HasValue)
-            throw new AppException("Informe o dia e o mes do aniversario.");
+            throw new AppException("Informe o dia e o mês do aniversário.");
 
         if (r.BirthDay.HasValue && r.BirthDay.Value > DateTime.DaysInMonth(2000, r.BirthMonth!.Value))
-            throw new AppException("Esse dia nao existe no mes escolhido.");
+            throw new AppException("Esse dia não existe no mês escolhido.");
     }
 }

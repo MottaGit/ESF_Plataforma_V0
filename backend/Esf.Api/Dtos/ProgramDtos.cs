@@ -45,7 +45,7 @@ public class SaveProgramTemplateRequest
     public string? Description { get; set; }
     public string? Objective { get; set; }
 
-    [StringLength(300, ErrorMessage = "O publico sugerido deve ter no maximo 300 caracteres.")]
+    [StringLength(300, ErrorMessage = "O público sugerido deve ter no máximo 300 caracteres.")]
     public string? TargetAudience { get; set; }
 
     public List<SaveTemplateActivityRequest> Activities { get; set; } = new();
@@ -56,8 +56,8 @@ public class SaveTemplateActivityRequest
 {
     public Guid? Id { get; set; }
 
-    [Required(ErrorMessage = "Informe o titulo da tarefa.")]
-    [StringLength(200, MinimumLength = 3, ErrorMessage = "O titulo deve ter entre 3 e 200 caracteres.")]
+    [Required(ErrorMessage = "Informe o título da tarefa.")]
+    [StringLength(200, MinimumLength = 3, ErrorMessage = "O título deve ter entre 3 e 200 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
     public string? Description { get; set; }
@@ -77,7 +77,7 @@ public class SaveTemplateIndicatorRequest
     [StringLength(200, MinimumLength = 2, ErrorMessage = "O nome deve ter entre 2 e 200 caracteres.")]
     public string Name { get; set; } = string.Empty;
 
-    [StringLength(60, ErrorMessage = "A unidade deve ter no maximo 60 caracteres.")]
+    [StringLength(60, ErrorMessage = "A unidade deve ter no máximo 60 caracteres.")]
     public string? Unit { get; set; }
 
     /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele.</summary>
@@ -103,7 +103,7 @@ public class UpdateProgramRequest
     [StringLength(120, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 120 caracteres.")]
     public string Name { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Selecione a situacao do programa.")]
+    [Required(ErrorMessage = "Selecione a situação do programa.")]
     public ProgramStatus? Status { get; set; }
 
     public string? Icon { get; set; }

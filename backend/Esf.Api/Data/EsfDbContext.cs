@@ -71,7 +71,7 @@ public class EsfDbContext : DbContext
         {
             if (entry.State != EntityState.Added || entry.Entity.OrganizationId != Guid.Empty) continue;
             entry.Entity.OrganizationId = CurrentOrganizationId
-                ?? throw AppException.Forbidden("So quem e de um nucleo pode cadastrar dados nele.");
+                ?? throw AppException.Forbidden("Só quem é de um núcleo pode cadastrar dados nele.");
         }
     }
 
