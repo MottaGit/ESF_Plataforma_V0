@@ -539,7 +539,10 @@ quantos voluntários participaram, sem repetir, e as horas lançadas), um cartã
 cidade, início e previsão de término, progresso das tarefas, os indicadores informados e quando foi o último registro)
 e, no rodapé, o nome, o CNPJ e o e-mail do núcleo. Projetos cancelados e arquivados ficam de fora. Nunca aparecem
 endereço, mapa, nomes de voluntários, tarefas, o texto dos registros, fotos nem arquivos. O código do link não vai para
-o histórico (só que a página foi ligada, desligada ou trocada).
+o histórico (só que a página foi ligada, desligada ou trocada). Na tela (`pages/PublicProgramPage.tsx`, fora do login),
+"Planejamento" aparece como "Em preparação", a barra de progresso só aparece em andamento e pausado, e o link desligado
+mostra "Página indisponível" (sem mandar para o login). A página fica fora dos buscadores (`noindex`), tem o nome do
+programa no título da aba e não instala o uso sem internet (quem é de fora não precisa guardar o app).
 
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de

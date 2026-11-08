@@ -160,8 +160,73 @@ export interface Program {
   templateActivitiesCount: number;
   templateIndicatorsCount: number;
   hasTemplateTexts: boolean;
+  /** A pagina publica do programa esta ligada. */
+  publicPage: boolean;
   /** Indicadores padrao do modelo somados nos projetos do programa. */
   results: ProgramResult[];
+}
+
+/** Pagina publica do programa, como a coordenacao configura (o codigo so vem com ela ligada). */
+export interface ProgramPublicPage {
+  enabled: boolean;
+  token: string | null;
+  description: string | null;
+}
+
+/**
+ * Pagina publica do programa (sem login): so os dados liberados. Nada de endereco, pessoas, tarefas, registros, fotos
+ * ou arquivos.
+ */
+export interface PublicProgram {
+  name: string;
+  icon: string;
+  color: string;
+  about: string | null;
+  nucleo: PublicNucleo;
+  totals: PublicProgramTotals;
+  /** Indicadores somados nos projetos mostrados (nacionais e do modelo do programa), so os que tem valor. */
+  results: PublicIndicator[];
+  projects: PublicProject[];
+  /** Ultimo registro de andamento entre os projetos mostrados. */
+  updatedAt: string | null;
+}
+
+export interface PublicNucleo {
+  name: string;
+  logoUrl: string | null;
+  cnpj: string | null;
+  email: string | null;
+  city: string | null;
+  state: string | null;
+}
+
+export interface PublicProgramTotals {
+  concluded: number;
+  inProgress: number;
+  planning: number;
+  paused: number;
+  volunteers: number;
+  hours: number;
+}
+
+export interface PublicIndicator {
+  name: string;
+  unit: string | null;
+  value: number;
+  national: boolean;
+}
+
+export interface PublicProject {
+  name: string;
+  status: ProjectStatus;
+  district: string | null;
+  city: string | null;
+  state: string | null;
+  startDate: string;
+  endDateForecast: string | null;
+  progress: number;
+  indicators: PublicIndicator[];
+  lastUpdateAt: string | null;
 }
 
 export interface ProgramResult {

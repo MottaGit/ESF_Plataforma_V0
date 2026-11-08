@@ -9,6 +9,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { NationalPage } from './pages/NationalPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { PublicProgramPage } from './pages/PublicProgramPage';
 import { ProgramRedirect, ProgramTemplatePage } from './pages/ProgramTemplatePage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -33,6 +34,8 @@ export function App() {
             <Route path="/entrar" element={<LoginPage />} />
             <Route path="/acesso/:token" element={<FirstAccessPage />} />
             <Route path="/privacidade" element={<PrivacyPage />} />
+            {/* Pagina publica do programa: sem login, para parceiros e financiadores. */}
+            <Route path="/publico/:token" element={<PublicProgramPage />} />
             <Route
               element={
                 <ProtectedRoute>

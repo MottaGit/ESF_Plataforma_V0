@@ -3020,3 +3020,83 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 @media (max-width: 640px) {
   .certificate-kinds { grid-template-columns: 1fr; }
 }
+
+/* ---------- pagina publica do programa (/publico/{codigo}, sem login) ---------- */
+.public-page { min-height: 100vh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+.public-page__top { background: var(--nav-bg); color: var(--nav-text-active); }
+.public-page__brand {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.public-page__brand div { display: flex; flex-direction: column; line-height: 1.25; }
+.public-page__brand strong { font-size: 15px; }
+.public-page__brand span:not(.sidebar__mark) { font-size: 12.5px; color: var(--nav-text); }
+.public-page__logo { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 3px; }
+.public-page__main { flex: 1; width: 100%; max-width: 960px; margin: 0 auto; padding: 28px 20px 40px; }
+.public-hero__title { display: flex; align-items: center; gap: 14px; }
+.public-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; }
+.public-hero__meta { margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted); }
+.public-hero__about { margin: 16px 0 0; max-width: 70ch; font-size: 15px; line-height: 1.6; white-space: pre-line; }
+.public-section { margin-top: 32px; }
+.public-section h2 { margin: 0 0 12px; font-size: 17px; }
+.public-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.public-stats + .public-stats { margin-top: 10px; }
+.public-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.public-stat__value { font-size: 24px; font-weight: 650; line-height: 1.15; color: var(--accent-text); }
+.public-stat--count .public-stat__value { color: var(--text); }
+.public-stat__label { font-size: 13px; color: var(--text-muted); line-height: 1.35; }
+.public-note { margin: 10px 0 0; font-size: 12.5px; color: var(--text-soft); }
+.public-projects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.public-project {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.public-project__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.public-project__head h3 { margin: 0; font-size: 15.5px; line-height: 1.3; }
+.public-project__head .badge { flex-shrink: 0; }
+.public-project__line { margin: 0; font-size: 13px; color: var(--text-muted); }
+.public-project__progress { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12.5px; color: var(--text-muted); }
+.public-project__progress .progress { flex: 1; max-width: 220px; }
+.public-project__indicators { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--border-soft); display: grid; gap: 4px; }
+.public-project__indicators div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.public-project__indicators dt { color: var(--text-muted); }
+.public-project__indicators dd { margin: 0; font-weight: 600; text-align: right; white-space: nowrap; }
+.public-project__updated { margin: 4px 0 0; font-size: 12px; color: var(--text-soft); }
+.public-empty { max-width: 460px; margin: 60px auto; text-align: center; color: var(--text-muted); }
+.public-empty h1 { font-size: 20px; color: var(--text); margin: 0 0 8px; }
+.public-empty .spinner { margin: 0 auto 10px; display: block; }
+.public-page__footer { border-top: 1px solid var(--border); background: var(--surface); }
+.public-page__footer p { max-width: 960px; margin: 0 auto; padding: 16px 20px 0; font-size: 13px; color: var(--text-muted); }
+.public-page__footer p:last-child { padding-bottom: 18px; }
+.public-page__footer strong { color: var(--text); }
+.public-page__footer a { color: var(--accent-text); }
+.public-page__footnote { font-size: 12px !important; color: var(--text-soft) !important; padding-top: 4px !important; }
+
+@media (max-width: 720px) {
+  .public-page__main { padding: 20px 16px 32px; }
+  .public-page__brand { padding: 12px 16px; }
+  .public-hero h1 { font-size: 21px; }
+  .public-projects { grid-template-columns: 1fr; }
+  .public-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .public-stat__value { font-size: 21px; }
+  .public-page__footer p { padding-left: 16px; padding-right: 16px; }
+}

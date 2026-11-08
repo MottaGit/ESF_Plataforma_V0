@@ -15,6 +15,8 @@ const prefetched = new Set<string>();
 /** So no build de producao: no `npm run dev` o app sempre busca tudo do servidor. */
 export function registerServiceWorker() {
   if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  // Quem so abre a pagina publica de um programa (parceiro, financiador) nao precisa guardar o app inteiro.
+  if (window.location.pathname.startsWith('/publico/')) return;
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => undefined);
   });

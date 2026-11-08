@@ -26,7 +26,9 @@ import type {
   NucleoAdminResult,
   Organization,
   Program,
+  ProgramPublicPage,
   ProgramTemplate,
+  PublicProgram,
   ProjectDetail,
   ProjectFile,
   ProjectFilters,
@@ -119,7 +121,18 @@ export const programsApi = {
   update: (id: string, payload: UpdateProgramPayload) =>
     http.request<Program>(`/api/programs/${id}`, { method: 'PUT', body: payload }),
   /** So para programa sem projetos. */
-  remove: (id: string) => http.request<void>(`/api/programs/${id}`, { method: 'DELETE' })
+  remove: (id: string) => http.request<void>(`/api/programs/${id}`, { method: 'DELETE' }),
+  /** Pagina publica do programa (coordenacao). */
+  publicPage: (id: string) => http.request<ProgramPublicPage>(`/api/programs/${id}/public-page`),
+  /** Liga/desliga a pagina publica e grava o "Sobre o programa"; desligar invalida o link. */
+  savePublicPage: (id: string, payload: { enabled: boolean; description: string | null }) =>
+    http.request<ProgramPublicPage>(`/api/programs/${id}/public-page`, { method: 'PUT', body: payload })
+};
+
+/** Paginas publicas (sem login). */
+export const publicApi = {
+  program: (token: string) =>
+    http.request<PublicProgram>(`/api/public/programs/${encodeURIComponent(token)}`, { skipAuthRedirect: true })
 };
 
 export const activitiesApi = {

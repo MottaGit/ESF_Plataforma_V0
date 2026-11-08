@@ -118,6 +118,7 @@ export function ProjectFormModal({
             templateActivitiesCount: 0,
             templateIndicatorsCount: 0,
             hasTemplateTexts: false,
+            publicPage: false,
             results: []
           }
         ]
