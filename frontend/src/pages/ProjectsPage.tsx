@@ -78,7 +78,7 @@ interface ProjectListProps {
 }
 
 function ProjectList({ searchParams, updateParams }: ProjectListProps) {
-  const { canManage, isAdmin } = useAuth();
+  const { canManage, isAdmin, user } = useAuth();
   const { notify, notifyError } = useToast();
   const navigate = useNavigate();
 
@@ -93,6 +93,9 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const programId = searchParams.get('programa') ?? '';
   const sort = searchParams.get('ordem') ?? 'recent';
   const onlyLate = searchParams.get('atrasados') === '1';
+  // "Meus projetos" (?meus=1): os que a pessoa coordena ou de cuja equipe faz parte. Sem voluntario vinculado, nao ha.
+  const myVolunteerId = user?.volunteerId ?? null;
+  const onlyMine = Boolean(myVolunteerId) && searchParams.get('meus') === '1';
   const includeArchived = searchParams.get('arquivados') === '1';
   // Vindo do Inicio: so os projetos em andamento sem registro ha mais de 30 dias.
   const onlyStale = searchParams.get('parados') === '1';
@@ -102,7 +105,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
 
   const [search, setSearch] = useState(debouncedSearch);
   // A ordenacao nao conta como filtro.
-  const activeFilters = [debouncedSearch, status, onlyLate, includeArchived].filter(Boolean).length;
+  const activeFilters = [debouncedSearch, status, onlyLate, includeArchived, onlyMine].filter(Boolean).length;
 
   const [formProject, setFormProject] = useState<ProjectDetail | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -129,7 +132,8 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         sort,
         onlyLate,
         onlyStale,
-        includeArchived
+        includeArchived,
+        memberVolunteerId: onlyMine && myVolunteerId ? myVolunteerId : undefined
       });
       setProjects(list);
     } catch (err) {
@@ -137,7 +141,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, status, programId, sort, onlyLate, onlyStale, includeArchived]);
+  }, [debouncedSearch, status, programId, sort, onlyLate, onlyStale, includeArchived, onlyMine, myVolunteerId]);
 
   const loadPrograms = useCallback(() => {
     programsApi
@@ -314,6 +318,16 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           ) : null}
 
           <div className="toolbar__chips" role="group" aria-label="Mais filtros">
+            {myVolunteerId ? (
+              <button
+                type="button"
+                className={`chip${onlyMine ? ' chip--active' : ''}`}
+                aria-pressed={onlyMine}
+                onClick={() => updateParams({ meus: onlyMine ? null : '1' })}
+              >
+                Meus projetos
+              </button>
+            ) : null}
             <button
               type="button"
               className={`chip${onlyLate ? ' chip--active' : ''}`}

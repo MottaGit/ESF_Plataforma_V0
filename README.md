@@ -188,7 +188,9 @@ cada nome leva à página da pessoa). Num núcleo que ainda não tem nenhum proj
 lugar da faixa os **Primeiros passos**: dados do núcleo (CNPJ e quem assina), um programa, mais alguém com acesso e o
 primeiro projeto; cada passo se marca sozinho e o quadro some quando o primeiro projeto é criado.
 
-**Projetos** — listagem com busca, filtros (status, só atrasados, incluir arquivados; o programa é a aba escolhida)
+**Projetos** — listagem com busca, filtros (status, **Meus projetos** — os que a pessoa coordena ou de cuja equipe faz parte, como
+no Início, `?meus=1`, só para quem tem voluntário vinculado —, só atrasados, incluir arquivados; o programa é a aba
+escolhida)
 e ordenação. No celular, busca, filtros e ordenação ficam recolhidos no botão "Filtros", que mostra quantos estão
 ligados ("Filtros (2)"); o Lista|Mapa continua à mostra. Cada linha mostra programa, status, responsável, progresso e **último registro**; editar, arquivar/reativar
 e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem registro há

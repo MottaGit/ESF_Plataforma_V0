@@ -154,6 +154,8 @@ public class ProjectQuery
     public ProjectStatus? Status { get; set; }
     public Guid? ProgramId { get; set; }
     public Guid? OwnerVolunteerId { get; set; }
+    /// <summary>"Meus projetos": os projetos em que esta pessoa e responsavel ou esta na equipe (como no Inicio).</summary>
+    public Guid? MemberVolunteerId { get; set; }
     public bool OnlyLate { get; set; }
     /// <summary>So os parados: em andamento e sem relato ha mais de 30 dias.</summary>
     public bool OnlyStale { get; set; }

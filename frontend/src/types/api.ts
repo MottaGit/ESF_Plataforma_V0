@@ -895,6 +895,8 @@ export interface ProjectFilters {
   status?: ProjectStatus | '';
   programId?: string;
   ownerVolunteerId?: string;
+  /** "Meus projetos": responsavel ou na equipe. */
+  memberVolunteerId?: string;
   onlyLate?: boolean;
   /** So os parados (em andamento, sem relato ha mais de 30 dias). */
   onlyStale?: boolean;

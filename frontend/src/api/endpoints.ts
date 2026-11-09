@@ -90,6 +90,7 @@ export const projectsApi = {
         status: filters.status || undefined,
         programId: filters.programId,
         ownerVolunteerId: filters.ownerVolunteerId,
+        memberVolunteerId: filters.memberVolunteerId,
         onlyLate: filters.onlyLate,
         onlyStale: filters.onlyStale,
         includeArchived: filters.includeArchived,

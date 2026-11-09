@@ -35,6 +35,9 @@ public class ProjectService
         if (q.OwnerVolunteerId.HasValue)
             query = query.Where(p => p.OwnerVolunteerId == q.OwnerVolunteerId.Value);
 
+        if (q.MemberVolunteerId is { } member)
+            query = query.Where(p => p.OwnerVolunteerId == member || p.Volunteers.Any(v => v.VolunteerId == member));
+
         if (q.OnlyLate)
             query = query.Where(p => p.EndDateForecast != null
                                      && p.EndDateForecast < today

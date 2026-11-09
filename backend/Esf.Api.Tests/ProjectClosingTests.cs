@@ -38,6 +38,29 @@ public class ProjectClosingTests
     }
 
     [Fact]
+    public async Task MyProjectsAreTheOnesImResponsibleForOrInTheTeam()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        await using (var system = f.SystemContext())
+        {
+            // Outro projeto do nucleo A, sem a pessoa: nao entra em "Meus projetos".
+            system.Projects.Add(new Domain.Entities.Project
+            {
+                OrganizationId = f.A.OrganizationId, ProgramId = f.A.ProgramId, Name = "Projeto de outra pessoa",
+                StartDate = Mapping.Today, Status = ProjectStatus.EmAndamento
+            });
+            await system.SaveChangesAsync();
+        }
+
+        await using var db = f.Context(f.A.Admin);
+        var projects = Service(db, f.A.Admin);
+        // O voluntario de A esta na equipe do projeto a (sem ser o responsavel).
+        var mine = await projects.ListAsync(new ProjectQuery { MemberVolunteerId = f.A.VolunteerId });
+        Assert.Equal(new[] { f.A.ProjectId }, mine.Select(p => p.Id));
+        Assert.Equal(2, (await projects.ListAsync(new ProjectQuery())).Count);
+    }
+
+    [Fact]
     public async Task EditingAClosedProjectCanFixOrLeaveTheDayBlank()
     {
         var f = await TwoNucleos.CreateAsync();
