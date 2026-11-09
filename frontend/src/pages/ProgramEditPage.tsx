@@ -9,12 +9,14 @@ import { ProgramTemplateTab } from '../components/programs/ProgramTemplateTab';
 import { Button } from '../components/ui/Button';
 import { Field, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, Loading } from '../components/ui/Feedback';
-import { IconChevronLeft } from '../components/ui/Icons';
+import { IconChevronLeft, IconEdit } from '../components/ui/Icons';
+import { Modal } from '../components/ui/Modal';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program } from '../types/api';
 import { emptyToNull } from '../utils/format';
+import { programIconLabel } from '../utils/programs';
 
 /** Endereco antigo da pagina do programa: hoje o programa e uma escolha da tela Projetos. */
 export function ProgramRedirect() {
@@ -102,10 +104,7 @@ export function ProgramEditPage() {
         ))}
       </ScrollTabs>
 
-      {/* Sobre fica montada (so escondida) ao trocar de aba: o que foi digitado e nao salvo continua la. */}
-      <div hidden={tab !== 'sobre'}>
-        <ProgramAboutTab key={program.id} program={program} canEdit={canManage} onSaved={setProgram} />
-      </div>
+      {tab === 'sobre' ? <ProgramAboutTab program={program} canEdit={canManage} onSaved={setProgram} /> : null}
       {tab === 'modelo' ? <ProgramTemplateTab programId={program.id} canEdit={canManage} onChanged={load} /> : null}
       {tab === 'parceiros' ? <ProgramPartnersTab programId={program.id} canEdit={canManage} onChanged={load} /> : null}
     </>
@@ -155,33 +154,86 @@ function sheetOf(program: Program): SheetValues {
 }
 
 /**
- * Aba Sobre: a ficha do programa. Identidade (nome, icone e cor) e Apresentacao (o que faz, objetivo, para quem),
- * escrita uma vez: aparece na pagina publica e o que faz e o objetivo ja vem preenchidos em cada projeto novo.
- * Salvar grava tudo de uma vez.
+ * Aba Sobre: a ficha do programa, para leitura (nome, icone e a apresentacao: o que faz, objetivo, para quem).
+ * "Editar" abre a janela com o formulario; ao salvar, ela fecha e a ficha mostra o que ficou gravado.
  */
 function ProgramAboutTab({ program, canEdit, onSaved }: ProgramAboutTabProps) {
   const { notify } = useToast();
+  const [editing, setEditing] = useState(false);
+  const sheet = sheetOf(program);
+
+  return (
+    <>
+      <section className="panel program-about">
+        <div className="panel__head">
+          <h2>Ficha do programa</h2>
+          {canEdit ? (
+            <div className="panel__actions">
+              <Button small icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
+                Editar
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        <div className="panel__body program-about__body">
+          <p className="program-about__uses">
+            Aparece na <strong>página pública</strong>, e o que o programa faz e o objetivo já vêm preenchidos em{' '}
+            <strong>cada projeto novo</strong> (dá para ajustar no projeto).
+          </p>
+
+          <div className="program-about__identity">
+            <ProgramMark icon={program.icon} color={program.color} size={40} />
+            <div>
+              <div className="meta__label">Nome</div>
+              <div className="program-about__name">{program.name}</div>
+              <div className="field__hint">Ícone: {programIconLabel(program.icon)}</div>
+            </div>
+          </div>
+
+          {SHEET_FIELDS.map((field) => (
+            <div key={field.key} className="program-about__text">
+              <div className="meta__label">{field.label}</div>
+              {sheet[field.key] ? (
+                <p className="meta__value activity-detail__text">{sheet[field.key]}</p>
+              ) : (
+                <p className="program-about__empty">Ainda não escrito.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {editing ? (
+        <ProgramSheetModal
+          program={program}
+          onClose={() => setEditing(false)}
+          onSaved={(saved) => {
+            setEditing(false);
+            onSaved(saved);
+            notify('Ficha do programa salva.');
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
+/** Janela "Editar ficha do programa": identidade (nome, icone, cor) e apresentacao, gravadas de uma vez. */
+function ProgramSheetModal({
+  program,
+  onClose,
+  onSaved
+}: {
+  program: Program;
+  onClose: () => void;
+  onSaved: (program: Program) => void;
+}) {
   const [name, setName] = useState(program.name);
   const [icon, setIcon] = useState(program.icon);
   const [color, setColor] = useState(program.color);
   const [sheet, setSheet] = useState<SheetValues>(() => sheetOf(program));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const saved = sheetOf(program);
-  const dirty =
-    name.trim() !== program.name ||
-    icon !== program.icon ||
-    color !== program.color ||
-    SHEET_FIELDS.some((field) => sheet[field.key].trim() !== saved[field.key]);
-
-  function reset(source: Program) {
-    setName(source.name);
-    setIcon(source.icon);
-    setColor(source.color);
-    setSheet(sheetOf(source));
-    setError(null);
-  }
 
   async function submit(event?: FormEvent) {
     event?.preventDefault();
@@ -192,18 +244,17 @@ function ProgramAboutTab({ program, canEdit, onSaved }: ProgramAboutTabProps) {
     setSaving(true);
     setError(null);
     try {
-      const result = await programsApi.update(program.id, {
-        name: name.trim(),
-        status: program.status,
-        icon,
-        color,
-        description: emptyToNull(sheet.description),
-        objective: emptyToNull(sheet.objective),
-        audience: emptyToNull(sheet.audience)
-      });
-      reset(result);
-      onSaved(result);
-      notify('Programa atualizado.');
+      onSaved(
+        await programsApi.update(program.id, {
+          name: name.trim(),
+          status: program.status,
+          icon,
+          color,
+          description: emptyToNull(sheet.description),
+          objective: emptyToNull(sheet.objective),
+          audience: emptyToNull(sheet.audience)
+        })
+      );
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível salvar o programa.');
     } finally {
@@ -211,103 +262,81 @@ function ProgramAboutTab({ program, canEdit, onSaved }: ProgramAboutTabProps) {
     }
   }
 
-  if (!canEdit) {
-    return (
-      <section className="panel program-about">
-        <div className="panel__body meta-list">
-          {SHEET_FIELDS.map((field) => (
-            <div key={field.key}>
-              <div className="meta__label">{field.label}</div>
-              <p className="meta__value activity-detail__text">{saved[field.key] || '—'}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <form onSubmit={submit} className="program-about">
-      {error ? <Alert kind="error">{error}</Alert> : null}
-
-      <section className="panel">
-        <div className="panel__head">
-          <h2>Identidade</h2>
-        </div>
-        <div className="panel__body form-grid form-grid--single">
-          <Field label="Nome" htmlFor="program-about-name" required>
-            <TextInput
-              id="program-about-name"
-              value={name}
-              maxLength={120}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </Field>
-          <ProgramLookField
-            icon={icon}
-            color={color}
-            hint="Aparece na lista de programas, nos projetos e no mapa."
-            onIcon={setIcon}
-            onColor={setColor}
-          />
-        </div>
-      </section>
-
-      <section className="panel">
-        <div className="panel__head">
-          <h2>Apresentação</h2>
-        </div>
-        <div className="panel__body form-grid form-grid--single">
-          <p className="program-about__uses">
-            Escreva uma vez: aparece na <strong>página pública</strong>, e o que o programa faz e o objetivo já vêm
-            preenchidos em <strong>cada projeto novo</strong> (dá para ajustar no projeto).
-          </p>
-          {SHEET_FIELDS.map((field) => {
-            const id = `program-sheet-${field.key}`;
-            const value = sheet[field.key];
-            const max = LIMITS[field.key];
-            const onChange = (text: string) => setSheet((current) => ({ ...current, [field.key]: text }));
-            return (
-              <Field
-                key={field.key}
-                label={field.label}
-                htmlFor={id}
-                hint={value.length > max * 0.8 ? `${field.hint} ${value.length}/${max}` : field.hint}
-              >
-                {field.rows > 0 ? (
-                  <TextArea
-                    id={id}
-                    rows={field.rows}
-                    maxLength={max}
-                    value={value}
-                    placeholder={field.placeholder}
-                    onChange={(event) => onChange(event.target.value)}
-                  />
-                ) : (
-                  <TextInput
-                    id={id}
-                    maxLength={max}
-                    value={value}
-                    placeholder={field.placeholder}
-                    onChange={(event) => onChange(event.target.value)}
-                  />
-                )}
-              </Field>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="program-about__actions">
-        {dirty ? (
-          <Button variant="ghost" onClick={() => reset(program)}>
-            Descartar mudanças
+    <Modal
+      guardChanges
+      title="Editar ficha do programa"
+      subtitle="Aparece na página pública e preenche a descrição e o objetivo de cada projeto novo."
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="primary" loading={saving} onClick={() => void submit()}>
+            Salvar
           </Button>
-        ) : null}
-        <Button type="submit" variant="primary" loading={saving} disabled={!dirty}>
-          Salvar
-        </Button>
-      </div>
-    </form>
+        </>
+      }
+    >
+      {error ? (
+        <div style={{ marginBottom: 14 }}>
+          <Alert kind="error">{error}</Alert>
+        </div>
+      ) : null}
+      <form onSubmit={submit} className="form-grid form-grid--single">
+        <h3 className="program-sheet__section">Identidade</h3>
+        <Field label="Nome" htmlFor="program-sheet-name" required>
+          <TextInput
+            id="program-sheet-name"
+            autoFocus
+            value={name}
+            maxLength={120}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </Field>
+        <ProgramLookField
+          icon={icon}
+          color={color}
+          hint="Aparece na lista de programas, nos projetos e no mapa."
+          onIcon={setIcon}
+          onColor={setColor}
+        />
+
+        <h3 className="program-sheet__section">Apresentação</h3>
+        {SHEET_FIELDS.map((field) => {
+          const id = `program-sheet-${field.key}`;
+          const value = sheet[field.key];
+          const max = LIMITS[field.key];
+          const onChange = (text: string) => setSheet((current) => ({ ...current, [field.key]: text }));
+          return (
+            <Field
+              key={field.key}
+              label={field.label}
+              htmlFor={id}
+              hint={value.length > max * 0.8 ? `${field.hint} ${value.length}/${max}` : field.hint}
+            >
+              {field.rows > 0 ? (
+                <TextArea
+                  id={id}
+                  rows={field.rows}
+                  maxLength={max}
+                  value={value}
+                  placeholder={field.placeholder}
+                  onChange={(event) => onChange(event.target.value)}
+                />
+              ) : (
+                <TextInput
+                  id={id}
+                  maxLength={max}
+                  value={value}
+                  placeholder={field.placeholder}
+                  onChange={(event) => onChange(event.target.value)}
+                />
+              )}
+            </Field>
+          );
+        })}
+        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+      </form>
+    </Modal>
   );
 }

@@ -240,8 +240,10 @@ ordem (quem é o programa primeiro, o operacional por último): **Sobre**, **Par
 300), cada um com uma dica curta e um exemplo dentro do campo. A ficha aparece na **página pública** ("O que fazemos",
 Objetivo e Para quem) e, em **cada projeto novo**, a descrição e o objetivo em branco já vêm com o que o programa faz e
 o objetivo dele — sempre, com ou sem o modelo marcado; dá para ajustar no projeto. O "Para quem" é do programa e não
-vai para o "Quem se beneficia" do projeto, que é de cada um ("1 família, 5 pessoas"). Um **Salvar** grava tudo de uma
-vez, **Descartar mudanças** volta ao que estava, e o que foi digitado continua lá ao trocar de aba. (Antes havia o
+vai para o "Quem se beneficia" do projeto, que é de cada um ("1 família, 5 pessoas"). A aba abre **para leitura**
+(painel "Ficha do programa", com "Ainda não escrito." no que está em branco); **Editar** (coordenação) abre a janela
+**Editar ficha do programa** (Identidade e Apresentação, com `guardChanges`), e **Salvar** grava tudo de uma vez, fecha
+a janela, avisa "Ficha do programa salva." e a ficha já mostra o que ficou gravado. (Antes havia o
 "Sobre o programa", só da página pública, e os "textos sugeridos" do modelo, que repetiam a mesma coisa; a migração
 `ProgramSheet` juntou os dois: o texto da página pública, quando havia, virou o "o que faz", e os sugeridos viraram a
 ficha.)

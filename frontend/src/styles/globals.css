@@ -2803,7 +2803,22 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .partners-panel { max-width: 860px; }
 
 /* Editar programa › Sobre */
-.program-about { max-width: 760px; display: grid; gap: 16px; align-content: start; }
+.program-about { max-width: 760px; }
+.program-about__body { display: grid; gap: 16px; }
+.program-about__identity { display: flex; align-items: center; gap: 12px; }
+.program-about__name { font-size: 15px; font-weight: 600; }
+.program-about__text p { margin: 3px 0 0; }
+.program-about__empty { margin: 3px 0 0; font-size: 13.5px; color: var(--text-muted); font-style: italic; }
+/* Titulos dos dois blocos na janela "Editar ficha do programa". */
+.program-sheet__section {
+  margin: 4px 0 -4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.program-sheet__section ~ .program-sheet__section { margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
 /* Onde a ficha aparece: dito uma vez, no topo da Apresentacao. */
 .program-about__uses {
   margin: 0;
@@ -2814,7 +2829,6 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
   color: var(--text-muted);
 }
 .program-about__uses strong { color: var(--text); font-weight: 600; }
-.program-about__actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 .project-cell { display: flex; align-items: center; gap: 10px; }
 .table-foot { margin: 0; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-muted); }
