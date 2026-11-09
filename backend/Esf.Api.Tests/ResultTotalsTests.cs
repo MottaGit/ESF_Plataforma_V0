@@ -86,6 +86,24 @@ public class ResultTotalsTests
     }
 
     [Fact]
+    public async Task IndicatorKnowsWhenItsValueLastChanged()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        await using var db = f.Context(f.A.Admin);
+        var indicators = new IndicatorService(db);
+
+        // Criado sem valor: nunca informado. Com valor: agora.
+        var blank = await indicators.CreateAsync(f.A.ProjectId, new SaveIndicatorRequest { Name = "Canteiros", Unit = "un." });
+        Assert.Null(blank.ValueUpdatedAt);
+        var updated = await indicators.UpdateAsync(blank.Id, new SaveIndicatorRequest { Name = "Canteiros", Unit = "un.", Value = 5 });
+        Assert.NotNull(updated.ValueUpdatedAt);
+
+        // Mudar so o nome nao muda a data do valor.
+        var renamed = await indicators.UpdateAsync(blank.Id, new SaveIndicatorRequest { Name = "Canteiros elevados", Unit = "un.", Value = 5 });
+        Assert.Equal(updated.ValueUpdatedAt, renamed.ValueUpdatedAt);
+    }
+
+    [Fact]
     public async Task NationalPanelKeepsArchivedResultsAndLeavesCancelledOut()
     {
         var f = await TwoNucleos.CreateAsync();

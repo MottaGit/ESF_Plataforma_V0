@@ -21,4 +21,10 @@ public class Indicator
     public decimal? Value { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Quando o valor mudou pela ultima vez (para saber se o numero ainda vale). Vazio: nunca informado, ou informado
+    /// antes deste campo existir.
+    /// </summary>
+    public DateTime? ValueUpdatedAt { get; set; }
 }

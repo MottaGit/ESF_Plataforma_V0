@@ -69,7 +69,8 @@ public record PublicProjectDto(
     string? State,
     DateOnly StartDate,
     DateOnly? EndDateForecast,
-    int Progress,
+    // Null: projeto em aberto sem nenhuma tarefa (sem barra, em vez de 0%).
+    int? Progress,
     List<PublicIndicatorDto> Indicators,
     DateTime? LastUpdateAt,
     // Concluido: o dia em que terminou (null nos encerrados antes de o campo existir).

@@ -583,6 +583,7 @@ public class SpreadsheetImportService
                         Name = national.Name,
                         Unit = national.Unit,
                         Value = plan.Nationals.GetValueOrDefault(national.Id),
+                        ValueUpdatedAt = plan.Nationals.GetValueOrDefault(national.Id).HasValue ? DateTime.UtcNow : null,
                         CreatedAt = now
                     });
                 for (var i = 0; i < plan.Specific.Count; i++)
@@ -592,6 +593,7 @@ public class SpreadsheetImportService
                         Name = plan.Specific[i].Name,
                         Unit = plan.Specific[i].Unit,
                         Value = plan.Specific[i].Value,
+                        ValueUpdatedAt = plan.Specific[i].Value.HasValue ? DateTime.UtcNow : null,
                         // Mesma ordem da planilha (a lista de indicadores segue a data de criacao).
                         CreatedAt = now.AddTicks(i + 1)
                     });

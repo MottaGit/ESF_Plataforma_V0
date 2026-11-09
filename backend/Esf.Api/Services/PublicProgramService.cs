@@ -98,7 +98,7 @@ public class PublicProgramService
             .ThenBy(p => p.Name)
             .Select(p => new PublicProjectDto(
                 p.Name, p.Status, p.District, p.City, p.State, p.StartDate, p.EndDateForecast,
-                Mapping.ProjectProgress(p.Status, p.Tasks, p.TasksDone),
+                p.Tasks == 0 && p.Status != ProjectStatus.Concluido ? null : Mapping.ProjectProgress(p.Status, p.Tasks, p.TasksDone),
                 p.Indicators.Select(i => new PublicIndicatorDto(i.Name, i.Unit, i.Value, i.NationalIndicatorId != null)).ToList(),
                 p.LastUpdateAt,
                 p.ClosedOn))

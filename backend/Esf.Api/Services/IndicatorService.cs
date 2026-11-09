@@ -77,6 +77,8 @@ public class IndicatorService
     /// </summary>
     private async Task ApplyAsync(Indicator indicator, SaveIndicatorRequest r)
     {
+        // So muda a data quando o numero muda (corrigir o nome nao "atualiza" o resultado).
+        if (indicator.Value != r.Value) indicator.ValueUpdatedAt = DateTime.UtcNow;
         indicator.Value = r.Value;
 
         if (r.NationalIndicatorId.HasValue)

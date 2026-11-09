@@ -1015,6 +1015,8 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 }
 .status-result:hover { background: var(--surface-soft); }
 .status-result__value { font-size: 17px; font-weight: 600; line-height: 1.2; color: var(--accent-text); }
+.status-result__when { font-size: 11px; color: var(--text-muted); }
+.indicator__when { font-size: 12px; font-weight: 400; color: var(--text-muted); }
 .status-result__value small { font-size: 12px; font-weight: 400; color: var(--text-muted); }
 .status-result__blank { font-size: 13px; font-weight: 500; color: var(--text-soft); }
 .status-results__empty {

@@ -86,7 +86,7 @@ public class DashboardService
 
             myProjects = projects
                 .Select(p => new HomeProjectDto(p.Id, p.Name, p.Icon, p.Color, p.Status,
-                    Mapping.ProjectProgress(p.Status, p.Total, p.Done), p.LastUpdateAt))
+                    Mapping.ProjectProgress(p.Status, p.Total, p.Done), p.LastUpdateAt, p.Total))
                 .ToList();
         }
 

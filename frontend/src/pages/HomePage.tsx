@@ -432,8 +432,11 @@ function MyProjectsPanel({ projects }: { projects: HomeProject[] }) {
                 <Link className="row-link" to={`/projetos/${project.id}`}>
                   {project.name}
                 </Link>
-                <Progress value={project.progress} />
-                <span className="field__hint">{lastUpdateLabel(project)}</span>
+                {project.tasks === 0 && project.status !== 'Concluido' ? null : <Progress value={project.progress} />}
+                <span className="field__hint">
+                  {project.tasks === 0 && project.status !== 'Concluido' ? 'sem tarefas · ' : ''}
+                  {lastUpdateLabel(project)}
+                </span>
               </div>
               <Link className="btn btn--sm" to={`/projetos/${project.id}?registrar=1`}>
                 Registrar

@@ -104,7 +104,11 @@ public static class DbSeeder
                 Project = project,
                 Name = i.Name,
                 Unit = i.Unit,
-                Value = i.Value
+                Value = i.Value,
+                // Concluido: os numeros finais, do dia em que terminou; em aberto, de duas semanas atras.
+                ValueUpdatedAt = project.ClosedOn is { } closed
+                    ? DateTime.SpecifyKind(closed.ToDateTime(new TimeOnly(18, 0)), DateTimeKind.Utc)
+                    : DateTime.UtcNow.AddDays(-12)
             }));
 
         // Registros de andamento sao texto formatado (HTML); os de demonstracao estao escritos como texto puro.

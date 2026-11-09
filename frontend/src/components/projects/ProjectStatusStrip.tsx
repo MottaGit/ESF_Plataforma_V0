@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import type { Indicator, ProjectDetail } from '../../types/api';
-import { formatNumber } from '../../utils/format';
+import { formatNumber, timeAgoPhrase } from '../../utils/format';
 import { Progress } from '../ui/Progress';
 import { IndicatorFormModal, IndicatorValueModal } from './IndicatorModals';
 
@@ -44,7 +44,11 @@ export function ProjectStatusStrip({ project, canManage, onOpenTab, onChanged }:
     <div className="status-strip">
       <button type="button" className="status-tile" onClick={() => onOpenTab('activities')}>
         <span className="status-tile__label">Progresso</span>
-        <Progress value={project.progress} />
+        {total === 0 && project.status !== 'Concluido' ? (
+          <span className="status-tile__value num">—</span>
+        ) : (
+          <Progress value={project.progress} />
+        )}
         <span className="status-tile__hint num">
           {total === 0 ? 'Nenhuma tarefa cadastrada' : `${done} de ${total} tarefas concluídas`}
         </span>
@@ -69,7 +73,7 @@ export function ProjectStatusStrip({ project, canManage, onOpenTab, onChanged }:
         <span className="status-tile__value num">{blocked.length}</span>
         <span className="status-tile__hint">
           {!firstBlocked
-            ? 'Nenhuma tarefa travada'
+            ? 'Nenhuma tarefa bloqueada'
             : `${firstBlocked.title}${firstBlocked.blockedReason ? `: ${firstBlocked.blockedReason}` : ''}${blocked.length > 1 ? ` e mais ${blocked.length - 1}` : ''}`}
         </span>
       </button>
@@ -110,6 +114,9 @@ export function ProjectStatusStrip({ project, canManage, onOpenTab, onChanged }:
                     </>
                   )}
                 </span>
+                {indicator.value != null && indicator.valueUpdatedAt ? (
+                  <span className="status-result__when">atualizado {timeAgoPhrase(indicator.valueUpdatedAt)}</span>
+                ) : null}
               </button>
             ))
           )}

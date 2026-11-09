@@ -193,7 +193,10 @@ e ordenação. No celular, busca, filtros e ordenação ficam recolhidos no bot�
 ligados ("Filtros (2)"); o Lista|Mapa continua à mostra. Cada linha mostra programa, status, responsável, progresso e **último registro**; editar, arquivar/reativar
 e excluir ficam no menu **⋯** da linha. Vindo do Início, `?parados=1` mostra só os projetos em andamento sem registro há
 mais de 30 dias. Busca, filtros, ordenação e visão ficam na URL, então voltar de um projeto (ou recarregar) mantém a
-lista como estava. O **progresso** é calculado pelas tarefas concluídas (projeto concluído conta como 100%). O **novo
+lista como estava. O **progresso** é calculado pelas tarefas concluídas (projeto concluído conta como 100%); projeto em aberto sem
+nenhuma tarefa mostra "sem tarefas" no lugar da barra em 0% (na lista, em Meus projetos, na faixa do projeto e na
+página pública, que não mostra barra), porque 0% diria "nada feito" sobre um projeto que só não tem tarefas, como os
+que entram pela planilha. O **novo
 projeto** pede só o essencial (nome, programa, responsável, data de início e endereço, com o estado do núcleo já
 preenchido; a cidade fica em branco, porque há projetos em cidades da região; começa em planejamento); o resto
 (descrição, objetivo, comunidade, quem se beneficia, previsão de término, observações) fica em Editar projeto. O status
@@ -287,9 +290,9 @@ volta com o motivo). A caixinha tem área de toque de 44px, afastada do título 
 controles: **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), a busca, o botão **Filtros** e,
 no canto, Lista e Quadro (ícones). Filtros abre os campos com rótulo — **Situação** (atrasadas, bloqueadas ou
 concluídas nos últimos 30 dias, com contagem), programa, projeto e responsável (com "Sem responsável") — num painel
-preso ao botão; no celular, numa folha que sobe de baixo (e, no celular, onde as colunas de responsável e
-status não cabem, cada linha mostra embaixo do título o primeiro nome do responsável, ou "Sem responsável" em
-destaque, e o status quando é Em andamento ou Bloqueada), com a busca e o botão "Ver N tarefas". Os filtros ligados
+preso ao botão; no celular, numa folha que sobe de baixo, com a busca e o botão "Ver N tarefas". No celular, onde as colunas de
+responsável e status não cabem, cada linha mostra embaixo do título o primeiro nome do responsável (ou "Sem
+responsável", em destaque) e o status quando é Em andamento ou Bloqueada. Os filtros ligados
 aparecem como **etiquetas com ×** embaixo da barra (no celular, a busca também) e "Limpar tudo" tira todos menos
 Minhas | Todas. Tudo fica na URL; links antigos (`?recorte=sem-responsavel`, `/projetos?visao=quadro`) continuam
 funcionando.
@@ -351,7 +354,9 @@ comparação usa a função `esf_fold` (criada pela migração, sem depender de 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, tarefas atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente; embaixo, na largura toda, os **indicadores** do projeto,
-nome e valor com a unidade; tocar num deles abre a janela para atualizar o valor ali mesmo — nome, unidade e exclusão
+nome e valor com a unidade, e "atualizado há 3 dias" quando o valor tem
+data (`Indicators.ValueUpdatedAt`, gravado só quando o número muda, inclusive na importação; os de antes desse campo
+ficam sem data; migração `AddIndicatorValueUpdatedAt`); tocar num deles abre a janela para atualizar o valor ali mesmo — nome, unidade e exclusão
 ficam na aba Sobre; sem indicadores, a coordenação vê o convite, que abre o cadastro do primeiro, e os demais não veem a
 linha) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre** (descrição, objetivo,
 período, comunidade ou família atendida, quem se beneficia, local e indicadores; programa e responsável já estão no
@@ -546,7 +551,10 @@ projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e i
 referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Últimos 3 meses**, **Este
 ano** e **Todo o histórico**) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
-andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico). As datas
+andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico): por isso o título "Indicadores"
+de cada projeto diz "valores até 09/11/2026" e, com período de referência, "valores acumulados até 09/11/2026, não só
+do período do relatório" (quem lia "período jul–set · 120 pessoas" entendia que as 120 eram do trimestre). Projeto sem
+nenhum indicador informado mostra "Nenhum indicador informado ainda". As datas
 seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
 **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em mais
 de um), registros de andamento e tarefas concluídas no período e, para cada programa, os indicadores nacionais e os

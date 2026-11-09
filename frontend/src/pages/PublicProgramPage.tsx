@@ -226,7 +226,7 @@ export function PublicProgramPage() {
                   {placeText(project) ? <p className="public-project__line">{placeText(project)}</p> : null}
                   <p className="public-project__line">{periodText(project)}</p>
                   {/* So para quem ja esta executando: "0% das tarefas" num projeto em preparacao parece abandono. */}
-                  {project.status === 'EmAndamento' || project.status === 'Pausado' ? (
+                  {(project.status === 'EmAndamento' || project.status === 'Pausado') && project.progress != null ? (
                     <div className="public-project__progress">
                       <Progress value={project.progress} />
                       <span>das tarefas concluídas</span>

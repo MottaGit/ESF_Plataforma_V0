@@ -11,7 +11,9 @@ public record IndicatorDto(
     decimal? Value,
     DateTime CreatedAt,
     // Indicador nacional escolhido (null: especifico do projeto).
-    Guid? NationalIndicatorId);
+    Guid? NationalIndicatorId,
+    // Quando o valor mudou pela ultima vez (null: nunca, ou antes de o campo existir).
+    DateTime? ValueUpdatedAt);
 
 public class SaveIndicatorRequest
 {

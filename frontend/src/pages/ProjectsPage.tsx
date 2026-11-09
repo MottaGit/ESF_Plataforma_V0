@@ -451,7 +451,12 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                         </td>
                         <td className="cell--desktop">{project.ownerName ?? '—'}</td>
                         <td className="cell--grow" style={{ minWidth: 120 }}>
-                          <Progress value={project.progress} />
+                          {/* Sem tarefas, a barra em 0% diria "nada feito"; o projeto so ainda nao tem tarefas. */}
+                          {project.activitiesTotal === 0 && project.status !== 'Concluido' ? (
+                            <span className="table__secondary">sem tarefas</span>
+                          ) : (
+                            <Progress value={project.progress} />
+                          )}
                         </td>
                         <td className="tight" data-label={project.lastUpdateAt ? 'último registro' : undefined}>
                           {project.lastUpdateAt ? (

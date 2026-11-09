@@ -30,7 +30,9 @@ public record HomeProjectDto(
     ProjectStatus Status,
     int Progress,
     // Ultimo relato de andamento (null: nunca houve).
-    DateTime? LastUpdateAt);
+    DateTime? LastUpdateAt,
+    // Quantas tarefas o projeto tem (sem nenhuma, a tela mostra "sem tarefas" no lugar da barra em 0%).
+    int Tasks);
 
 /// <summary>Resumo da organizacao (a tela mostra para a coordenacao).</summary>
 public record OrgSummaryDto(

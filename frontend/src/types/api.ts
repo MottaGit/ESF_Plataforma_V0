@@ -237,7 +237,8 @@ export interface PublicProject {
   state: string | null;
   startDate: string;
   endDateForecast: string | null;
-  progress: number;
+  /** null: projeto em aberto sem nenhuma tarefa (sem barra, em vez de 0%). */
+  progress: number | null;
   indicators: PublicIndicator[];
   lastUpdateAt: string | null;
   /** Concluido: o dia em que terminou (null nos encerrados antes de o campo existir). */
@@ -417,6 +418,8 @@ export interface Indicator {
   createdAt: string;
   /** Indicador nacional (obrigatorio em todo projeto); null: especifico do projeto. */
   nationalIndicatorId: string | null;
+  /** Quando o valor mudou pela ultima vez (null: nunca, ou antes de o campo existir). */
+  valueUpdatedAt: string | null;
 }
 
 export interface VolunteerProject {
@@ -603,6 +606,8 @@ export interface HomeProject {
   progress: number;
   /** Ultimo relato de andamento (null: nunca houve). */
   lastUpdateAt: string | null;
+  /** Quantas tarefas o projeto tem (sem nenhuma: "sem tarefas" no lugar da barra). */
+  tasks: number;
 }
 
 /** Resumo da organizacao (mostrado para a coordenacao). */

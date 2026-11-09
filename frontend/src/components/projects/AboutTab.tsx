@@ -4,7 +4,7 @@ import { ApiError } from '../../api/client';
 import { indicatorsApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Indicator, ProjectDetail } from '../../types/api';
-import { formatDate, formatNumber } from '../../utils/format';
+import { formatDate, formatNumber, timeAgoPhrase } from '../../utils/format';
 import { SignedDocumentsPanel } from '../documents/SignedDocumentsPanel';
 import { Button } from '../ui/Button';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
@@ -117,6 +117,9 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                           <>
                             <strong>{formatNumber(indicator.value)}</strong>
                             {indicator.unit ? ` ${indicator.unit}` : ''}
+                            {indicator.valueUpdatedAt ? (
+                              <span className="indicator__when"> · atualizado {timeAgoPhrase(indicator.valueUpdatedAt)}</span>
+                            ) : null}
                           </>
                         )}
                       </span>

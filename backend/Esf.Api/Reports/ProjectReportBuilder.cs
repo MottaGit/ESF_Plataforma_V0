@@ -309,7 +309,7 @@ public static class ProjectReportBuilder
                 col.Item().Element(c => Paragraph(c, "Descrição", p.Description!));
 
             if (model.IncludeIndicators && p.Indicators.Any(i => i.Value.HasValue))
-                col.Item().Element(c => ComposeIndicators(c, p));
+                col.Item().Element(c => ComposeIndicators(c, model, p));
 
             if (model.IncludeVolunteers && p.Volunteers.Count > 0)
                 col.Item().Element(c => ComposeVolunteers(c, model, p));
@@ -327,11 +327,21 @@ public static class ProjectReportBuilder
         });
     }
 
-    private static void ComposeIndicators(IContainer container, Project p)
+    private static void ComposeIndicators(IContainer container, ReportModel model, Project p)
     {
         container.ShowEntire().Column(col =>
         {
-            col.Item().Text("Indicadores").FontSize(10).SemiBold();
+            // Os indicadores nao guardam historico: sao os valores de hoje, acumulados. Com periodo de referencia, o
+            // leitor entenderia "120 pessoas" como so do trimestre; a nota diz que nao.
+            var asOf = TextHelpers.BrasiliaDay(model.GeneratedAt).ToString("dd/MM/yyyy");
+            col.Item().Text(text =>
+            {
+                text.Span("Indicadores").FontSize(10).SemiBold();
+                text.Span(model.HasPeriod
+                        ? $" · valores acumulados até {asOf}, não só do período do relatório"
+                        : $" · valores até {asOf}")
+                    .FontSize(8.5f).FontColor(Muted);
+            });
 
             // So os informados: indicador em branco (ainda nao apurado) nao vira zero no relatorio.
             var indicators = p.Indicators
@@ -339,6 +349,8 @@ public static class ProjectReportBuilder
                 .OrderBy(i => i.NationalIndicatorId == null)
                 .ThenBy(i => i.CreatedAt)
                 .ToList();
+            if (indicators.Count == 0)
+                col.Item().PaddingTop(4).Text("Nenhum indicador informado ainda.").FontSize(9).FontColor(Muted);
             foreach (var chunk in indicators.Chunk(4))
             {
                 col.Item().PaddingTop(6).Row(row =>
