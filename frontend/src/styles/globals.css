@@ -2231,7 +2231,11 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
   color: var(--text-soft);
   cursor: pointer;
 }
-.extras__remove:hover { background: var(--danger-bg); color: var(--danger); }
+.extras__remove:hover { background: var(--surface-muted, #f2f4f7); color: var(--text); }
+.extras__remove--danger:hover { background: var(--danger-bg); color: var(--danger); }
+.checklist__removed { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding: 4px 0; font-size: 12.5px; color: var(--text-muted); }
+.checklist__edit { flex: 1; min-width: 0; }
+.checklist__edit .input { height: 30px; font-size: 13px; }
 
 .checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .checklist__item { display: flex; align-items: flex-start; gap: 6px; }
@@ -2279,6 +2283,17 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .composer { display: grid; gap: 6px; }
 .composer__field { position: relative; }
 .composer__input { min-height: 58px; font-size: 13px; resize: vertical; }
+
+/*
+ * Celular: a caixa de comentario e os campos do checklist voltam a 16px (as regras acima, mais especificas, venciam a
+ * regra geral do celular, e o iPhone ampliava a tela a cada toque), e os botoes do item ficam do tamanho do dedo.
+ */
+@media (max-width: 900px) {
+  .composer__input, .checklist__add .input, .checklist__edit .input { font-size: 16px; }
+  .checklist__add .input, .checklist__edit .input { height: 44px; }
+  .extras__remove { width: 36px; height: 36px; }
+  .checklist__item label { padding: 8px 0; }
+}
 .composer__foot { display: flex; align-items: center; gap: 6px; }
 .composer__hint { flex: 1; font-size: 11.5px; line-height: 1.3; }
 .mention-list {
@@ -2499,8 +2514,13 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 }
 .task-row__undo:hover { text-decoration: underline; }
 
+.task-row__mobile { display: none; }
 @media (max-width: 900px) {
   .task-row__status, .task-row__who { display: none; }
+  .task-row__mobile { display: inline; }
+  .task-row__mobile--none { color: var(--warning); font-weight: 600; }
+  .task-row__mobile--running { color: var(--st-run-fg, var(--accent-text)); font-weight: 500; }
+  .task-row__mobile--blocked { color: var(--st-blocked-fg); font-weight: 600; }
 }
 @media (max-width: 560px) {
   .task-row { padding: 8px 12px; gap: 10px; }

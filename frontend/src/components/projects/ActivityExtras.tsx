@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEv
 import { ApiError, assetUrl } from '../../api/client';
 import { activitiesApi, filesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { Activity, ActivityDetails, ProjectFile } from '../../types/api';
+import type { Activity, ActivityDetails, ChecklistItem, ProjectFile } from '../../types/api';
 import { formatFileSize } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
 import { ConfirmDialog, LoadError, Loading } from '../ui/Feedback';
-import { IconClose, IconPaperclip, IconUpload } from '../ui/Icons';
+import { IconClose, IconEdit, IconPaperclip, IconUpload } from '../ui/Icons';
 import { ActivityComments } from './ActivityComments';
 
 interface ActivityExtrasProps {
@@ -80,14 +80,70 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
     }
   }
 
-  async function removeItem(id: string) {
+  // Remover item: some na hora e, no lugar dele, "Item removido · Desfazer" por alguns segundos. So entao (ou ao
+  // remover outro, ou ao fechar a janela) a remocao vai para a API: o x fica ao lado da caixinha e e facil errar.
+  const [removed, setRemoved] = useState<{ item: ChecklistItem; index: number } | null>(null);
+  const pendingRemoval = useRef<ChecklistItem | null>(null);
+  const removalTimer = useRef<number | null>(null);
+  // As funcoes do pai mudam a cada render: a remocao pendente usa sempre as mais recentes, sem ser disparada antes.
+  const latest = useRef({ onChanged, notifyError, load });
+  latest.current = { onChanged, notifyError, load };
+
+  const flushRemoval = useCallback(() => {
+    if (removalTimer.current) window.clearTimeout(removalTimer.current);
+    removalTimer.current = null;
+    const item = pendingRemoval.current;
+    pendingRemoval.current = null;
+    setRemoved(null);
+    if (!item) return;
+    activitiesApi
+      .removeChecklistItem(item.id)
+      .then(() => latest.current.onChanged())
+      .catch((err) => {
+        latest.current.notifyError(err instanceof ApiError ? err.message : 'Não foi possível remover o item.');
+        void latest.current.load();
+      });
+  }, []);
+
+  // Fechar a janela com uma remocao esperando: confirma a remocao.
+  useEffect(() => () => flushRemoval(), [flushRemoval]);
+
+  function removeItem(item: ChecklistItem, index: number) {
     if (!details) return;
+    flushRemoval();
+    setDetails({ ...details, checklist: details.checklist.filter((current) => current.id !== item.id) });
+    pendingRemoval.current = item;
+    setRemoved({ item, index });
+    removalTimer.current = window.setTimeout(flushRemoval, 6000);
+  }
+
+  function undoRemoval() {
+    if (removalTimer.current) window.clearTimeout(removalTimer.current);
+    removalTimer.current = null;
+    pendingRemoval.current = null;
+    const back = removed;
+    setRemoved(null);
+    if (!back || !details) return;
+    const checklist = [...details.checklist];
+    checklist.splice(back.index, 0, back.item);
+    setDetails({ ...details, checklist });
+  }
+
+  // Corrigir o texto de um item (a API ja aceitava; faltava a tela).
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+
+  async function saveItemText(item: ChecklistItem) {
+    const text = editText.trim();
+    setEditingItem(null);
+    if (!details || !text || text === item.text) return;
+    const before = details;
+    setDetails({ ...details, checklist: details.checklist.map((current) => (current.id === item.id ? { ...current, text } : current)) });
     try {
-      await activitiesApi.removeChecklistItem(id);
-      setDetails({ ...details, checklist: details.checklist.filter((item) => item.id !== id) });
-      onChanged();
+      await activitiesApi.updateChecklistItem(item.id, { text });
     } catch (err) {
-      fail(err, 'Não foi possível remover o item.');
+      setDetails(before);
+      fail(err, 'Não foi possível alterar o item.');
     }
   }
 
@@ -144,23 +200,71 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
           </div>
         ) : null}
         <ul className="checklist">
-          {details.checklist.map((item) => (
+          {details.checklist.map((item, index) => (
             <li key={item.id} className={`checklist__item${item.done ? ' checklist__item--done' : ''}`}>
-              <label>
-                <input type="checkbox" checked={item.done} onChange={(event) => void toggleItem(item.id, event.target.checked)} />
-                <span>{item.text}</span>
-              </label>
-              <button
-                type="button"
-                className="extras__remove"
-                aria-label={`Remover "${item.text}"`}
-                title="Remover item"
-                onClick={() => void removeItem(item.id)}
-              >
-                <IconClose size={14} />
-              </button>
+              {editingItem === item.id ? (
+                <form
+                  className="checklist__edit"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void saveItemText(item);
+                  }}
+                >
+                  <TextInput
+                    autoFocus
+                    value={editText}
+                    maxLength={300}
+                    aria-label="Texto do item"
+                    onChange={(event) => setEditText(event.target.value)}
+                    onBlur={() => void saveItemText(item)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setEditingItem(null);
+                      }
+                    }}
+                  />
+                </form>
+              ) : (
+                <>
+                  <label>
+                    <input type="checkbox" checked={item.done} onChange={(event) => void toggleItem(item.id, event.target.checked)} />
+                    <span>{item.text}</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="extras__remove"
+                    aria-label={`Editar "${item.text}"`}
+                    title="Editar item"
+                    onClick={() => {
+                      setEditText(item.text);
+                      setEditingItem(item.id);
+                    }}
+                  >
+                    <IconEdit size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="extras__remove extras__remove--danger"
+                    aria-label={`Remover "${item.text}"`}
+                    title="Remover item"
+                    onClick={() => removeItem(item, index)}
+                  >
+                    <IconClose size={14} />
+                  </button>
+                </>
+              )}
             </li>
           ))}
+          {removed ? (
+            <li className="checklist__removed" role="status">
+              <span>Item removido: "{removed.item.text}"</span>
+              <button type="button" className="link-button" onClick={undoRemoval}>
+                Desfazer
+              </button>
+            </li>
+          ) : null}
         </ul>
         <form className="checklist__add" onSubmit={addItem}>
           <TextInput

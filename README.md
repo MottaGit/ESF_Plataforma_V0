@@ -287,7 +287,9 @@ volta com o motivo). A caixinha tem área de toque de 44px, afastada do título 
 controles: **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), a busca, o botão **Filtros** e,
 no canto, Lista e Quadro (ícones). Filtros abre os campos com rótulo — **Situação** (atrasadas, bloqueadas ou
 concluídas nos últimos 30 dias, com contagem), programa, projeto e responsável (com "Sem responsável") — num painel
-preso ao botão; no celular, numa folha que sobe de baixo, com a busca e o botão "Ver N tarefas". Os filtros ligados
+preso ao botão; no celular, numa folha que sobe de baixo (e, no celular, onde as colunas de responsável e
+status não cabem, cada linha mostra embaixo do título o primeiro nome do responsável, ou "Sem responsável" em
+destaque, e o status quando é Em andamento ou Bloqueada), com a busca e o botão "Ver N tarefas". Os filtros ligados
 aparecem como **etiquetas com ×** embaixo da barra (no celular, a busca também) e "Limpar tudo" tira todos menos
 Minhas | Todas. Tudo fica na URL; links antigos (`?recorte=sem-responsavel`, `/projetos?visao=quadro`) continuam
 funcionando.
@@ -310,7 +312,9 @@ horizontal, uma coluna por vez. O status do projeto em si é alterado na página
 **Janela da tarefa** — clicar numa tarefa, em qualquer lugar (Início, Tarefas, quadro, aba Tarefas do projeto,
 avisos, busca), abre a janela dela **para ler**: status (muda na hora; bloquear pergunta o motivo), "Urgente" (quando
 é), responsável, prazo, projeto e descrição; ao lado (embaixo, no celular), **checklist** (itens para marcar,
-com barra de progresso; incluir com Enter, remover no ×), **anexos** (vários arquivos de uma vez; imagens em miniatura)
+com barra de progresso; incluir com Enter; o lápis corrige o texto do item; o × remove, e no lugar
+fica "Item removido · Desfazer" por alguns segundos antes de a remoção ir para a API, ou ao fechar a janela; no
+celular, os botões do item têm 36px e os campos, letra de 16px), **anexos** (vários arquivos de uma vez; imagens em miniatura)
 e comentários. **Editar** troca para o formulário (Cancelar volta para a leitura); "Editar" no menu ⋯ da aba do projeto
 abre direto no formulário. Status, checklist, anexos e comentários gravam na hora, sem depender do "Salvar". Os anexos
 também aparecem na aba Arquivos do projeto, com o selo "da tarefa …"; excluir a tarefa mantém o arquivo no projeto. O

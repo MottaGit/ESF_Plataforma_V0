@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Activity, ActivityStatus } from '../../types/api';
-import { daysFromToday, dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
+import { activityStatusLabel, daysFromToday, dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
 import { ProgramMark } from '../programs/ProgramMark';
 import { ActivityCounters } from '../projects/ActivityCounters';
 import { Avatar } from '../ui/Avatar';
@@ -162,6 +162,15 @@ function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: Task
             <ProgramMark icon={activity.programIcon} color={activity.programColor} size={16} />
           ) : null}
           <span className="task-row__project">{activity.projectName}</span>
+          {/* No celular as colunas de responsavel e status somem: o essencial vem aqui. */}
+          <span className={`task-row__mobile${activity.assignedVolunteerName ? '' : ' task-row__mobile--none'}`}>
+            {activity.assignedVolunteerName ? activity.assignedVolunteerName.split(' ')[0] : 'Sem responsável'}
+          </span>
+          {activity.status === 'EmAndamento' || activity.status === 'Bloqueada' ? (
+            <span className={`task-row__mobile task-row__mobile--${activity.status === 'Bloqueada' ? 'blocked' : 'running'}`}>
+              {activityStatusLabel(activity.status)}
+            </span>
+          ) : null}
           <ActivityCounters activity={activity} />
         </span>
         {activity.status === 'Bloqueada' && activity.blockedReason ? (
