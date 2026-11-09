@@ -104,7 +104,14 @@ public class AddProjectVolunteerRequest
     [Required(ErrorMessage = "Selecione o voluntário.")]
     public Guid? VolunteerId { get; set; }
 
-    [StringLength(120)]
+    [StringLength(120, ErrorMessage = "O papel no projeto deve ter no máximo 120 caracteres.")]
+    public string? RoleInProject { get; set; }
+}
+
+/// <summary>Papel de quem ja esta na equipe (vazio: sem papel definido).</summary>
+public class UpdateProjectVolunteerRequest
+{
+    [StringLength(120, ErrorMessage = "O papel no projeto deve ter no máximo 120 caracteres.")]
     public string? RoleInProject { get; set; }
 }
 

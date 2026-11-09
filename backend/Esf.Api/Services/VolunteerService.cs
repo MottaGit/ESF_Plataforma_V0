@@ -366,6 +366,19 @@ public class VolunteerService
         return Mapping.ToDto(link);
     }
 
+    /// <summary>Papel no projeto de quem ja esta na equipe; desvincular e vincular de novo perderia o "Desde".</summary>
+    public async Task<ProjectVolunteerDto> UpdateRoleInProjectAsync(Guid projectId, Guid volunteerId, string? roleInProject)
+    {
+        var link = await _db.ProjectVolunteers
+                       .Include(pv => pv.Volunteer)
+                       .FirstOrDefaultAsync(pv => pv.ProjectId == projectId && pv.VolunteerId == volunteerId)
+                   ?? throw AppException.NotFound("Vínculo do voluntário");
+
+        link.RoleInProject = string.IsNullOrWhiteSpace(roleInProject) ? null : roleInProject.Trim();
+        await _db.SaveChangesAsync();
+        return Mapping.ToDto(link);
+    }
+
     public async Task RemoveFromProjectAsync(Guid projectId, Guid volunteerId)
     {
         var link = await _db.ProjectVolunteers

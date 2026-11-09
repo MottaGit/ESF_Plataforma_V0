@@ -10,7 +10,7 @@ import { LateBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
-import { IconPlus, IconTrash } from '../ui/Icons';
+import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 import { EmailLink, PhoneLink } from '../volunteers/ContactLinks';
 import { ProjectHoursPanel } from './ProjectHoursPanel';
@@ -26,6 +26,22 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
   const [allVolunteers, setAllVolunteers] = useState<Volunteer[]>([]);
   const [linkOpen, setLinkOpen] = useState(false);
   const [removing, setRemoving] = useState<ProjectVolunteer | null>(null);
+  // Papel no projeto, editado ali mesmo na linha (Enter ou sair do campo salva; Esc desiste).
+  const [editingRole, setEditingRole] = useState<string | null>(null);
+  const [roleText, setRoleText] = useState('');
+
+  async function saveRole(member: ProjectVolunteer) {
+    const text = roleText.trim();
+    setEditingRole(null);
+    if (text === (member.roleInProject ?? '')) return;
+    try {
+      await volunteersApi.updateProjectRole(project.id, member.volunteerId, text || null);
+      notify('Papel no projeto atualizado.');
+      onChanged();
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível mudar o papel.');
+    }
+  }
   const [busy, setBusy] = useState(false);
   const [hours, setHours] = useState<ProjectHours | null>(null);
 
@@ -148,7 +164,50 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
                             <span className="badge badge--run">Responsável</span>
                           </div>
                         ) : null}
-                        {volunteer.roleInProject ?? (volunteer.volunteerId === project.ownerVolunteerId ? null : '—')}
+                        {editingRole === volunteer.volunteerId ? (
+                          <form
+                            className="team-role__form"
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              void saveRole(volunteer);
+                            }}
+                          >
+                            <TextInput
+                              autoFocus
+                              value={roleText}
+                              maxLength={120}
+                              placeholder="Ex.: compras, projeto elétrico"
+                              aria-label={`Papel de ${volunteer.name} no projeto`}
+                              onChange={(event) => setRoleText(event.target.value)}
+                              onBlur={() => void saveRole(volunteer)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Escape') {
+                                  event.preventDefault();
+                                  setEditingRole(null);
+                                }
+                              }}
+                            />
+                          </form>
+                        ) : (
+                          <span className="team-role">
+                            {volunteer.roleInProject ??
+                              (volunteer.volunteerId === project.ownerVolunteerId ? null : (
+                                <span className="table__secondary">sem papel</span>
+                              ))}
+                            <button
+                              type="button"
+                              className="icon-button team-role__edit"
+                              title="Mudar o papel no projeto"
+                              aria-label={`Mudar o papel de ${volunteer.name} no projeto`}
+                              onClick={() => {
+                                setRoleText(volunteer.roleInProject ?? '');
+                                setEditingRole(volunteer.volunteerId);
+                              }}
+                            >
+                              <IconEdit size={14} />
+                            </button>
+                          </span>
+                        )}
                       </td>
                       <td className="tight">
                         {load.open === 0 ? (

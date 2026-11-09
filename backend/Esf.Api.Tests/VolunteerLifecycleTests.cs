@@ -49,6 +49,24 @@ public class VolunteerLifecycleTests
     }
 
     [Fact]
+    public async Task RoleInTheTeamChangesWithoutLeavingTheProject()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        await using var db = f.Context(f.A.Admin);
+        var volunteers = Service(db, f.A.Admin);
+        var joined = (await db.ProjectVolunteers.SingleAsync(pv => pv.ProjectId == f.A.ProjectId)).JoinedAt;
+
+        var updated = await volunteers.UpdateRoleInProjectAsync(f.A.ProjectId, f.A.VolunteerId, "  Compras  ");
+        Assert.Equal("Compras", updated.RoleInProject);
+        Assert.Equal(joined, updated.JoinedAt);
+        Assert.Null((await volunteers.UpdateRoleInProjectAsync(f.A.ProjectId, f.A.VolunteerId, " ")).RoleInProject);
+
+        // Quem nao esta na equipe (ou e de outro nucleo) nao tem vinculo para mudar.
+        await Assert.ThrowsAsync<AppException>(() =>
+            volunteers.UpdateRoleInProjectAsync(f.B.ProjectId, f.B.VolunteerId, "Compras"));
+    }
+
+    [Fact]
     public async Task LeavingTheNucleoCanDeactivateTheAccessAndReleaseTheTasks()
     {
         var f = await TwoNucleos.CreateAsync();
