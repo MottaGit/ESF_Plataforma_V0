@@ -464,8 +464,8 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
 **Relatórios** — seleção de um ou vários projetos, observação livre e geração de um **PDF consolidado** com
-identificação, descrição, objetivo, período, status, responsável, localização, voluntários e
-indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
+identificação, descrição, objetivo, período, status, responsável, localização, voluntários (nome, papel no
+projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
 referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Últimos 3 meses**, **Este
 ano** e **Todo o histórico**) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de

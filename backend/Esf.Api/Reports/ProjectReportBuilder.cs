@@ -392,15 +392,15 @@ public static class ProjectReportBuilder
                 {
                     columns.RelativeColumn(3);
                     columns.RelativeColumn(3);
-                    columns.RelativeColumn(3);
                     if (total > 0) columns.RelativeColumn(1);
                 });
 
+                // Sem contato (e-mail, telefone): o relatorio vai para parceiros e financiadores, que so precisam
+                // saber quem fez parte e em que papel.
                 table.Header(header =>
                 {
                     header.Cell().Element(HeadCell).Text("Nome");
                     header.Cell().Element(HeadCell).Text("Papel no projeto");
-                    header.Cell().Element(HeadCell).Text("Contato");
                     if (total > 0) header.Cell().Element(HeadCell).AlignRight().Text("Horas");
                 });
 
@@ -408,7 +408,6 @@ public static class ProjectReportBuilder
                 {
                     table.Cell().Element(BodyCell).Text(v.Volunteer?.Name ?? "-");
                     table.Cell().Element(BodyCell).Text(v.RoleInProject ?? "-");
-                    table.Cell().Element(BodyCell).Text(v.Volunteer?.Email ?? v.Volunteer?.Phone ?? "-");
                     if (total > 0)
                         table.Cell().Element(BodyCell).AlignRight()
                             .Text(hours.TryGetValue(v.VolunteerId, out var h) ? TextHelpers.Hours(h) : "-");
