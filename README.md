@@ -171,7 +171,8 @@ conexão da API. Isso apaga tudo, inclusive os arquivos enviados, que ficam no b
 
 **Início** — o que a pessoa logada tem para fazer. Abaixo do "Olá", uma linha com as tarefas dela (em aberto,
 atrasadas, bloqueadas). **Minhas tarefas** agrupa por prazo (atrasadas, próximos 7 dias, depois, sem prazo; até 8, o
-resto em Tarefas): a caixinha conclui na hora e clicar abre a tarefa ali mesmo. Ao lado, **Meus projetos** (os em
+resto em Tarefas): a caixinha conclui na hora (fica riscada no lugar, com **Desfazer**, como em toda lista de
+tarefas) e clicar abre a tarefa ali mesmo. Ao lado, **Meus projetos** (os em
 planejamento ou andamento em que a pessoa é responsável ou está na equipe, com progresso, último registro e o botão
 **Registrar**, que abre o projeto já no registro de andamento) e os **aniversariantes** dos últimos 5 dias e dos
 próximos 14 (o bloco some quando não há nenhum). Os avisos ficam só no sininho. Sem voluntário vinculado, explica como
@@ -273,7 +274,11 @@ versão); só existe no build de produção, não no `npm run dev`.
 
 **Tarefas** — todas as tarefas dos projetos em planejamento ou em andamento, em **Lista** (agrupada por prazo:
 atrasadas, próximos 7 dias, depois e sem prazo; a caixinha conclui e o título abre a tarefa) ou **Quadro** (o kanban
-abaixo). Embaixo do título, "7 em aberto · 2 atrasadas" (tocar nas atrasadas filtra só elas). Uma linha só de
+abaixo). **Concluir tarefa é igual em toda lista** (Tarefas, Início e aba Tarefas do projeto): a tarefa fica riscada no
+mesmo lugar, com **Desfazer** ao lado, até a tela ser aberta de novo (mesmo que um filtro, como "atrasadas", já não a
+pegasse); desmarcar ou Desfazer volta exatamente ao status de antes (em andamento continua em andamento; bloqueada
+volta com o motivo). A caixinha tem área de toque de 44px, afastada do título (`.check-hit`, `useJustDone` em
+`components/tasks/taskUtils.ts`). Embaixo do título, "7 em aberto · 2 atrasadas" (tocar nas atrasadas filtra só elas). Uma linha só de
 controles: **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), a busca, o botão **Filtros** e,
 no canto, Lista e Quadro (ícones). Filtros abre os campos com rótulo — **Situação** (atrasadas, bloqueadas ou
 concluídas nos últimos 30 dias, com contagem), programa, projeto e responsável (com "Sem responsável") — num painel

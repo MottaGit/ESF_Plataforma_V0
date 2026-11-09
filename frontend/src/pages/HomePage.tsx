@@ -7,7 +7,7 @@ import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
 import { groupByDue } from '../components/tasks/TaskList';
-import { isOverdue } from '../components/tasks/taskUtils';
+import { isOverdue, useJustDone } from '../components/tasks/taskUtils';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge } from '../components/ui/Badge';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
@@ -270,41 +270,56 @@ interface MyTasksPanelProps {
 /** Minhas tarefas, agrupadas por prazo. A caixinha conclui na hora; clicar abre a tarefa. */
 function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
   const { user } = useAuth();
-  const { notify, notifyError } = useToast();
-  const [doneNow, setDoneNow] = useState<Set<string>>(new Set());
+  const { notifyError } = useToast();
+  // Concluidas nesta visita: ficam riscadas no lugar, com "Desfazer", mesmo depois que a lista recarrega (a API so
+  // manda as em aberto). Igual em Tarefas e na aba do projeto.
+  const justDone = useJustDone();
   const linked = Boolean(user?.volunteerId);
 
-  async function complete(activity: Activity, done: boolean) {
-    setDoneNow((current) => {
-      const next = new Set(current);
-      if (done) next.add(activity.id);
-      else next.delete(activity.id);
-      return next;
-    });
+  async function complete(activity: Activity) {
+    justDone.remember(activity);
     try {
-      await activitiesApi.updateStatus(activity.id, done ? 'Concluida' : activity.status);
-      if (done) notify(`"${activity.title}" concluída.`);
+      await activitiesApi.updateStatus(activity.id, 'Concluida');
       onChanged();
     } catch (err) {
-      setDoneNow((current) => {
-        const next = new Set(current);
-        next.delete(activity.id);
-        return next;
-      });
+      justDone.forget(activity.id);
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível concluir a tarefa.');
     }
   }
 
+  /** Desmarcar ou "Desfazer": volta ao status de antes (com o motivo, se estava bloqueada). */
+  async function reopen(activity: Activity) {
+    const before = justDone.before.get(activity.id) ?? activity;
+    justDone.forget(activity.id);
+    try {
+      await activitiesApi.updateStatus(activity.id, before.status, before.blockedReason ?? null);
+      onChanged();
+    } catch (err) {
+      justDone.remember(before);
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível reabrir a tarefa.');
+    }
+  }
+
+  // As recem-concluidas voltam para a lista (riscadas), no grupo em que estavam.
+  const shown: Activity[] = [
+    ...tasks.filter((activity) => !justDone.before.has(activity.id)),
+    ...[...justDone.before.values()].map((activity) => ({ ...activity, status: 'Concluida' as const }))
+  ];
+
   // Grupos por prazo, cortados nas primeiras MY_TASKS_VISIBLE tarefas.
   let budget = MY_TASKS_VISIBLE;
-  const groups = groupByDue(tasks)
+  const groups = groupByDue(shown, justDone.before)
     .map((group) => {
       const items = group.items.slice(0, Math.max(budget, 0));
       budget -= items.length;
       return { ...group, total: group.items.length, items };
     })
     .filter((group) => group.items.length > 0);
-  const hidden = total - groups.reduce((sum, group) => sum + group.items.length, 0);
+  const openShown = groups.reduce(
+    (sum, group) => sum + group.items.filter((activity) => !justDone.before.has(activity.id)).length,
+    0
+  );
+  const hidden = total - openShown;
 
   return (
     <section className="panel">
@@ -335,17 +350,20 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
               </h3>
               <ul className="task-list__items">
                 {group.items.map((activity) => {
-                  const checked = doneNow.has(activity.id);
+                  const checked = justDone.before.has(activity.id);
                   return (
                     <li key={activity.id} className={`task-row${checked ? ' task-row--done' : ''}`}>
-                      <input
-                        type="checkbox"
-                        className="task-row__check"
-                        checked={checked}
-                        aria-label={`Concluir "${activity.title}"`}
-                        title="Marcar como concluída"
-                        onChange={(event) => void complete(activity, event.target.checked)}
-                      />
+                      <label className="check-hit" title={checked ? 'Reabrir tarefa' : 'Marcar como concluída'}>
+                        <input
+                          type="checkbox"
+                          className="task-row__check"
+                          checked={checked}
+                          aria-label={checked ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
+                          onChange={(event) =>
+                            void (event.target.checked ? complete(activity) : reopen(activity))
+                          }
+                        />
+                      </label>
                       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
                         <span className="task-row__title">{activity.title}</span>
                         <span className="task-row__meta">
@@ -356,7 +374,11 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
                           <ActivityCounters activity={activity} />
                         </span>
                       </button>
-                      {activity.status === 'Bloqueada' ? (
+                      {checked ? (
+                        <button type="button" className="task-row__undo" onClick={() => void reopen(activity)}>
+                          Desfazer
+                        </button>
+                      ) : activity.status === 'Bloqueada' ? (
                         <span className="badge badge--blocked">bloqueada</span>
                       ) : (
                         <span

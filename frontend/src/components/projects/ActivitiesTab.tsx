@@ -381,14 +381,15 @@ function ActivityRow({
 
   return (
     <li className={`act-row${checked ? ' act-row--done' : ''}`}>
-      <input
-        type="checkbox"
-        className="act-row__check"
-        checked={checked}
-        aria-label={checked ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
-        title={checked ? 'Reabrir tarefa' : 'Marcar como concluída'}
-        onChange={(event) => void toggle(event.target.checked)}
-      />
+      <label className="check-hit" title={checked ? 'Reabrir tarefa' : 'Marcar como concluída'}>
+        <input
+          type="checkbox"
+          className="act-row__check"
+          checked={checked}
+          aria-label={checked ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
+          onChange={(event) => void toggle(event.target.checked)}
+        />
+      </label>
 
       <div className="act-row__main">
         <button type="button" className="act-row__title" onClick={onOpen}>

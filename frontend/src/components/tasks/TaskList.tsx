@@ -18,15 +18,20 @@ interface Group {
   items: Activity[];
 }
 
-/** Em aberto, por prazo: atrasadas, proximos 7 dias, depois e sem prazo. */
-export function groupByDue(activities: Activity[]): Group[] {
-  const open = activities.filter((activity) => activity.status !== 'Concluida').sort(compareOpen);
+/**
+ * Em aberto, por prazo: atrasadas, proximos 7 dias, depois e sem prazo. As concluidas nesta visita (before) contam
+ * com o status de antes: continuam no mesmo grupo, riscadas.
+ */
+export function groupByDue(activities: Activity[], before?: Map<string, Activity>): Group[] {
+  const asBefore = (activity: Activity) => before?.get(activity.id) ?? activity;
+  const late = (activity: Activity) => isOverdue(asBefore(activity));
+  const open = activities.filter((activity) => asBefore(activity).status !== 'Concluida').sort(compareOpen);
   const groups: Group[] = [
-    { key: 'late', title: 'Atrasadas', late: true, items: open.filter((a) => isOverdue(a)) },
+    { key: 'late', title: 'Atrasadas', late: true, items: open.filter(late) },
     {
       key: 'week',
       title: 'Próximos 7 dias',
-      items: open.filter((a) => a.dueDate && !isOverdue(a) && daysFromToday(a.dueDate) <= 6)
+      items: open.filter((a) => a.dueDate && !late(a) && daysFromToday(a.dueDate) <= 6)
     },
     { key: 'later', title: 'Depois', items: open.filter((a) => a.dueDate && daysFromToday(a.dueDate) > 6) },
     { key: 'none', title: 'Sem prazo', items: open.filter((a) => !a.dueDate) }
@@ -40,12 +45,16 @@ interface TaskListProps {
   /** Recorte "concluidas": mostra so as concluidas recentes, das mais novas para as mais antigas. */
   showDone: boolean;
   hasFilters: boolean;
+  /** Concluidas nesta visita, como estavam antes (ver useJustDone): ficam riscadas no lugar, com "Desfazer". */
+  before: Map<string, Activity>;
   onOpen: (activity: Activity) => void;
   onRequestStatus: (activity: Activity, status: ActivityStatus) => void;
+  /** Desmarcar a caixinha ou "Desfazer": volta ao status de antes (ou a nao iniciada). */
+  onReopen: (activity: Activity) => void;
 }
 
 /** Tarefas em lista, agrupadas por prazo. A caixinha conclui; clicar no titulo abre a tarefa. */
-export function TaskList({ activities, showDone, hasFilters, onOpen, onRequestStatus }: TaskListProps) {
+export function TaskList({ activities, showDone, hasFilters, before, onOpen, onRequestStatus, onReopen }: TaskListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const groups: Group[] = showDone
@@ -56,7 +65,7 @@ export function TaskList({ activities, showDone, hasFilters, onOpen, onRequestSt
           items: activities.filter((a) => a.status === 'Concluida').sort(compareDone)
         }
       ].filter((group) => group.items.length > 0)
-    : groupByDue(activities);
+    : groupByDue(activities, before);
 
   if (groups.length === 0) {
     return (
@@ -86,7 +95,14 @@ export function TaskList({ activities, showDone, hasFilters, onOpen, onRequestSt
             </h3>
             <ul className="task-list__items">
               {visible.map((activity) => (
-                <TaskRow key={activity.id} activity={activity} onOpen={onOpen} onRequestStatus={onRequestStatus} />
+                <TaskRow
+                  key={activity.id}
+                  activity={activity}
+                  justDone={before.has(activity.id) && activity.status === 'Concluida'}
+                  onOpen={onOpen}
+                  onRequestStatus={onRequestStatus}
+                  onReopen={onReopen}
+                />
               ))}
             </ul>
             {group.items.length > GROUP_VISIBLE ? (
@@ -114,24 +130,28 @@ export function TaskList({ activities, showDone, hasFilters, onOpen, onRequestSt
 
 interface TaskRowProps {
   activity: Activity;
+  /** Concluida nesta visita: mostra o "Desfazer". */
+  justDone: boolean;
   onOpen: (activity: Activity) => void;
   onRequestStatus: (activity: Activity, status: ActivityStatus) => void;
+  onReopen: (activity: Activity) => void;
 }
 
-function TaskRow({ activity, onOpen, onRequestStatus }: TaskRowProps) {
+function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: TaskRowProps) {
   const done = activity.status === 'Concluida';
   const late = isOverdue(activity);
 
   return (
     <li className={`task-row${done ? ' task-row--done' : ''}`}>
-      <input
-        type="checkbox"
-        className="task-row__check"
-        checked={done}
-        aria-label={done ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
-        title={done ? 'Reabrir tarefa' : 'Marcar como concluída'}
-        onChange={(event) => onRequestStatus(activity, event.target.checked ? 'Concluida' : 'AFazer')}
-      />
+      <label className="check-hit" title={done ? 'Reabrir tarefa' : 'Marcar como concluída'}>
+        <input
+          type="checkbox"
+          className="task-row__check"
+          checked={done}
+          aria-label={done ? `Reabrir "${activity.title}"` : `Concluir "${activity.title}"`}
+          onChange={(event) => (event.target.checked ? onRequestStatus(activity, 'Concluida') : onReopen(activity))}
+        />
+      </label>
       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
         <span className="task-row__title">
           {activity.title}
@@ -148,6 +168,11 @@ function TaskRow({ activity, onOpen, onRequestStatus }: TaskRowProps) {
           <span className="task-row__blocked">{activity.blockedReason}</span>
         ) : null}
       </button>
+      {justDone ? (
+        <button type="button" className="task-row__undo" onClick={() => onReopen(activity)}>
+          Desfazer
+        </button>
+      ) : null}
       <span className="task-row__status">
         <ActivityStatusSelect
           status={activity.status}

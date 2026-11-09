@@ -601,6 +601,24 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
   cursor: pointer;
 }
 .act-row__undo:hover { text-decoration: underline; }
+
+/*
+ * Caixinha de concluir tarefa (Tarefas, Inicio e aba do projeto): o quadradinho continua pequeno, mas a area de
+ * toque tem 44px e fica afastada do titulo, para nao abrir a tarefa (nem concluir) sem querer.
+ */
+.check-hit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px -6px -12px -14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.check-hit input { margin: 0; }
+.act-row .check-hit { margin: -13px -8px -13px -14px; }
 .act-row__meta {
   display: flex;
   flex-wrap: wrap;
@@ -2450,6 +2468,19 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .task-row__due { width: 96px; flex: 0 0 auto; text-align: right; font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
 .task-row__due--late { color: var(--danger); font-weight: 600; }
 .task-row--done .task-row__title { color: var(--text-muted); text-decoration: line-through; }
+/* "Desfazer" da tarefa recem-concluida (fica no lugar dela ate a tela ser aberta de novo). */
+.task-row__undo {
+  flex: 0 0 auto;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.task-row__undo:hover { text-decoration: underline; }
 
 @media (max-width: 900px) {
   .task-row__status, .task-row__who { display: none; }

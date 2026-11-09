@@ -1,5 +1,27 @@
+import { useCallback, useState } from 'react';
 import type { Activity, ActivityPriority, ActivityStatus } from '../../types/api';
 import { daysFromToday } from '../../utils/format';
+
+/**
+ * Tarefas concluidas nesta visita a tela, guardadas como estavam antes (status e motivo do bloqueio): ficam riscadas
+ * no mesmo lugar, com "Desfazer", ate a tela ser aberta de novo. Desfazer volta exatamente para o status de antes.
+ * E o mesmo comportamento em Tarefas, no Inicio e na aba Tarefas do projeto.
+ */
+export function useJustDone() {
+  const [before, setBefore] = useState<Map<string, Activity>>(() => new Map());
+  const remember = useCallback((activity: Activity) => setBefore((current) => new Map(current).set(activity.id, activity)), []);
+  const forget = useCallback(
+    (id: string) =>
+      setBefore((current) => {
+        if (!current.has(id)) return current;
+        const next = new Map(current);
+        next.delete(id);
+        return next;
+      }),
+    []
+  );
+  return { before, remember, forget };
+}
 
 /** Por quantos dias uma concluida continua em Tarefas (mesmo valor de ActivityService.BoardDoneDays). */
 export const DONE_DAYS = 30;

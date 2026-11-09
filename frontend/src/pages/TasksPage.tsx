@@ -5,7 +5,7 @@ import { activitiesApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { BlockActivityDialog } from '../components/projects/BlockActivityDialog';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
 import { TaskList } from '../components/tasks/TaskList';
-import { isOverdue, normalize, withStatus } from '../components/tasks/taskUtils';
+import { isOverdue, normalize, useJustDone, withStatus } from '../components/tasks/taskUtils';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, Loading } from '../components/ui/Feedback';
@@ -69,6 +69,8 @@ export function TasksPage() {
   const [creating, setCreating] = useState(false);
   /** Tarefa esperando o motivo do bloqueio. */
   const [blocking, setBlocking] = useState<Activity | null>(null);
+  // Concluidas nesta visita: ficam riscadas no lugar, com "Desfazer" (igual ao Inicio e a aba do projeto).
+  const justDone = useJustDone();
 
   const updateParams = useCallback(
     (changes: Record<string, string | null>) => {
@@ -177,7 +179,10 @@ export function TasksPage() {
     if (term && !normalize(`${activity.title} ${activity.projectName ?? ''}`).includes(term)) return false;
     return true;
   });
-  const visible = cut ? filtered.filter((activity) => matchesCut(activity, cut)) : filtered;
+  // A recem-concluida continua a vista mesmo num recorte que ela deixou de atender (ex.: atrasadas).
+  const visible = cut
+    ? filtered.filter((activity) => matchesCut(activity, cut) || justDone.before.has(activity.id))
+    : filtered;
 
   const hasFilters = Boolean(term || scopeParam || programFilter || projectFilter || assigneeFilter || cut);
   // O botao conta o que esta no painel; a busca fica a mostra no computador (no celular, vira etiqueta).
@@ -238,8 +243,17 @@ export function TasksPage() {
   /** Bloquear pergunta antes o que esta travando; os demais status mudam direto. */
   function requestStatus(activity: Activity, status: ActivityStatus) {
     if (activity.status === status) return;
+    if (status === 'Concluida') justDone.remember(activity);
+    else justDone.forget(activity.id);
     if (status === 'Bloqueada') setBlocking(activity);
     else void changeStatus(activity, status);
+  }
+
+  /** Desmarcar ou "Desfazer": volta ao status de antes (com o motivo, se estava bloqueada); sem ele, nao iniciada. */
+  function reopen(activity: Activity) {
+    const before = justDone.before.get(activity.id);
+    justDone.forget(activity.id);
+    void changeStatus(activity, before?.status ?? 'AFazer', before?.blockedReason ?? null);
   }
 
   async function changeStatus(activity: Activity, status: ActivityStatus, blockedReason: string | null = null) {
@@ -251,6 +265,7 @@ export function TasksPage() {
       replace(await activitiesApi.updateStatus(activity.id, status, blockedReason));
     } catch (err) {
       replace(activity);
+      if (status === 'Concluida') justDone.forget(activity.id);
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a tarefa.');
     }
   }
@@ -456,8 +471,10 @@ export function TasksPage() {
           activities={visible}
           showDone={cut === 'concluidas'}
           hasFilters={hasFilters}
+          before={justDone.before}
           onOpen={setEditing}
           onRequestStatus={requestStatus}
+          onReopen={reopen}
         />
       )}
 
