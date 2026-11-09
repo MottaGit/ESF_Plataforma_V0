@@ -319,7 +319,10 @@ antigos (`?aba=atividades&atividade=…`) continuam abrindo a tarefa.
 
 **Comentários nas tarefas** — na mesma janela, abaixo do checklist e dos anexos: a conversa do dia a dia sobre a
 tarefa (não vai para o relatório, ao contrário dos registros de andamento). Digitar **@** abre a lista de pessoas com
-acesso (a equipe do projeto primeiro, sem diferenciar acentos) e escolher insere o nome; Ctrl+Enter envia. Quem
+acesso (a equipe do projeto primeiro, sem diferenciar acentos) e escolher insere o nome; Ctrl+Enter envia. O comentário que está sendo escrito vira **rascunho** no aparelho, como o registro de andamento:
+fechar a janela sem querer (Esc, toque fora), recarregar ou perder a sessão não apaga, e ao abrir a tarefa de novo o
+texto volta (com as menções) e o aviso "Comentário não enviado, guardado neste aparelho" com **Descartar**. Enviar
+apaga o rascunho; "Sair" apaga todos (`utils/drafts.ts`). Quem
 escreveu edita (aparece "(editado)") e apaga o próprio comentário; a coordenação também apaga os dos outros. Avisos no
 sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário novo, o responsável pela tarefa ("Ana
 comentou em…"); na edição, só quem foi mencionado agora. Todo aviso de tarefa (atribuição, bloqueio, prazo,

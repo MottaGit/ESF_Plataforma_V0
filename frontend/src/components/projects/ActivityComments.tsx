@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { clearDraft, commentDraftKey, loadCommentDraft, saveCommentDraft } from '../../utils/drafts';
 import type { ActivityComment, Mention, Mentionable } from '../../types/api';
 import { SENSITIVE_DATA_HINT, formatDateTime, timeAgo } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
@@ -37,6 +39,7 @@ interface ActivityCommentsProps {
 /** Comentarios da atividade: lista, escrever com @mencao, editar e apagar. */
 export function ActivityComments({ activityId, initial, onChanged }: ActivityCommentsProps) {
   const { notifyError } = useToast();
+  const { user } = useAuth();
   const [comments, setComments] = useState(initial);
   const [people, setPeople] = useState<Mentionable[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -130,7 +133,12 @@ export function ActivityComments({ activityId, initial, onChanged }: ActivityCom
       ) : null}
 
       {editingId === null ? (
-        <CommentComposer people={people} submitLabel="Comentar" onSubmit={(text, mentions) => add(text, mentions)} />
+        <CommentComposer
+          people={people}
+          submitLabel="Comentar"
+          draftKey={user ? commentDraftKey(user.id, activityId) : null}
+          onSubmit={(text, mentions) => add(text, mentions)}
+        />
       ) : null}
 
       {removing ? (
@@ -156,16 +164,37 @@ interface CommentComposerProps {
   onCancel?: () => void;
   /** Rejeita com o erro da API (a mensagem aparece no toast e o texto fica). */
   onSubmit: (text: string, mentionedVolunteerIds: string[]) => Promise<void>;
+  /**
+   * Comentario novo: o que esta sendo escrito vira rascunho no aparelho (fechar a janela sem querer, tocar fora,
+   * recarregar) e volta ao abrir a tarefa de novo, como o registro de andamento.
+   */
+  draftKey?: string | null;
 }
 
 /**
  * Caixa de comentario. Digitar @ abre a lista de pessoas (a equipe do projeto primeiro); escolher insere o nome.
  * Ctrl+Enter envia.
  */
-function CommentComposer({ people, initialText = '', initialMentions = [], submitLabel, onCancel, onSubmit }: CommentComposerProps) {
+function CommentComposer({
+  people,
+  initialText = '',
+  initialMentions = [],
+  submitLabel,
+  onCancel,
+  onSubmit,
+  draftKey = null
+}: CommentComposerProps) {
   const { notifyError } = useToast();
-  const [text, setText] = useState(initialText);
-  const [mentions, setMentions] = useState<Mention[]>(initialMentions);
+  const [restored] = useState(() => (draftKey ? loadCommentDraft(draftKey) : null));
+  const [text, setText] = useState(restored?.text ?? initialText);
+  const [mentions, setMentions] = useState<Mention[]>(restored?.mentions ?? initialMentions);
+
+  // Grava a cada letra; vazio, apaga o rascunho.
+  useEffect(() => {
+    if (!draftKey) return;
+    if (text.trim() === '') clearDraft(draftKey);
+    else saveCommentDraft(draftKey, text, mentions);
+  }, [draftKey, text, mentions]);
   const [query, setQuery] = useState<string | null>(null);
   const [highlight, setHighlight] = useState(0);
   const [sending, setSending] = useState(false);
@@ -217,6 +246,7 @@ function CommentComposer({ people, initialText = '', initialMentions = [], submi
       if (!onCancel) {
         setText('');
         setMentions([]);
+        if (draftKey) clearDraft(draftKey);
       }
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível enviar o comentário.');
@@ -287,6 +317,21 @@ function CommentComposer({ people, initialText = '', initialMentions = [], submi
           </ul>
         ) : null}
       </div>
+      {restored && text.trim() !== '' && text === restored.text ? (
+        <p className="field__hint composer__draft">
+          Comentário não enviado, guardado neste aparelho.{' '}
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => {
+              setText('');
+              setMentions([]);
+            }}
+          >
+            Descartar
+          </button>
+        </p>
+      ) : null}
       <div className="composer__foot">
         <span className="field__hint composer__hint">{SENSITIVE_DATA_HINT}</span>
         {onCancel ? (

@@ -1,8 +1,10 @@
 /**
  * Rascunhos guardados no aparelho (localStorage), para o texto nao se perder ao trocar de tela, recarregar, perder a
- * sessao ou fechar o navegador no meio de um registro. Cada rascunho e da pessoa logada (a chave leva o id dela) e
+ * sessao ou fechar o navegador (ou a janela da tarefa) no meio de um registro ou de um comentario. Cada rascunho e da pessoa logada (a chave leva o id dela) e
  * todos sao apagados quando alguem usa "Sair" (o aparelho pode ser compartilhado). Fotos escolhidas nao entram.
  */
+
+import type { Mention } from '../types/api';
 
 const PREFIX = 'esf.rascunho.';
 /** Rascunho esquecido ha mais tempo que isso e descartado. */
@@ -53,6 +55,40 @@ export function clearDraft(key: string) {
     localStorage.removeItem(key);
   } catch {
     // idem
+  }
+}
+
+/** Comentario de tarefa ainda nao enviado: o texto e quem foi mencionado nele. */
+export interface CommentDraft {
+  text: string;
+  mentions: Mention[];
+  savedAt: number;
+}
+
+export function commentDraftKey(userId: string, activityId: string) {
+  return `${PREFIX}comentario.${userId}.${activityId}`;
+}
+
+export function loadCommentDraft(key: string): CommentDraft | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const draft = JSON.parse(raw) as CommentDraft;
+    if (typeof draft?.text !== 'string' || Date.now() - draft.savedAt > MAX_AGE_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return { text: draft.text, mentions: Array.isArray(draft.mentions) ? draft.mentions : [], savedAt: draft.savedAt };
+  } catch {
+    return null;
+  }
+}
+
+export function saveCommentDraft(key: string, text: string, mentions: Mention[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ text, mentions, savedAt: Date.now() } satisfies CommentDraft));
+  } catch {
+    // Sem espaco ou sem acesso ao armazenamento: segue sem rascunho.
   }
 }
 
