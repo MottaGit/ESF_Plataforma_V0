@@ -315,3 +315,23 @@ export const IconGlobe = (p: IconProps) =>
     </>,
     p
   );
+
+export const IconEye = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M2.1 12.3a1 1 0 0 1 0-.6 10.8 10.8 0 0 1 19.8 0 1 1 0 0 1 0 .6 10.8 10.8 0 0 1-19.8 0" />
+      <circle cx="12" cy="12" r="3" />
+    </>,
+    p
+  );
+
+export const IconEyeOff = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M10.7 5.1A10.8 10.8 0 0 1 21.9 11.7a1 1 0 0 1 0 .6 10.7 10.7 0 0 1-1.4 2.5" />
+      <path d="M14.1 14.2a3 3 0 0 1-4.2-4.2" />
+      <path d="M17.5 17.5a10.8 10.8 0 0 1-15.4-5.2 1 1 0 0 1 0-.6 10.8 10.8 0 0 1 4.4-5.2" />
+      <path d="m2 2 20 20" />
+    </>,
+    p
+  );

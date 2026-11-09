@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { accessApi } from '../api/endpoints';
 import { Button } from '../components/ui/Button';
-import { Field, TextInput } from '../components/ui/Field';
+import { Field, PasswordInput } from '../components/ui/Field';
 import { Alert, Loading } from '../components/ui/Feedback';
 import { useAuth } from '../context/AuthContext';
 import type { AccessLinkInfo } from '../types/api';
@@ -118,9 +118,8 @@ export function FirstAccessPage() {
 
             <div className="login__fields">
               <Field label="Senha" htmlFor="new-password" required hint="Mínimo de 6 caracteres.">
-                <TextInput
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   autoComplete="new-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
@@ -128,9 +127,8 @@ export function FirstAccessPage() {
                 />
               </Field>
               <Field label="Confirmar senha" htmlFor="confirm-password" required>
-                <TextInput
+                <PasswordInput
                   id="confirm-password"
-                  type="password"
                   autoComplete="new-password"
                   value={confirm}
                   onChange={(event) => setConfirm(event.target.value)}

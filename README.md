@@ -710,7 +710,9 @@ certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acer
 senha criada por um link de acesso libera o acesso na hora. Embaixo do "Entrar" fica **Esqueci minha senha**, que
 explica o caminho (não há envio por e-mail): pedir à coordenação do núcleo um link novo de acesso, que chega pelo
 WhatsApp ou por e-mail e deixa criar uma senha nova. Depois de uma senha recusada, de um acesso bloqueado ou desativado,
-a explicação já aparece aberta. A Ajuda tem a mesma resposta. Os campos de texto livre (observações e registros de andamento) lembram
+a explicação já aparece aberta. A Ajuda tem a mesma resposta. Todo campo de senha (entrar, criar a senha pelo link
+e trocar em Minha conta) tem o olho de **Mostrar a senha** dentro dele, à direita (`PasswordInput`, em
+`components/ui/Field.tsx`): no celular, digitar sem ver é o que mais faz errar. Os campos de texto livre (observações e registros de andamento) lembram
 de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
 
 **Depois de entrar** — a pessoa volta para a tela que tentou abrir sem sessão, com o endereço inteiro (um link de

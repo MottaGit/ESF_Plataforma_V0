@@ -506,6 +506,23 @@ button { font: inherit; }
  * e sem buscar outra fonte mostrava caixinhas "NO GLYPH" no lugar dos pontinhos.
  */
 input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+/* Senha com o olho de "Mostrar" dentro do campo, a direita (area de toque de 44px). */
+.password-field { position: relative; display: block; }
+.password-field .input { width: 100%; padding-right: 46px; }
+.password-field__toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.password-field__toggle:hover { color: var(--text); }
 .input--invalid, .select--invalid, .textarea--invalid { border-color: var(--danger); }
 .textarea { min-height: 86px; resize: vertical; line-height: 1.45; }
 .select { appearance: none; background-image: none; cursor: pointer; }

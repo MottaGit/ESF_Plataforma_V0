@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { Button } from '../components/ui/Button';
-import { Field, TextInput } from '../components/ui/Field';
+import { Field, PasswordInput, TextInput } from '../components/ui/Field';
 import { Alert } from '../components/ui/Feedback';
 import { useAuth } from '../context/AuthContext';
 
@@ -84,9 +84,8 @@ export function LoginPage() {
             </Field>
 
             <Field label="Senha" htmlFor="password" required>
-              <TextInput
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}

@@ -9,7 +9,7 @@ import { SpreadsheetsSection } from '../components/settings/SpreadsheetsSection'
 import { Avatar } from '../components/ui/Avatar';
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
+import { Field, PasswordInput, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
 import { IconEdit, IconKey, IconPlus, IconTrash, IconUpload } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
@@ -791,9 +791,8 @@ function AccountSection() {
 
           <div className="form-grid form-grid--single" style={{ maxWidth: 420 }}>
             <Field label="Senha atual" htmlFor="current-password" required>
-              <TextInput
+              <PasswordInput
                 id="current-password"
-                type="password"
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(event) => setCurrentPassword(event.target.value)}
@@ -801,9 +800,8 @@ function AccountSection() {
             </Field>
 
             <Field label="Nova senha" htmlFor="new-password" required hint="Mínimo de 6 caracteres.">
-              <TextInput
+              <PasswordInput
                 id="new-password"
-                type="password"
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
@@ -811,9 +809,8 @@ function AccountSection() {
             </Field>
 
             <Field label="Confirmar nova senha" htmlFor="confirm-password" required>
-              <TextInput
+              <PasswordInput
                 id="confirm-password"
-                type="password"
                 autoComplete="new-password"
                 value={confirmation}
                 onChange={(event) => setConfirmation(event.target.value)}

@@ -1,4 +1,5 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import { useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { IconEye, IconEyeOff } from './Icons';
 
 interface FieldProps {
   label: string;
@@ -29,6 +30,36 @@ interface WithError {
 
 export function TextInput({ invalid, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & WithError) {
   return <input className={`input${invalid ? ' input--invalid' : ''} ${className ?? ''}`.trim()} {...rest} />;
+}
+
+/**
+ * Campo de senha com "Mostrar" / "Ocultar" (o olho dentro do campo): no celular, digitar a senha sem ver o que saiu e
+ * o que mais faz errar, principalmente nos dois campos de criar a senha.
+ */
+export function PasswordInput({ invalid, className, ...rest }: Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & WithError) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span className="password-field">
+      <input
+        type={visible ? 'text' : 'password'}
+        className={`input${invalid ? ' input--invalid' : ''} ${className ?? ''}`.trim()}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        {...rest}
+      />
+      <button
+        type="button"
+        className="password-field__toggle"
+        aria-label={visible ? 'Ocultar a senha' : 'Mostrar a senha'}
+        aria-pressed={visible}
+        title={visible ? 'Ocultar a senha' : 'Mostrar a senha'}
+        onClick={() => setVisible((current) => !current)}
+      >
+        {visible ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+      </button>
+    </span>
+  );
 }
 
 export function Select({ invalid, className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & WithError) {
