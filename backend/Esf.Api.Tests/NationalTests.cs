@@ -166,9 +166,12 @@ public class NationalTests
         Assert.Equal(2, panel.Totals.Records);
         // Voluntario ativo desde 30 dias atras: 11 dias no periodo de 10 dias para tras ate hoje = 9 horas (6 h/semana).
         Assert.All(panel.Nucleos, n => Assert.Equal(9, n.VolunteerHours));
-        Assert.Equal(8, Assert.Single(panel.Indicators).Total);
-        Assert.Equal(8, panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).Indicators[people.Id]);
-        Assert.Equal(0, panel.Nucleos.Single(n => n.Id == f.B.OrganizationId).Indicators[people.Id]);
+        // So soma o informado, e diz em quantos projetos: B em branco fica sem valor (nao vira zero).
+        var total = Assert.Single(panel.Indicators);
+        Assert.Equal(8, total.Total);
+        Assert.Equal((1, 2), (total.Informed, total.Projects));
+        Assert.Equal(new NationalIndicatorValueDto(8, 1, 1), panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).Indicators[people.Id]);
+        Assert.Equal(new NationalIndicatorValueDto(null, 0, 1), panel.Nucleos.Single(n => n.Id == f.B.OrganizationId).Indicators[people.Id]);
         Assert.NotNull(panel.Nucleos.Single(n => n.Id == f.A.OrganizationId).LastActivityAt);
     }
 

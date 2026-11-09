@@ -112,6 +112,15 @@ export function formatNumber(value: number) {
     : value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
 }
 
+/**
+ * "informado em 3 de 5 projetos" quando falta algum projeto informar (a mesma frase do PDF); null quando todos
+ * informaram.
+ */
+export function coverageLabel(informed: number, projects: number) {
+  if (informed >= projects) return null;
+  return `informado em ${informed} de ${projects} ${projects === 1 ? 'projeto' : 'projetos'}`;
+}
+
 export function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;

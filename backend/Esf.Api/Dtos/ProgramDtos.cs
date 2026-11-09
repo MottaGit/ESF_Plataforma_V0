@@ -10,7 +10,7 @@ public record ProgramDto(
     DateTime CreatedAt,
     // Quantos projetos (inclusive arquivados) pertencem ao programa.
     int ProjectsCount,
-    // Em planejamento ou em andamento (sem os arquivados) e concluidos.
+    // Ativos (em planejamento, em andamento ou pausados, sem os arquivados) e concluidos (inclusive arquivados).
     int ActiveProjectsCount,
     int DoneProjectsCount,
     string Icon,
@@ -21,10 +21,11 @@ public record ProgramDto(
     bool HasTemplateTexts,
     // A pagina publica do programa esta ligada.
     bool PublicPage,
-    // Resultados do programa: cada indicador padrao do modelo somado nos projetos (nao arquivados) do programa.
+    // Resultados do programa: nacionais e indicadores padrao do modelo, somados como em ResultTotals.
     List<ProgramResultDto> Results);
 
-public record ProgramResultDto(string Name, string? Unit, decimal Total);
+/// <summary>Resultado somado: Total null quando nenhum projeto informou; Informed de Projects projetos informaram.</summary>
+public record ProgramResultDto(string Name, string? Unit, decimal? Total, int Informed, int Projects, bool National);
 
 /// <summary>Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada).</summary>
 public record ProgramPublicPageDto(bool Enabled, string? Token, string? Description);

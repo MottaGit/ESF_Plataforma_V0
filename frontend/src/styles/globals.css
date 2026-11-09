@@ -820,6 +820,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .national-stat__value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
 .national-stat__value small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
 .national-stat__label { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.national-stat__hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
 .national-stat--result { background: var(--accent-soft); border-color: #cfe2dd; }
 .national-stat--result .national-stat__value { color: var(--accent-text); }
 
@@ -2620,10 +2621,11 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
   border-radius: var(--radius);
   overflow: hidden;
 }
-.program-overview__number { display: grid; gap: 2px; padding: 12px 14px; border-right: 1px solid #eef0f3; }
+.program-overview__number { display: grid; align-content: start; gap: 2px; padding: 12px 14px; border-right: 1px solid #eef0f3; }
 .program-overview__number:last-child { border-right: 0; }
 .program-overview__number b { font-size: 22px; }
 .program-overview__number span { font-size: 12.5px; color: var(--text-muted); }
+.program-overview__number .program-overview__coverage { font-size: 11.5px; }
 .program-overview__note { margin: -4px 0 0; }
 
 .project-cell { display: flex; align-items: center; gap: 10px; }

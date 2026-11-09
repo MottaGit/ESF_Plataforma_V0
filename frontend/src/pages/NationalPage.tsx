@@ -12,8 +12,16 @@ import { Menu } from '../components/ui/Menu';
 import { Modal } from '../components/ui/Modal';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useToast } from '../context/ToastContext';
-import type { AccessLink, NationalIndicator, NationalPanel, NationalPerson, Nucleo, NucleoAdmin } from '../types/api';
-import { emptyToNull, formatDate, formatNumber, todayInputValue } from '../utils/format';
+import type {
+  AccessLink,
+  NationalIndicator,
+  NationalPanel,
+  NationalPerson,
+  Nucleo,
+  NucleoAdmin,
+  SummedValue
+} from '../types/api';
+import { coverageLabel, emptyToNull, formatDate, formatNumber, todayInputValue } from '../utils/format';
 
 type TabKey = 'panel' | 'nucleos' | 'indicators' | 'people';
 
@@ -102,10 +110,10 @@ function PanelSection() {
   const stats = totals
     ? [
         { label: 'núcleos', value: totals.nucleos },
-        { label: 'projetos em andamento', value: totals.activeProjects },
+        { label: 'projetos ativos', value: totals.activeProjects },
         { label: 'projetos concluídos', value: totals.concludedProjects },
         { label: 'voluntários ativos', value: totals.activeVolunteers },
-        { label: 'horas de voluntariado no período', value: totals.volunteerHours },
+        { label: 'horas de voluntariado estimadas no período', value: totals.volunteerHours },
         { label: 'tarefas concluídas no período', value: totals.tasksCompleted },
         { label: 'registros de andamento no período', value: totals.records }
       ]
@@ -137,7 +145,8 @@ function PanelSection() {
         </div>
         <p className="field__hint" style={{ maxWidth: 420 }}>
           O período vale para horas, tarefas concluídas e registros. Projetos, voluntários e indicadores mostram a
-          situação de hoje.
+          situação de hoje. Ativos: em planejamento, em andamento ou pausados. Horas estimadas: 6 h por semana de cada
+          voluntário ativo (não são as horas lançadas nos projetos).
         </p>
       </div>
 
@@ -169,19 +178,34 @@ function PanelSection() {
               ) : (
                 <>
                   <div className="national-stats">
-                    {panel.indicators.map((indicator) => (
-                      <div key={indicator.id} className="national-stat national-stat--result">
-                        <div className="national-stat__value num">
-                          {formatNumber(indicator.total)}
-                          {indicator.unit ? <small> {indicator.unit}</small> : null}
+                    {panel.indicators.map((indicator) => {
+                      const coverage = coverageLabel(indicator.informed, indicator.projects);
+                      return (
+                        <div key={indicator.id} className="national-stat national-stat--result">
+                          <div className="national-stat__value num">
+                            {indicator.total == null ? (
+                              '—'
+                            ) : (
+                              <>
+                                {formatNumber(indicator.total)}
+                                {indicator.unit ? <small> {indicator.unit}</small> : null}
+                              </>
+                            )}
+                          </div>
+                          <div className="national-stat__label">{indicator.name}</div>
+                          {indicator.total == null ? (
+                            <div className="national-stat__hint">nenhum projeto informou</div>
+                          ) : coverage ? (
+                            <div className="national-stat__hint">{coverage}</div>
+                          ) : null}
                         </div>
-                        <div className="national-stat__label">{indicator.name}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <p className="field__hint" style={{ marginTop: 10 }}>
-                    Valores atuais, somados nos projetos não arquivados de todos os núcleos. Projeto que ainda não
-                    informou o número não entra na soma.
+                    Valores atuais, somados nos projetos de todos os núcleos (os arquivados entram; os cancelados, não).
+                    Só soma o que foi informado: em branco não conta como zero, e "—" quer dizer que nenhum projeto
+                    informou.
                   </p>
                 </>
               )}
@@ -197,10 +221,10 @@ function PanelSection() {
                 <thead>
                   <tr>
                     <th>Núcleo</th>
-                    <th className="tight">Projetos em andamento</th>
+                    <th className="tight">Projetos ativos</th>
                     <th className="tight">Concluídos</th>
                     <th className="tight">Voluntários ativos</th>
-                    <th className="tight">Horas no período</th>
+                    <th className="tight">Horas estimadas no período</th>
                     <th className="tight">Tarefas no período</th>
                     <th className="tight">Registros no período</th>
                     <th className="tight">Última atividade</th>
@@ -214,20 +238,20 @@ function PanelSection() {
                 <tbody>
                   {panel.nucleos.map((row) => (
                     <tr key={row.id}>
-                      <td className="cell--main">
+                      <td className="cell--main" style={{ minWidth: 150 }}>
                         <div className="table__primary">{row.name}</div>
                         <div className="table__secondary">{[row.city, row.state].filter(Boolean).join(' / ') || '—'}</div>
                       </td>
-                      <td className="tight num" data-label="Projetos em andamento">{row.activeProjects}</td>
+                      <td className="tight num" data-label="Projetos ativos">{row.activeProjects}</td>
                       <td className="tight num" data-label="Concluídos">{row.concludedProjects}</td>
                       <td className="tight num" data-label="Voluntários ativos">{row.activeVolunteers}</td>
-                      <td className="tight num" data-label="Horas">{formatNumber(row.volunteerHours)}</td>
+                      <td className="tight num" data-label="Horas estimadas">{formatNumber(row.volunteerHours)}</td>
                       <td className="tight num" data-label="Tarefas">{row.tasksCompleted}</td>
                       <td className="tight num" data-label="Registros">{row.records}</td>
                       <td className="tight" data-label="Última atividade">{row.lastActivityAt ? formatDate(row.lastActivityAt) : 'nenhuma'}</td>
                       {panel.indicators.map((indicator) => (
                         <td key={indicator.id} className="tight num" data-label={indicator.name}>
-                          {formatNumber(row.indicators[indicator.id] ?? 0)}
+                          <SummedCell value={row.indicators[indicator.id]} />
                         </td>
                       ))}
                     </tr>
@@ -238,6 +262,24 @@ function PanelSection() {
           </section>
         </>
       )}
+    </>
+  );
+}
+
+/** Valor de um indicador nacional num nucleo: "—" quando nenhum projeto informou, e quantos informaram quando falta algum. */
+function SummedCell({ value }: { value: SummedValue | undefined }) {
+  if (!value || value.total == null) {
+    return (
+      <span className="table__secondary" title="Nenhum projeto informou">
+        —
+      </span>
+    );
+  }
+  const coverage = coverageLabel(value.informed, value.projects);
+  return (
+    <>
+      {formatNumber(value.total)}
+      {coverage ? <div className="table__secondary">{coverage}</div> : null}
     </>
   );
 }
@@ -296,7 +338,7 @@ function NucleosSection() {
                 <tr>
                   <th>Núcleo</th>
                   <th className="tight">Voluntários ativos</th>
-                  <th className="tight">Projetos em andamento</th>
+                  <th className="tight">Projetos ativos</th>
                   <th>Administração</th>
                   <th className="right">Ações</th>
                 </tr>
@@ -311,7 +353,7 @@ function NucleosSection() {
                       </div>
                     </td>
                     <td className="tight num" data-label="Voluntários ativos">{nucleo.activeVolunteers}</td>
-                    <td className="tight num" data-label="Projetos em andamento">{nucleo.activeProjects}</td>
+                    <td className="tight num" data-label="Projetos ativos">{nucleo.activeProjects}</td>
                     <td className="cell--wide">
                       {nucleo.admins.length === 0 ? (
                         <span className="table__secondary">Sem administrador</span>

@@ -71,8 +71,19 @@ export interface SaveNucleoPayload {
 }
 
 /**
+ * Indicador somado pela regra unica (visao do programa, PDF, pagina publica, painel nacional): so os valores
+ * informados. total null: nenhum projeto informou (nao e zero); informed de projects projetos informaram.
+ */
+export interface SummedValue {
+  total: number | null;
+  informed: number;
+  projects: number;
+}
+
+/**
  * Painel nacional: numeros de todos os nucleos, sem dados pessoais. Tarefas, registros e horas valem no periodo;
- * projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+ * projetos, voluntarios ativos e indicadores sao a situacao de hoje. Projetos ativos: em planejamento, em andamento ou
+ * pausados; concluidos e indicadores contam tambem os arquivados. volunteerHours e a estimativa (6 h/semana).
  */
 export interface NationalPanel {
   from: string | null;
@@ -86,7 +97,7 @@ export interface NationalPanel {
     tasksCompleted: number;
     records: number;
   };
-  indicators: Array<{ id: string; name: string; unit: string | null; total: number }>;
+  indicators: Array<{ id: string; name: string; unit: string | null } & SummedValue>;
   nucleos: NationalPanelRow[];
 }
 
@@ -103,8 +114,8 @@ export interface NationalPanelRow {
   records: number;
   /** Ultimo registro de andamento ou tarefa concluida. */
   lastActivityAt: string | null;
-  /** Valor de cada indicador nacional neste nucleo (id do indicador -> soma). */
-  indicators: Record<string, number>;
+  /** Valor de cada indicador nacional neste nucleo (id do indicador -> soma dos informados). */
+  indicators: Record<string, SummedValue>;
 }
 
 /** Quem faz parte da gestao nacional (conta so nacional ou acesso de alguem de um nucleo). */
@@ -150,7 +161,7 @@ export interface Program {
   createdAt: string;
   /** Quantos projetos (inclusive arquivados) pertencem ao programa. */
   projectsCount: number;
-  /** Em planejamento ou em andamento (sem os arquivados). */
+  /** Ativos: em planejamento, em andamento ou pausados (sem os arquivados). Concluidos contam os arquivados. */
   activeProjectsCount: number;
   doneProjectsCount: number;
   /** Chaves de icone e cor (ver utils/programs.ts). */
@@ -162,7 +173,7 @@ export interface Program {
   hasTemplateTexts: boolean;
   /** A pagina publica do programa esta ligada. */
   publicPage: boolean;
-  /** Indicadores padrao do modelo somados nos projetos do programa. */
+  /** Nacionais e indicadores padrao do modelo, somados nos projetos do programa (regra unica, ResultTotals). */
   results: ProgramResult[];
 }
 
@@ -229,10 +240,10 @@ export interface PublicProject {
   lastUpdateAt: string | null;
 }
 
-export interface ProgramResult {
+export interface ProgramResult extends SummedValue {
   name: string;
   unit: string | null;
-  total: number;
+  national: boolean;
 }
 
 export interface TemplateActivity {

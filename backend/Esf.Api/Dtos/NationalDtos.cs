@@ -90,6 +90,9 @@ public class SaveNationalIndicatorRequest
 /// <summary>
 /// Painel nacional: numeros de todos os nucleos, sem dados pessoais. Tarefas concluidas, registros e horas valem no
 /// periodo (From-To; sem ponta, sem limite); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+/// Projetos ativos: em planejamento, em andamento ou pausados (sem os arquivados). Concluidos e indicadores contam
+/// tambem os arquivados (arquivar nao apaga resultado); indicadores nao contam os cancelados (regra de ResultTotals).
+/// VolunteerHours e a estimativa das horas gerais (dias como Ativo x 6 h/semana), nao as horas lancadas.
 /// </summary>
 public record NationalPanelDto(
     DateOnly? From,
@@ -107,8 +110,14 @@ public record NationalTotalsDto(
     int TasksCompleted,
     int Records);
 
-/// <summary>Indicador nacional somado em todos os nucleos (valores atuais dos projetos nao arquivados).</summary>
-public record NationalIndicatorTotalDto(Guid Id, string Name, string? Unit, decimal Total);
+/// <summary>
+/// Indicador nacional somado em todos os nucleos, so com os valores informados: Total null quando nenhum projeto
+/// informou (nao e zero); Informed de Projects projetos informaram.
+/// </summary>
+public record NationalIndicatorTotalDto(Guid Id, string Name, string? Unit, decimal? Total, int Informed, int Projects);
+
+/// <summary>Valor de um indicador nacional num nucleo, com a mesma regra do total.</summary>
+public record NationalIndicatorValueDto(decimal? Total, int Informed, int Projects);
 
 public record NationalNucleoRowDto(
     Guid Id,
@@ -123,5 +132,5 @@ public record NationalNucleoRowDto(
     int Records,
     // Ultimo registro de andamento ou tarefa concluida (mostra quem esta usando de fato).
     DateTime? LastActivityAt,
-    // Valor de cada indicador nacional neste nucleo (id do indicador -> soma).
-    Dictionary<Guid, decimal> Indicators);
+    // Valor de cada indicador nacional neste nucleo (id do indicador -> soma dos informados).
+    Dictionary<Guid, NationalIndicatorValueDto> Indicators);

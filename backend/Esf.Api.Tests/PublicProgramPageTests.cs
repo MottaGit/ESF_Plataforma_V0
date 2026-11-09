@@ -75,7 +75,7 @@ public class PublicProgramPageTests
     }
 
     [Fact]
-    public async Task CancelledAndArchivedStayOutPausedAndPlannedShow()
+    public async Task CancelledStayOutArchivedCountsWithoutCardPausedAndPlannedShow()
     {
         var f = await TwoNucleos.CreateAsync();
         await using (var db = f.SystemContext())
@@ -97,9 +97,10 @@ public class PublicProgramPageTests
 
         var page = await OpenAsync(f, await EnableAsync(f, f.A));
 
+        // O arquivado nao ganha cartao, mas continua nos numeros (arquivar nao apaga o que foi entregue).
         var names = page.Projects.Select(p => p.Name).ToList();
         Assert.Equal(new[] { "Projeto a", "Pausado", "Planejado", "Concluido" }, names);
-        Assert.Equal((1, 1, 1, 1), (page.Totals.InProgress, page.Totals.Paused, page.Totals.Planning, page.Totals.Concluded));
+        Assert.Equal((1, 1, 1, 2), (page.Totals.InProgress, page.Totals.Paused, page.Totals.Planning, page.Totals.Concluded));
         Assert.Equal(100, page.Projects.Single(p => p.Name == "Concluido").Progress);
     }
 

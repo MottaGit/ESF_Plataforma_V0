@@ -24,7 +24,8 @@ public class ProgramService
         p.CreatedAt,
         p.Projects.Count,
         p.Projects.Count(x => !x.IsArchived
-                              && (x.Status == ProjectStatus.Planejamento || x.Status == ProjectStatus.EmAndamento)),
+                              && (x.Status == ProjectStatus.Planejamento || x.Status == ProjectStatus.EmAndamento
+                                  || x.Status == ProjectStatus.Pausado)),
         p.Projects.Count(x => x.Status == ProjectStatus.Concluido),
         p.Icon,
         p.Color,
@@ -55,8 +56,8 @@ public class ProgramService
     }
 
     /// <summary>
-    /// Resultados de cada programa: os indicadores padrao do modelo, cada um somado nos projetos nao arquivados do
-    /// programa (pelo nome, sem diferenciar maiusculas nem acentos). Programa sem indicadores padrao fica sem resultados.
+    /// Resultados de cada programa pela regra unica (ResultTotals): os nacionais e os indicadores padrao do modelo,
+    /// somados nos projetos do programa que nao foram cancelados (os arquivados entram), so com os valores informados.
     /// </summary>
     private async Task<List<ProgramDto>> WithResultsAsync(List<ProgramDto> programs)
     {
@@ -64,23 +65,26 @@ public class ProgramService
         var templates = await _db.ProgramTemplateIndicators.AsNoTracking()
             .Where(t => ids.Contains(t.ProgramId))
             .OrderBy(t => t.Position)
-            .Select(t => new { t.ProgramId, t.Name, t.Unit })
+            .Select(t => new { t.ProgramId, t.Name, t.Unit, t.NationalIndicatorId })
             .ToListAsync();
-        if (templates.Count == 0) return programs;
 
-        var sums = await _db.Indicators.AsNoTracking()
-            .Where(i => ids.Contains(i.Project!.ProgramId) && !i.Project.IsArchived)
-            .GroupBy(i => new { i.Project!.ProgramId, Name = EsfDbContext.Fold(i.Name.Trim()) })
-            .Select(g => new { g.Key.ProgramId, g.Key.Name, Total = g.Sum(i => i.Value ?? 0) })
+        // Mesmo criterio de ResultTotals.CountsForResults, aqui pela navegacao do indicador ate o projeto.
+        var indicators = await _db.Indicators.AsNoTracking()
+            .Where(i => ids.Contains(i.Project!.ProgramId) && i.Project.Status != ProjectStatus.Cancelado)
+            .Select(i => new { i.Project!.ProgramId, i.ProjectId, i.Name, i.Unit, i.Value, i.NationalIndicatorId })
             .ToListAsync();
 
         return programs
             .Select(p => p with
             {
-                Results = templates
-                    .Where(t => t.ProgramId == p.Id)
-                    .Select(t => new ProgramResultDto(t.Name, t.Unit,
-                        sums.FirstOrDefault(s => s.ProgramId == p.Id && s.Name == SearchText.Fold(t.Name.Trim()))?.Total ?? 0))
+                Results = ResultTotals
+                    .Compute(
+                        indicators.Where(i => i.ProgramId == p.Id)
+                            .Select(i => new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, i.Value, i.NationalIndicatorId)),
+                        templates.Where(t => t.ProgramId == p.Id)
+                            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId)))
+                    .Select(r => new ProgramResultDto(r.Name, r.Unit, r.Value, r.Informed, r.Projects,
+                        r.NationalIndicatorId != null))
                     .ToList()
             })
             .ToList();

@@ -182,7 +182,8 @@ public static class ProjectReportBuilder
                         {
                             foreach (var result in chunk)
                                 row.RelativeItem().PaddingRight(6)
-                                    .Element(c => ValueCard(c, result.Total, result.Unit, result.Name));
+                                    .Element(c => ValueCard(c, result.Total, result.Unit, result.Name,
+                                        ResultTotals.Coverage(result.Informed, result.Projects)));
 
                             for (var pad = chunk.Length; pad < 4; pad++)
                                 row.RelativeItem();
@@ -192,7 +193,7 @@ public static class ProjectReportBuilder
             }
 
             if (model.ProgramResults.Count > 0)
-                col.Item().Text("Indicadores com os valores atuais, somados nos projetos deste relatório.")
+                col.Item().Text("Indicadores com os valores atuais, somados nos projetos deste relatório (só os valores informados).")
                     .FontSize(7.5f).FontColor(Muted);
         });
     }
@@ -353,7 +354,7 @@ public static class ProjectReportBuilder
     }
 
     /// <summary>Cartao de indicador: valor e unidade em destaque, nome embaixo (projeto e resultados do programa).</summary>
-    private static void ValueCard(IContainer container, decimal value, string? unit, string name)
+    private static void ValueCard(IContainer container, decimal value, string? unit, string name, string? detail = null)
     {
         container
             .Background(SoftBg)
@@ -369,6 +370,8 @@ public static class ProjectReportBuilder
                         text.Span($" {unit}").FontSize(9).FontColor(Muted);
                 });
                 card.Item().AlignCenter().Text(name).FontSize(7.5f).FontColor(Muted);
+                if (detail != null)
+                    card.Item().AlignCenter().Text(detail).FontSize(6.5f).FontColor(Muted);
             });
     }
 

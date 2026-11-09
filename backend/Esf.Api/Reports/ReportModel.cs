@@ -44,7 +44,8 @@ public record ReportModel
 
 public record ReportProgramResults(string Program, int Projects, List<ReportResult> Results);
 
-public record ReportResult(string Name, string? Unit, decimal Total);
+/// <summary>Resultado somado (so os valores informados); Informed de Projects projetos do relatorio informaram.</summary>
+public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects);
 
 /// <summary>Caption so vem preenchida quando o arquivo tem uma descricao de verdade cadastrada
 /// (nunca cai para o nome do arquivo) - o relatorio so exibe legenda quando ela existir.</summary>

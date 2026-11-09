@@ -16,7 +16,10 @@ public class PublicProgramService
     /// <summary>Limite de acessos por minuto de cada endereco a rota publica.</summary>
     public const string RateLimitPolicy = "public-page";
 
-    /// <summary>Situacoes que aparecem na pagina (cancelados e arquivados ficam de fora).</summary>
+    /// <summary>
+    /// Ordem dos cartoes de projeto. Cancelados nunca aparecem; arquivados nao ganham cartao, mas entram nos numeros e
+    /// nos resultados (arquivar so tira o projeto da lista; o que ele entregou continua sendo resultado).
+    /// </summary>
     private static readonly ProjectStatus[] Shown =
         { ProjectStatus.EmAndamento, ProjectStatus.Pausado, ProjectStatus.Planejamento, ProjectStatus.Concluido };
 
@@ -39,12 +42,14 @@ public class PublicProgramService
         var nucleo = await _db.Organizations.AsNoTracking().FirstAsync(o => o.Id == program.OrganizationId);
 
         var projects = await _db.Projects.AsNoTracking()
-            .Where(p => p.ProgramId == program.Id && !p.IsArchived && Shown.Contains(p.Status))
+            .Where(p => p.ProgramId == program.Id)
+            .Where(ResultTotals.CountsForResults)
             .Select(p => new
             {
                 p.Id,
                 p.Name,
                 p.Status,
+                p.IsArchived,
                 p.District,
                 p.City,
                 p.State,
@@ -69,29 +74,24 @@ public class PublicProgramService
         var hours = await _db.ProjectHourEntries.Where(h => ids.Contains(h.ProjectId))
             .SumAsync(h => (decimal?)h.Hours) ?? 0;
 
-        // Resultados somados: primeiro os indicadores nacionais (pelo vinculo), depois os do modelo do programa (pelo
-        // nome, sem diferenciar maiusculas nem acentos, como na visao do programa). So entra o que tem algum valor.
-        var all = projects.SelectMany(p => p.Indicators).ToList();
-        var results = all
-            .Where(i => i.NationalIndicatorId != null)
-            .GroupBy(i => i.NationalIndicatorId)
-            .Select(g => new PublicIndicatorDto(g.First().Name, g.First().Unit, g.Sum(i => i.Value), true))
-            .OrderBy(r => r.Name)
-            .ToList();
+        // Resultados somados pela regra unica (ResultTotals): nacionais pelo vinculo, depois os do modelo do programa
+        // pelo nome. So entra o que tem algum valor informado.
         var templates = await _db.ProgramTemplateIndicators.AsNoTracking()
-            .Where(t => t.ProgramId == program.Id && t.NationalIndicatorId == null)
+            .Where(t => t.ProgramId == program.Id)
             .OrderBy(t => t.Position)
-            .Select(t => new { t.Name, t.Unit })
+            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId))
             .ToListAsync();
-        foreach (var template in templates)
-        {
-            var key = SearchText.Fold(template.Name.Trim());
-            var matching = all.Where(i => i.NationalIndicatorId == null && SearchText.Fold(i.Name.Trim()) == key).ToList();
-            if (matching.Count > 0)
-                results.Add(new PublicIndicatorDto(template.Name, template.Unit, matching.Sum(i => i.Value), false));
-        }
+        var results = ResultTotals
+            .Compute(
+                projects.SelectMany(p => p.Indicators.Select(i =>
+                    new ResultTotals.Item(p.Id, i.Name, i.Unit, i.Value, i.NationalIndicatorId))),
+                templates)
+            .Where(r => r.Value != null)
+            .Select(r => new PublicIndicatorDto(r.Name, r.Unit, r.Value!.Value, r.NationalIndicatorId != null))
+            .ToList();
 
         var shownProjects = projects
+            .Where(p => !p.IsArchived)
             .OrderBy(p => Array.IndexOf(Shown, p.Status))
             .ThenByDescending(p => p.StartDate)
             .ThenBy(p => p.Name)

@@ -318,6 +318,15 @@ const NATIONAL_SECTION: HelpSection = {
       )
     },
     {
+      question: 'O que querem dizer "—" e "informado em 3 de 5 projetos" no painel?',
+      answer: (
+        <p>
+          "—": nenhum projeto informou o número (em branco não conta como zero). "Informado em 3 de 5": a soma é só
+          dos 3 que informaram. As horas do painel são estimadas (6 h por semana de cada voluntário ativo).
+        </p>
+      )
+    },
+    {
       question: 'Como incluo alguém na gestão nacional?',
       answer: (
         <p>

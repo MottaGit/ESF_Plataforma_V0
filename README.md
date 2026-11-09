@@ -213,8 +213,10 @@ ativos primeiro e os **arquivados** num grupo embaixo; com 8 programas ou mais a
 e dá para escolher pelo teclado (setas e Enter). No rodapé, para a coordenação, **+ Novo programa**. As abas de antes
 não cabiam num núcleo com dezenas de programas (a maioria de um projeto só). Em **Todos os programas** vem direto a
 lista de projetos; escolhendo um programa aparece a **visão do programa**:
-números (em andamento, concluídos) e os **resultados somados** — cada indicador padrão do modelo somado nos projetos
-não arquivados do programa, comparando os nomes sem diferenciar maiúsculas nem acentos —, mais, para a coordenação,
+números (ativos, isto é, em planejamento, em andamento ou pausados, sem os arquivados; concluídos, com os arquivados) e
+os **resultados somados** — os indicadores nacionais e os padrão do modelo, pela regra de **Resultados somados** (abaixo
+de Indicadores): "—" com "não informado" quando nenhum projeto informou, e "informado em 3 de 5 projetos" quando falta
+algum —, mais, para a coordenação,
 **Modelo do programa**, **Editar** (nome, ícone e cor) e arquivar/reativar ou excluir (só sem projetos). A lista
 embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com ele escolhido. Os endereços antigos
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
@@ -449,6 +451,15 @@ específicos do projeto (**Novo indicador**, na aba Sobre). O valor pode ficar *
 diferente de zero — não entra nas somas e não aparece no PDF. O nacional não sai do projeto nem vira específico; só o
 valor muda (a janela mostra o "como contar" da gestão nacional).
 
+**Resultados somados** — a visão do programa, o bloco Resultados do PDF de vários projetos, a página pública e o painel
+nacional somam do mesmo jeito (`Services/ResultTotals.cs`), para o mesmo programa nunca mostrar números diferentes:
+os indicadores nacionais somam pelo vínculo e os padrão do modelo do programa pelo nome (sem diferenciar maiúsculas nem
+acentos); só somam os valores informados (em branco não vira zero; se nenhum projeto informou, o resultado fica sem
+valor: "—" na tela, fora do PDF e da página pública); e cada resultado sabe em quantos projetos foi informado
+("informado em 3 de 5 projetos", na tela e no PDF). Entram todos os projetos menos os cancelados, inclusive os
+arquivados: arquivar só tira o projeto da lista, o que ele entregou continua sendo resultado. No PDF, entram os projetos
+escolhidos.
+
 **Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
 a data do registro). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
 arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
@@ -472,8 +483,9 @@ tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registr
 andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico). As datas
 seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
 **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em mais
-de um), registros de andamento e tarefas concluídas no período e, para cada programa com indicadores padrão no
-modelo, esses indicadores somados nos projetos do relatório (mesma comparação de nomes da visão do programa). Títulos
+de um), registros de andamento e tarefas concluídas no período e, para cada programa, os indicadores nacionais e os
+padrão do modelo somados nos projetos do relatório, pela regra de **Resultados somados** (o que nenhum projeto informou
+fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos"). Títulos
 de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
@@ -494,15 +506,17 @@ e-mail de login), o perfil e a situação, e editar muda só o perfil e se o ace
 cadastro de voluntário, pode ser ligado a um ali.
 
 **Gestão nacional** — a área **Nacional** do menu (só para quem tem a permissão; `/nacional`) tem as abas:
-- **Painel** (a primeira): os números de todos os núcleos, no total (cartões) e numa tabela por núcleo — projetos em
-  andamento e concluídos, voluntários ativos, horas de voluntariado (dias como Ativo × 6 h/semana, a mesma regra do
-  perfil do voluntário), tarefas concluídas, registros de andamento, data da última atividade (último registro ou
-  tarefa concluída: mostra quem está usando de fato) e uma coluna por indicador nacional. Os indicadores nacionais
-  aparecem também somados em cartões. Horas, tarefas e registros contam no **período** escolhido (de início, o ano
-  corrente); projetos, voluntários e indicadores são a situação de hoje (os indicadores não guardam histórico;
-  somam os projetos não arquivados pelo vínculo com o indicador nacional). Só números: nada de nomes de pessoas
-  nem de projetos.
-- **Núcleos**: cada núcleo com cidade/UF, voluntários ativos, projetos em andamento e quem o administra (nome,
+- **Painel** (a primeira): os números de todos os núcleos, no total (cartões) e numa tabela por núcleo — projetos
+  ativos (em planejamento, em andamento ou pausados, sem os arquivados) e concluídos (com os arquivados: arquivar não
+  apaga resultado), voluntários ativos, horas de voluntariado **estimadas** (dias como Ativo × 6 h/semana, a mesma regra
+  do perfil do voluntário; não são as horas lançadas nos projetos), tarefas concluídas, registros de andamento, data da
+  última atividade (último registro ou tarefa concluída: mostra quem está usando de fato) e uma coluna por indicador
+  nacional. Os indicadores nacionais aparecem também somados em cartões, pela regra de **Resultados somados** (pelo
+  vínculo com o nacional): "—" quando nenhum projeto informou, nunca zero, e "informado em 3 de 5 projetos" quando falta
+  algum, no cartão e em cada núcleo. Horas, tarefas e registros contam no **período** escolhido (de início, o ano
+  corrente); projetos, voluntários e indicadores são a situação de hoje (os indicadores não guardam histórico). Só
+  números: nada de nomes de pessoas nem de projetos.
+- **Núcleos**: cada núcleo com cidade/UF, voluntários ativos, projetos ativos e quem o administra (nome,
   e-mail, situação do acesso). **Novo núcleo** pede nome, cidade, estado e quem vai administrar: a pessoa entra como
   voluntária e administradora do núcleo novo e recebe o link de primeiro acesso; os demais dados do núcleo (CNPJ, logo,
   quem assina) ela completa em Configurações. No menu ⋯ do núcleo, **Editar núcleo** (nome e local) e **Novo
@@ -537,7 +551,8 @@ programa", texto escrito para quem não conhece o núcleo), os **resultados até
 andamento, em preparação e pausados; os indicadores nacionais e os do modelo do programa somados, só os que têm valor;
 quantos voluntários participaram, sem repetir, e as horas lançadas), um cartão por projeto (nome, situação, bairro e
 cidade, início e previsão de término, progresso das tarefas, os indicadores informados e quando foi o último registro)
-e, no rodapé, o nome, o CNPJ e o e-mail do núcleo. Projetos cancelados e arquivados ficam de fora. Nunca aparecem
+e, no rodapé, o nome, o CNPJ e o e-mail do núcleo. Projetos cancelados ficam de fora; os arquivados não ganham cartão,
+mas entram nos números e nos resultados (arquivar só tira o projeto da lista). Nunca aparecem
 endereço, mapa, nomes de voluntários, tarefas, o texto dos registros, fotos nem arquivos. O código do link não vai para
 o histórico (só que a página foi ligada, desligada ou trocada). Na tela (`pages/PublicProgramPage.tsx`, fora do login),
 "Planejamento" aparece como "Em preparação", a barra de progresso só aparece em andamento e pausado, e o link desligado

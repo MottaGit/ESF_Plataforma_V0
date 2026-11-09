@@ -36,7 +36,7 @@ public class NationalService
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Key, x => x.Count);
         var projects = await _db.Projects
-            .Where(p => !p.IsArchived && (p.Status == ProjectStatus.Planejamento || p.Status == ProjectStatus.EmAndamento))
+            .Where(p => !p.IsArchived && ActiveStatuses.Contains(p.Status))
             .GroupBy(p => p.OrganizationId)
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Key, x => x.Count);
@@ -48,10 +48,15 @@ public class NationalService
             .ToList();
     }
 
+    /// <summary>Projetos ativos: em planejamento, em andamento ou pausados (os mesmos nos nucleos e no painel).</summary>
+    private static readonly ProjectStatus[] ActiveStatuses =
+        { ProjectStatus.Planejamento, ProjectStatus.EmAndamento, ProjectStatus.Pausado };
+
     /// <summary>
     /// Painel nacional: por nucleo e no total, so numeros. Tarefas concluidas, registros e horas de voluntariado
     /// contam no periodo; projetos, voluntarios ativos e indicadores nacionais sao a situacao de hoje (os indicadores
-    /// nao guardam historico), somando os projetos nao arquivados pelo vinculo com o indicador nacional.
+    /// nao guardam historico). Ativos nao contam os arquivados; concluidos e indicadores contam (arquivar nao apaga
+    /// resultado). Os indicadores somam pelo vinculo com o nacional, so os valores informados (ResultTotals).
     /// </summary>
     public async Task<NationalPanelDto> PanelAsync(DateOnly? from, DateOnly? to)
     {
@@ -64,12 +69,13 @@ public class NationalService
         var nucleos = await _db.Organizations.AsNoTracking().OrderBy(o => o.Name).ToListAsync();
 
         var projects = await _db.Projects
-            .Where(p => !p.IsArchived)
-            .GroupBy(p => new { p.OrganizationId, p.Status })
-            .Select(g => new { g.Key.OrganizationId, g.Key.Status, Count = g.Count() })
+            .GroupBy(p => new { p.OrganizationId, p.Status, p.IsArchived })
+            .Select(g => new { g.Key.OrganizationId, g.Key.Status, g.Key.IsArchived, Count = g.Count() })
             .ToListAsync();
-        int ProjectsOf(Guid id, params ProjectStatus[] statuses) =>
-            projects.Where(p => p.OrganizationId == id && statuses.Contains(p.Status)).Sum(p => p.Count);
+        int ActiveProjectsOf(Guid id) => projects
+            .Where(p => p.OrganizationId == id && !p.IsArchived && ActiveStatuses.Contains(p.Status)).Sum(p => p.Count);
+        int ConcludedProjectsOf(Guid id) => projects
+            .Where(p => p.OrganizationId == id && p.Status == ProjectStatus.Concluido).Sum(p => p.Count);
 
         var volunteers = await _db.Volunteers
             .Where(v => v.Status == VolunteerStatus.Ativo && v.AnonymizedAt == null)
@@ -112,14 +118,23 @@ public class NationalService
             .Select(g => new { g.Key, Last = g.Max(a => a.CompletedAt) })
             .ToDictionaryAsync(x => x.Key, x => x.Last);
 
+        // Um nacional por projeto: contar as linhas e contar os projetos. Mesmo criterio de
+        // ResultTotals.CountsForResults (sem os cancelados), aqui pela navegacao ate o projeto.
         var values = await _db.Indicators
-            .Where(i => i.NationalIndicatorId != null && !i.Project!.IsArchived)
+            .Where(i => i.NationalIndicatorId != null && i.Project!.Status != ProjectStatus.Cancelado)
             .GroupBy(i => new { i.Project!.OrganizationId, NationalId = i.NationalIndicatorId!.Value })
-            .Select(g => new { g.Key.OrganizationId, g.Key.NationalId, Total = g.Sum(i => i.Value ?? 0) })
+            .Select(g => new
+            {
+                g.Key.OrganizationId,
+                g.Key.NationalId,
+                Sum = g.Sum(i => i.Value ?? 0),
+                Informed = g.Count(i => i.Value != null),
+                Projects = g.Count()
+            })
             .ToListAsync();
-        // Ativos, mais os arquivados que ainda tem valor registrado.
+        // Ativos, mais os arquivados que ainda tem valor informado.
         var nationals = await _db.NationalIndicators.AsNoTracking().OrderBy(n => n.Name).ToListAsync();
-        nationals = nationals.Where(n => !n.IsArchived || values.Any(v => v.NationalId == n.Id)).ToList();
+        nationals = nationals.Where(n => !n.IsArchived || values.Any(v => v.NationalId == n.Id && v.Informed > 0)).ToList();
 
         var rows = nucleos.Select(o =>
         {
@@ -129,14 +144,15 @@ public class NationalService
             DateTime? lastActivity = moments.Count > 0 ? moments.Max() : null;
 
             return new NationalNucleoRowDto(o.Id, o.Name, o.City, o.State,
-                ProjectsOf(o.Id, ProjectStatus.Planejamento, ProjectStatus.EmAndamento),
-                ProjectsOf(o.Id, ProjectStatus.Concluido),
+                ActiveProjectsOf(o.Id),
+                ConcludedProjectsOf(o.Id),
                 volunteers.GetValueOrDefault(o.Id),
                 VolunteerStatusHistoryService.HoursFor(activeDays.GetValueOrDefault(o.Id)),
                 tasks.GetValueOrDefault(o.Id),
                 records.GetValueOrDefault(o.Id),
                 lastActivity,
-                values.Where(v => v.OrganizationId == o.Id).ToDictionary(v => v.NationalId, v => v.Total));
+                values.Where(v => v.OrganizationId == o.Id).ToDictionary(v => v.NationalId,
+                    v => new NationalIndicatorValueDto(v.Informed > 0 ? v.Sum : null, v.Informed, v.Projects)));
         }).ToList();
 
         var totals = new NationalTotalsDto(
@@ -149,8 +165,13 @@ public class NationalService
             rows.Sum(r => r.Records));
 
         var indicatorTotals = nationals
-            .Select(n => new NationalIndicatorTotalDto(n.Id, n.Name, n.Unit,
-                values.Where(v => v.NationalId == n.Id).Sum(v => v.Total)))
+            .Select(n =>
+            {
+                var of = values.Where(v => v.NationalId == n.Id).ToList();
+                var informed = of.Sum(v => v.Informed);
+                return new NationalIndicatorTotalDto(n.Id, n.Name, n.Unit,
+                    informed > 0 ? of.Sum(v => v.Sum) : null, informed, of.Sum(v => v.Projects));
+            })
             .ToList();
 
         return new NationalPanelDto(from, to, totals, indicatorTotals, rows);

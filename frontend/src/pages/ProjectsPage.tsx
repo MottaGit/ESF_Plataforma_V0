@@ -19,7 +19,7 @@ import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
-import { PROJECT_STATUSES, formatDateTime, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
+import { PROJECT_STATUSES, coverageLabel, formatDateTime, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
 import { rememberProjectsQuery } from '../utils/listState';
 
 const sortOptions = [
@@ -579,18 +579,27 @@ interface ProgramOverviewProps {
 function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArchived, onDelete }: ProgramOverviewProps) {
   const archived = program.status === 'Arquivado';
   const numbers = [
-    { key: 'active', value: String(program.activeProjectsCount), label: 'em andamento', title: undefined as string | undefined },
+    {
+      key: 'active',
+      value: String(program.activeProjectsCount),
+      label: program.activeProjectsCount === 1 ? 'ativo' : 'ativos',
+      title: 'Em planejamento, em andamento ou pausados' as string | undefined,
+      note: null as string | null
+    },
     {
       key: 'done',
       value: String(program.doneProjectsCount),
       label: program.doneProjectsCount === 1 ? 'concluído' : 'concluídos',
-      title: undefined as string | undefined
+      title: undefined as string | undefined,
+      note: null as string | null
     },
+    // Resultados pela regra unica: "—" quando nenhum projeto informou (nao e zero).
     ...program.results.map((result) => ({
       key: `r-${result.name}`,
-      value: formatNumber(result.total),
+      value: result.total == null ? '—' : formatNumber(result.total),
       label: result.name,
-      title: result.name as string | undefined
+      title: result.name as string | undefined,
+      note: result.total == null ? 'não informado' : coverageLabel(result.informed, result.projects)
     }))
   ];
 
@@ -633,12 +642,21 @@ function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArc
           <div key={item.key} className="program-overview__number" title={item.title}>
             <b className="num">{item.value}</b>
             <span>{item.label}</span>
+            {item.note ? <span className="program-overview__coverage">{item.note}</span> : null}
           </div>
         ))}
       </div>
       {program.results.length > 0 ? (
         <p className="field__hint program-overview__note">
-          Resultados: os indicadores padrão do modelo somados nos projetos do programa.
+          Resultados: os indicadores nacionais e os do modelo, somados nos projetos do programa (só o que foi
+          informado; arquivados entram, cancelados não).
+          {canManage && !program.results.some((result) => !result.national) ? (
+            <>
+              {' '}
+              Para somar outros resultados, inclua indicadores padrão no{' '}
+              <Link to={`/programas/${program.id}/modelo`}>modelo do programa</Link>.
+            </>
+          ) : null}
         </p>
       ) : canManage ? (
         <p className="field__hint program-overview__note">

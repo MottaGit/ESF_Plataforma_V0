@@ -125,8 +125,9 @@ public class ReportService
     }
 
     /// <summary>
-    /// Resultados por programa, na ordem dos projetos: cada indicador padrao do modelo somado nos projetos do
-    /// relatorio, comparando os nomes sem diferenciar maiusculas nem acentos (como a visao do programa).
+    /// Resultados por programa, na ordem dos projetos, pela regra unica (ResultTotals): os nacionais e os indicadores
+    /// padrao do modelo somados nos projetos do relatorio. Resultado que nenhum projeto informou fica de fora (vazio
+    /// nao e zero e nao vai para o PDF).
     /// </summary>
     private static List<ReportProgramResults> ProgramResults(List<Project> projects, List<ProgramTemplateIndicator> templates) =>
         projects
@@ -134,12 +135,14 @@ public class ReportService
             .Select(group => new ReportProgramResults(
                 group.First().Program!.Name,
                 group.Count(),
-                templates
-                    .Where(t => t.ProgramId == group.Key)
-                    .Select(t => new ReportResult(t.Name, t.Unit, group
-                        .SelectMany(p => p.Indicators)
-                        .Where(i => SearchText.Fold(i.Name.Trim()) == SearchText.Fold(t.Name.Trim()))
-                        .Sum(i => i.Value ?? 0)))
+                ResultTotals
+                    .Compute(
+                        group.SelectMany(p => p.Indicators)
+                            .Select(i => new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, i.Value, i.NationalIndicatorId)),
+                        templates.Where(t => t.ProgramId == group.Key)
+                            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId)))
+                    .Where(r => r.Value != null)
+                    .Select(r => new ReportResult(r.Name, r.Unit, r.Value!.Value, r.Informed, r.Projects))
                     .ToList()))
             .Where(result => result.Results.Count > 0)
             .ToList();
