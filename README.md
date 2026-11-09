@@ -373,7 +373,14 @@ escolhido ("2 tarefas em aberto, 1 atrasada.").
 **Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um registro com
 formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
 servidor, só essas formatações são aceitas, e elas também aparecem no relatório PDF. Abaixo,
-o feed com data e autor, do mais recente para o mais antigo. Editável depois
+o feed com data e autor, do mais recente para o mais antigo. **Quando aconteceu**: abaixo do texto, o dia do que o
+registro conta (hoje por padrão, com os atalhos "ontem" e "hoje"; não pode ser depois de hoje, e também se muda ao
+editar). O mutirão de sábado registrado na segunda fica no sábado: o feed e a linha do tempo do PDF seguem esse dia, o
+período do relatório filtra por ele, e as horas do registro ("Suas horas nesse dia") são lançadas nele. Quando o dia é
+outro, o registro mostra os dois ("07/11 · registrado em 09/11, 14:32"). Os registros de antes do campo
+(`ProjectUpdates.HappenedOn`, migração `AddProjectUpdateHappenedOn`) usam o dia em que foram publicados. O que mede uso
+da plataforma (último registro, projetos parados, registros no painel nacional) continua pela data de publicação.
+Editável depois
 de publicado, e cada registro pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
 largura confortável de leitura. Os anexos aparecem compactos (até 4 miniaturas, depois "+N"; documentos numa linha) e
 as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Editar, anexar e excluir ficam no menu

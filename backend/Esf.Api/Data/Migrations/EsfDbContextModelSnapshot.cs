@@ -758,6 +758,9 @@ namespace Esf.Api.Data.Migrations
                     b.Property<DateTime?>("EditedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly?>("HappenedOn")
+                        .HasColumnType("date");
+
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 

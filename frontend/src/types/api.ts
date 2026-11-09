@@ -514,6 +514,8 @@ export interface ProjectUpdate {
   editedAt: string | null;
   attachments: ProjectFile[];
   authorPhotoUrl: string | null;
+  /** Dia em que aconteceu (aaaa-mm-dd); nos registros antigos, o da publicacao. */
+  happenedOn: string;
 }
 
 export interface ProjectFile {

@@ -156,6 +156,37 @@ public class ProjectHoursTests
     }
 
     [Fact]
+    public async Task RecordCountsOnTheDayItHappened()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var member = await MemberLoginAsync(f, f.A);
+        await using var db = f.Context(member);
+        var updates = new ProjectUpdateService(db, new FileStorageService(db, Options.Create(new StorageOptions())), member);
+
+        // O mutirao de dois dias atras registrado hoje: o registro e as horas ficam naquele dia.
+        var saturday = Today.AddDays(-2);
+        var created = await updates.CreateAsync(f.A.ProjectId,
+            new CreateProjectUpdateRequest { Text = "<p>Mutirão da alvenaria</p>", Hours = 5, HappenedOn = saturday }, member.Id);
+        Assert.Equal(saturday, created.HappenedOn);
+        Assert.Equal(saturday, (await db.ProjectHourEntries.SingleAsync(h => h.ProjectId == f.A.ProjectId)).Date);
+
+        // A lista segue o dia em que aconteceu: o registro de hoje (sem data) vem antes; o de ontem, editado para
+        // tres dias atras, vai para o fim.
+        var today = await updates.CreateAsync(f.A.ProjectId, new CreateProjectUpdateRequest { Text = "<p>Hoje</p>" }, member.Id);
+        Assert.Equal(Today, today.HappenedOn);
+        var moved = await updates.CreateAsync(f.A.ProjectId,
+            new CreateProjectUpdateRequest { Text = "<p>Compra</p>", HappenedOn = Today.AddDays(-1) }, member.Id);
+        await updates.UpdateAsync(moved.Id, new SaveProjectUpdateRequest { Text = "<p>Compra</p>", HappenedOn = Today.AddDays(-3) });
+        var list = await updates.ListByProjectAsync(f.A.ProjectId);
+        Assert.Equal(new[] { "<p>Hoje</p>", "<p>Mutirão da alvenaria</p>", "<p>Compra</p>" },
+            list.Where(u => u.AuthorUserId == member.Id).Select(u => u.Text));
+
+        // Depois de hoje, nao.
+        await Assert.ThrowsAsync<AppException>(() => updates.CreateAsync(f.A.ProjectId,
+            new CreateProjectUpdateRequest { Text = "<p>Amanhã</p>", HappenedOn = Today.AddDays(1) }, member.Id));
+    }
+
+    [Fact]
     public async Task EachNucleoSeesOnlyItsOwnHours()
     {
         var f = await TwoNucleos.CreateAsync();

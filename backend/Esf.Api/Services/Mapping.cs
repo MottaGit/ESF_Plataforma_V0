@@ -120,7 +120,8 @@ public static class Mapping
             u.CreatedAt,
             u.EditedAt,
             u.Attachments.OrderBy(f => f.UploadedAt).Select(ToDto).ToList(),
-            PhotoUrl(u.AuthorUser?.Volunteer?.PhotoStoredName));
+            PhotoUrl(u.AuthorUser?.Volunteer?.PhotoStoredName),
+            u.Day);
 
     /// <summary>
     /// Nome exibido de quem fez algo na plataforma: o do voluntario vinculado ao acesso; sem vinculo, o do
@@ -170,7 +171,8 @@ public static class Mapping
                 .Select(ToDto).ToList(),
             // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.
             p.Files.OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
-            p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList(),
+            // Pelo dia em que aconteceu (o mais recente primeiro); no mesmo dia, o publicado por ultimo.
+            p.Updates.OrderByDescending(u => u.Day).ThenByDescending(u => u.CreatedAt).Select(ToDto).ToList(),
             imageAuthorizedOn,
             p.Program.Icon,
             p.Program.Color,

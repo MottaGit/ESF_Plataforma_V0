@@ -80,7 +80,7 @@ public class ReportService
         var photos = model.Photos;
         if (request.IncludePhotos)
         {
-            foreach (var update in projects.SelectMany(p => p.Updates).Where(u => model.InPeriod(u.CreatedAt)))
+            foreach (var update in projects.SelectMany(p => p.Updates).Where(u => model.InPeriod(u.Day)))
             {
                 var images = update.Attachments
                     .Where(f => f.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))

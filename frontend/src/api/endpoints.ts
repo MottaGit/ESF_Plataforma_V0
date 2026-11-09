@@ -231,16 +231,20 @@ export const filesApi = {
 
 export const projectUpdatesApi = {
   listByProject: (projectId: string) => http.request<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
-  /** hours: as horas que quem registra dedicou hoje (opcional, vira um lancamento de horas). */
-  create: async (projectId: string, text: string, files: File[], hours?: number | null) => {
+  /**
+   * hours: as horas que quem registra dedicou nesse dia (opcional, vira um lancamento de horas); happenedOn: o dia em
+   * que aconteceu (vazio: hoje).
+   */
+  create: async (projectId: string, text: string, files: File[], hours?: number | null, happenedOn?: string | null) => {
     const formData = new FormData();
     formData.append('text', text);
     if (hours) formData.append('hours', String(hours));
+    if (happenedOn) formData.append('happenedOn', happenedOn);
     (await Promise.all(files.map(shrinkImage))).forEach((file) => formData.append('files', file));
     return http.request<ProjectUpdate>(`/api/projects/${projectId}/updates`, { method: 'POST', formData });
   },
-  update: (id: string, text: string) =>
-    http.request<ProjectUpdate>(`/api/updates/${id}`, { method: 'PUT', body: { text } }),
+  update: (id: string, text: string, happenedOn: string | null = null) =>
+    http.request<ProjectUpdate>(`/api/updates/${id}`, { method: 'PUT', body: { text, happenedOn } }),
   remove: (id: string) => http.request<void>(`/api/updates/${id}`, { method: 'DELETE' }),
   addAttachment: async (id: string, file: File) => {
     const formData = new FormData();

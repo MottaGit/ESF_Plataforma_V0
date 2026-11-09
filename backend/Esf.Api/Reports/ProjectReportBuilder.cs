@@ -141,7 +141,7 @@ public static class ProjectReportBuilder
     {
         var projects = model.Projects;
         var volunteers = projects.SelectMany(p => p.Volunteers).Select(v => v.VolunteerId).Distinct().Count();
-        var updates = projects.SelectMany(p => p.Updates).Count(u => model.InPeriod(u.CreatedAt));
+        var updates = projects.SelectMany(p => p.Updates).Count(u => model.InPeriod(u.Day));
         var doneTasks = projects.SelectMany(p => p.Activities)
             .Count(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value));
         var byStatus = string.Join(" · ", projects
@@ -258,7 +258,8 @@ public static class ProjectReportBuilder
     private static void ComposeProject(IContainer container, ReportModel model, Project p)
     {
         // Com periodo de referencia, so os registros e as tarefas concluidas dentro dele.
-        var updates = p.Updates.Where(u => model.InPeriod(u.CreatedAt)).OrderBy(u => u.CreatedAt).ToList();
+        // Linha do tempo pelo dia em que aconteceu (o mutirao de sabado registrado na segunda fica no sabado).
+        var updates = p.Updates.Where(u => model.InPeriod(u.Day)).OrderBy(u => u.Day).ThenBy(u => u.CreatedAt).ToList();
         var doneTasks = p.Activities
             .Where(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value))
             .OrderBy(a => a.CompletedAt)
@@ -469,7 +470,7 @@ public static class ProjectReportBuilder
                     {
                         entry.Spacing(3);
 
-                        entry.Item().Text(ShortDate(update.CreatedAt)).FontSize(8.5f).SemiBold().FontColor(Accent);
+                        entry.Item().Text(ShortDate(update.Day)).FontSize(8.5f).SemiBold().FontColor(Accent);
                         entry.Item().Element(c => RichTextPdf.Compose(c, update.Text, 9));
 
                         if (model.IncludePhotos
@@ -556,11 +557,7 @@ public static class ProjectReportBuilder
         value == Math.Truncate(value) ? ((long)value).ToString("N0") : value.ToString("N2");
 
     /// <summary>Data curta sem depender de dados de cultura (o host roda com InvariantGlobalization).</summary>
-    private static string ShortDate(DateTime value)
-    {
-        var local = TextHelpers.BrasiliaTime(value);
-        return $"{local.Day:00} {MonthAbbreviations[local.Month - 1]} {local.Year}";
-    }
+    private static string ShortDate(DateOnly day) => $"{day.Day:00} {MonthAbbreviations[day.Month - 1]} {day.Year}";
 
     /// <summary>Periodo de referencia por extenso: "01/07/2026 a 30/09/2026", "a partir de ..." ou "até ...".</summary>
     private static string PeriodText(ReportModel model) => (model.From, model.To) switch

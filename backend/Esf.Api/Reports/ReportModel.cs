@@ -24,11 +24,10 @@ public record ReportModel
     public bool HasPeriod => From.HasValue || To.HasValue;
 
     /// <summary>Data (no horario de Brasilia, o mesmo em que o PDF mostra as datas) dentro do periodo de referencia.</summary>
-    public bool InPeriod(DateTime value)
-    {
-        var day = TextHelpers.BrasiliaDay(value);
-        return (From is null || day >= From) && (To is null || day <= To);
-    }
+    public bool InPeriod(DateTime value) => InPeriod(TextHelpers.BrasiliaDay(value));
+
+    /// <summary>Dia dentro do periodo de referencia (registros de andamento contam pelo dia em que aconteceram).</summary>
+    public bool InPeriod(DateOnly day) => (From is null || day >= From) && (To is null || day <= To);
 
     /// <summary>Fotos ja lidas do disco, por atualizacao (ProjectUpdate.Id) - limitadas pelo servico.</summary>
     public Dictionary<Guid, List<ReportPhoto>> Photos { get; init; } = new();

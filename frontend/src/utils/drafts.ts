@@ -11,6 +11,8 @@ const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 export interface ProgressDraft {
   html: string;
   hours: string;
+  /** Dia em que aconteceu, quando nao e o de hoje (aaaa-mm-dd). */
+  day?: string;
   savedAt: number;
 }
 
@@ -27,15 +29,20 @@ export function loadDraft(key: string): ProgressDraft | null {
       localStorage.removeItem(key);
       return null;
     }
-    return { html: draft.html, hours: typeof draft.hours === 'string' ? draft.hours : '', savedAt: draft.savedAt };
+    return {
+      html: draft.html,
+      hours: typeof draft.hours === 'string' ? draft.hours : '',
+      day: typeof draft.day === 'string' ? draft.day : undefined,
+      savedAt: draft.savedAt
+    };
   } catch {
     return null;
   }
 }
 
-export function saveDraft(key: string, html: string, hours: string) {
+export function saveDraft(key: string, html: string, hours: string, day?: string) {
   try {
-    localStorage.setItem(key, JSON.stringify({ html, hours, savedAt: Date.now() } satisfies ProgressDraft));
+    localStorage.setItem(key, JSON.stringify({ html, hours, day, savedAt: Date.now() } satisfies ProgressDraft));
   } catch {
     // Sem espaco ou sem acesso ao armazenamento (navegacao privada): segue sem rascunho.
   }

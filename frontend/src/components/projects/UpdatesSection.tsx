@@ -5,7 +5,14 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
 import { clearDraft, loadDraft, progressDraftKey, saveDraft } from '../../utils/drafts';
-import { SENSITIVE_DATA_HINT, formatDateTime, formatHours, timeAgoPhrase } from '../../utils/format';
+import {
+  SENSITIVE_DATA_HINT,
+  formatDate,
+  formatDateTime,
+  formatHours,
+  timeAgoPhrase,
+  todayInputValue
+} from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
@@ -16,6 +23,20 @@ import { RichTextField, RichTextView, htmlToPlainText } from '../ui/RichText';
 import { StagedFiles, UpdateAttachments } from './UpdateAttachments';
 
 const ACCEPTED_FILES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.dwg,.zip';
+
+/** Dia (aaaa-mm-dd) somado de n dias, sem passar por fuso. */
+function shiftDay(day: string, days: number) {
+  const [year, month, date] = day.split('-').map(Number);
+  const moved = new Date(year, month - 1, date + days);
+  return `${moved.getFullYear()}-${String(moved.getMonth() + 1).padStart(2, '0')}-${String(moved.getDate()).padStart(2, '0')}`;
+}
+
+/** O dia em que aconteceu e o mesmo em que foi publicado (no relogio de quem esta vendo)? */
+function sameDay(happenedOn: string, createdAt: string) {
+  const created = new Date(createdAt);
+  const local = `${created.getFullYear()}-${String(created.getMonth() + 1).padStart(2, '0')}-${String(created.getDate()).padStart(2, '0')}`;
+  return happenedOn.slice(0, 10) === local;
+}
 
 interface UpdatesSectionProps {
   project: ProjectDetail;
@@ -38,6 +59,11 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
   const [text, setText] = useState(restoredDraft?.html ?? '');
   // Horas do dia (opcional), so para quem esta na equipe: viram um lancamento de horas no projeto.
   const [hours, setHours] = useState(restoredDraft?.hours ?? '');
+  // Dia em que aconteceu: hoje por padrao; o mutirao de sabado registrado na segunda fica no sabado (no relatorio
+  // tambem). Volta do rascunho quando foi escolhido outro dia.
+  const today = todayInputValue();
+  const yesterday = shiftDay(today, -1);
+  const [day, setDay] = useState(restoredDraft?.day ?? today);
   const inTeam = project.volunteers.some((member) => member.volunteerId === user?.volunteerId);
   const [plainText, setPlainText] = useState(() => (restoredDraft ? htmlToPlainText(restoredDraft.html) : ''));
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
@@ -53,13 +79,14 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
   useEffect(() => {
     if (!draftKey) return;
     if (plainText.trim() === '' && hours.trim() === '') clearDraft(draftKey);
-    else saveDraft(draftKey, text, hours);
-  }, [draftKey, text, plainText, hours]);
+    else saveDraft(draftKey, text, hours, day !== today ? day : undefined);
+  }, [draftKey, text, plainText, hours, day, today]);
 
   function discardDraft() {
     setText('');
     setPlainText('');
     setHours('');
+    setDay(today);
     setRestoredDraft(null);
     if (draftKey) clearDraft(draftKey);
   }
@@ -82,15 +109,20 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
       setFormError('Informe de 0,25 a 24 horas (ou deixe as horas em branco).');
       return;
     }
+    if (day && day > today) {
+      setFormError('A data do registro não pode ser depois de hoje.');
+      return;
+    }
     setFormError(null);
 
     setPosting(true);
     try {
-      await projectUpdatesApi.create(project.id, text, stagedFiles, hoursValue);
+      await projectUpdatesApi.create(project.id, text, stagedFiles, hoursValue, day || today);
       setText('');
       setPlainText('');
       setStagedFiles([]);
       setHours('');
+      setDay(today);
       setRestoredDraft(null);
       if (draftKey) clearDraft(draftKey);
       notify(hoursValue ? `Registro publicado, com ${formatHours(hoursValue)} lançadas.` : 'Registro publicado.');
@@ -160,9 +192,30 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
               {SENSITIVE_DATA_HINT} Fotos de pessoas, só com autorização de uso de imagem.
             </p>
 
+            <div className="composer-hours">
+              <label htmlFor="update-day">Quando aconteceu</label>
+              <TextInput
+                id="update-day"
+                type="date"
+                max={today}
+                value={day}
+                onChange={(event) => setDay(event.target.value)}
+              />
+              {day !== today ? (
+                <button type="button" className="chip" onClick={() => setDay(today)}>
+                  hoje
+                </button>
+              ) : null}
+              {day !== yesterday ? (
+                <button type="button" className="chip" onClick={() => setDay(yesterday)}>
+                  ontem
+                </button>
+              ) : null}
+            </div>
+
             {inTeam ? (
               <div className="composer-hours">
-                <label htmlFor="update-hours">Suas horas hoje</label>
+                <label htmlFor="update-hours">{day === today ? 'Suas horas hoje' : 'Suas horas nesse dia'}</label>
                 <TextInput
                   id="update-hours"
                   inputMode="decimal"
@@ -234,6 +287,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
   const { notify, notifyError } = useToast();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(update.text);
+  const [draftDay, setDraftDay] = useState(update.happenedOn.slice(0, 10));
   const [draftPlain, setDraftPlain] = useState(() => htmlToPlainText(update.text));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -246,9 +300,13 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
       notifyError('O registro precisa ter pelo menos 3 caracteres.');
       return;
     }
+    if (draftDay > todayInputValue()) {
+      notifyError('A data do registro não pode ser depois de hoje.');
+      return;
+    }
     setSaving(true);
     try {
-      await projectUpdatesApi.update(update.id, draft);
+      await projectUpdatesApi.update(update.id, draft, draftDay || null);
       setEditing(false);
       onChanged();
     } catch (err) {
@@ -301,7 +359,10 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
             <div>
               <div className="table__primary">{update.authorName ?? 'Usuário removido'}</div>
               <div className="table__secondary">
-                {formatDateTime(update.createdAt)}
+                {/* O dia em que aconteceu; quando foi registrado em outro dia, as duas datas. */}
+                {sameDay(update.happenedOn, update.createdAt)
+                  ? formatDateTime(update.createdAt)
+                  : `${formatDate(update.happenedOn)} · registrado em ${formatDateTime(update.createdAt)}`}
                 {update.editedAt ? ' · editado' : ''}
                 {uploading ? ' · enviando anexos…' : ''}
               </div>
@@ -329,6 +390,16 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
                 setDraftPlain(plain);
               }}
             />
+            <div className="composer-hours">
+              <label htmlFor={`update-day-${update.id}`}>Quando aconteceu</label>
+              <TextInput
+                id={`update-day-${update.id}`}
+                type="date"
+                max={todayInputValue()}
+                value={draftDay}
+                onChange={(event) => setDraftDay(event.target.value)}
+              />
+            </div>
             <UpdateAttachments files={update.attachments} onRemove={setRemovingFile} />
             <div className="row-actions" style={{ marginTop: 10, justifyContent: 'flex-end' }}>
               <Button
@@ -337,6 +408,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
                   setEditing(false);
                   setDraft(update.text);
                   setDraftPlain(htmlToPlainText(update.text));
+                  setDraftDay(update.happenedOn.slice(0, 10));
                 }}
               >
                 Cancelar

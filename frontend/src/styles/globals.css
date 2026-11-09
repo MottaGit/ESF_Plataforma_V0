@@ -3067,6 +3067,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .composer-hours { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
 .composer-hours label { font-weight: 500; }
 .composer-hours .input { width: 96px; }
+.composer-hours .input[type='date'] { width: 170px; }
 .composer-hours .field__hint { margin: 0; }
 
 @media (max-width: 560px) {

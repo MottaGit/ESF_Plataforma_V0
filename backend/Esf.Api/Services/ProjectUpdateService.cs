@@ -30,11 +30,14 @@ public class ProjectUpdateService
             .Include(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(u => u.Attachments)
             .Where(u => u.ProjectId == projectId)
-            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
 
-        return updates.Select(Mapping.ToDto).ToList();
+        return updates.OrderByDescending(u => u.Day).ThenByDescending(u => u.CreatedAt).Select(Mapping.ToDto).ToList();
     }
+
+    /// <summary>O dia do que aconteceu nao pode ser depois de hoje (no horario de Brasilia).</summary>
+    private static DateOnly ValidDay(DateOnly day) =>
+        day > Mapping.Today ? throw new AppException("A data do registro não pode ser depois de hoje.") : day;
 
     public async Task<ProjectUpdateDto> CreateAsync(Guid projectId, CreateProjectUpdateRequest request, Guid? authorUserId)
     {
@@ -46,15 +49,16 @@ public class ProjectUpdateService
             ProjectId = projectId,
             Text = CleanText(request.Text),
             AuthorUserId = authorUserId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            HappenedOn = ValidDay(request.HappenedOn ?? Mapping.Today)
         };
 
         _db.ProjectUpdates.Add(update);
 
-        // As horas do dia entram junto com o registro (e o que foi escrito vira o "o que fez").
+        // As horas daquele dia entram junto com o registro (e o que foi escrito vira o "o que fez").
         if (request.Hours is > 0)
             _db.ProjectHourEntries.Add(await ProjectHoursService.NewEntryAsync(_db, _currentUser, projectId, null,
-                Mapping.Today, request.Hours.Value,
+                update.HappenedOn.Value, request.Hours.Value,
                 RichText.ToPlainText(update.Text)));
 
         foreach (var file in request.Files)
@@ -71,6 +75,7 @@ public class ProjectUpdateService
         var update = await _db.ProjectUpdates.FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound("Registro de andamento");
 
         update.Text = CleanText(request.Text);
+        if (request.HappenedOn.HasValue) update.HappenedOn = ValidDay(request.HappenedOn.Value);
         update.EditedAt = DateTime.UtcNow;
 
         await TouchProjectAsync(update.ProjectId);
