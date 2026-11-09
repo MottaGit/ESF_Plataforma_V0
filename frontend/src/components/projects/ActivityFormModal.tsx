@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { activitiesApi, volunteersApi } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import type {
   Activity,
   ActivityPriority,
@@ -25,8 +27,9 @@ import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
-import { Alert } from '../ui/Feedback';
-import { IconEdit } from '../ui/Icons';
+import { Alert, ConfirmDialog } from '../ui/Feedback';
+import { IconEdit, IconTrash } from '../ui/Icons';
+import { linkify } from '../ui/Linkify';
 import { Modal } from '../ui/Modal';
 import { ActivityExtras } from './ActivityExtras';
 import { BlockActivityDialog } from './BlockActivityDialog';
@@ -67,9 +70,15 @@ interface ActivityFormModalProps {
   /** Voluntarios ativos da organizacao (sem a lista, o formulario busca quando for editar). */
   volunteers?: Volunteer[];
   onClose: () => void;
+  /**
+   * Fechou depois de criar, salvar, assumir ou excluir a tarefa (a janela mesmo avisa o que foi feito): quem abriu
+   * fecha e recarrega a lista.
+   */
   onSaved: () => void;
   /** Status, checklist, anexos ou comentarios mudaram (chamado ao fechar): quem abriu atualiza a lista. */
   onExtrasChanged?: () => void;
+  /** Veio de um aviso de comentario ou mencao: a janela abre ja nos comentarios. */
+  focusComments?: boolean;
 }
 
 /**
@@ -85,13 +94,22 @@ export function ActivityFormModal({
   volunteers,
   onClose,
   onSaved,
-  onExtrasChanged
+  onExtrasChanged,
+  focusComments = false
 }: ActivityFormModalProps) {
+  const { user } = useAuth();
+  const { notify } = useToast();
   // Status, checklist, anexos e comentarios gravam na hora; ao fechar sem salvar, quem abriu ainda precisa saber.
   const extrasChanged = useRef(false);
+  // Criar e salvar nao fecham mais a janela (volta para a leitura, com checklist, anexos e comentarios): ao fechar,
+  // quem abriu recarrega.
+  const [saved, setSaved] = useState(false);
   function close() {
-    if (extrasChanged.current) onExtrasChanged?.();
-    onClose();
+    if (saved) onSaved();
+    else {
+      if (extrasChanged.current) onExtrasChanged?.();
+      onClose();
+    }
   }
 
   const openedToRead = Boolean(activity) && initialMode !== 'edit';
@@ -101,7 +119,9 @@ export function ActivityFormModal({
   const [viewError, setViewError] = useState<string | null>(null);
   const [blocking, setBlocking] = useState(false);
 
-  const chooseProject = !activity && Boolean(projects);
+  const chooseProject = !current && Boolean(projects);
+  const [removing, setRemoving] = useState(false);
+  const [removeBusy, setRemoveBusy] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(projectId);
   const [title, setTitle] = useState(activity?.title ?? '');
   const [description, setDescription] = useState(activity?.description ?? '');
@@ -205,13 +225,57 @@ export function ActivityFormModal({
 
     setSaving(true);
     try {
-      if (activity) await activitiesApi.update(activity.id, payload);
-      else await activitiesApi.create(selectedProjectId, payload);
-      onSaved();
+      // Salvar volta para a leitura, ja atualizada; criar abre a tarefa nova, para montar o checklist e anexar.
+      const result = current
+        ? await activitiesApi.update(current.id, payload)
+        : await activitiesApi.create(selectedProjectId, payload);
+      notify(current ? 'Tarefa atualizada.' : 'Tarefa criada. Agora dá para montar o checklist, anexar e comentar.');
+      setCurrent(result);
+      setSaved(true);
+      setMode('view');
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar a tarefa.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  /** "Assumir": a tarefa sem responsavel passa para quem esta logado (que entra na equipe, se ainda nao estava). */
+  async function assume() {
+    if (!current || !user?.volunteerId) return;
+    setViewError(null);
+    try {
+      const result = await activitiesApi.update(current.id, {
+        title: current.title,
+        description: current.description,
+        assignedVolunteerId: user.volunteerId,
+        status: current.status,
+        priority: current.priority,
+        dueDate: current.dueDate?.slice(0, 10) ?? null,
+        blockedReason: current.blockedReason
+      });
+      setCurrent(result);
+      setAssignedVolunteerId(user.volunteerId);
+      setSaved(true);
+      notify('A tarefa agora é sua.');
+    } catch (err) {
+      setViewError(err instanceof ApiError ? err.message : 'Não foi possível assumir a tarefa.');
+    }
+  }
+
+  async function remove() {
+    if (!current) return;
+    setRemoveBusy(true);
+    try {
+      await activitiesApi.remove(current.id);
+      notify('Tarefa excluída.');
+      setRemoving(false);
+      onSaved();
+    } catch (err) {
+      setRemoving(false);
+      setViewError(err instanceof ApiError ? err.message : 'Não foi possível excluir a tarefa.');
+    } finally {
+      setRemoveBusy(false);
     }
   }
 
@@ -229,6 +293,14 @@ export function ActivityFormModal({
           onClose={close}
           footer={
             <>
+              <Button
+                variant="ghost"
+                className="activity-modal__remove"
+                icon={<IconTrash size={15} />}
+                onClick={() => setRemoving(true)}
+              >
+                Excluir
+              </Button>
               <Button icon={<IconEdit size={15} />} onClick={startEditing}>
                 Editar
               </Button>
@@ -253,7 +325,7 @@ export function ActivityFormModal({
 
               {current.status === 'Bloqueada' && current.blockedReason ? (
                 <p className="task-view__blocked">
-                  <strong>O que está travando:</strong> {current.blockedReason}
+                  <strong>Bloqueada:</strong> {current.blockedReason}
                 </p>
               ) : null}
 
@@ -267,14 +339,21 @@ export function ActivityFormModal({
                         {current.assignedVolunteerName}
                       </span>
                     ) : (
-                      <span className="task-view__none">Sem responsável</span>
+                      <span className="task-view__none">
+                        Sem responsável
+                        {user?.volunteerId && !done ? (
+                          <Button small className="task-view__assume" onClick={() => void assume()}>
+                            Assumir
+                          </Button>
+                        ) : null}
+                      </span>
                     )}
                   </dd>
                 </div>
                 <div>
                   <dt>Prazo</dt>
                   <dd className={late ? 'task-view__late' : undefined}>
-                    {current.dueDate ? `${formatDate(current.dueDate)}${late ? ' · vencido' : ''}` : 'Sem prazo'}
+                    {current.dueDate ? `${formatDate(current.dueDate)}${late ? ' · atrasada' : ''}` : 'Sem prazo'}
                   </dd>
                 </div>
                 <div>
@@ -289,7 +368,7 @@ export function ActivityFormModal({
 
               <div className="task-view__text">
                 <h3>Descrição</h3>
-                <p>{current.description ?? 'Sem descrição.'}</p>
+                <p>{current.description ? linkify(current.description) : 'Sem descrição.'}</p>
               </div>
 
               <p className="field__hint">
@@ -298,9 +377,25 @@ export function ActivityFormModal({
               </p>
             </div>
 
-            <ActivityExtras activity={current} onChanged={() => (extrasChanged.current = true)} />
+            <ActivityExtras
+              activity={current}
+              focusComments={focusComments}
+              onChanged={() => (extrasChanged.current = true)}
+            />
           </div>
         </Modal>
+
+        {removing ? (
+          <ConfirmDialog
+            title="Excluir tarefa"
+            message={`"${current.title}" sai do projeto, com o checklist e os comentários. Os anexos continuam na aba Arquivos do projeto.`}
+            confirmLabel="Excluir"
+            destructive
+            busy={removeBusy}
+            onCancel={() => setRemoving(false)}
+            onConfirm={() => void remove()}
+          />
+        ) : null}
 
         {blocking ? (
           <BlockActivityDialog
@@ -320,25 +415,25 @@ export function ActivityFormModal({
   return (
     <Modal
       guardChanges
-      title={activity ? 'Editar tarefa' : 'Nova tarefa'}
+      title={current ? 'Editar tarefa' : 'Nova tarefa'}
       subtitle={
-        activity
+        current
           ? 'Checklist, anexos e comentários são gravados na hora; os demais campos, ao salvar.'
-          : 'Tarefas organizam a execução do projeto no dia a dia.'
+          : 'Depois de criar, a tarefa abre para montar o checklist, anexar e comentar.'
       }
-      size={activity ? 'wide' : 'default'}
+      size={current ? 'wide' : 'default'}
       onClose={close}
       footer={
         <>
           {/* Aberta para ler, "Cancelar" volta para a leitura; aberta direto na edicao, fecha. */}
-          <Button onClick={openedToRead ? () => setMode('view') : close}>Cancelar</Button>
+          <Button onClick={openedToRead || saved ? () => setMode('view') : close}>Cancelar</Button>
           <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
-            {activity ? 'Salvar alterações' : 'Criar tarefa'}
+            {current ? 'Salvar alterações' : 'Criar tarefa'}
           </Button>
         </>
       }
     >
-      <div className={activity ? 'activity-modal' : undefined}>
+      <div className={current ? 'activity-modal' : undefined}>
         <form onSubmit={handleSubmit}>
           {formError ? (
             <div style={{ marginBottom: 16 }}>
@@ -372,7 +467,7 @@ export function ActivityFormModal({
             <Field label="Título" htmlFor="activity-title" required error={titleError ?? undefined} span>
               <TextInput
                 id="activity-title"
-                autoFocus={!activity && !(chooseProject && !projectId)}
+                autoFocus={!current && !(chooseProject && !projectId)}
                 value={title}
                 invalid={Boolean(titleError)}
                 placeholder="Ex.: Refazer instalação elétrica da casa 2"
@@ -444,7 +539,7 @@ export function ActivityFormModal({
             </Field>
 
             {/* Tarefa nova sempre comeca sem iniciar; o status so aparece ao editar. */}
-            {activity ? (
+            {current ? (
               <Field label="Status" htmlFor="activity-status" required>
                 <Select
                   id="activity-status"
@@ -461,7 +556,7 @@ export function ActivityFormModal({
             ) : null}
 
             {status === 'Bloqueada' ? (
-              <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece no card e nos atalhos de Tarefas.">
+              <Field label="O que está travando?" htmlFor="activity-blocked" span hint="Opcional. Aparece na tarefa, nas listas e no quadro.">
                 <TextInput
                   id="activity-blocked"
                   maxLength={300}

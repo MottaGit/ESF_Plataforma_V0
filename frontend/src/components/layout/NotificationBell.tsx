@@ -14,9 +14,11 @@ const POLL_MS = 60_000;
 /** Para onde o aviso leva: a propria tarefa (aberta na aba Tarefas do projeto), quando e de uma; senao, o projeto. */
 function linkFor(notification: AppNotification) {
   if (!notification.projectId) return null;
-  return notification.activityId
-    ? `/projetos/${notification.projectId}?aba=tarefas&tarefa=${notification.activityId}`
-    : `/projetos/${notification.projectId}`;
+  if (!notification.activityId) return `/projetos/${notification.projectId}`;
+  // Aviso de comentario ou mencao: a tarefa abre ja nos comentarios.
+  const comments =
+    notification.type === 'CommentMention' || notification.type === 'ActivityCommented' ? '&comentarios=1' : '';
+  return `/projetos/${notification.projectId}?aba=tarefas&tarefa=${notification.activityId}${comments}`;
 }
 
 /**
@@ -110,7 +112,7 @@ export function NotificationBell() {
       {open ? (
         <div className="bell__panel" role="dialog" aria-label="Avisos">
           <div className="bell__head">
-            <strong>Notificações</strong>
+            <strong>Avisos</strong>
             {linked && unread > 0 ? (
               <button type="button" className="link-button" onClick={markAllRead}>
                 Marcar todas como lidas

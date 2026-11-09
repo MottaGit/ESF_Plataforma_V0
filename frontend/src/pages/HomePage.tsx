@@ -49,7 +49,6 @@ function plural(count: number, singular: string, pluralForm: string) {
  */
 export function HomePage() {
   const { user, canManage, isAdmin } = useAuth();
-  const { notify } = useToast();
 
   const [data, setData] = useState<Dashboard | null>(null);
   const [volunteers, setVolunteers] = useState<Volunteer[] | null>(null);
@@ -137,7 +136,6 @@ export function HomePage() {
           onClose={() => setOpened(null)}
           onSaved={() => {
             setOpened(null);
-            notify('Tarefa atualizada.');
             void load(true);
           }}
           onExtrasChanged={() => void load(true)}

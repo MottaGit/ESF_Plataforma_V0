@@ -315,7 +315,14 @@ avisos, busca), abre a janela dela **para ler**: status (muda na hora; bloquear 
 com barra de progresso; incluir com Enter; o lápis corrige o texto do item; o × remove, e no lugar
 fica "Item removido · Desfazer" por alguns segundos antes de a remoção ir para a API, ou ao fechar a janela; no
 celular, os botões do item têm 36px e os campos, letra de 16px), **anexos** (vários arquivos de uma vez; imagens em miniatura)
-e comentários. **Editar** troca para o formulário (Cancelar volta para a leitura); "Editar" no menu ⋯ da aba do projeto
+e comentários. **Editar** troca para o formulário (Cancelar volta para a leitura; **Salvar
+alterações** também volta para a leitura, já atualizada, em vez de fechar a janela). **Criar tarefa** abre a tarefa
+nova para ler, para já montar o checklist, anexar e comentar (antes fechava a janela e era preciso achar a tarefa).
+No rodapé da leitura, **Excluir** (com confirmação; os anexos ficam na aba Arquivos). Tarefa sem responsável mostra
+**Assumir** ao lado de "Sem responsável": um toque e ela passa para quem está logado (que entra na equipe, se ainda
+não estava). Endereços na descrição e nos comentários (`https://…`, `www.…`) viram links que abrem em outra aba
+(`components/ui/Linkify.tsx`). Quem fechou a janela depois de criar, salvar, assumir ou excluir vê a lista
+recarregada; o aviso de confirmação sai da própria janela; "Editar" no menu ⋯ da aba do projeto
 abre direto no formulário. Status, checklist, anexos e comentários gravam na hora, sem depender do "Salvar". Os anexos
 também aparecem na aba Arquivos do projeto, com o selo "da tarefa …"; excluir a tarefa mantém o arquivo no projeto. O
 card do quadro e as listas mostram o resumo (`☑ 3/5 · 📎 1 · 💬 2`), verde quando o checklist está completo. Links
@@ -329,7 +336,9 @@ texto volta (com as menções) e o aviso "Comentário não enviado, guardado nes
 apaga o rascunho; "Sair" apaga todos (`utils/drafts.ts`). Quem
 escreveu edita (aparece "(editado)") e apaga o próprio comentário; a coordenação também apaga os dos outros. Avisos no
 sininho: quem foi mencionado ("Ana mencionou você em…") e, num comentário novo, o responsável pela tarefa ("Ana
-comentou em…"); na edição, só quem foi mencionado agora. Todo aviso de tarefa (atribuição, bloqueio, prazo,
+comentou em…"); na edição, só quem foi mencionado agora. Aviso de comentário ou menção abre a tarefa já rolada até os comentários (`&comentarios=1`), e a
+lista de comentários abre no mais recente (no celular, sem rolagem própria dentro da janela). Link de uma tarefa que
+já foi excluída avisa "Essa tarefa não existe mais" em vez de não fazer nada. Todo aviso de tarefa (atribuição, bloqueio, prazo,
 comentário) abre direto a janela daquela tarefa. O resumo nos cards ganha o contador de comentários.
 
 **Busca geral** — campo fixo no topo de todas as telas (no celular, a lupa abre a busca ocupando a largura da tela);

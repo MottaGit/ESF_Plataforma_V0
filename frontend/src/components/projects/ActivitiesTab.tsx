@@ -59,23 +59,32 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
   // "atividade" e o nome antigo do parametro, que links ja enviados ainda usam.
   const [searchParams, setSearchParams] = useSearchParams();
   const linkedActivityId = searchParams.get('tarefa') ?? searchParams.get('atividade');
+  // Aviso de comentario: a janela abre ja nos comentarios.
+  const [focusComments, setFocusComments] = useState(false);
   useEffect(() => {
     if (!linkedActivityId) return;
     const linked = project.activities.find((activity) => activity.id === linkedActivityId);
     if (linked) {
       setEditing(linked);
       setFormMode('view');
+      setFocusComments(searchParams.get('comentarios') === '1');
       setFormOpen(true);
+    } else {
+      // Link antigo (aviso, busca) de uma tarefa que ja foi excluida: explica em vez de nao fazer nada.
+      notify('Essa tarefa não existe mais: foi excluída do projeto.');
     }
     setSearchParams(
       (current) => {
         const next = new URLSearchParams(current);
         next.delete('tarefa');
         next.delete('atividade');
+        next.delete('comentarios');
         return next;
       },
       { replace: true }
     );
+    // So ao chegar com o link (os parametros saem da URL logo em seguida).
+    // A lista de tarefas entra para achar a tarefa quando o projeto termina de carregar.
   }, [linkedActivityId, project.activities, setSearchParams]);
 
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
@@ -308,10 +317,14 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
           initialMode={formMode}
           team={project.volunteers}
           volunteers={volunteers}
-          onClose={() => setFormOpen(false)}
+          focusComments={focusComments}
+          onClose={() => {
+            setFormOpen(false);
+            setFocusComments(false);
+          }}
           onSaved={() => {
             setFormOpen(false);
-            notify(editing ? 'Tarefa atualizada.' : 'Tarefa criada.');
+            setFocusComments(false);
             onChanged();
           }}
           onExtrasChanged={onChanged}

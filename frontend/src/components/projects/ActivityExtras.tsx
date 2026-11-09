@@ -14,13 +14,15 @@ interface ActivityExtrasProps {
   activity: Activity;
   /** Avisa que algo mudou (o card e a lista atualizam os contadores ao fechar). */
   onChanged: () => void;
+  /** Abre ja nos comentarios (aviso de comentario ou mencao). */
+  focusComments?: boolean;
 }
 
 /**
  * Coluna da direita da janela da atividade: checklist, anexos e comentarios. Cada mudanca grava na hora, sem
  * depender do "Salvar" do formulario.
  */
-export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
+export function ActivityExtras({ activity, onChanged, focusComments = false }: ActivityExtrasProps) {
   const { notifyError } = useToast();
   const [details, setDetails] = useState<ActivityDetails | null>(null);
   const [newItem, setNewItem] = useState('');
@@ -322,7 +324,7 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
         <p className="field__hint extras__hint">Os anexos também aparecem na aba Arquivos do projeto.</p>
       </section>
 
-      <ActivityComments activityId={activity.id} initial={details.comments} onChanged={onChanged} />
+      <ActivityComments activityId={activity.id} initial={details.comments} onChanged={onChanged} focus={focusComments} />
 
       {removingFile ? (
         <ConfirmDialog

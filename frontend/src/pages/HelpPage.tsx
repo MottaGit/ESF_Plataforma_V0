@@ -81,7 +81,8 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <p>
             Marque a caixinha ao lado dela. Marcou sem querer? <strong>Desfazer</strong>, ao lado, volta como
-            estava. Para outro status, como <strong>Bloqueada</strong>, abra a tarefa e troque o status.
+            estava. Para outro status, como <strong>Bloqueada</strong>, abra a tarefa e troque o status. Tarefa sem
+            responsável que você vai fazer? Abra e toque em <strong>Assumir</strong>.
           </p>
         )
       },

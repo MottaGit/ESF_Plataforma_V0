@@ -57,7 +57,7 @@ function uniqueOptions(pairs: Array<[string, string]>) {
  */
 export function TasksPage() {
   const { user, canManage } = useAuth();
-  const { notify, notifyError } = useToast();
+  const { notifyError } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -486,7 +486,6 @@ export function TasksPage() {
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            notify('Tarefa atualizada.');
             void load(true);
           }}
           onExtrasChanged={() => void load(true)}
@@ -514,7 +513,6 @@ export function TasksPage() {
           onClose={() => setCreating(false)}
           onSaved={() => {
             setCreating(false);
-            notify('Tarefa criada.');
             void load(true);
           }}
         />

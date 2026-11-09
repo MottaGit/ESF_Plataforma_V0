@@ -203,7 +203,7 @@ function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: Task
         className={`task-row__due${late ? ' task-row__due--late' : ''}`}
         title={done ? undefined : dueDateTitle(activity.dueDate)}
       >
-        {done ? (activity.completedAt ? `concluída ${formatDate(activity.completedAt)}` : 'concluída') : dueDateLabel(activity.dueDate)}
+        {done ? (activity.completedAt ? `concluída em ${formatDate(activity.completedAt)}` : 'concluída') : dueDateLabel(activity.dueDate)}
       </span>
     </li>
   );

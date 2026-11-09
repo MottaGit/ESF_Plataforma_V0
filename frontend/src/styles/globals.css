@@ -769,7 +769,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .attention__title { font-size: 13.5px; }
 .attention__meta { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
 .attention__blocked { margin: 4px 0 0; font-size: 12px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
-.attention__blocked::before { content: "Travada: "; font-weight: 500; }
+.attention__blocked::before { content: "Bloqueada: "; font-weight: 500; }
 .attention__reasons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; flex: 0 0 auto; }
 /* Prazo como data curta; vencido, so o texto fica vermelho. */
 .due-text { font-size: 12px; color: var(--text-soft); white-space: nowrap; }
@@ -1636,7 +1636,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .board-card__project:hover { color: var(--accent-text); }
 /* O que esta travando a atividade bloqueada. */
 .act-row__blocked { margin: 6px 0 0; font-size: 12.5px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
-.act-row__blocked::before { content: "Travada: "; font-weight: 500; }
+.act-row__blocked::before { content: "Bloqueada: "; font-weight: 500; }
 .board-card__blocked {
   margin: 0;
   padding: 5px 8px;
@@ -2269,6 +2269,13 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 
 /* Comentarios da atividade */
 .comments { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-height: 340px; overflow-y: auto; }
+/* No celular a janela inteira ja rola: a lista de comentarios nao tem rolagem propria (uma dentro da outra). */
+@media (max-width: 900px) {
+  .comments { max-height: none; overflow: visible; }
+}
+.text-link { color: var(--accent-text); text-decoration: underline; overflow-wrap: anywhere; }
+.task-view__assume { margin-left: 10px; }
+.activity-modal__remove { margin-right: auto; color: var(--danger); }
 .comments__end { height: 0; }
 .comment { display: flex; gap: 8px; align-items: flex-start; }
 .comment__body { flex: 1; min-width: 0; display: grid; gap: 2px; }

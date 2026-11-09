@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
@@ -9,6 +9,7 @@ import { SENSITIVE_DATA_HINT, formatDateTime, timeAgo } from '../../utils/format
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/Feedback';
+import { linkify } from '../ui/Linkify';
 
 /** Sem acento e em minusculas, para achar "Joao" digitando "joão" e vice-versa. */
 const fold = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
@@ -16,8 +17,9 @@ const fold = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').to
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** Texto do comentario com as mencoes (@Nome) destacadas. */
+/** Texto do comentario com as mencoes destacadas e os enderecos virando links. */
 function withMentions(text: string, mentions: Mention[]): ReactNode {
-  if (mentions.length === 0) return text;
+  if (mentions.length === 0) return linkify(text);
   const names = [...mentions].sort((a, b) => b.name.length - a.name.length).map((m) => escapeRegExp(`@${m.name}`));
   return text.split(new RegExp(`(${names.join('|')})`, 'g')).map((part, index) =>
     index % 2 === 1 ? (
@@ -25,7 +27,7 @@ function withMentions(text: string, mentions: Mention[]): ReactNode {
         {part}
       </span>
     ) : (
-      part
+      <Fragment key={index}>{linkify(part)}</Fragment>
     )
   );
 }
@@ -34,10 +36,12 @@ interface ActivityCommentsProps {
   activityId: string;
   initial: ActivityComment[];
   onChanged: () => void;
+  /** Veio de um aviso de comentario: rola a janela ate aqui. */
+  focus?: boolean;
 }
 
 /** Comentarios da atividade: lista, escrever com @mencao, editar e apagar. */
-export function ActivityComments({ activityId, initial, onChanged }: ActivityCommentsProps) {
+export function ActivityComments({ activityId, initial, onChanged, focus = false }: ActivityCommentsProps) {
   const { notifyError } = useToast();
   const { user } = useAuth();
   const [comments, setComments] = useState(initial);
@@ -46,6 +50,14 @@ export function ActivityComments({ activityId, initial, onChanged }: ActivityCom
   const [removing, setRemoving] = useState<ActivityComment | null>(null);
   const [busy, setBusy] = useState(false);
   const listEnd = useRef<HTMLLIElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // A lista abre no comentario mais recente (o fim); vindo de um aviso, a janela rola ate os comentarios.
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+    if (focus) sectionRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [focus]);
 
   useEffect(() => {
     activitiesApi.mentionable(activityId).then(setPeople).catch(() => undefined);
@@ -80,14 +92,14 @@ export function ActivityComments({ activityId, initial, onChanged }: ActivityCom
   }
 
   return (
-    <section className="extras__section">
+    <section className="extras__section" ref={sectionRef}>
       <div className="extras__head">
         <h3>Comentários</h3>
         {comments.length > 0 ? <span className="extras__count num">{comments.length}</span> : null}
       </div>
 
       {comments.length > 0 ? (
-        <ul className="comments">
+        <ul className="comments" ref={listRef}>
           {comments.map((comment) =>
             editingId === comment.id ? (
               <li key={comment.id}>

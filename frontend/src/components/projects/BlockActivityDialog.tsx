@@ -39,7 +39,7 @@ export function BlockActivityDialog({ title, onCancel, onConfirm }: BlockActivit
         <Field
           label="O que está travando?"
           htmlFor="block-reason"
-          hint="Opcional. Aparece no card e no Precisa de atenção, para quem puder ajudar."
+          hint="Opcional. Aparece na tarefa, nas listas e no quadro, para quem puder ajudar."
         >
           <TextArea
             id="block-reason"
