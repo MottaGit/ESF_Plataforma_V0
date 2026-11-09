@@ -14,6 +14,9 @@ public class VolunteerService
         ".jpg", ".jpeg", ".png", ".webp"
     };
 
+    /// <summary>Caractere de escape do padrao de busca (o mesmo de SearchText.ContainsPattern).</summary>
+    private const string SearchEscape = "\\";
+
     private readonly EsfDbContext _db;
     private readonly FileStorageService _storage;
     private readonly NotificationService _notifications;
@@ -49,12 +52,15 @@ public class VolunteerService
         if (sector.HasValue)
             query = query.Where(v => v.Sector == sector.Value);
 
+        // Sem diferenciar maiusculas nem acentos ("joao" acha "Joao"), como a busca geral; olha tambem as
+        // competencias, para achar quem sabe AutoCAD.
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var pattern = $"%{search.Trim()}%";
+            var pattern = SearchText.ContainsPattern(SearchText.Fold(search.Trim()));
             query = query.Where(v =>
-                EF.Functions.ILike(v.Name, pattern)
-                || (v.Email != null && EF.Functions.ILike(v.Email, pattern)));
+                EF.Functions.Like(EsfDbContext.Fold(v.Name), pattern, SearchEscape)
+                || (v.Email != null && EF.Functions.Like(EsfDbContext.Fold(v.Email), pattern, SearchEscape))
+                || (v.Skills != null && EF.Functions.Like(EsfDbContext.Fold(v.Skills), pattern, SearchEscape)));
         }
 
         return await query

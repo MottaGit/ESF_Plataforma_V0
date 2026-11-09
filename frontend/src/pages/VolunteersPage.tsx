@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { volunteersApi } from '../api/endpoints';
 import { Avatar } from '../components/ui/Avatar';
@@ -35,17 +35,68 @@ function needsTerm(volunteer: Volunteer) {
   return (volunteer.status === 'Ativo' || volunteer.status === 'Afastado') && !volunteer.termSignedOn;
 }
 
+/**
+ * Situacao na lista (?situacao=). Sem nada, quem faz parte do nucleo hoje: ativos e afastados. Os anonimizados
+ * ("Voluntario removido") so aparecem em "Todos".
+ */
+const SITUATIONS: Array<{ key: string; label: string; test: (volunteer: Volunteer) => boolean }> = [
+  { key: '', label: 'Ativos e afastados', test: (v) => v.status === 'Ativo' || v.status === 'Afastado' },
+  { key: 'ativos', label: 'Só ativos', test: (v) => v.status === 'Ativo' },
+  { key: 'afastados', label: 'Só afastados', test: (v) => v.status === 'Afastado' },
+  { key: 'inativos', label: 'Inativos', test: (v) => v.status === 'Inativo' },
+  { key: 'ex-membros', label: 'Ex-membros', test: (v) => v.status === 'ExMembro' && !v.anonymized },
+  { key: 'todos', label: 'Todos (com os anonimizados)', test: () => true }
+];
+
+/** Acesso a plataforma (?acesso=, so a coordenacao): para dar acesso a quem falta depois de importar uma planilha. */
+const ACCESS_FILTERS: Array<{ key: string; label: string; test: (volunteer: Volunteer) => boolean }> = [
+  { key: 'sem-acesso', label: 'Sem acesso', test: (v) => !v.access && !v.anonymized },
+  { key: 'aguardando', label: 'Aguardando o primeiro acesso', test: (v) => Boolean(v.access?.isActive && v.access.pending) },
+  { key: 'com-acesso', label: 'Com acesso', test: (v) => Boolean(v.access?.isActive && !v.access.pending) },
+  { key: 'desativado', label: 'Acesso desativado', test: (v) => Boolean(v.access && !v.access.isActive) }
+];
+
+/** "5 sem termo: 2 sem acesso, 1 aguardando o primeiro acesso, 2 aguardando a assinatura". */
+function pendingTermsDetail(pending: Volunteer[]) {
+  const noAccess = pending.filter((v) => !v.access?.isActive).length;
+  const firstAccess = pending.filter((v) => v.access?.isActive && v.access.pending).length;
+  const signing = pending.length - noAccess - firstAccess;
+  return [
+    noAccess > 0 ? `${noAccess} sem acesso à plataforma` : null,
+    firstAccess > 0 ? `${firstAccess} aguardando o primeiro acesso` : null,
+    signing > 0 ? `${signing} aguardando a assinatura` : null
+  ]
+    .filter(Boolean)
+    .join(', ');
+}
+
 export function VolunteersPage() {
   const { canManage, isAdmin } = useAuth();
   const { notify } = useToast();
   const navigate = useNavigate();
 
+  // Busca e filtros ficam na URL: voltar da pagina de uma pessoa (ou recarregar) mantem a lista como estava.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const updateParams = useCallback(
+    (changes: Record<string, string | null>) =>
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          Object.entries(changes).forEach(([key, value]) => (value ? next.set(key, value) : next.delete(key)));
+          return next;
+        },
+        { replace: true }
+      ),
+    [setSearchParams]
+  );
+  const debounced = searchParams.get('busca') ?? '';
+  const sectorFilter = (searchParams.get('setor') ?? '') as VolunteerSector | '';
+  const situation = SITUATIONS.find((item) => item.key === (searchParams.get('situacao') ?? '')) ?? SITUATIONS[0];
+  const accessFilter = canManage ? ACCESS_FILTERS.find((item) => item.key === searchParams.get('acesso')) ?? null : null;
+  const onlyPendingTerm = canManage && searchParams.get('termo') === 'pendente';
+
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [search, setSearch] = useState('');
-  const [debounced, setDebounced] = useState('');
-  const [onlyActive, setOnlyActive] = useState(false);
-  const [sectorFilter, setSectorFilter] = useState<VolunteerSector | ''>('');
-  const [onlyPendingTerm, setOnlyPendingTerm] = useState(false);
+  const [search, setSearch] = useState(debounced);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,29 +104,38 @@ export function VolunteersPage() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(search), 300);
+    const timer = window.setTimeout(() => updateParams({ busca: search.trim() || null }), 300);
     return () => window.clearTimeout(timer);
-  }, [search]);
+  }, [search, updateParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setVolunteers(await volunteersApi.list(debounced || undefined, onlyActive, sectorFilter || undefined));
+      setVolunteers(await volunteersApi.list(debounced || undefined, false, sectorFilter || undefined));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os voluntários.');
     } finally {
       setLoading(false);
     }
-  }, [debounced, onlyActive, sectorFilter]);
+  }, [debounced, sectorFilter]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const shown = onlyPendingTerm ? volunteers.filter(needsTerm) : volunteers;
-  const pendingTerms = canManage ? volunteers.filter(needsTerm).length : 0;
+  const activeFilters = [debounced, sectorFilter, situation.key, accessFilter?.key, onlyPendingTerm].filter(Boolean).length;
+  const shown = volunteers.filter(
+    (volunteer) =>
+      (onlyPendingTerm ? needsTerm(volunteer) : situation.test(volunteer)) && (!accessFilter || accessFilter.test(volunteer))
+  );
+  const pending = canManage ? volunteers.filter(needsTerm) : [];
   const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
+
+  function clearFilters() {
+    setSearch('');
+    updateParams({ busca: null, setor: null, situacao: null, acesso: null, termo: null });
+  }
 
   return (
     <>
@@ -102,11 +162,11 @@ export function VolunteersPage() {
       </div>
 
       <div className="toolbar">
-        <CollapsibleFilters active={[search, sectorFilter, onlyActive].filter(Boolean).length}>
+        <CollapsibleFilters active={activeFilters}>
           <span className="search">
             <IconSearch className="search__icon" />
             <TextInput
-              placeholder="Buscar por nome ou e-mail"
+              placeholder="Buscar por nome, e-mail ou competência"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               aria-label="Buscar voluntários"
@@ -114,8 +174,20 @@ export function VolunteersPage() {
           </span>
 
           <Select
+            value={situation.key}
+            onChange={(event) => updateParams({ situacao: event.target.value || null, termo: null })}
+            aria-label="Situação"
+          >
+            {SITUATIONS.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select
             value={sectorFilter}
-            onChange={(event) => setSectorFilter(event.target.value as VolunteerSector | '')}
+            onChange={(event) => updateParams({ setor: event.target.value || null })}
             aria-label="Setor"
           >
             <option value="">Todos os setores</option>
@@ -126,28 +198,38 @@ export function VolunteersPage() {
             ))}
           </Select>
 
-          <label className="checkbox">
-            <input type="checkbox" checked={onlyActive} onChange={(event) => setOnlyActive(event.target.checked)} />
-            Só ativos
-          </label>
+          {canManage ? (
+            <Select
+              value={accessFilter?.key ?? ''}
+              onChange={(event) => updateParams({ acesso: event.target.value || null })}
+              aria-label="Acesso à plataforma"
+            >
+              <option value="">Qualquer acesso</option>
+              {ACCESS_FILTERS.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.label}
+                </option>
+              ))}
+            </Select>
+          ) : null}
         </CollapsibleFilters>
       </div>
 
       {error ? <Alert kind="error">{error}</Alert> : null}
 
-      {pendingTerms > 0 || onlyPendingTerm ? (
+      {pending.length > 0 || onlyPendingTerm ? (
         <div className="term-notice" role="status">
           <span className="avatar-flag avatar-flag--inline" aria-hidden="true">
             !
           </span>
           <span className="term-notice__text">
-            {pendingTerms === 0
+            {pending.length === 0
               ? 'Todos os voluntários ativos e afastados já têm o termo de adesão assinado.'
-              : pendingTerms === 1
-                ? '1 voluntário ativo ou afastado está sem o termo de adesão assinado.'
-                : `${pendingTerms} voluntários ativos ou afastados estão sem o termo de adesão assinado.`}
+              : pending.length === 1
+                ? `1 voluntário ativo ou afastado está sem o termo de adesão assinado: ${pendingTermsDetail(pending)}.`
+                : `${pending.length} voluntários ativos ou afastados estão sem o termo de adesão assinado: ${pendingTermsDetail(pending)}.`}
           </span>
-          <Button small variant="ghost" onClick={() => setOnlyPendingTerm((current) => !current)}>
+          <Button small variant="ghost" onClick={() => updateParams({ termo: onlyPendingTerm ? null : 'pendente' })}>
             {onlyPendingTerm ? 'Mostrar todos' : 'Ver quem falta'}
           </Button>
         </div>
@@ -167,7 +249,7 @@ export function VolunteersPage() {
       <section className="panel">
         {loading ? (
           <Loading label="Carregando voluntários…" />
-        ) : volunteers.length === 0 ? (
+        ) : volunteers.length === 0 && activeFilters === 0 ? (
           <EmptyState
             title="Nenhum voluntário cadastrado"
             description="Cadastre as pessoas que participam das ações para vinculá-las aos projetos."
@@ -182,6 +264,16 @@ export function VolunteersPage() {
               ) : undefined
             }
           />
+        ) : shown.length === 0 ? (
+          <EmptyState
+            title={onlyPendingTerm ? 'Ninguém sem o termo de adesão' : 'Nenhum voluntário com esses filtros'}
+            description={
+              onlyPendingTerm
+                ? 'Todos os voluntários ativos e afastados já têm o termo de adesão assinado.'
+                : 'Mude a busca ou a situação (por padrão, só ativos e afastados).'
+            }
+            action={<Button onClick={clearFilters}>Limpar filtros</Button>}
+          />
         ) : (
           <div className="table-wrap">
             <table className="table table--cards">
@@ -195,13 +287,6 @@ export function VolunteersPage() {
                 </tr>
               </thead>
               <tbody>
-                {shown.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="table__secondary">
-                      Todos os voluntários ativos e afastados já têm o termo de adesão assinado.
-                    </td>
-                  </tr>
-                ) : null}
                 {shown.map((volunteer) => {
                   const currentPrograms = [
                     ...new Set(

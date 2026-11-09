@@ -387,8 +387,16 @@ sempre os mesmos: **Andamento** é a aba,
 
 **Voluntários** — gestão das pessoas da organização: nome, contato, setor (Projetos, Jurídico, Pessoas, Comunicação,
 Qualidade ou Financeiro), situação (ativo/inativo) e observações. A listagem mostra em quais projetos cada um está
-vinculado, com filtro por setor e por situação (no celular, busca e filtros ficam no botão "Filtros", como em
-Tarefas e Projetos). **Contato em um toque**: na lista, a coluna Contato tem ícones de e-mail (abre o programa de
+vinculado. A busca olha nome, e-mail e competências, sem diferenciar maiúsculas nem acentos ("joao" acha "João",
+"autocad" acha quem sabe AutoCAD; função `esf_fold`, como a busca geral). Filtros: **situação** (por padrão, ativos e
+afastados, isto é, quem faz parte do núcleo hoje; também só ativos, só afastados, inativos, ex-membros e "Todos", o único
+que mostra os anonimizados), **setor** e, para a coordenação, **acesso à plataforma** (sem acesso, aguardando o primeiro
+acesso, com acesso, acesso desativado: depois de importar uma planilha, mostra a quem falta dar acesso). Busca e filtros
+ficam na URL (`?busca=`, `?situacao=`, `?setor=`, `?acesso=`, `?termo=pendente`), então voltar da página de uma pessoa
+mantém a lista como estava. Sem resultado, a lista diz "Nenhum voluntário com esses filtros" com **Limpar filtros**
+("Nenhum voluntário cadastrado" só quando o núcleo não tem ninguém). O aviso dos termos pendentes separa por que cada um
+ainda não assinou ("2 sem o termo: 1 sem acesso à plataforma, 1 aguardando o primeiro acesso"), sem repetir nada por
+linha. No celular, busca e filtros ficam no botão "Filtros", como em Tarefas e Projetos. **Contato em um toque**: na lista, a coluna Contato tem ícones de e-mail (abre o programa de
 e-mail) e WhatsApp (só quando o telefone é celular do Brasil: DDD + 9 + 8 dígitos; sem o 55, ele é incluído);
 na página do voluntário e na aba Equipe do projeto, o e-mail e o telefone por extenso viram links (o telefone liga ao
 toque), com "WhatsApp" ao lado do celular. A lista não tem coluna de ações: editar e anonimizar ficam na página da
