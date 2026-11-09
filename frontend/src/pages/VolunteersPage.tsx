@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { volunteersApi } from '../api/endpoints';
 import { Avatar } from '../components/ui/Avatar';
@@ -26,6 +26,7 @@ import {
   isPastProjectStatus,
   joinNames,
   sectorLabel,
+  todayInputValue,
   volunteerStatusLabel
 } from '../utils/format';
 
@@ -37,6 +38,7 @@ function needsTerm(volunteer: Volunteer) {
 export function VolunteersPage() {
   const { canManage, isAdmin } = useAuth();
   const { notify } = useToast();
+  const navigate = useNavigate();
 
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [search, setSearch] = useState('');
@@ -271,10 +273,11 @@ export function VolunteersPage() {
         <VolunteerFormModal
           volunteer={null}
           onClose={() => setFormOpen(false)}
-          onSaved={() => {
+          onSaved={(saved) => {
+            // A pagina da pessoa e onde vem o proximo passo: dar acesso e vincular a um projeto.
             setFormOpen(false);
             notify('Voluntário cadastrado.');
-            void load();
+            navigate(`/voluntarios/${saved.id}`);
           }}
         />
       ) : null}
@@ -287,7 +290,7 @@ export function VolunteersPage() {
 interface VolunteerFormModalProps {
   volunteer: Volunteer | null;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (saved: Volunteer) => void;
 }
 
 export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFormModalProps) {
@@ -302,6 +305,9 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
   const [birthDay, setBirthDay] = useState(volunteer?.birthDay ? String(volunteer.birthDay) : '');
   const [birthMonth, setBirthMonth] = useState(volunteer?.birthMonth ? String(volunteer.birthMonth) : '');
   const [birthdayError, setBirthdayError] = useState<string | null>(null);
+  // So no cadastro novo: desde quando esta no nucleo (as horas de voluntariado contam a partir dai).
+  const [activeSince, setActiveSince] = useState(todayInputValue());
+  const [activeSinceError, setActiveSinceError] = useState<string | null>(null);
 
   // Foto: escolhida -> enquadrada -> enviada so ao salvar o voluntario.
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -337,6 +343,12 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
     }
     setBirthdayError(null);
 
+    if (!volunteer && activeSince > todayInputValue()) {
+      setActiveSinceError('Não pode ser depois de hoje.');
+      return;
+    }
+    setActiveSinceError(null);
+
     const payload: SaveVolunteerPayload = {
       name: name.trim(),
       email: emptyToNull(email),
@@ -346,7 +358,8 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
       notes: emptyToNull(notes),
       status,
       birthDay: birthDay ? Number(birthDay) : null,
-      birthMonth: birthMonth ? Number(birthMonth) : null
+      birthMonth: birthMonth ? Number(birthMonth) : null,
+      activeSince: volunteer ? null : activeSince || null
     };
 
     setSaving(true);
@@ -356,7 +369,7 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
       else if (photoRemoved && volunteer?.photoUrl) await volunteersApi.removePhoto(saved.id);
       // A foto do voluntario vinculado a conta aparece no topo da tela.
       if ((newPhoto || photoRemoved) && saved.id === user?.volunteerId) await refreshUser();
-      onSaved();
+      onSaved(saved);
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o voluntário.');
     } finally {
@@ -373,7 +386,14 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
+          {/* Com o enquadramento da foto aberto, salvar perderia a foto: primeiro "Usar foto" (ou cancelar). */}
+          <Button
+            variant="primary"
+            loading={saving}
+            disabled={Boolean(photoToCrop)}
+            title={photoToCrop ? 'Termine de enquadrar a foto' : undefined}
+            onClick={(event) => void handleSubmit(event)}
+          >
             Salvar
           </Button>
         </>
@@ -436,7 +456,14 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
         </div>
 
         <div className="form-grid">
-          <Field label="Nome" htmlFor="volunteer-name" required error={nameError ?? undefined} span>
+          <Field
+            label="Nome"
+            htmlFor="volunteer-name"
+            required
+            error={nameError ?? undefined}
+            span
+            hint="Nome completo, como no documento: é o que vai no termo de adesão e no certificado."
+          >
             <TextInput
               id="volunteer-name"
               value={name}
@@ -448,13 +475,25 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
           <Field
             label="E-mail"
             htmlFor="volunteer-email"
-            hint={volunteer?.access ? 'É também o login desta pessoa na plataforma.' : undefined}
+            hint={
+              volunteer?.access
+                ? 'É também o login desta pessoa na plataforma.'
+                : 'Necessário para dar acesso à plataforma: é o login.'
+            }
           >
             <TextInput id="volunteer-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
           </Field>
 
-          <Field label="Telefone" htmlFor="volunteer-phone">
-            <TextInput id="volunteer-phone" value={phone} onChange={(event) => setPhone(event.target.value)} />
+          <Field label="Telefone" htmlFor="volunteer-phone" hint="Com DDD. Celular (com o 9) ganha o atalho do WhatsApp.">
+            <TextInput
+              id="volunteer-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="(51) 99999-9999"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
           </Field>
 
           <Field
@@ -512,6 +551,24 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
               ))}
             </Select>
           </Field>
+
+          {!volunteer ? (
+            <Field
+              label="No núcleo desde"
+              htmlFor="volunteer-active-since"
+              error={activeSinceError ?? undefined}
+              hint="As horas de voluntariado contam a partir desse dia. Depois, o histórico fica na página da pessoa."
+            >
+              <TextInput
+                id="volunteer-active-since"
+                type="date"
+                max={todayInputValue()}
+                value={activeSince}
+                invalid={Boolean(activeSinceError)}
+                onChange={(event) => setActiveSince(event.target.value)}
+              />
+            </Field>
+          ) : null}
 
           <Field label="Competências" htmlFor="volunteer-skills" span hint="Habilidades relevantes para os projetos.">
             <TextArea id="volunteer-skills" value={skills} onChange={(event) => setSkills(event.target.value)} />

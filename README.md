@@ -398,7 +398,14 @@ tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o vo
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
 hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
 item do formulário: escolhida do computador e enquadrada num círculo (arrastar e zoom) antes de ser usada; o navegador
-envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário. A foto aparece como uma bolinha na
+envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário (com o enquadramento aberto, o Salvar fica
+desligado até "Usar foto" ou cancelar, para a foto não se perder). O formulário explica cada campo que tem
+consequência: o nome é o do documento (vai no termo e no certificado, e a assinatura do termo exige o nome igual), o
+e-mail é o login de quem tiver acesso e o telefone vai com DDD (celular com o 9 ganha o atalho do WhatsApp). No
+**cadastro novo** há também **No núcleo desde** (hoje por padrão; não pode ser depois de hoje): o histórico de situação,
+e com ele as horas de voluntariado, começa nesse dia, para quem já estava no núcleo não começar com as horas zeradas.
+Ao salvar um voluntário novo, a tela abre a página dele, onde estão os próximos passos (Dar acesso, vincular a
+projetos). A foto aparece como uma bolinha na
 lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superior direito (para o voluntário vinculado
 à conta logada); sem foto, aparecem as iniciais. Quando o acesso está vinculado a um voluntário, a plataforma mostra o
 nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos registros de andamento
@@ -449,7 +456,7 @@ até; sem "até", continua até hoje): o período substitui o que havia nessas d
 anterior; um afastamento de um mês no passado é só "Afastado, de 01/08 a 31/08". Editar um período é como tirá-lo e
 incluir de novo; remover faz o status anterior valer também nessas datas. Datas fora do histórico (antes do primeiro
 registro ou entre um período antigo e a volta da pessoa) não contam horas. Voluntários que já existiam começam com o
-status atual desde a data do cadastro. Todos veem o total; o histórico só aparece para a coordenação e para o próprio
+status atual desde a data do cadastro; o cadastro novo começa no dia de **No núcleo desde**. Todos veem o total; o histórico só aparece para a coordenação e para o próprio
 voluntário, e só a coordenação edita. O certificado já abre com o período do primeiro ao último período como Ativo.
 
 **Horas por projeto** — além das horas gerais (que saem do histórico de status), cada projeto tem as horas lançadas

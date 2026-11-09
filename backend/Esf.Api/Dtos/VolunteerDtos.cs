@@ -79,6 +79,12 @@ public class SaveVolunteerRequest
 
     [Range(1, 12, ErrorMessage = "Mês de aniversário inválido.")]
     public int? BirthMonth { get; set; }
+
+    /// <summary>
+    /// So no cadastro novo: desde quando a pessoa esta no nucleo. O historico de situacao (e as horas de
+    /// voluntariado) comeca nesse dia; vazio, hoje.
+    /// </summary>
+    public DateOnly? ActiveSince { get; set; }
 }
 
 public class AddProjectVolunteerRequest

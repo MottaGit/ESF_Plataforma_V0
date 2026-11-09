@@ -254,8 +254,8 @@ const SECTIONS: HelpSection[] = [
         question: 'Como cadastro um voluntário e dou acesso?',
         answer: (
           <p>
-            Em <strong>Voluntários</strong>, <strong>Novo voluntário</strong>; depois, na página dele,{' '}
-            <strong>Dar acesso</strong>. Sai um link de primeiro acesso (vale 7 dias) para mandar por WhatsApp ou
+            Em <strong>Voluntários</strong>, <strong>Novo voluntário</strong> (com o dia em que a pessoa entrou no
+            núcleo, para as horas contarem); a página dela abre em seguida: <strong>Dar acesso</strong>. Sai um link de primeiro acesso (vale 7 dias) para mandar por WhatsApp ou
             e-mail: a pessoa cria a senha e, ao entrar, assina o termo de adesão. Quem está sem termo aparece com um{' '}
             <strong>!</strong> vermelho na foto. Se alguém esquecer a senha, use <strong>Gerar link de acesso</strong>{' '}
             na página do voluntário.

@@ -782,6 +782,8 @@ export interface SaveVolunteerPayload {
   status: VolunteerStatus;
   birthDay: number | null;
   birthMonth: number | null;
+  /** So no cadastro novo: desde quando esta no nucleo (vazio: hoje). */
+  activeSince?: string | null;
 }
 
 export interface SaveProgramPayload {

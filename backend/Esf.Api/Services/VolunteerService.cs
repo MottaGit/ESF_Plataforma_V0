@@ -145,12 +145,15 @@ public class VolunteerService
     public async Task<VolunteerDto> CreateAsync(SaveVolunteerRequest request)
     {
         ValidateBirthday(request);
+        if (request.ActiveSince > Mapping.Today)
+            throw new AppException("A data de entrada no núcleo não pode ser depois de hoje.");
         var volunteer = new Volunteer();
         Apply(volunteer, request);
         volunteer.CreatedAt = DateTime.UtcNow;
 
         _db.Volunteers.Add(volunteer);
-        VolunteerStatusHistoryService.Start(_db, volunteer, Mapping.Today);
+        // Quem ja estava no nucleo antes do cadastro nao comeca com as horas zeradas.
+        VolunteerStatusHistoryService.Start(_db, volunteer, request.ActiveSince ?? Mapping.Today);
         await _db.SaveChangesAsync();
 
         return Mapping.ToDto(volunteer, new List<VolunteerProjectDto>());
