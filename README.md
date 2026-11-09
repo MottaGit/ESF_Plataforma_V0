@@ -671,7 +671,10 @@ querer. O X e o Cancelar continuam fechando direto. Janela em que nada foi mexid
 
 **Página pública do programa** — um link que abre sem login e só para leitura, para mandar a parceiros e financiadores
 no lugar do PDF (ou virar QR code na placa da obra). Fica desligada em todo programa; a coordenação liga e desliga, e
-desligar invalida o link (ligar de novo gera outro, `/publico/{código}`). Mostra o programa (nome, ícone e a ficha:
+desligar invalida o link (ligar de novo gera outro, `/publico/{código}`). Mostra o programa (nome, ícone, logo abaixo
+do nome a linha **"Desde 2019 · Porto Alegre e Canoas"** — calculada dos projetos, ninguém digita: o ano do primeiro
+projeto que já começou, sem contar planejados para depois de hoje, e as cidades onde o programa atua, da que tem mais
+projetos para a que tem menos, até três e "e mais N cidades"; cancelados não contam, arquivados sim — e a ficha:
 o que o programa faz no topo e, embaixo, **Objetivo** e **Para quem** lado a lado — o que estiver em branco não
 aparece), os **parceiros** (nome e papel, na ordem da lista, logo abaixo; nunca o contato), os **resultados até hoje** (quantos projetos concluídos, em
 andamento, em preparação e pausados; os indicadores nacionais e os do modelo do programa somados, só os que têm valor;

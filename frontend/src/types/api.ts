@@ -223,6 +223,10 @@ export interface PublicProgram {
   audience: string | null;
   /** Parceiros do programa: so nome e papel. */
   partners: PublicPartner[];
+  /** Ano do primeiro projeto que ja comecou (null: nenhum), para o "Desde 2019". */
+  sinceYear: number | null;
+  /** Cidades onde o programa atua, da que tem mais projetos para a que tem menos. */
+  cities: string[];
   nucleo: PublicNucleo;
   totals: PublicProgramTotals;
   /** Indicadores somados nos projetos mostrados (nacionais e do modelo do programa), so os que tem valor. */

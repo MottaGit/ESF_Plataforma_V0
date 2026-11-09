@@ -53,6 +53,15 @@ function placeText(project: PublicProject) {
   return [project.district, city].filter(Boolean).join(', ');
 }
 
+/** "Porto Alegre", "Porto Alegre e Canoas", "Porto Alegre, Canoas e Alvorada" ou "…, Alvorada e mais 2 cidades". */
+function citiesText(cities: string[]) {
+  if (cities.length <= 1) return cities[0] ?? null;
+  const shown = cities.slice(0, 3);
+  const rest = cities.length - shown.length;
+  if (rest > 0) return `${shown.join(', ')} e mais ${rest} ${rest === 1 ? 'cidade' : 'cidades'}`;
+  return `${shown.slice(0, -1).join(', ')} e ${shown[shown.length - 1]}`;
+}
+
 function IndicatorValue({ indicator }: { indicator: PublicIndicator }) {
   return (
     <>
@@ -137,6 +146,8 @@ export function PublicProgramPage() {
     { label: totals.paused === 1 ? 'pausado' : 'pausados', value: totals.paused, show: totals.paused > 0 }
   ].filter((count) => count.show);
   const nucleoPlace = [nucleo.city, nucleo.state].filter(Boolean).join('/');
+  // "Desde 2019 · Porto Alegre e Canoas": calculado dos projetos, ninguem digita.
+  const where = [page.sinceYear ? `Desde ${page.sinceYear}` : null, citiesText(page.cities)].filter(Boolean).join(' · ');
 
   return (
     <div className="public-page">
@@ -160,6 +171,7 @@ export function PublicProgramPage() {
             <ProgramMark icon={page.icon} color={page.color} size={52} />
             <div>
               <h1>{page.name}</h1>
+              {where ? <p className="public-hero__where">{where}</p> : null}
               <p className="public-hero__meta">
                 {page.projects.length === 1 ? '1 projeto' : `${page.projects.length} projetos`}
                 {page.updatedAt ? ` · último registro ${timeAgoPhrase(page.updatedAt)}` : ''}

@@ -101,6 +101,10 @@ public record PublicProgramDto(
     string? Audience,
     // Parceiros: so nome e papel (o contato nunca sai do nucleo).
     List<PublicPartnerDto> Partners,
+    // "Desde 2019 · Porto Alegre e Canoas", calculado dos projetos: ano do primeiro que ja comecou (null: nenhum) e as
+    // cidades onde o programa atua, da que tem mais projetos para a que tem menos.
+    int? SinceYear,
+    List<string> Cities,
     PublicNucleoDto Nucleo,
     PublicProgramTotalsDto Totals,
     // Indicadores somados nos projetos mostrados (nacionais e os do modelo do programa); so os que tem valor.

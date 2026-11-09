@@ -159,6 +159,36 @@ public class PublicProgramPageTests
     }
 
     [Fact]
+    public async Task SinceAndCitiesComeFromTheProjects()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        await using (var db = f.SystemContext())
+        {
+            var today = Mapping.Today;
+            Project New(string name, string? city, DateOnly start, ProjectStatus status = ProjectStatus.Concluido) => new()
+            {
+                OrganizationId = f.A.OrganizationId, ProgramId = f.A.ProgramId, Name = name, City = city,
+                StartDate = start, Status = status
+            };
+            db.Projects.AddRange(
+                New("Antigo", "Canoas", new DateOnly(2019, 3, 10)),
+                New("Outro", " canoas ", today.AddYears(-1)),
+                New("Mais um", "Canoas", today.AddYears(-1)),
+                New("Capital", "Porto Alegre", today.AddYears(-2)),
+                // Planejado para daqui a um ano: nao muda o "desde"; cancelado: fica de fora.
+                New("Futuro", "Viamão", today.AddYears(1), ProjectStatus.Planejamento),
+                New("Cancelado", "Alvorada", new DateOnly(2010, 1, 1), ProjectStatus.Cancelado));
+            await db.SaveChangesAsync();
+        }
+
+        var page = await OpenAsync(f, await EnableAsync(f, f.A));
+
+        Assert.Equal(2019, page.SinceYear);
+        // Mais projetos primeiro, a grafia mais usada; o projeto do TwoNucleos nao tem cidade.
+        Assert.Equal(new[] { "Canoas", "Porto Alegre", "Viamão" }, page.Cities);
+    }
+
+    [Fact]
     public async Task TurningOffBreaksTheLinkAndTurningOnMakesANewOne()
     {
         var f = await TwoNucleos.CreateAsync();

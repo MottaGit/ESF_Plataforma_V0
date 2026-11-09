@@ -3258,6 +3258,8 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .public-hero__title { display: flex; align-items: center; gap: 14px; }
 .public-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; }
 .public-hero__meta { margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted); }
+.public-hero__where { margin: 4px 0 0; font-size: 14.5px; font-weight: 500; color: var(--text); }
+.public-hero__where + .public-hero__meta { margin-top: 2px; }
 .public-hero__about { margin: 16px 0 0; max-width: 70ch; font-size: 15px; line-height: 1.6; white-space: pre-line; }
 /* Ficha do programa na pagina publica: objetivo e para quem, lado a lado (empilham no celular). */
 .public-sheet {

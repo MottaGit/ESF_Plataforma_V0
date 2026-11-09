@@ -98,6 +98,20 @@ public class PublicProgramService
             .Select(r => new PublicIndicatorDto(r.Name, r.Unit, r.Value!.Value, r.NationalIndicatorId != null))
             .ToList();
 
+        // "Desde 2019 · Porto Alegre e Canoas": dos mesmos projetos dos numeros (sem cancelados; arquivados entram).
+        // Desde: o primeiro que ja comecou (um planejado para o ano que vem nao vira "desde 2027").
+        var today = Mapping.Today;
+        var started = projects.Where(p => p.StartDate <= today).ToList();
+        int? sinceYear = started.Count > 0 ? started.Min(p => p.StartDate).Year : null;
+        // Cidades sem diferenciar maiuscula e espaco; vale a grafia mais usada de cada uma.
+        var cities = projects
+            .Where(p => !string.IsNullOrWhiteSpace(p.City))
+            .GroupBy(p => p.City!.Trim().ToLowerInvariant())
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key)
+            .Select(g => g.GroupBy(p => p.City!.Trim()).OrderByDescending(s => s.Count()).First().Key)
+            .ToList();
+
         var shownProjects = projects
             .Where(p => !p.IsArchived)
             .OrderBy(p => Array.IndexOf(Shown, p.Status))
@@ -119,6 +133,8 @@ public class PublicProgramService
             program.Objective,
             program.Audience,
             partners,
+            sinceYear,
+            cities,
             new PublicNucleoDto(nucleo.Name, nucleo.LogoUrl, nucleo.Cnpj, nucleo.Email, nucleo.City, nucleo.State),
             new PublicProgramTotalsDto(
                 projects.Count(p => p.Status == ProjectStatus.Concluido),
