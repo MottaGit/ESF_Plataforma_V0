@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ApiError } from '../../api/client';
 import { accessApi } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { AccessLink, UserRole, Volunteer } from '../../types/api';
 import { USER_ROLES, formatDate, roleDescription, roleLabel, whatsAppHref } from '../../utils/format';
@@ -31,6 +32,9 @@ interface GrantAccessModalProps {
  * para a propria pessoa criar a senha.
  */
 export function GrantAccessModal({ volunteer, volunteers, onClose, onGranted }: GrantAccessModalProps) {
+  // O coordenador da acesso de usuario ou coordenador; o perfil de administrador, so um administrador da.
+  const { isAdmin } = useAuth();
+  const roles = isAdmin ? USER_ROLES : USER_ROLES.filter((value) => value !== 'Administrador');
   const [volunteerId, setVolunteerId] = useState(volunteer?.id ?? '');
   const [role, setRole] = useState<UserRole>('Usuario');
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +111,7 @@ export function GrantAccessModal({ volunteer, volunteers, onClose, onGranted }: 
 
         <Field label="Perfil de acesso" htmlFor="grant-role" required hint={roleDescription[role]}>
           <Select id="grant-role" value={role} onChange={(event) => setRole(event.target.value as UserRole)}>
-            {USER_ROLES.map((value) => (
+            {roles.map((value) => (
               <option key={value} value={value}>
                 {roleLabel(value)}
               </option>

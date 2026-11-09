@@ -113,6 +113,16 @@ export function formatNumber(value: number) {
 }
 
 /**
+ * Situacao do link de quem ainda nao fez o primeiro acesso: "o link vale até 12/11" ou "o link venceu em 05/11: gere
+ * outro" (o link vale 7 dias; vencido, a pessoa nao consegue entrar ate receber um novo).
+ */
+export function accessLinkStatus(expiresAt: string | null | undefined) {
+  if (!expiresAt) return 'sem link valendo: gere um';
+  const day = formatDate(expiresAt);
+  return new Date(expiresAt).getTime() < Date.now() ? `o link venceu em ${day}: gere outro` : `o link vale até ${day}`;
+}
+
+/**
  * "informado em 3 de 5 projetos" quando falta algum projeto informar (a mesma frase do PDF); null quando todos
  * informaram.
  */

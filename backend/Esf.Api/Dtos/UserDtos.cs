@@ -21,7 +21,9 @@ public record UserDto(
     // Nucleo do acesso (vazio: conta so da gestao nacional).
     Guid? OrganizationId,
     // Faz parte da gestao nacional.
-    bool IsNational);
+    bool IsNational,
+    // Validade do link de acesso ainda nao usado mais recente (null: nenhum); so na lista de acessos.
+    DateTime? LinkExpiresAt = null);
 
 /// <summary>
 /// Edicao de um acesso: perfil e situacao. Nome e e-mail (o login) vem do cadastro do voluntario e mudam la.

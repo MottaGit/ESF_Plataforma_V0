@@ -504,12 +504,18 @@ fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos").
 de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
-Configurações › Acessos, **Novo acesso**, escolhendo o voluntário; só administradores) pede o perfil e usa como login
-o e-mail do cadastro (sem e-mail, não dá). Sai um **link de primeiro acesso** (`/acesso/{código}`), mostrado uma vez,
+Configurações › Acessos, **Novo acesso**, escolhendo o voluntário) pede o perfil e usa como login
+o e-mail do cadastro (sem e-mail, não dá). Quem dá acesso e gera link é a coordenação: o administrador, com qualquer
+perfil; o coordenador, só com perfil Usuário ou Coordenador, e ele não gera link novo para o acesso de um administrador
+(com o link, criaria a senha de quem tem mais permissão que ele; a API recusa as duas coisas e a tela nem oferece).
+Editar perfil e situação e excluir um acesso continuam só com a administração. Sai um **link de primeiro acesso** (`/acesso/{código}`), mostrado uma vez,
 com botões para copiar, mandar pelo WhatsApp (celular do cadastro, já com a mensagem) ou por e-mail. A pessoa abre,
 cria a própria senha, aceita a política de privacidade e já entra; ninguém define nem repassa senha de outra pessoa.
 O link vale 7 dias e uma vez só; só o hash do código fica no banco (tabela `AccessLinks`). Enquanto não for usado, o
-acesso aparece como "Aguardando o primeiro acesso" e o login com senha é recusado. Para quem perdeu o link ou esqueceu
+acesso aparece como "Aguardando o primeiro acesso" com a validade do link ("o link vale até 12/11" ou "o link venceu
+em 05/11: gere outro"), na página do voluntário e em Acessos, e o login com senha é recusado. Quem abre um link que
+não vale mais (usado, vencido ou trocado) vê "Este link não vale mais", com **Entrar com e-mail e senha** como botão
+principal (o caso mais comum é quem já criou a senha e tocou no link de novo) e, embaixo, como pedir um link novo. Para quem perdeu o link ou esqueceu
 a senha, **Gerar link de acesso** (página do voluntário ou ícone da chave em Acessos) faz um link novo e anula os
 anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas por minuto por endereço (o endereço real de quem acessa, não o do
 proxy; ver `ForwardedHeaders` em Configuração). A lista de
@@ -873,7 +879,7 @@ explica o motivo em vez de um erro técnico.
 | Perfil | O que pode fazer |
 | --- | --- |
 | **Administrador** | tudo, incluindo usuários, dados institucionais e exclusão de projetos |
-| **Coordenador** | criar e editar projetos, voluntários e indicadores; arquivar projetos |
+| **Coordenador** | criar e editar projetos, voluntários e indicadores; arquivar projetos; dar acesso (perfil Usuário ou Coordenador) e gerar link novo (menos para administrador) |
 | **Usuário** | consultar tudo, criar e atualizar tarefas, indicadores, arquivos, registros de andamento e status |
 | **Gestão nacional** (permissão, não perfil) | área Nacional: núcleos e quem os administra, pessoas da gestão nacional (e, nas próximas partes, indicadores nacionais e o painel) |
 

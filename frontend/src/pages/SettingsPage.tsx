@@ -24,7 +24,7 @@ import type {
   UserRole,
   Volunteer
 } from '../types/api';
-import { USER_ROLES, emptyToNull, roleDescription, roleLabel } from '../utils/format';
+import { USER_ROLES, accessLinkStatus, emptyToNull, roleDescription, roleLabel } from '../utils/format';
 
 type TabKey = 'organization' | 'users' | 'spreadsheets' | 'history' | 'account';
 
@@ -77,7 +77,7 @@ export function SettingsPage() {
       ) : null}
 
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
-      {tab === 'users' ? <UsersSection canEdit={isAdmin} /> : null}
+      {tab === 'users' ? <UsersSection canEdit={isAdmin} canGrant={canManage} /> : null}
       {tab === 'spreadsheets' ? <SpreadsheetsSection /> : null}
       {tab === 'history' ? <AuditSection /> : null}
       {tab === 'account' ? <AccountSection /> : null}
@@ -418,7 +418,11 @@ function OrganizationSection({ canEdit }: { canEdit: boolean }) {
   );
 }
 
-function UsersSection({ canEdit }: { canEdit: boolean }) {
+/**
+ * Acessos do nucleo. A coordenacao da acesso e gera link novo (o coordenador, nunca para um administrador); editar
+ * perfil e situacao e excluir ficam com a administracao.
+ */
+function UsersSection({ canEdit, canGrant }: { canEdit: boolean; canGrant: boolean }) {
   const { user: currentUser, refreshUser } = useAuth();
   const { notify, notifyError } = useToast();
 
@@ -474,7 +478,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
           atualiza a execução). O acesso nasce do cadastro do voluntário, de onde vêm o nome e o e-mail (o login), e
           sai como um link: a própria pessoa cria a senha. Para quem esqueceu a senha, gere um link novo.
         </p>
-        {canEdit ? (
+        {canGrant ? (
           <div className="toolbar__right">
             <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => setGranting(true)}>
               Novo acesso
@@ -498,7 +502,7 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                   <th>Pessoa</th>
                   <th>Perfil</th>
                   <th>Situação</th>
-                  {canEdit ? (
+                  {canGrant ? (
                     <th className="right">
                       <span className="sr-only">Ações</span>
                     </th>
@@ -532,11 +536,14 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                       <NeutralBadge>
                         {!user.isActive ? 'Desativado' : user.passwordPending ? 'Aguardando o primeiro acesso' : 'Ativo'}
                       </NeutralBadge>
+                      {user.isActive && user.passwordPending ? (
+                        <div className="table__secondary">{accessLinkStatus(user.linkExpiresAt)}</div>
+                      ) : null}
                     </td>
-                    {canEdit ? (
+                    {canGrant ? (
                       <td className="cell--actions">
                         <div className="row-actions">
-                          {user.isActive ? (
+                          {user.isActive && (canEdit || user.role !== 'Administrador') ? (
                             <Button
                               small
                               variant="ghost"
@@ -546,15 +553,17 @@ function UsersSection({ canEdit }: { canEdit: boolean }) {
                               onClick={() => setLinkFor(user)}
                             />
                           ) : null}
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconEdit size={15} />}
-                            title="Editar perfil e situação"
-                            aria-label={`Editar o acesso de ${user.volunteerName ?? user.name}`}
-                            onClick={() => setEditing(user)}
-                          />
-                          {user.id !== currentUser?.id ? (
+                          {canEdit ? (
+                            <Button
+                              small
+                              variant="ghost"
+                              icon={<IconEdit size={15} />}
+                              title="Editar perfil e situação"
+                              aria-label={`Editar o acesso de ${user.volunteerName ?? user.name}`}
+                              onClick={() => setEditing(user)}
+                            />
+                          ) : null}
+                          {canEdit && user.id !== currentUser?.id ? (
                             <Button
                               small
                               variant="ghost"

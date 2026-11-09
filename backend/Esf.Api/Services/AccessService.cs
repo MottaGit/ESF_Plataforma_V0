@@ -33,6 +33,27 @@ public class AccessService
         _currentUser = currentUser;
     }
 
+    /// <summary>
+    /// Pela tela do nucleo: o administrador da qualquer perfil; o coordenador so Usuario ou Coordenador.
+    /// </summary>
+    public Task<AccessLinkDto> GrantFromNucleoAsync(Guid volunteerId, UserRole role)
+    {
+        if (!_currentUser.IsAdmin && role == UserRole.Administrador)
+            throw AppException.Forbidden("Só um administrador pode dar o perfil de administrador.");
+        return GrantAsync(volunteerId, role);
+    }
+
+    /// <summary>
+    /// Pela tela do nucleo: o coordenador nao gera link para o acesso de um administrador (com ele, criaria a senha de
+    /// quem tem mais permissao que ele).
+    /// </summary>
+    public async Task<AccessLinkDto> NewLinkFromNucleoAsync(Guid userId)
+    {
+        if (!_currentUser.IsAdmin && await _db.Users.AnyAsync(u => u.Id == userId && u.Role == UserRole.Administrador))
+            throw AppException.Forbidden("Só outro administrador pode gerar um link novo para um administrador.");
+        return await NewLinkAsync(userId);
+    }
+
     /// <summary>Cria o acesso do voluntario (o login e o e-mail do cadastro) e o link de primeiro acesso.</summary>
     public async Task<AccessLinkDto> GrantAsync(Guid volunteerId, UserRole role)
     {

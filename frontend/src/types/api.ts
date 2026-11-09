@@ -35,6 +35,8 @@ export interface User {
   organizationId: string | null;
   /** Faz parte da gestao nacional. */
   isNational: boolean;
+  /** Validade do link de acesso ainda nao usado mais recente (so na lista de acessos; null: nenhum). */
+  linkExpiresAt?: string | null;
 }
 
 /** Um nucleo na gestao nacional: dados basicos, numeros gerais e quem administra. */
@@ -455,6 +457,8 @@ export interface VolunteerAccess {
   role: UserRole;
   isActive: boolean;
   pending: boolean;
+  /** Validade do link de acesso ainda nao usado mais recente (null: nenhum). */
+  linkExpiresAt: string | null;
 }
 
 /** Um periodo do historico de status (endsOn null: o status atual). */

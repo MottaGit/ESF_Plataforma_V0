@@ -19,6 +19,8 @@ export function FirstAccessPage() {
 
   const [info, setInfo] = useState<AccessLinkInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // 410: o link ja foi usado, venceu ou foi trocado. O caso mais comum e quem ja criou a senha e tocou de novo no link.
+  const [linkGone, setLinkGone] = useState(false);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [accepted, setAccepted] = useState(false);
@@ -29,7 +31,10 @@ export function FirstAccessPage() {
     accessApi
       .info(token)
       .then(setInfo)
-      .catch((err) => setLoadError(err instanceof ApiError ? err.message : 'Não foi possível abrir o link.'));
+      .catch((err) => {
+        setLinkGone(err instanceof ApiError && err.status === 410);
+        setLoadError(err instanceof ApiError ? err.message : 'Não foi possível abrir o link.');
+      });
   }, [token]);
 
   async function handleSubmit(event: FormEvent) {
@@ -79,7 +84,22 @@ export function FirstAccessPage() {
       </section>
 
       <section className="login__panel">
-        {loadError ? (
+        {linkGone ? (
+          <div className="login__form">
+            <h1>Este link não vale mais</h1>
+            <p className="login__form-desc">
+              Ele já foi usado, venceu ou foi trocado por um novo. <strong>Se você já criou sua senha</strong>, é só
+              entrar com o seu e-mail e essa senha.
+            </p>
+            <Link className="btn btn--primary btn--block" to="/entrar">
+              Entrar com e-mail e senha
+            </Link>
+            <p className="login__legal">
+              Ainda não criou a senha, ou esqueceu? Peça um link novo à coordenação do seu núcleo: ele vale 7 dias e uma
+              vez só.
+            </p>
+          </div>
+        ) : loadError ? (
           <div className="login__form">
             <h1>Link indisponível</h1>
             <Alert kind="error">{loadError}</Alert>

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace Esf.Api.Controllers;
 
-/// <summary>Acesso por link: a administracao gera, a pessoa abre e cria a propria senha.</summary>
+/// <summary>Acesso por link: a coordenacao gera, a pessoa abre e cria a propria senha.</summary>
 [ApiController]
 [Route("api")]
 public class AccessController : ControllerBase
@@ -16,17 +16,23 @@ public class AccessController : ControllerBase
 
     public AccessController(AccessService access) => _access = access;
 
-    /// <summary>Da acesso a um voluntario (login = e-mail do cadastro) e devolve o link de primeiro acesso.</summary>
+    /// <summary>
+    /// Da acesso a um voluntario (login = e-mail do cadastro) e devolve o link de primeiro acesso. Administrador e
+    /// coordenador; o coordenador nao da o perfil de administrador.
+    /// </summary>
     [HttpPost("volunteers/{id:guid}/access")]
-    [Authorize(Policy = Policies.AdminOnly)]
+    [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<AccessLinkDto>> Grant(Guid id, GrantAccessRequest request)
-        => Ok(await _access.GrantAsync(id, request.Role!.Value));
+        => Ok(await _access.GrantFromNucleoAsync(id, request.Role!.Value));
 
-    /// <summary>Link novo para um acesso existente; os links anteriores ainda nao usados deixam de valer.</summary>
+    /// <summary>
+    /// Link novo para um acesso existente; os links anteriores ainda nao usados deixam de valer. Administrador e
+    /// coordenador; o coordenador nao gera link para o acesso de um administrador.
+    /// </summary>
     [HttpPost("users/{id:guid}/access-link")]
-    [Authorize(Policy = Policies.AdminOnly)]
+    [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<AccessLinkDto>> NewLink(Guid id)
-        => Ok(await _access.NewLinkAsync(id));
+        => Ok(await _access.NewLinkFromNucleoAsync(id));
 
     [HttpGet("access/{token}")]
     [AllowAnonymous]

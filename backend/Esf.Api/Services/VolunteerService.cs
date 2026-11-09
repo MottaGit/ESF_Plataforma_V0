@@ -70,7 +70,8 @@ public class VolunteerService
                 v.AnonymizedAt != null,
                 _db.Users
                     .Where(u => u.VolunteerId == v.Id)
-                    .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == ""))
+                    .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == "",
+                        _db.AccessLinks.Where(l => l.UserId == u.Id && l.UsedAt == null).Max(l => (DateTime?)l.ExpiresAt)))
                     .FirstOrDefault()))
             .ToListAsync();
     }
@@ -137,7 +138,8 @@ public class VolunteerService
     private Task<VolunteerAccessDto?> AccessOfAsync(Guid volunteerId) =>
         _db.Users.AsNoTracking()
             .Where(u => u.VolunteerId == volunteerId)
-            .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == ""))
+            .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == "",
+                _db.AccessLinks.Where(l => l.UserId == u.Id && l.UsedAt == null).Max(l => (DateTime?)l.ExpiresAt)))
             .FirstOrDefaultAsync();
 
     public async Task<VolunteerDto> CreateAsync(SaveVolunteerRequest request)

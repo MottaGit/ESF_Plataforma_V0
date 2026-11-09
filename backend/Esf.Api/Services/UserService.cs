@@ -27,7 +27,8 @@ public class UserService
                 u.TermsVersion != PrivacyTerms.CurrentVersion,
                 u.PasswordHash == "",
                 u.OrganizationId,
-                u.IsNational))
+                u.IsNational,
+                _db.AccessLinks.Where(l => l.UserId == u.Id && l.UsedAt == null).Max(l => (DateTime?)l.ExpiresAt)))
             .ToListAsync();
     }
 

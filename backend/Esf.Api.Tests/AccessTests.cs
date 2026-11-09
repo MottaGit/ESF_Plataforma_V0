@@ -70,4 +70,32 @@ public class AccessTests
         Assert.Equal(free.Name, updated.Name);
         Assert.Equal("sem.acesso.a@teste.org", updated.Email);
     }
+
+    [Fact]
+    public async Task CoordinatorGivesAccessButNeverToOrForAnAdministrator()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var coordinator = new TestUser { Id = Guid.NewGuid(), Name = "Coord", Role = UserRole.Coordenador, OrganizationId = f.A.OrganizationId };
+        await using var db = f.Context(coordinator);
+        var jwt = new JwtTokenService(Options.Create(new JwtOptions
+        {
+            Key = new string('k', 40), Issuer = "teste", Audience = "teste", ExpiresMinutes = 60
+        }));
+        var access = new AccessService(db, jwt, coordinator);
+
+        // O perfil de administrador, nao; usuario, sim.
+        await Assert.ThrowsAsync<AppException>(() => access.GrantFromNucleoAsync(f.A.VolunteerWithoutAccessId, UserRole.Administrador));
+        var link = await access.GrantFromNucleoAsync(f.A.VolunteerWithoutAccessId, UserRole.Usuario);
+
+        // Link novo para esse usuario, sim; para o administrador do nucleo (criaria a senha dele), nao.
+        await access.NewLinkFromNucleoAsync(link.UserId);
+        await Assert.ThrowsAsync<AppException>(() => access.NewLinkFromNucleoAsync(f.A.AdminUserId));
+
+        // O cadastro mostra ate quando o link vale (o anterior foi anulado pelo novo).
+        var volunteer = await new VolunteerService(db, Storage(db), new NotificationService(db, coordinator))
+            .GetAsync(f.A.VolunteerWithoutAccessId);
+        Assert.True(volunteer.Access!.Pending);
+        Assert.NotNull(volunteer.Access.LinkExpiresAt);
+        Assert.Single(await db.AccessLinks.Where(l => l.UserId == link.UserId).ToListAsync());
+    }
 }

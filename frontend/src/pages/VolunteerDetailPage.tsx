@@ -19,7 +19,14 @@ import { VolunteerHoursPanel } from '../components/volunteers/VolunteerHoursPane
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { ProjectListItem, Volunteer, VolunteerHours, VolunteerProject } from '../types/api';
-import { birthdayLabel, isBirthdayToday, isPastProjectStatus, roleLabel, sectorLabel } from '../utils/format';
+import {
+  accessLinkStatus,
+  birthdayLabel,
+  isBirthdayToday,
+  isPastProjectStatus,
+  roleLabel,
+  sectorLabel
+} from '../utils/format';
 import { VolunteerFormModal } from './VolunteersPage';
 
 export function VolunteerDetailPage() {
@@ -210,7 +217,7 @@ export function VolunteerDetailPage() {
         {/* Parte administrativa: acesso, horas e documentos. */}
         <div className="detail-col">
           {canManage && !volunteer.anonymized ? (
-            <AccessPanel volunteer={volunteer} canEdit={isAdmin} onChanged={() => void load()} />
+            <AccessPanel volunteer={volunteer} isAdmin={isAdmin} onChanged={() => void load()} />
           ) : null}
 
           {hours ? (
@@ -263,24 +270,25 @@ export function VolunteerDetailPage() {
 }
 
 /**
- * Acesso a plataforma do voluntario: a coordenacao ve a situacao; a administracao da o acesso (link de primeiro
- * acesso) ou gera um link novo para quem perdeu o anterior ou esqueceu a senha.
+ * Acesso a plataforma do voluntario (so a coordenacao ve): da o acesso (link de primeiro acesso) ou gera um link novo
+ * para quem perdeu o anterior ou esqueceu a senha. O link novo de um administrador so outro administrador gera.
  */
-function AccessPanel({ volunteer, canEdit, onChanged }: { volunteer: Volunteer; canEdit: boolean; onChanged: () => void }) {
+function AccessPanel({ volunteer, isAdmin, onChanged }: { volunteer: Volunteer; isAdmin: boolean; onChanged: () => void }) {
   const [granting, setGranting] = useState(false);
   const [renewing, setRenewing] = useState(false);
   const access = volunteer.access;
+  const canRenew = Boolean(access?.isActive) && (isAdmin || access?.role !== 'Administrador');
 
   return (
     <section className="panel">
       <div className="panel__head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Acesso à plataforma</h2>
-        {canEdit && !access ? (
+        {!access ? (
           <Button variant="primary" small icon={<IconKey size={15} />} onClick={() => setGranting(true)}>
             Dar acesso
           </Button>
         ) : null}
-        {canEdit && access?.isActive ? (
+        {canRenew ? (
           <Button small icon={<IconKey size={15} />} onClick={() => setRenewing(true)}>
             Gerar link de acesso
           </Button>
@@ -302,10 +310,13 @@ function AccessPanel({ volunteer, canEdit, onChanged }: { volunteer: Volunteer; 
               <div className="meta__label">Login</div>
               <div className="meta__value">
                 {!access.isActive
-                  ? 'Desativado (reative em Configurações › Acessos)'
+                  ? `Desativado (${isAdmin ? 'reative' : 'um administrador reativa'} em Configurações › Acessos)`
                   : access.pending
-                    ? 'Aguardando o primeiro acesso'
+                    ? `Aguardando o primeiro acesso: ${accessLinkStatus(access.linkExpiresAt)}`
                     : 'Liberado: entra com o e-mail e a própria senha'}
+                {access.isActive && !canRenew ? (
+                  <div className="field__hint">Link novo para um administrador: só outro administrador gera.</div>
+                ) : null}
               </div>
             </div>
           </div>
