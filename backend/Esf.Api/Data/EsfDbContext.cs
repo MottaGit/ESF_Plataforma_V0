@@ -49,6 +49,7 @@ public class EsfDbContext : DbContext
     public DbSet<ActivityChecklistItem> ActivityChecklistItems => Set<ActivityChecklistItem>();
     public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
     public DbSet<ProgramTemplateIndicator> ProgramTemplateIndicators => Set<ProgramTemplateIndicator>();
+    public DbSet<ProgramPartner> ProgramPartners => Set<ProgramPartner>();
     public DbSet<AccessLink> AccessLinks => Set<AccessLink>();
     public DbSet<NationalIndicator> NationalIndicators => Set<NationalIndicator>();
 
@@ -178,6 +179,19 @@ public class EsfDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.NationalIndicator).WithMany().HasForeignKey(x => x.NationalIndicatorId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<ProgramPartner>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Role).HasMaxLength(60);
+            e.Property(x => x.ContactName).HasMaxLength(120);
+            e.Property(x => x.Email).HasMaxLength(200);
+            e.Property(x => x.Phone).HasMaxLength(40);
+            e.Property(x => x.Notes).HasMaxLength(1000);
+            e.HasIndex(x => new { x.ProgramId, x.Position });
+            e.HasOne(x => x.Program).WithMany(p => p.Partners).HasForeignKey(x => x.ProgramId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Indicadores nacionais: da gestao nacional, sem nucleo (todos os nucleos veem e escolhem).
@@ -421,6 +435,8 @@ public class EsfDbContext : DbContext
         b.Entity<ProgramTemplateActivity>()
             .HasQueryFilter(x => AllOrganizations || x.Program!.OrganizationId == CurrentOrganizationId);
         b.Entity<ProgramTemplateIndicator>()
+            .HasQueryFilter(x => AllOrganizations || x.Program!.OrganizationId == CurrentOrganizationId);
+        b.Entity<ProgramPartner>()
             .HasQueryFilter(x => AllOrganizations || x.Program!.OrganizationId == CurrentOrganizationId);
 
         b.Entity<AccessLink>().HasQueryFilter(x => AllOrganizations || x.User!.OrganizationId == CurrentOrganizationId);

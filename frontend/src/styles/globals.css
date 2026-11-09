@@ -2788,6 +2788,21 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
   .program-overview__report { margin-left: 0; min-height: 36px; }
 }
 
+.program-overview__partners { overflow-wrap: anywhere; }
+
+/* Editar programa › Parceiros */
+.partner-list__role {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.partner-list__contact { gap: 4px 14px; }
+.partners-panel { max-width: 860px; }
+
 /* Editar programa › Sobre */
 .program-about { max-width: 760px; }
 .program-about__actions { display: flex; justify-content: flex-end; gap: 8px; }
@@ -3235,6 +3250,27 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .public-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; }
 .public-hero__meta { margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted); }
 .public-hero__about { margin: 16px 0 0; max-width: 70ch; font-size: 15px; line-height: 1.6; white-space: pre-line; }
+/* Parceiros no topo da pagina publica: nome e papel, lado a lado (empilham no celular). */
+.public-partners { margin-top: 18px; }
+.public-partners__title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.public-partners__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.public-partner {
+  display: grid;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 14px;
+}
+.public-partner span { font-size: 12.5px; color: var(--text-muted); }
 .public-section { margin-top: 32px; }
 .public-section h2 { margin: 0 0 12px; font-size: 17px; }
 .public-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }

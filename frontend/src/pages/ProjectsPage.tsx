@@ -637,6 +637,11 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
               : `${program.projectsCount} ${program.projectsCount === 1 ? 'projeto' : 'projetos'} no programa`}
             {canManage && program.publicPage ? ' · página pública ligada' : ''}
           </span>
+          {program.partners.length > 0 ? (
+            <span className="field__hint program-overview__partners">
+              Parceiros: {program.partners.join(', ')}
+            </span>
+          ) : null}
         </div>
         {canManage ? (
           <div className="program-overview__actions">

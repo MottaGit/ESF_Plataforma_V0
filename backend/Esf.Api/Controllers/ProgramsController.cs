@@ -31,6 +31,16 @@ public class ProgramsController : ControllerBase
     public async Task<ActionResult<ProgramTemplateDto>> SaveTemplate(Guid id, SaveProgramTemplateRequest request)
         => Ok(await _programs.SaveTemplateAsync(id, request));
 
+    /// <summary>Parceiros do programa (nome, papel e contato), na ordem da lista.</summary>
+    [HttpGet("{id:guid}/partners")]
+    public async Task<ActionResult<List<ProgramPartnerDto>>> Partners(Guid id) => Ok(await _programs.GetPartnersAsync(id));
+
+    /// <summary>Grava a lista inteira de parceiros (os que nao vierem sao apagados).</summary>
+    [HttpPut("{id:guid}/partners")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<List<ProgramPartnerDto>>> SavePartners(Guid id, SaveProgramPartnersRequest request)
+        => Ok(await _programs.SavePartnersAsync(id, request));
+
     /// <summary>Pagina publica do programa (link sem login para parceiros e financiadores).</summary>
     [HttpGet("{id:guid}/public-page")]
     [Authorize(Policy = Policies.ManageProjects)]

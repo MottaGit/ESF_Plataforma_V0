@@ -56,6 +56,7 @@ public class NucleoIsolationTests
             Assert.Equal(2, await db.SignedDocuments.CountAsync());
             Assert.Equal(mine.ProgramId, Assert.Single(await db.ProgramTemplateActivities.ToListAsync()).ProgramId);
             Assert.Equal(mine.ProgramId, Assert.Single(await db.ProgramTemplateIndicators.ToListAsync()).ProgramId);
+            Assert.Equal(mine.ProgramId, Assert.Single(await db.ProgramPartners.ToListAsync()).ProgramId);
             Assert.Equal(mine.OrganizationId, Assert.Single(await db.AuditEntries.ToListAsync()).OrganizationId);
             Assert.Equal(mine.AdminUserId, Assert.Single(await db.AccessLinks.ToListAsync()).UserId);
 

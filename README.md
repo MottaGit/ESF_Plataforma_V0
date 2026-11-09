@@ -142,7 +142,9 @@ Os projetos mostram uma situação diferente cada um:
 
 Os de banheiro vêm dos registros reais do programa (INFOBANs); os de horta são estimados. Cada projeto tem equipe
 com papéis, tarefas com checklist, registros de andamento e indicadores com os mesmos nomes do modelo do programa,
-para a página do programa somar os resultados. Há comentários com menção em duas tarefas e autorização de imagem
+para a página do programa somar os resultados. O programa de banheiros tem como parceiras as gestoras locais (ACONVI
+/ Banco Comunitário Justa Troca e CPCA) e o de hortas, a associação de moradores, sem contato preenchido. Há
+comentários com menção em duas tarefas e autorização de imagem
 assinada em dois projetos. As datas contam a partir do dia em que o banco é criado, então sempre há tarefas
 concluídas, vencidas e próximas perto de "hoje". Os projetos de banheiro ficam sem ponto no mapa de propósito (são
 casas de famílias); as hortas marcam o bairro.
@@ -232,7 +234,14 @@ programa abre a visão dele.
 **Editar programa** — o lugar de tudo o que é do programa (`/programas/{id}/editar`, aba na URL: `?aba=modelo`),
 com as abas **Sobre** (nome, ícone e cor e o **"Sobre o programa"**, até 1.500 caracteres, o texto para quem não
 conhece o núcleo que vai para o topo da página pública; um **Salvar** grava tudo de uma vez, **Descartar mudanças**
-volta ao que estava, e o que foi digitado continua lá ao trocar de aba) e **Modelo de projeto** (abaixo). O
+volta ao que estava, e o que foi digitado continua lá ao trocar de aba), **Modelo de projeto** (abaixo) e
+**Parceiros** (`?aba=parceiros`). Parceiros são do programa (projetos não têm parceiros próprios): nome da
+organização, **papel** (texto livre, com sugestões: Financiador, Apoiador, Parceiro técnico, Poder público, Gestora
+local, Doador de material), pessoa de contato, e-mail, telefone (que liga ao toque, com o atalho do WhatsApp) e
+observações. A coordenação inclui, edita, reordena (a ordem é a da página pública e do PDF) e remove; cada mudança
+grava na hora. **O nome e o papel** aparecem na visão do programa ("Parceiros: …", só os nomes), na página pública e
+no PDF; **contato e observações** ficam só dentro do núcleo (a gestão nacional não vê; no histórico de alterações
+entram mascarados, como os dados de voluntário). O
 "Sobre o programa" é diferente da descrição sugerida do modelo: um apresenta o programa, a outra preenche cada projeto
 novo. **+ Novo programa** abre uma janela curta (nome, ícone e cor) e, ao criar, já leva para a aba Modelo de
 projeto do programa novo; o "Novo" ao lado do Programa no formulário de projeto continua criando por cima do
@@ -566,7 +575,8 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 programa › **Relatório do programa**, `?programa=`, os projetos dele já vêm marcados; no celular, com projetos marcados, o
 **Gerar PDF** fica preso embaixo da tela, com o atalho "Período e opções", porque as opções ficam depois da lista
 inteira), observação livre e geração de um **PDF consolidado** com
-identificação, descrição, objetivo, período, status, responsável, localização, voluntários (nome, papel no
+identificação (no topo de cada projeto, embaixo do programa, a linha **Parceiros:** com os parceiros do programa —
+nome e papel, sem contato), descrição, objetivo, período, status, responsável, localização, voluntários (nome, papel no
 projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
 referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Trimestre passado**, **Últimos 3
 meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
@@ -651,7 +661,8 @@ querer. O X e o Cancelar continuam fechando direto. Janela em que nada foi mexid
 **Página pública do programa** — um link que abre sem login e só para leitura, para mandar a parceiros e financiadores
 no lugar do PDF (ou virar QR code na placa da obra). Fica desligada em todo programa; a coordenação liga e desliga, e
 desligar invalida o link (ligar de novo gera outro, `/publico/{código}`). Mostra o programa (nome, ícone e o "Sobre o
-programa", texto escrito para quem não conhece o núcleo), os **resultados até hoje** (quantos projetos concluídos, em
+programa", texto escrito para quem não conhece o núcleo), os **parceiros** (nome e papel, na ordem da lista, logo
+abaixo do texto; nunca o contato), os **resultados até hoje** (quantos projetos concluídos, em
 andamento, em preparação e pausados; os indicadores nacionais e os do modelo do programa somados, só os que têm valor;
 quantos voluntários participaram, sem repetir, e as horas lançadas), um cartão por projeto (nome, situação, bairro e
 cidade, início e previsão de término, progresso das tarefas, os indicadores informados e quando foi o último registro)
@@ -783,8 +794,8 @@ reorganizar o projeto em módulos com Clean Architecture e DDD sem reescrever as
 
 **Núcleos (vários núcleos numa plataforma só)** — o registro `Organizations` é o núcleo (nome, CNPJ, logo, quem
 assina). Voluntários, programas, projetos, acessos e o histórico de alterações guardam o núcleo (`OrganizationId`); o
-resto (tarefas, indicadores, registros, arquivos, equipe, comentários, checklist, avisos, documentos, modelos de
-programa, links de acesso) herda o do projeto, do voluntário, da tarefa ou do programa. A separação fica no
+resto (tarefas, indicadores, registros, arquivos, equipe, comentários, checklist, avisos, documentos, modelos e
+parceiros de programa, links de acesso) herda o do projeto, do voluntário, da tarefa ou do programa. A separação fica no
 `EsfDbContext`, num **filtro global por núcleo** em todas essas tabelas: toda consulta só enxerga o núcleo de quem está
 logado (vem no token, claim `org`), sem depender de cada tela lembrar. Registro novo de voluntário, programa ou
 projeto entra sozinho no núcleo atual ao salvar, e as validações de "existe?" usam consultas filtradas, então um id de
@@ -849,6 +860,7 @@ ESF_Plataforma_V0/
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
 | `Programs` | programas (nome, situação, ícone, cor, os textos sugeridos do modelo e a página pública: código do link — vazio com ela desligada — e o "Sobre o programa") |
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa |
+| `ProgramPartners` | parceiros de cada programa (ordem, nome, papel, pessoa de contato, e-mail, telefone, observações) |
 | `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
 | `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
@@ -884,8 +896,9 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/dashboard` | dados do Início (minhas tarefas, meus projetos, resumo da organização e carga da equipe) |
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `onlyStale`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
-| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos, "Sobre o programa" e resultados somados; edita nome, ícone, cor e o "Sobre o programa" (`about`, sempre o texto atual) e arquiva/reativa; exclui só programa sem projetos |
+| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos, "Sobre o programa", nomes dos parceiros e resultados somados; edita nome, ícone, cor e o "Sobre o programa" (`about`, sempre o texto atual) e arquiva/reativa; exclui só programa sem projetos |
 | GET/PUT | `/api/programs/{id}/template` | modelo do programa (PUT grava o modelo inteiro; coordenação) |
+| GET/PUT | `/api/programs/{id}/partners` | parceiros do programa, na ordem (PUT grava a lista inteira: com `id` altera, sem `id` cria, os que faltarem são apagados; coordenação) |
 | GET | `/api/volunteers/{id}/documents` | termo assinado do voluntário (coordenação; quem assina é o voluntário, em `/api/me/term`) |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
 | GET | `/api/volunteers/{id}/certificate/options` | período completo e projetos da pessoa, já calculados, para a janela do certificado |

@@ -26,6 +26,7 @@ import type {
   NucleoAdminResult,
   Organization,
   Program,
+  ProgramPartner,
   ProgramPublicPage,
   ProgramTemplate,
   PublicProgram,
@@ -43,6 +44,7 @@ import type {
   SaveNucleoPayload,
   SaveProgramTemplatePayload,
   SaveOrganizationPayload,
+  SaveProgramPartnersPayload,
   SaveProgramPayload,
   SaveProjectPayload,
   SaveUserPayload,
@@ -124,6 +126,10 @@ export const programsApi = {
     http.request<Program>(`/api/programs/${id}`, { method: 'PUT', body: payload }),
   /** So para programa sem projetos. */
   remove: (id: string) => http.request<void>(`/api/programs/${id}`, { method: 'DELETE' }),
+  partners: (id: string) => http.request<ProgramPartner[]>(`/api/programs/${id}/partners`),
+  /** Grava a lista inteira de parceiros (os que nao vierem sao apagados). */
+  savePartners: (id: string, payload: SaveProgramPartnersPayload) =>
+    http.request<ProgramPartner[]>(`/api/programs/${id}/partners`, { method: 'PUT', body: payload }),
   /** Pagina publica do programa (coordenacao). */
   publicPage: (id: string) => http.request<ProgramPublicPage>(`/api/programs/${id}/public-page`),
   /** Liga/desliga a pagina publica; desligar invalida o link. */

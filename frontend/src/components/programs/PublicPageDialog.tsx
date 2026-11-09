@@ -122,10 +122,10 @@ export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDial
       ) : (
         <div className="public-page-dialog">
           <p className="field__hint">
-            Um link que abre sem login, só para leitura, para mandar a parceiros e financiadores. Mostra o nome, a situação,
-            o bairro e a cidade, o período, o progresso e os indicadores de cada projeto (menos cancelados e arquivados),
-            os resultados somados, quantos voluntários e horas, e o CNPJ e o e-mail do núcleo. Nunca mostra endereço,
-            pessoas, tarefas, registros, fotos ou arquivos.
+            Um link que abre sem login, só para leitura, para mandar a parceiros e financiadores. Mostra os parceiros do
+            programa (nome e papel), o nome, a situação, o bairro e a cidade, o período, o progresso e os indicadores de
+            cada projeto (menos cancelados e arquivados), os resultados somados, quantos voluntários e horas, e o CNPJ e o
+            e-mail do núcleo. Nunca mostra endereço, pessoas, contatos, tarefas, registros, fotos ou arquivos.
           </p>
 
           {url ? (

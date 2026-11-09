@@ -167,6 +167,19 @@ export function PublicProgramPage() {
             </div>
           </div>
           {page.about ? <p className="public-hero__about">{page.about}</p> : null}
+          {page.partners.length > 0 ? (
+            <div className="public-partners">
+              <h2 className="public-partners__title">Parceiros</h2>
+              <ul className="public-partners__list">
+                {page.partners.map((partner, index) => (
+                  <li key={`${partner.name}-${index}`} className="public-partner">
+                    <strong>{partner.name}</strong>
+                    {partner.role ? <span>{partner.role}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
         <section className="public-section" aria-labelledby="public-results">

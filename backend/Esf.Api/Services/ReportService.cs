@@ -56,6 +56,12 @@ public class ReportService
             .Where(t => programIds.Contains(t.ProgramId))
             .OrderBy(t => t.Position)
             .ToListAsync();
+        var partners = await _db.ProgramPartners
+            .AsNoTracking()
+            .Where(x => programIds.Contains(x.ProgramId))
+            .OrderBy(x => x.Position)
+            .Select(x => new { x.ProgramId, x.Name, x.Role })
+            .ToListAsync();
 
         var model = new ReportModel
         {
@@ -72,6 +78,9 @@ public class ReportService
             From = request.From,
             To = request.To,
             ProgramResults = ProgramResults(projects, templates),
+            Partners = partners
+                .GroupBy(x => x.ProgramId)
+                .ToDictionary(g => g.Key, g => g.Select(x => new ReportPartner(x.Name, x.Role)).ToList()),
             Hours = await ProjectHoursService.TotalsAsync(_db, ids, request.From, request.To)
         };
 

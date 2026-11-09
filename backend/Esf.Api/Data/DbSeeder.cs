@@ -350,6 +350,12 @@ public static class DbSeeder
         };
         db.Programs.AddRange(pBanheiro, pHorta);
 
+        // Parceiros: as gestoras locais que indicam as familias e os construtores (sem contato inventado).
+        db.ProgramPartners.AddRange(
+            new ProgramPartner { Program = pBanheiro, Position = 0, Name = "ACONVI / Banco Comunitário Justa Troca", Role = "Gestora local" },
+            new ProgramPartner { Program = pBanheiro, Position = 1, Name = "CPCA", Role = "Gestora local" },
+            new ProgramPartner { Program = pHorta, Position = 0, Name = "Associação de moradores do bairro", Role = "Cedeu o terreno" });
+
         db.ProgramTemplateActivities.AddRange(
             new ProgramTemplateActivity { Program = pBanheiro, Position = 0, Title = "Visita técnica e levantamento", Priority = ActivityPriority.Media, DueDays = 7 },
             new ProgramTemplateActivity { Program = pBanheiro, Position = 1, Title = "Projeto e orçamento", Priority = ActivityPriority.Media, DueDays = 20 },

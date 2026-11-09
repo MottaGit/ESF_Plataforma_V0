@@ -4,6 +4,7 @@ import { ApiError } from '../api/client';
 import { programsApi } from '../api/endpoints';
 import { ProgramLookField } from '../components/programs/ProgramLookField';
 import { ProgramMark } from '../components/programs/ProgramMark';
+import { ProgramPartnersTab } from '../components/programs/ProgramPartnersTab';
 import { ProgramTemplateTab } from '../components/programs/ProgramTemplateTab';
 import { Button } from '../components/ui/Button';
 import { Field, TextArea, TextInput } from '../components/ui/Field';
@@ -27,19 +28,20 @@ export function ProgramTemplateRedirect() {
   return <Navigate to={`/programas/${id}/editar?aba=modelo`} replace />;
 }
 
-type TabKey = 'sobre' | 'modelo';
+type TabKey = 'sobre' | 'modelo' | 'parceiros';
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'sobre', label: 'Sobre' },
-  { key: 'modelo', label: 'Modelo de projeto' }
+  { key: 'modelo', label: 'Modelo de projeto' },
+  { key: 'parceiros', label: 'Parceiros' }
 ];
 
 const ABOUT_MAX = 1500;
 
 /**
  * Editar programa (Projetos › programa › Editar programa, /programas/{id}/editar): o lugar de tudo o que e do
- * programa. Abas na URL (?aba=modelo): Sobre (nome, icone, cor e o texto do programa) e Modelo de projeto (tarefas,
- * indicadores e textos que cada projeto novo recebe).
+ * programa. Abas na URL (?aba=modelo, ?aba=parceiros): Sobre (nome, icone, cor e o texto do programa), Modelo de
+ * projeto (tarefas, indicadores e textos que cada projeto novo recebe) e Parceiros.
  */
 export function ProgramEditPage() {
   const { id = '' } = useParams();
@@ -103,6 +105,7 @@ export function ProgramEditPage() {
         <ProgramAboutTab key={program.id} program={program} canEdit={canManage} onSaved={setProgram} />
       </div>
       {tab === 'modelo' ? <ProgramTemplateTab programId={program.id} canEdit={canManage} onChanged={load} /> : null}
+      {tab === 'parceiros' ? <ProgramPartnersTab programId={program.id} canEdit={canManage} onChanged={load} /> : null}
     </>
   );
 }

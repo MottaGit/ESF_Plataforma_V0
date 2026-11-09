@@ -177,8 +177,26 @@ export interface Program {
   hasTemplateTexts: boolean;
   /** A pagina publica do programa esta ligada. */
   publicPage: boolean;
+  /** Nomes dos parceiros, na ordem da lista (o contato vem em programsApi.partners). */
+  partners: string[];
   /** Nacionais e indicadores padrao do modelo, somados nos projetos do programa (regra unica, ResultTotals). */
   results: ProgramResult[];
+}
+
+/** Parceiro do programa. Nome e papel aparecem na pagina publica e no PDF; contato e observacoes, so no nucleo. */
+export interface ProgramPartner {
+  id: string;
+  name: string;
+  role: string | null;
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+}
+
+/** A lista inteira; itens com id null sao novos e os que faltarem sao apagados. */
+export interface SaveProgramPartnersPayload {
+  partners: Array<Omit<ProgramPartner, 'id'> & { id: string | null }>;
 }
 
 /** Pagina publica do programa, como a coordenacao configura (o codigo so vem com ela ligada). */
@@ -196,6 +214,8 @@ export interface PublicProgram {
   icon: string;
   color: string;
   about: string | null;
+  /** Parceiros do programa: so nome e papel. */
+  partners: PublicPartner[];
   nucleo: PublicNucleo;
   totals: PublicProgramTotals;
   /** Indicadores somados nos projetos mostrados (nacionais e do modelo do programa), so os que tem valor. */
@@ -212,6 +232,11 @@ export interface PublicNucleo {
   email: string | null;
   city: string | null;
   state: string | null;
+}
+
+export interface PublicPartner {
+  name: string;
+  role: string | null;
 }
 
 export interface PublicProgramTotals {

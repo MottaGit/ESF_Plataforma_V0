@@ -276,6 +276,14 @@ public static class ProjectReportBuilder
                 {
                     head.Item().Text(p.Name).FontSize(12.5f).SemiBold();
                     head.Item().Text($"{p.Program!.Name} - {LocationLine(p)}").FontSize(8.5f).FontColor(Muted);
+                    // Parceiros do programa logo abaixo do nome dele (so nome e papel).
+                    var partners = model.PartnersLine(p.ProgramId);
+                    if (partners != null)
+                        head.Item().Text(text =>
+                        {
+                            text.Span("Parceiros: ").FontSize(8.5f).SemiBold().FontColor(Ink);
+                            text.Span(partners).FontSize(8.5f).FontColor(Muted);
+                        });
                 });
 
                 row.ConstantItem(120).AlignRight().Column(head =>

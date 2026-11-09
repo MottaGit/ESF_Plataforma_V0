@@ -39,7 +39,18 @@ public record ReportModel
 
     /// <summary>Indicadores padrao de cada programa somados nos projetos do relatorio (bloco Resultados).</summary>
     public List<ReportProgramResults> ProgramResults { get; init; } = new();
+
+    /// <summary>Parceiros de cada programa (ProgramId), na ordem da lista: so nome e papel vao para o PDF.</summary>
+    public Dictionary<Guid, List<ReportPartner>> Partners { get; init; } = new();
+
+    /// <summary>"Instituto X (Financiador) · Prefeitura"; null quando o programa nao tem parceiros.</summary>
+    public string? PartnersLine(Guid programId) =>
+        Partners.TryGetValue(programId, out var list) && list.Count > 0
+            ? string.Join(" · ", list.Select(p => string.IsNullOrWhiteSpace(p.Role) ? p.Name : $"{p.Name} ({p.Role})"))
+            : null;
 }
+
+public record ReportPartner(string Name, string? Role);
 
 public record ReportProgramResults(string Program, int Projects, List<ReportResult> Results);
 

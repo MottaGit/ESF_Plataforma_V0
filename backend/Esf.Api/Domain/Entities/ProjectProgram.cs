@@ -42,5 +42,8 @@ public class ProjectProgram : IOrganizationOwned
     public ICollection<ProgramTemplateActivity> TemplateActivities { get; set; } = new List<ProgramTemplateActivity>();
     public ICollection<ProgramTemplateIndicator> TemplateIndicators { get; set; } = new List<ProgramTemplateIndicator>();
 
+    /// <summary>Parceiros do programa, na ordem da lista.</summary>
+    public ICollection<ProgramPartner> Partners { get; set; } = new List<ProgramPartner>();
+
     public ICollection<Project> Projects { get; set; } = new List<Project>();
 }

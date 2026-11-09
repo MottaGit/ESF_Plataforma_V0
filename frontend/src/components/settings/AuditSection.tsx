@@ -24,6 +24,7 @@ const ENTITY_TYPES = [
   'Documento assinado',
   'Programa',
   'Modelo do programa',
+  'Parceiro do programa',
   'Usuário',
   'Organização',
   'Planilha'
@@ -51,6 +52,11 @@ function describe(entry: AuditEntry) {
     if (entry.action === 'Created') return `incluiu no modelo do programa: ${entry.entityLabel}`;
     if (entry.action === 'Deleted') return `tirou do modelo do programa: ${entry.entityLabel}`;
     return `alterou no modelo do programa: ${entry.entityLabel}`;
+  }
+  if (entry.entityType === 'Parceiro do programa') {
+    if (entry.action === 'Created') return `incluiu o parceiro ${entry.entityLabel}`;
+    if (entry.action === 'Deleted') return `tirou o parceiro ${entry.entityLabel}`;
+    return `alterou o parceiro ${entry.entityLabel}`;
   }
   if (entry.entityType === 'Horas') {
     if (entry.action === 'Created') return `lançou horas: ${entry.entityLabel}`;

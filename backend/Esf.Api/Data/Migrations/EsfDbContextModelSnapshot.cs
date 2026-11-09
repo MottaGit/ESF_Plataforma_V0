@@ -432,6 +432,53 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("Organizations");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramPartner", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContactName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProgramId", "Position");
+
+                    b.ToTable("ProgramPartners");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateActivity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1160,6 +1207,17 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("Volunteer");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramPartner", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.ProjectProgram", "Program")
+                        .WithMany("Partners")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Program");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProgramTemplateActivity", b =>
                 {
                     b.HasOne("Esf.Api.Domain.Entities.ProjectProgram", "Program")
@@ -1386,6 +1444,8 @@ namespace Esf.Api.Data.Migrations
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.ProjectProgram", b =>
                 {
+                    b.Navigation("Partners");
+
                     b.Navigation("Projects");
 
                     b.Navigation("TemplateActivities");

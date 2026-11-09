@@ -34,6 +34,7 @@ public class ProgramService
         p.TemplateIndicators.Count,
         p.TemplateDescription != null || p.TemplateObjective != null || p.TemplateTargetAudience != null,
         p.PublicToken != null,
+        new List<string>(),
         new List<ProgramResultDto>());
 
     public async Task<List<ProgramDto>> ListAsync(bool onlyActive)
@@ -59,10 +60,16 @@ public class ProgramService
     /// <summary>
     /// Resultados de cada programa pela regra unica (ResultTotals): os nacionais e os indicadores padrao do modelo,
     /// somados nos projetos do programa que nao foram cancelados (os arquivados entram), so com os valores informados.
+    /// Junto, os nomes dos parceiros de cada programa.
     /// </summary>
     private async Task<List<ProgramDto>> WithResultsAsync(List<ProgramDto> programs)
     {
         var ids = programs.Select(p => p.Id).ToList();
+        var partners = await _db.ProgramPartners.AsNoTracking()
+            .Where(x => ids.Contains(x.ProgramId))
+            .OrderBy(x => x.Position)
+            .Select(x => new { x.ProgramId, x.Name })
+            .ToListAsync();
         var templates = await _db.ProgramTemplateIndicators.AsNoTracking()
             .Where(t => ids.Contains(t.ProgramId))
             .OrderBy(t => t.Position)
@@ -78,6 +85,7 @@ public class ProgramService
         return programs
             .Select(p => p with
             {
+                Partners = partners.Where(x => x.ProgramId == p.Id).Select(x => x.Name).ToList(),
                 Results = ResultTotals
                     .Compute(
                         indicators.Where(i => i.ProgramId == p.Id)
@@ -223,6 +231,50 @@ public class ProgramService
 
         await _db.SaveChangesAsync();
         return await GetTemplateAsync(id);
+    }
+
+    /// <summary>Parceiros do programa, na ordem da lista (com o contato: so para quem e do nucleo).</summary>
+    public async Task<List<ProgramPartnerDto>> GetPartnersAsync(Guid id)
+    {
+        if (!await _db.Programs.AnyAsync(p => p.Id == id)) throw AppException.NotFound("Programa");
+
+        return await _db.ProgramPartners.AsNoTracking()
+            .Where(x => x.ProgramId == id)
+            .OrderBy(x => x.Position)
+            .Select(x => new ProgramPartnerDto(x.Id, x.Name, x.Role, x.ContactName, x.Email, x.Phone, x.Notes))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Grava a lista inteira de parceiros: com Id sao atualizados, sem Id sao criados e os que sairam da lista sao
+    /// apagados. A ordem da lista e a da pagina publica e do PDF.
+    /// </summary>
+    public async Task<List<ProgramPartnerDto>> SavePartnersAsync(Guid id, SaveProgramPartnersRequest request)
+    {
+        var program = await _db.Programs
+                          .Include(p => p.Partners)
+                          .FirstOrDefaultAsync(p => p.Id == id)
+                      ?? throw AppException.NotFound("Programa");
+
+        var existing = program.Partners.ToDictionary(x => x.Id);
+        for (var i = 0; i < request.Partners.Count; i++)
+        {
+            var item = request.Partners[i];
+            var partner = item.Id.HasValue && existing.Remove(item.Id.Value, out var found)
+                ? found
+                : _db.ProgramPartners.Add(new ProgramPartner { ProgramId = id, Program = program }).Entity;
+            partner.Position = i;
+            partner.Name = item.Name.Trim();
+            partner.Role = Clean(item.Role);
+            partner.ContactName = Clean(item.ContactName);
+            partner.Email = Clean(item.Email);
+            partner.Phone = Clean(item.Phone);
+            partner.Notes = Clean(item.Notes);
+        }
+        _db.ProgramPartners.RemoveRange(existing.Values);
+
+        await _db.SaveChangesAsync();
+        return await GetPartnersAsync(id);
     }
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

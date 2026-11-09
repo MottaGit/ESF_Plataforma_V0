@@ -88,6 +88,11 @@ public static class AuditTrail
             ["DueDays"] = "Prazo (dias após o início)"
         },
         [typeof(ProgramTemplateIndicator)] = new() { ["Name"] = "Nome", ["Unit"] = "Unidade" },
+        [typeof(ProgramPartner)] = new()
+        {
+            ["Name"] = "Nome", ["Role"] = "Papel", ["ContactName"] = "Pessoa de contato", ["Email"] = "E-mail",
+            ["Phone"] = "Telefone", ["Notes"] = "Observações"
+        },
         [typeof(ActivityChecklistItem)] = new() { ["Text"] = "Item", ["Done"] = "Feito" },
         [typeof(ActivityComment)] = new() { ["Text"] = "Texto" },
         [typeof(ProjectVolunteer)] = new() { ["RoleInProject"] = "Função" },
@@ -113,7 +118,9 @@ public static class AuditTrail
         [typeof(User)] = new() { "PasswordHash" },
         [typeof(Organization)] = new() { "LogoUrl", "SignatureStoredName" },
         // O codigo do link publico nao vai para o historico: so que a pagina foi ligada, desligada ou trocada.
-        [typeof(ProjectProgram)] = new() { "PublicToken" }
+        [typeof(ProjectProgram)] = new() { "PublicToken" },
+        // Contato do parceiro e uma pessoa: so registra que mudou (nome e papel da organizacao aparecem).
+        [typeof(ProgramPartner)] = new() { "ContactName", "Email", "Phone", "Notes" }
     };
 
     public static async Task RecordAsync(EsfDbContext db, Guid userId, CancellationToken cancellationToken)
@@ -192,6 +199,7 @@ public static class AuditTrail
             c.Id, null),
         ProgramTemplateActivity a => ("Modelo do programa", $"{a.Program?.Name ?? "Programa"}: tarefa \"{a.Title}\"", a.Id, null),
         ProgramTemplateIndicator i => ("Modelo do programa", $"{i.Program?.Name ?? "Programa"}: indicador \"{i.Name}\"", i.Id, null),
+        ProgramPartner p => ("Parceiro do programa", $"{p.Program?.Name ?? "Programa"}: {p.Name}", p.Id, null),
         ActivityChecklistItem c => ("Checklist", $"{c.Activity?.Title ?? "Tarefa"}: {c.Text}", c.Id, c.Activity?.ProjectId),
         ActivityComment c => ("Comentário", $"{c.Activity?.Title ?? "Tarefa"}: {Truncate(c.Text, 80)}", c.Id, c.Activity?.ProjectId),
         Organization o => ("Organização", o.Name, o.Id, null),

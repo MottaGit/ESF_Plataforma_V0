@@ -232,7 +232,8 @@ const SECTIONS: HelpSection[] = [
             programa no topo para ver os resultados somados. A coordenação cuida dele em{' '}
             <strong>Editar programa</strong>: em <strong>Sobre</strong>, o nome, o ícone e o texto que apresenta o
             programa; em <strong>Modelo de projeto</strong>, as tarefas e os indicadores que todo projeto novo dele já
-            recebe.
+            recebe; em <strong>Parceiros</strong>, quem financia ou apoia. O nome e o papel de cada parceiro saem na
+            página pública e no relatório em PDF; o contato fica só no núcleo.
           </p>
         )
       },

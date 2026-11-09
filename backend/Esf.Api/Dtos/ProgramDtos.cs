@@ -23,8 +23,54 @@ public record ProgramDto(
     bool HasTemplateTexts,
     // A pagina publica do programa esta ligada.
     bool PublicPage,
+    // Nomes dos parceiros, na ordem da lista (o contato fica em /partners).
+    List<string> Partners,
     // Resultados do programa: nacionais e indicadores padrao do modelo, somados como em ResultTotals.
     List<ProgramResultDto> Results);
+
+/// <summary>Parceiro do programa, completo (so para quem e do nucleo).</summary>
+public record ProgramPartnerDto(
+    Guid Id,
+    string Name,
+    string? Role,
+    string? ContactName,
+    string? Email,
+    string? Phone,
+    string? Notes);
+
+/// <summary>
+/// A lista inteira de parceiros (a tela manda como ficou): com Id sao atualizados, sem Id sao criados e os que nao
+/// vierem sao apagados; a ordem da lista e a ordem do programa.
+/// </summary>
+public class SaveProgramPartnersRequest
+{
+    public List<SaveProgramPartnerRequest> Partners { get; set; } = new();
+}
+
+public class SaveProgramPartnerRequest
+{
+    public Guid? Id { get; set; }
+
+    [Required(ErrorMessage = "Informe o nome do parceiro.")]
+    [StringLength(120, MinimumLength = 2, ErrorMessage = "O nome do parceiro deve ter entre 2 e 120 caracteres.")]
+    public string Name { get; set; } = string.Empty;
+
+    [StringLength(60, ErrorMessage = "O papel deve ter no máximo 60 caracteres.")]
+    public string? Role { get; set; }
+
+    [StringLength(120, ErrorMessage = "O nome do contato deve ter no máximo 120 caracteres.")]
+    public string? ContactName { get; set; }
+
+    [EmailAddress(ErrorMessage = "E-mail do contato inválido.")]
+    [StringLength(200, ErrorMessage = "O e-mail deve ter no máximo 200 caracteres.")]
+    public string? Email { get; set; }
+
+    [StringLength(40, ErrorMessage = "O telefone deve ter no máximo 40 caracteres.")]
+    public string? Phone { get; set; }
+
+    [StringLength(1000, ErrorMessage = "As observações devem ter no máximo 1000 caracteres.")]
+    public string? Notes { get; set; }
+}
 
 /// <summary>Resultado somado: Total null quando nenhum projeto informou; Informed de Projects projetos informaram.</summary>
 public record ProgramResultDto(string Name, string? Unit, decimal? Total, int Informed, int Projects, bool National);
@@ -49,6 +95,8 @@ public record PublicProgramDto(
     string Icon,
     string Color,
     string? About,
+    // Parceiros: so nome e papel (o contato nunca sai do nucleo).
+    List<PublicPartnerDto> Partners,
     PublicNucleoDto Nucleo,
     PublicProgramTotalsDto Totals,
     // Indicadores somados nos projetos mostrados (nacionais e os do modelo do programa); so os que tem valor.
@@ -58,6 +106,8 @@ public record PublicProgramDto(
     DateTime? UpdatedAt);
 
 public record PublicNucleoDto(string Name, string? LogoUrl, string? Cnpj, string? Email, string? City, string? State);
+
+public record PublicPartnerDto(string Name, string? Role);
 
 public record PublicProgramTotalsDto(int Concluded, int InProgress, int Planning, int Paused, int Volunteers, decimal Hours);
 

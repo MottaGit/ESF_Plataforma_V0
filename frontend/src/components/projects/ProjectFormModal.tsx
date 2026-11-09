@@ -125,6 +125,7 @@ export function ProjectFormModal({
             templateIndicatorsCount: 0,
             hasTemplateTexts: false,
             publicPage: false,
+            partners: [],
             results: []
           }
         ]

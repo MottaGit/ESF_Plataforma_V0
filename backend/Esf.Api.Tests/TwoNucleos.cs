@@ -97,6 +97,11 @@ public sealed class TwoNucleos
             },
             new ProgramTemplateActivity { ProgramId = program.Id, Title = "Visita tecnica" },
             new ProgramTemplateIndicator { ProgramId = program.Id, Name = "Familias atendidas" },
+            new ProgramPartner
+            {
+                ProgramId = program.Id, Name = $"Instituto {slug}", Role = "Financiador",
+                ContactName = $"Contato {slug}", Email = $"contato.{slug}@parceiro.org"
+            },
             new AuditEntry { OrganizationId = org.Id, UserName = admin.Name, EntityType = "Projeto", EntityLabel = project.Name },
             new AccessLink { UserId = admin.Id, TokenHash = $"hash-{slug}", ExpiresAt = DateTime.UtcNow.AddDays(1) });
         await db.SaveChangesAsync();

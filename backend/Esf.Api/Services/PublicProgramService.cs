@@ -41,6 +41,13 @@ public class PublicProgramService
 
         var nucleo = await _db.Organizations.AsNoTracking().FirstAsync(o => o.Id == program.OrganizationId);
 
+        // Parceiros: so nome e papel; contato e observacoes nunca saem do nucleo.
+        var partners = await _db.ProgramPartners.AsNoTracking()
+            .Where(x => x.ProgramId == program.Id)
+            .OrderBy(x => x.Position)
+            .Select(x => new PublicPartnerDto(x.Name, x.Role))
+            .ToListAsync();
+
         var projects = await _db.Projects.AsNoTracking()
             .Where(p => p.ProgramId == program.Id)
             .Where(ResultTotals.CountsForResults)
@@ -109,6 +116,7 @@ public class PublicProgramService
             program.Icon,
             program.Color,
             program.PublicDescription,
+            partners,
             new PublicNucleoDto(nucleo.Name, nucleo.LogoUrl, nucleo.Cnpj, nucleo.Email, nucleo.City, nucleo.State),
             new PublicProgramTotalsDto(
                 projects.Count(p => p.Status == ProjectStatus.Concluido),
