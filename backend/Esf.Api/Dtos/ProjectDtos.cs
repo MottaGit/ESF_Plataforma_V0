@@ -132,8 +132,8 @@ public class SaveProjectRequest
     public DateOnly? ClosedOn { get; set; }
 
     /// <summary>
-    /// So na criacao: usa o modelo do programa (cria as atividades e os indicadores padrao e preenche descricao,
-    /// objetivo e publico que vierem vazios).
+    /// So na criacao: usa o modelo do programa (cria as tarefas e os indicadores padrao). Descricao e objetivo vazios
+    /// recebem os do programa sempre, com ou sem o modelo.
     /// </summary>
     public bool UseTemplate { get; set; }
 }

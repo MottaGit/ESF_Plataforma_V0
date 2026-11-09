@@ -149,6 +149,14 @@ public class ProjectService
         project.CreatedAt = DateTime.UtcNow;
         project.UpdatedAt = DateTime.UtcNow;
 
+        // Ficha do programa: descricao e objetivo em branco comecam com os do programa (sempre, com ou sem o modelo).
+        var program = await _db.Programs.AsNoTracking()
+            .Where(p => p.Id == project.ProgramId)
+            .Select(p => new { p.Description, p.Objective })
+            .FirstAsync();
+        project.Description ??= program.Description;
+        project.Objective ??= program.Objective;
+
         _db.Projects.Add(project);
         var nationals = await NationalIndicatorService.AddActiveToNewProjectAsync(_db, project);
         if (request.UseTemplate) await ApplyProgramTemplateAsync(project, nationals);
@@ -232,8 +240,7 @@ public class ProjectService
 
     /// <summary>
     /// Modelo do programa num projeto novo: cria as atividades (sem responsavel; prazo contado do inicio) e os
-    /// indicadores (em branco; os nacionais que o projeto ja recebeu nao se repetem) e preenche descricao, objetivo e
-    /// publico que vieram vazios.
+    /// indicadores (em branco; os nacionais que o projeto ja recebeu nao se repetem).
     /// </summary>
     private async Task ApplyProgramTemplateAsync(Project project, HashSet<Guid> nationalsAlreadyIn)
     {
@@ -242,10 +249,6 @@ public class ProjectService
             .Include(p => p.TemplateIndicators)
             .AsSplitQuery()
             .FirstAsync(p => p.Id == project.ProgramId);
-
-        project.Description ??= program.TemplateDescription;
-        project.Objective ??= program.TemplateObjective;
-        project.TargetAudience ??= program.TemplateTargetAudience;
 
         var now = DateTime.UtcNow;
         foreach (var item in program.TemplateActivities.OrderBy(a => a.Position))

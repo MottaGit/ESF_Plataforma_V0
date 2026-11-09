@@ -156,10 +156,9 @@ public class EsfDbContext : DbContext
             e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
             e.Property(x => x.Icon).HasMaxLength(20).IsRequired();
             e.Property(x => x.Color).HasMaxLength(20).IsRequired();
-            e.Property(x => x.TemplateTargetAudience).HasMaxLength(300);
+            e.Property(x => x.Audience).HasMaxLength(300);
             e.Property(x => x.PublicToken).HasMaxLength(40);
             e.HasIndex(x => x.PublicToken).IsUnique();
-            e.Property(x => x.PublicDescription).HasMaxLength(1500);
         });
 
         b.Entity<ProgramTemplateActivity>(e =>

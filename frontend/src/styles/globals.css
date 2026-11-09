@@ -2164,7 +2164,6 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 
 /* Modelo do programa */
 .template__intro { display: block; max-width: 760px; margin: 0 0 14px; }
-.template__texts-hint { margin: 0 0 12px; }
 .template-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .template-side { display: grid; gap: 16px; }
 .template-list { list-style: none; margin: 0; padding: 0; }
@@ -2804,7 +2803,17 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .partners-panel { max-width: 860px; }
 
 /* Editar programa › Sobre */
-.program-about { max-width: 760px; }
+.program-about { max-width: 760px; display: grid; gap: 16px; align-content: start; }
+/* Onde a ficha aparece: dito uma vez, no topo da Apresentacao. */
+.program-about__uses {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.program-about__uses strong { color: var(--text); font-weight: 600; }
 .program-about__actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 .project-cell { display: flex; align-items: center; gap: 10px; }
@@ -3250,6 +3259,23 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .public-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; }
 .public-hero__meta { margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted); }
 .public-hero__about { margin: 16px 0 0; max-width: 70ch; font-size: 15px; line-height: 1.6; white-space: pre-line; }
+/* Ficha do programa na pagina publica: objetivo e para quem, lado a lado (empilham no celular). */
+.public-sheet {
+  margin: 16px 0 0;
+  max-width: 820px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 24px;
+}
+.public-sheet dt {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.public-sheet dd { margin: 4px 0 0; font-size: 14.5px; line-height: 1.5; white-space: pre-line; }
+
 /* Parceiros no topo da pagina publica: nome e papel, lado a lado (empilham no celular). */
 .public-partners { margin-top: 18px; }
 .public-partners__title {

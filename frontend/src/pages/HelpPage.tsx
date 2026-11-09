@@ -230,10 +230,11 @@ const SECTIONS: HelpSection[] = [
           <p>
             O programa reúne projetos do mesmo tipo (ex.: banheiros, hortas). Em <strong>Projetos</strong>, escolha o
             programa no topo para ver os resultados somados. A coordenação cuida dele em{' '}
-            <strong>Editar programa</strong>: em <strong>Sobre</strong>, o nome, o ícone e o texto que apresenta o
-            programa; em <strong>Modelo de projeto</strong>, as tarefas e os indicadores que todo projeto novo dele já
-            recebe; em <strong>Parceiros</strong>, quem financia ou apoia. O nome e o papel de cada parceiro saem na
-            página pública e no relatório em PDF; o contato fica só no núcleo.
+            <strong>Editar programa</strong>. Em <strong>Sobre</strong> fica a ficha: o que o programa faz, o objetivo
+            e para quem. Ela aparece na página pública, e a descrição e o objetivo de cada projeto novo já vêm
+            preenchidos com ela. Em <strong>Parceiros</strong>, quem financia ou apoia: o nome e o papel saem na página
+            pública e no PDF, e o contato fica só no núcleo. Em <strong>Modelo de projeto</strong>, as tarefas e os
+            indicadores que todo projeto novo já recebe.
           </p>
         )
       },
@@ -243,7 +244,7 @@ const SECTIONS: HelpSection[] = [
           <p>
             Em <strong>Projetos</strong>, escolha o programa, abra <strong>Página pública</strong>, use{' '}
             <strong>Gerar link</strong> e mande o link. Ele abre sem login, com os projetos, os resultados e os números
-            da equipe, sem dados pessoais. O texto do topo da página é o "Sobre o programa", em{' '}
+            da equipe, sem dados pessoais. O texto do topo é a ficha do programa, em{' '}
             <strong>Editar programa › Sobre</strong>. <strong>Desligar link</strong> faz ele parar de abrir.
           </p>
         )

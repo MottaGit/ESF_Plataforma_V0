@@ -166,7 +166,23 @@ export function PublicProgramPage() {
               </p>
             </div>
           </div>
-          {page.about ? <p className="public-hero__about">{page.about}</p> : null}
+          {page.description ? <p className="public-hero__about">{page.description}</p> : null}
+          {page.objective || page.audience ? (
+            <dl className="public-sheet">
+              {page.objective ? (
+                <div>
+                  <dt>Objetivo</dt>
+                  <dd>{page.objective}</dd>
+                </div>
+              ) : null}
+              {page.audience ? (
+                <div>
+                  <dt>Para quem</dt>
+                  <dd>{page.audience}</dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : null}
           {page.partners.length > 0 ? (
             <div className="public-partners">
               <h2 className="public-partners__title">Parceiros</h2>

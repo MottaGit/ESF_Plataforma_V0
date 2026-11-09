@@ -30,9 +30,6 @@ const NEW_ID = 'novo';
 
 function toPayload(template: ProgramTemplate): SaveProgramTemplatePayload {
   return {
-    description: template.description,
-    objective: template.objective,
-    targetAudience: template.targetAudience,
     activities: template.activities.map((item) => ({ ...item, id: item.id === NEW_ID ? null : item.id })),
     indicators: template.indicators.map((item) => ({ ...item, id: item.id === NEW_ID ? null : item.id }))
   };
@@ -53,8 +50,8 @@ interface ProgramTemplateTabProps {
 }
 
 /**
- * Editar programa › Modelo de projeto: tarefas padrao, indicadores padrao e textos sugeridos. Cada mudanca grava o
- * modelo inteiro (a API recebe a lista como ficou).
+ * Editar programa › Modelo de projeto: tarefas padrao e indicadores padrao (os textos do projeto novo vem da ficha do
+ * programa, na aba Sobre). Cada mudanca grava o modelo inteiro (a API recebe a lista como ficou).
  */
 export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTemplateTabProps) {
   const { notify, notifyError } = useToast();
@@ -62,7 +59,6 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
   const [error, setError] = useState<string | null>(null);
   const [editingActivity, setEditingActivity] = useState<{ index: number; item: TemplateActivity | null } | null>(null);
   const [editingIndicator, setEditingIndicator] = useState<{ index: number; item: TemplateIndicator | null } | null>(null);
-  const [editingTexts, setEditingTexts] = useState(false);
   const [removing, setRemoving] = useState<{ kind: 'activity' | 'indicator'; index: number; label: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -104,18 +100,13 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
   if (!template) return <Loading label="Carregando modelo…" />;
 
   const { activities, indicators } = template;
-  const texts = [
-    { label: 'Descrição', value: template.description },
-    { label: 'Objetivo', value: template.objective },
-    { label: 'Quem se beneficia', value: template.targetAudience }
-  ];
 
   return (
     <>
       <p className="field__hint template__intro">
-        Ao criar um projeto deste programa, deixe marcado "Usar o modelo do programa": as tarefas (sem responsável) e
-        os indicadores (zerados) abaixo entram no projeto, e os textos sugeridos preenchem o que ficar em branco. Mudar o
-        modelo não altera os projetos que já existem.
+        O que cada projeto novo deste programa já recebe, com "Usar o modelo do programa" marcado: as tarefas (sem
+        responsável) e os indicadores (em branco). A descrição e o objetivo vêm da aba Sobre. Mudar o modelo não altera
+        os projetos que já existem.
       </p>
 
       <div className="template-grid">
@@ -252,32 +243,6 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
               </ul>
             )}
           </section>
-
-          <section className="panel">
-            <div className="panel__head">
-              <h2>Textos sugeridos</h2>
-              {canEdit ? (
-                <div className="panel__actions">
-                  <Button small icon={<IconEdit size={15} />} onClick={() => setEditingTexts(true)}>
-                    Editar
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-            <div className="panel__body">
-              <p className="field__hint template__texts-hint">
-                Preenchem cada projeto novo. O texto que apresenta o programa fica na aba Sobre.
-              </p>
-              <div className="meta-list">
-                {texts.map((text) => (
-                  <div key={text.label}>
-                    <div className="meta__label">{text.label}</div>
-                    <p className="meta__value activity-detail__text">{text.value ?? '—'}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
         </div>
       </div>
 
@@ -307,17 +272,6 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
                 : indicators.map((item, i) => (i === editingIndicator.index ? { ...item, ...values } : item));
             await save({ ...template, indicators: list }, editingIndicator.item ? 'Indicador atualizado.' : 'Indicador incluído.');
             setEditingIndicator(null);
-          }}
-        />
-      ) : null}
-
-      {editingTexts ? (
-        <TemplateTextsModal
-          template={template}
-          onClose={() => setEditingTexts(false)}
-          onSave={async (values) => {
-            await save({ ...template, ...values }, 'Textos sugeridos atualizados.');
-            setEditingTexts(false);
           }}
         />
       ) : null}
@@ -539,71 +493,6 @@ function TemplateIndicatorModal({
             </Field>
           </>
         ) : null}
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
-      </form>
-    </Modal>
-  );
-}
-
-function TemplateTextsModal({
-  template,
-  onClose,
-  onSave
-}: {
-  template: ProgramTemplate;
-  onClose: () => void;
-  onSave: (values: Pick<ProgramTemplate, 'description' | 'objective' | 'targetAudience'>) => Promise<void>;
-}) {
-  const [description, setDescription] = useState(template.description ?? '');
-  const [objective, setObjective] = useState(template.objective ?? '');
-  const [targetAudience, setTargetAudience] = useState(template.targetAudience ?? '');
-  const { error, saving, run } = useModalSave(onSave);
-
-  function submit(event?: FormEvent) {
-    event?.preventDefault();
-    void run({
-      description: emptyToNull(description),
-      objective: emptyToNull(objective),
-      targetAudience: emptyToNull(targetAudience)
-    });
-  }
-
-  return (
-    <Modal
-      guardChanges
-      title="Textos sugeridos"
-      subtitle="Preenchem os campos do projeto novo que ficarem em branco; dá para ajustar depois em Sobre."
-      onClose={onClose}
-      footer={
-        <>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" loading={saving} onClick={() => submit()}>
-            Salvar
-          </Button>
-        </>
-      }
-    >
-      {error ? (
-        <div style={{ marginBottom: 14 }}>
-          <Alert kind="error">{error}</Alert>
-        </div>
-      ) : null}
-      <form onSubmit={submit} className="form-grid form-grid--single">
-        <Field label="Descrição" htmlFor="template-description">
-          <TextArea id="template-description" value={description} onChange={(event) => setDescription(event.target.value)} />
-        </Field>
-        <Field label="Objetivo" htmlFor="template-objective">
-          <TextArea id="template-objective" value={objective} onChange={(event) => setObjective(event.target.value)} />
-        </Field>
-        <Field label="Quem se beneficia" htmlFor="template-audience">
-          <TextInput
-            id="template-audience"
-            maxLength={300}
-            value={targetAudience}
-            placeholder="Ex.: 1 família"
-            onChange={(event) => setTargetAudience(event.target.value)}
-          />
-        </Field>
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
       </form>
     </Modal>

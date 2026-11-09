@@ -78,9 +78,8 @@ public static class AuditTrail
         [typeof(ProjectProgram)] = new()
         {
             ["Name"] = "Nome", ["Status"] = "Situação", ["Icon"] = "Ícone", ["Color"] = "Cor",
-            ["TemplateDescription"] = "Descrição sugerida", ["TemplateObjective"] = "Objetivo sugerido",
-            ["TemplateTargetAudience"] = "Quem se beneficia (sugerido)",
-            ["PublicToken"] = "Link da página pública", ["PublicDescription"] = "Sobre o programa"
+            ["Description"] = "O que o programa faz", ["Objective"] = "Objetivo", ["Audience"] = "Para quem",
+            ["PublicToken"] = "Link da página pública"
         },
         [typeof(ProgramTemplateActivity)] = new()
         {

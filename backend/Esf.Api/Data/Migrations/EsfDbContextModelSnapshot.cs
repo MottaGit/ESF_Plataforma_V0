@@ -740,6 +740,10 @@ namespace Esf.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Audience")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -747,6 +751,9 @@ namespace Esf.Api.Data.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
 
                     b.Property<string>("Icon")
                         .IsRequired()
@@ -758,12 +765,11 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("Objective")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("PublicDescription")
-                        .HasMaxLength(1500)
-                        .HasColumnType("character varying(1500)");
 
                     b.Property<string>("PublicToken")
                         .HasMaxLength(40)
@@ -771,16 +777,6 @@ namespace Esf.Api.Data.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
-
-                    b.Property<string>("TemplateDescription")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TemplateObjective")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TemplateTargetAudience")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
 

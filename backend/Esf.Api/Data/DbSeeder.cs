@@ -335,18 +335,18 @@ public static class DbSeeder
             Name = "Banheiro Direito da Gente",
             Icon = "banheiro",
             Color = "blue",
-            TemplateDescription = "Construção ou reforma do banheiro da família, com redes de água, esgoto e elétrica, louças, metais e chuveiro. A obra é feita por construtor local, com acompanhamento técnico dos voluntários e indicação da família por uma gestora local.",
-            TemplateObjective = "Garantir acesso a saneamento digno com a construção ou reforma do banheiro da família.",
-            TemplateTargetAudience = "1 família"
+            Description = "Construção ou reforma do banheiro da família, com redes de água, esgoto e elétrica, louças, metais e chuveiro. A obra é feita por construtor local, com acompanhamento técnico dos voluntários e indicação da família por uma gestora local.",
+            Objective = "Garantir acesso a saneamento digno com a construção ou reforma do banheiro da família.",
+            Audience = "Famílias de baixa renda de Porto Alegre sem banheiro adequado em casa"
         };
         var pHorta = new ProjectProgram
         {
             Name = "Horta comunitária",
             Icon = "horta",
             Color = "green",
-            TemplateDescription = "Horta em terreno cedido pela comunidade, com canteiros elevados, irrigação simples e oficinas de manejo agroecológico e compostagem.",
-            TemplateObjective = "Fortalecer a segurança alimentar das famílias com uma horta mantida pela própria comunidade.",
-            TemplateTargetAudience = "Famílias do entorno"
+            Description = "Horta em terreno cedido pela comunidade, com canteiros elevados, irrigação simples e oficinas de manejo agroecológico e compostagem.",
+            Objective = "Fortalecer a segurança alimentar das famílias com uma horta mantida pela própria comunidade.",
+            Audience = "Famílias do entorno de terrenos cedidos pelas associações de moradores"
         };
         db.Programs.AddRange(pBanheiro, pHorta);
 
@@ -828,9 +828,9 @@ public static class DbSeeder
             Name = "Reforma de moradias",
             Icon = "casa",
             Color = "orange",
-            TemplateDescription = "Reforma de moradias em situação de risco (cobertura, instalações elétricas, umidade), com mão de obra local e acompanhamento técnico dos voluntários.",
-            TemplateObjective = "Deixar a moradia segura e salubre para a família.",
-            TemplateTargetAudience = "1 família"
+            Description = "Reforma de moradias em situação de risco (cobertura, instalações elétricas, umidade), com mão de obra local e acompanhamento técnico dos voluntários.",
+            Objective = "Deixar a moradia segura e salubre para a família.",
+            Audience = "Famílias em moradias com risco de desabamento, incêndio ou umidade"
         };
         db.Programs.Add(pReforma);
         db.ProgramTemplateActivities.AddRange(

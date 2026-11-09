@@ -24,20 +24,22 @@ public class ProjectProgram : IOrganizationOwned
     public string Color { get; set; } = ProgramAppearance.DefaultColor;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    // ---------- modelo: o que um projeto novo do programa ja recebe ----------
+    // ---------- ficha do programa (Editar programa › Sobre): escrita uma vez, usada em dois lugares ----------
+    // Aparece na pagina publica e, num projeto novo, descricao e objetivo vazios recebem os do programa.
 
-    /// <summary>Textos sugeridos: preenchem descricao, objetivo e publico do projeto novo quando vierem vazios.</summary>
-    public string? TemplateDescription { get; set; }
-    public string? TemplateObjective { get; set; }
-    public string? TemplateTargetAudience { get; set; }
+    /// <summary>O que o programa faz (pagina publica: "O que fazemos"; descricao inicial do projeto novo).</summary>
+    public string? Description { get; set; }
+
+    /// <summary>Objetivo do programa (pagina publica; objetivo inicial do projeto novo).</summary>
+    public string? Objective { get; set; }
+
+    /// <summary>Para quem e o programa (so na ficha e na pagina publica: o "quem se beneficia" e de cada projeto).</summary>
+    public string? Audience { get; set; }
 
     // ---------- pagina publica (link sem login, so leitura, para parceiros e financiadores) ----------
 
     /// <summary>Codigo do link publico (/publico/{codigo}); vazio = pagina desligada. Desligar e ligar gera outro.</summary>
     public string? PublicToken { get; set; }
-
-    /// <summary>"Sobre o programa" escrito para quem nao conhece o nucleo (topo da pagina publica).</summary>
-    public string? PublicDescription { get; set; }
 
     public ICollection<ProgramTemplateActivity> TemplateActivities { get; set; } = new List<ProgramTemplateActivity>();
     public ICollection<ProgramTemplateIndicator> TemplateIndicators { get; set; } = new List<ProgramTemplateIndicator>();

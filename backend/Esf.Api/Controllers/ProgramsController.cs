@@ -22,7 +22,7 @@ public class ProgramsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProgramDto>> Get(Guid id) => Ok(await _programs.GetAsync(id));
 
-    /// <summary>Modelo do programa: atividades e indicadores padrao e textos sugeridos.</summary>
+    /// <summary>Modelo de projeto: tarefas e indicadores padrao.</summary>
     [HttpGet("{id:guid}/template")]
     public async Task<ActionResult<ProgramTemplateDto>> Template(Guid id) => Ok(await _programs.GetTemplateAsync(id));
 
@@ -57,7 +57,7 @@ public class ProgramsController : ControllerBase
     public async Task<ActionResult<ProgramDto>> Create(SaveProgramRequest request)
         => Ok(await _programs.CreateAsync(request));
 
-    /// <summary>Nome, icone, cor e "Sobre o programa"; arquivar/reativar.</summary>
+    /// <summary>Nome, icone, cor e a ficha (o que faz, objetivo, para quem); arquivar/reativar.</summary>
     [HttpPut("{id:guid}")]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramDto>> Update(Guid id, UpdateProgramRequest request)

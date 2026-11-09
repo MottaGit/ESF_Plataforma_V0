@@ -115,7 +115,9 @@ public class PublicProgramService
             program.Name,
             program.Icon,
             program.Color,
-            program.PublicDescription,
+            program.Description,
+            program.Objective,
+            program.Audience,
             partners,
             new PublicNucleoDto(nucleo.Name, nucleo.LogoUrl, nucleo.Cnpj, nucleo.Email, nucleo.City, nucleo.State),
             new PublicProgramTotalsDto(

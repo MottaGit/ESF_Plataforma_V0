@@ -231,21 +231,33 @@ embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com el
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
 programa abre a visão dele.
 
-**Editar programa** — o lugar de tudo o que é do programa (`/programas/{id}/editar`, aba na URL: `?aba=modelo`),
-com as abas **Sobre** (nome, ícone e cor e o **"Sobre o programa"**, até 1.500 caracteres, o texto para quem não
-conhece o núcleo que vai para o topo da página pública; um **Salvar** grava tudo de uma vez, **Descartar mudanças**
-volta ao que estava, e o que foi digitado continua lá ao trocar de aba), **Modelo de projeto** (abaixo) e
-**Parceiros** (`?aba=parceiros`). Parceiros são do programa (projetos não têm parceiros próprios): nome da
+**Editar programa** — o lugar de tudo o que é do programa (`/programas/{id}/editar`, aba na URL), com as abas, nesta
+ordem (quem é o programa primeiro, o operacional por último): **Sobre**, **Parceiros** (`?aba=parceiros`) e
+**Modelo de projeto** (`?aba=modelo`, abaixo).
+
+**Sobre** é a **ficha do programa**, escrita uma vez e usada em dois lugares. **Identidade**: nome, ícone e cor.
+**Apresentação**: **O que o programa faz** (até 1.500 caracteres), **Objetivo** (até 1.000) e **Para quem** (até
+300), cada um com uma dica curta e um exemplo dentro do campo. A ficha aparece na **página pública** ("O que fazemos",
+Objetivo e Para quem) e, em **cada projeto novo**, a descrição e o objetivo em branco já vêm com o que o programa faz e
+o objetivo dele — sempre, com ou sem o modelo marcado; dá para ajustar no projeto. O "Para quem" é do programa e não
+vai para o "Quem se beneficia" do projeto, que é de cada um ("1 família, 5 pessoas"). Um **Salvar** grava tudo de uma
+vez, **Descartar mudanças** volta ao que estava, e o que foi digitado continua lá ao trocar de aba. (Antes havia o
+"Sobre o programa", só da página pública, e os "textos sugeridos" do modelo, que repetiam a mesma coisa; a migração
+`ProgramSheet` juntou os dois: o texto da página pública, quando havia, virou o "o que faz", e os sugeridos viraram a
+ficha.)
+
+**Parceiros** são do programa (projetos não têm parceiros próprios): nome da
 organização, **papel** (texto livre, com sugestões: Financiador, Apoiador, Parceiro técnico, Poder público, Gestora
 local, Doador de material), pessoa de contato, e-mail, telefone (que liga ao toque, com o atalho do WhatsApp) e
 observações. A coordenação inclui, edita, reordena (a ordem é a da página pública e do PDF) e remove; cada mudança
 grava na hora. **O nome e o papel** aparecem na visão do programa ("Parceiros: …", só os nomes), na página pública e
 no PDF; **contato e observações** ficam só dentro do núcleo (a gestão nacional não vê; no histórico de alterações
-entram mascarados, como os dados de voluntário). O
-"Sobre o programa" é diferente da descrição sugerida do modelo: um apresenta o programa, a outra preenche cada projeto
-novo. **+ Novo programa** abre uma janela curta (nome, ícone e cor) e, ao criar, já leva para a aba Modelo de
+entram mascarados, como os dados de voluntário).
+
+**+ Novo programa** abre uma janela curta (nome, ícone e cor) e, ao criar, já leva para a aba Modelo de
 projeto do programa novo; o "Novo" ao lado do Programa no formulário de projeto continua criando por cima do
-formulário. Quem não é da coordenação não tem o botão (pelo endereço, vê só o texto e o modelo, sem editar).
+formulário. Quem não é da coordenação não tem o botão (pelo endereço, vê só a ficha, os parceiros e o modelo, sem
+editar).
 
 **Ícone e cor do programa** — no programa novo, o ícone sai do nome enquanto se digita: vale a primeira palavra
 conhecida (banheiro, horta, cisterna, passarela, oficina, reforma, diagnóstico…; "Cisterna da Escola" é água, não
@@ -256,13 +268,12 @@ iguais em qualquer aparelho (os emojis de antes mudavam de cara em cada sistema)
 
 **Modelo de projeto** — em Projetos › programa › Editar programa › "Modelo de projeto" (`/programas/{id}/editar?aba=modelo`;
 o endereço antigo `/programas/{id}/modelo` leva para lá): **tarefas padrão** (título, "Urgente", descrição e
-prazo opcional em dias após o início do projeto; sem prazo por padrão), **indicadores padrão** (nome e unidade) e
-**textos sugeridos** (descrição, objetivo e quem se beneficia). A coordenação inclui, edita, reordena e remove; cada
-mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com modelo, o formulário
-mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado): as tarefas entram sem responsável,
-com o prazo contado da data de início, os indicadores entram em branco (não informado; os nacionais, que o projeto
-já recebe, não se repetem) e os textos preenchem o que ficou em branco. Os
-cards dos programas mostram o resumo do modelo ("Modelo: 5 tarefas · 2 indicadores" ou "Sem modelo").
+prazo opcional em dias após o início do projeto; sem prazo por padrão) e **indicadores padrão** (nome e unidade). Os
+textos do projeto novo não ficam aqui: vêm da ficha do programa (aba Sobre). A coordenação inclui, edita, reordena e
+remove; cada mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com
+modelo, o formulário mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado, "Cria 5 tarefas e
+2 indicadores."): as tarefas entram sem responsável, com o prazo contado da data de início, e os indicadores entram em
+branco (não informado; os nacionais, que o projeto já recebe, não se repetem).
 
 **Menu** — Início · Projetos · Tarefas · Voluntários · Relatórios · Configurações. Configurações aparece só para a
 coordenação; o voluntário comum chega na própria conta pelo menu do avatar (e a lista de acessos, com e-mails, deixou
@@ -660,9 +671,9 @@ querer. O X e o Cancelar continuam fechando direto. Janela em que nada foi mexid
 
 **Página pública do programa** — um link que abre sem login e só para leitura, para mandar a parceiros e financiadores
 no lugar do PDF (ou virar QR code na placa da obra). Fica desligada em todo programa; a coordenação liga e desliga, e
-desligar invalida o link (ligar de novo gera outro, `/publico/{código}`). Mostra o programa (nome, ícone e o "Sobre o
-programa", texto escrito para quem não conhece o núcleo), os **parceiros** (nome e papel, na ordem da lista, logo
-abaixo do texto; nunca o contato), os **resultados até hoje** (quantos projetos concluídos, em
+desligar invalida o link (ligar de novo gera outro, `/publico/{código}`). Mostra o programa (nome, ícone e a ficha:
+o que o programa faz no topo e, embaixo, **Objetivo** e **Para quem** lado a lado — o que estiver em branco não
+aparece), os **parceiros** (nome e papel, na ordem da lista, logo abaixo; nunca o contato), os **resultados até hoje** (quantos projetos concluídos, em
 andamento, em preparação e pausados; os indicadores nacionais e os do modelo do programa somados, só os que têm valor;
 quantos voluntários participaram, sem repetir, e as horas lançadas), um cartão por projeto (nome, situação, bairro e
 cidade, início e previsão de término, progresso das tarefas, os indicadores informados e quando foi o último registro)
@@ -674,8 +685,8 @@ o histórico (só que a página foi ligada, desligada ou trocada). Na tela (`pag
 mostra "Página indisponível" (sem mandar para o login). A página fica fora dos buscadores (`noindex`), tem o nome do
 programa no título da aba e não instala o uso sem internet (quem é de fora não precisa guardar o app). Para a
 coordenação, a visão do programa (Projetos › programa) tem o botão **Página pública**. A janela explica o que aparece
-e mostra o "Sobre o programa" atual, com o atalho para editá-lo em Editar programa › Sobre (ou um aviso, se ainda não
-há texto). Sem link, **Gerar link** liga a
+e mostra o "o que o programa faz" atual, com o atalho para a apresentação em Editar programa › Sobre (ou um aviso, se
+ainda não há texto). Sem link, **Gerar link** liga a
 página na hora e o link aparece ali mesmo, com **Copiar link** e **Ver como o público vê**; com link, **Desligar link**
 (com confirmação) faz ele parar de abrir, e gerar de novo cria outro; desligar não apaga o texto. Com o link ligado, a
 visão do programa diz "página pública ligada".
@@ -858,7 +869,7 @@ ESF_Plataforma_V0/
 | `Users` | acesso à plataforma (nome, e-mail, hash da senha — vazio até o primeiro acesso —, perfil, ativo, voluntário vinculado) |
 | `AccessLinks` | links de acesso (hash do código, validade, uso), para criar a senha no primeiro acesso ou depois de esquecê-la |
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
-| `Programs` | programas (nome, situação, ícone, cor, os textos sugeridos do modelo e a página pública: código do link — vazio com ela desligada — e o "Sobre o programa") |
+| `Programs` | programas (nome, situação, ícone, cor, a ficha — `Description` "o que faz", `Objective`, `Audience` "para quem" — e o código do link da página pública, vazio com ela desligada) |
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa |
 | `ProgramPartners` | parceiros de cada programa (ordem, nome, papel, pessoa de contato, e-mail, telefone, observações) |
 | `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
@@ -896,8 +907,8 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/dashboard` | dados do Início (minhas tarefas, meus projetos, resumo da organização e carga da equipe) |
 | GET | `/api/projects` | lista com `search`, `status`, `programId`, `onlyLate`, `onlyStale`, `includeArchived`, `sort` |
 | GET/POST | `/api/programs` | lista e cria programas (agrupamento de projetos; `onlyActive=false` inclui os arquivados) |
-| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos, "Sobre o programa", nomes dos parceiros e resultados somados; edita nome, ícone, cor e o "Sobre o programa" (`about`, sempre o texto atual) e arquiva/reativa; exclui só programa sem projetos |
-| GET/PUT | `/api/programs/{id}/template` | modelo do programa (PUT grava o modelo inteiro; coordenação) |
+| GET/PUT/DELETE | `/api/programs/{id}` | programa com contagens de projetos, a ficha, nomes dos parceiros e resultados somados; edita nome, ícone, cor e a ficha (`description`, `objective`, `audience`, sempre os três atuais) e arquiva/reativa; exclui só programa sem projetos |
+| GET/PUT | `/api/programs/{id}/template` | modelo de projeto: tarefas e indicadores padrão (PUT grava o modelo inteiro; coordenação) |
 | GET/PUT | `/api/programs/{id}/partners` | parceiros do programa, na ordem (PUT grava a lista inteira: com `id` altera, sem `id` cria, os que faltarem são apagados; coordenação) |
 | GET | `/api/volunteers/{id}/documents` | termo assinado do voluntário (coordenação; quem assina é o voluntário, em `/api/me/term`) |
 | GET/POST | `/api/projects/{id}/documents` | autorizações de uso de imagem do projeto (coordenação); `/template` gera o termo em PDF |
@@ -947,7 +958,7 @@ A documentação interativa fica em `/swagger`.
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |
 | GET/POST | `/api/access/{código}` | públicas: dados do link e criação da senha (com o aceite da política), já devolvendo o login |
-| GET/PUT | `/api/programs/{id}/public-page` | página pública do programa (coordenação): se está ligada e o código do link; o PUT liga/desliga (desligar invalida o link; ligar de novo gera outro). O texto do topo é o `about` do programa |
+| GET/PUT | `/api/programs/{id}/public-page` | página pública do programa (coordenação): se está ligada e o código do link; o PUT liga/desliga (desligar invalida o link; ligar de novo gera outro). Os textos do topo são a ficha do programa |
 | GET | `/api/public/programs/{código}` | pública, sem login (60 acessos por minuto por endereço): a página pública do programa, só com os dados liberados |
 | GET | `/api/national/panel?from=&to=` | gestão nacional: painel com os números de todos os núcleos (total e por núcleo) e os indicadores nacionais somados; o período vale para horas, tarefas e registros |
 | GET/POST/PUT | `/api/national/nucleos[/{id}]` | gestão nacional: núcleos com números gerais e administradores; núcleo novo já com quem administra (devolve o link) |

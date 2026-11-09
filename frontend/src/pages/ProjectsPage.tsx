@@ -225,7 +225,9 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         status: archive ? 'Arquivado' : 'Ativo',
         icon: program.icon,
         color: program.color,
-        about: program.about
+        description: program.description,
+        objective: program.objective,
+        audience: program.audience
       });
       notify(archive ? 'Programa arquivado.' : 'Programa reativado.');
       loadPrograms();

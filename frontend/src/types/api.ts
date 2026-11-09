@@ -169,12 +169,16 @@ export interface Program {
   /** Chaves de icone e cor (ver utils/programs.ts). */
   icon: string;
   color: string;
-  /** "Sobre o programa": texto para quem nao conhece o nucleo (topo da pagina publica). */
-  about: string | null;
-  /** Resumo do modelo do programa. */
+  /**
+   * Ficha do programa (Editar programa › Sobre): o que faz, objetivo e para quem. Aparece na pagina publica; o que
+   * faz e o objetivo sao o ponto de partida de cada projeto novo.
+   */
+  description: string | null;
+  objective: string | null;
+  audience: string | null;
+  /** Resumo do modelo de projeto. */
   templateActivitiesCount: number;
   templateIndicatorsCount: number;
-  hasTemplateTexts: boolean;
   /** A pagina publica do programa esta ligada. */
   publicPage: boolean;
   /** Nomes dos parceiros, na ordem da lista (o contato vem em programsApi.partners). */
@@ -213,7 +217,10 @@ export interface PublicProgram {
   name: string;
   icon: string;
   color: string;
-  about: string | null;
+  /** Ficha do programa: "O que fazemos", "Objetivo" e "Para quem". */
+  description: string | null;
+  objective: string | null;
+  audience: string | null;
   /** Parceiros do programa: so nome e papel. */
   partners: PublicPartner[];
   nucleo: PublicNucleo;
@@ -310,20 +317,14 @@ export interface SaveNationalIndicatorPayload {
   description: string | null;
 }
 
-/** Modelo do programa: o que um projeto novo dele ja recebe. */
+/** Modelo de projeto: as tarefas e os indicadores que um projeto novo do programa ja recebe. */
 export interface ProgramTemplate {
-  description: string | null;
-  objective: string | null;
-  targetAudience: string | null;
   activities: TemplateActivity[];
   indicators: TemplateIndicator[];
 }
 
 /** O modelo inteiro; itens com id null sao novos e os que faltarem sao apagados. */
 export interface SaveProgramTemplatePayload {
-  description: string | null;
-  objective: string | null;
-  targetAudience: string | null;
   activities: Array<Omit<TemplateActivity, 'id'> & { id: string | null }>;
   indicators: Array<Omit<TemplateIndicator, 'id'> & { id: string | null }>;
 }
@@ -834,8 +835,10 @@ export interface UpdateProgramPayload {
   status: ProgramStatus;
   icon: string;
   color: string;
-  /** "Sobre o programa" (null apaga): sempre o texto atual. */
-  about: string | null;
+  /** Ficha do programa (null apaga): sempre os tres textos atuais. */
+  description: string | null;
+  objective: string | null;
+  audience: string | null;
 }
 
 export interface SaveIndicatorPayload {

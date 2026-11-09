@@ -16,11 +16,14 @@ public class PublicProgramPageTests
 {
     private static async Task<string> EnableAsync(TwoNucleos f, Nucleo n, string? about = "Banheiros para famílias")
     {
-        // O "Sobre o programa" e editado em Editar programa › Sobre, junto com o nome (UpdateAsync confere o nome com
-        // ILIKE, que o banco em memoria nao tem): aqui ele vai direto.
+        // A ficha do programa e editada em Editar programa › Sobre, junto com o nome (UpdateAsync confere o nome com
+        // ILIKE, que o banco em memoria nao tem): aqui ela vai direto.
         await using (var system = f.SystemContext())
         {
-            (await system.Programs.SingleAsync(p => p.Id == n.ProgramId)).PublicDescription = about;
+            var program = await system.Programs.SingleAsync(p => p.Id == n.ProgramId);
+            program.Description = about;
+            program.Objective = "Saneamento digno";
+            program.Audience = "Famílias sem banheiro";
             await system.SaveChangesAsync();
         }
 
@@ -58,7 +61,8 @@ public class PublicProgramPageTests
         var page = await OpenAsync(f, token);
 
         Assert.Equal("Banheiros", page.Name);
-        Assert.Equal("Banheiros para famílias", page.About);
+        Assert.Equal(("Banheiros para famílias", "Saneamento digno", "Famílias sem banheiro"),
+            (page.Description, page.Objective, page.Audience));
         Assert.Equal("Nucleo A", page.Nucleo.Name);
         var project = Assert.Single(page.Projects);
         Assert.Equal("Projeto a", project.Name);
@@ -172,9 +176,9 @@ public class PublicProgramPageTests
             Assert.False(off.Enabled);
             Assert.Null(off.Token);
         }
-        // Desligar a pagina nao apaga o "Sobre o programa".
+        // Desligar a pagina nao apaga a ficha do programa.
         await using (var db = f.Context(f.A.Admin))
-            Assert.Equal("Banheiros para famílias", (await new ProgramService(db).GetAsync(f.A.ProgramId)).About);
+            Assert.Equal("Banheiros para famílias", (await new ProgramService(db).GetAsync(f.A.ProgramId)).Description);
         await Assert.ThrowsAsync<AppException>(() => OpenAsync(f, first));
 
         var second = await EnableAsync(f, f.A);

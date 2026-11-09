@@ -15,12 +15,13 @@ public record ProgramDto(
     int DoneProjectsCount,
     string Icon,
     string Color,
-    // "Sobre o programa": texto para quem nao conhece o nucleo (vai para o topo da pagina publica).
-    string? About,
-    // Resumo do modelo (atividades e indicadores padrao; textos sugeridos preenchidos).
+    // Ficha do programa: o que faz, objetivo e para quem (pagina publica; descricao e objetivo iniciais do projeto novo).
+    string? Description,
+    string? Objective,
+    string? Audience,
+    // Resumo do modelo (tarefas e indicadores padrao).
     int TemplateActivitiesCount,
     int TemplateIndicatorsCount,
-    bool HasTemplateTexts,
     // A pagina publica do programa esta ligada.
     bool PublicPage,
     // Nomes dos parceiros, na ordem da lista (o contato fica em /partners).
@@ -76,8 +77,8 @@ public class SaveProgramPartnerRequest
 public record ProgramResultDto(string Name, string? Unit, decimal? Total, int Informed, int Projects, bool National);
 
 /// <summary>
-/// Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada). O texto do topo e o
-/// "Sobre o programa", editado junto com o nome (UpdateProgramRequest.About).
+/// Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada). Os textos do topo sao
+/// a ficha do programa, editada junto com o nome (UpdateProgramRequest).
 /// </summary>
 public record ProgramPublicPageDto(bool Enabled, string? Token);
 
@@ -94,7 +95,10 @@ public record PublicProgramDto(
     string Name,
     string Icon,
     string Color,
-    string? About,
+    // Ficha do programa: "O que fazemos", "Objetivo" e "Para quem".
+    string? Description,
+    string? Objective,
+    string? Audience,
     // Parceiros: so nome e papel (o contato nunca sai do nucleo).
     List<PublicPartnerDto> Partners,
     PublicNucleoDto Nucleo,
@@ -132,11 +136,8 @@ public record TemplateActivityDto(Guid Id, string Title, string? Description, Ac
 
 public record TemplateIndicatorDto(Guid Id, string Name, string? Unit, Guid? NationalIndicatorId);
 
-/// <summary>Modelo do programa: o que um projeto novo dele ja recebe.</summary>
+/// <summary>Modelo de projeto: as tarefas e os indicadores que um projeto novo do programa ja recebe.</summary>
 public record ProgramTemplateDto(
-    string? Description,
-    string? Objective,
-    string? TargetAudience,
     List<TemplateActivityDto> Activities,
     List<TemplateIndicatorDto> Indicators);
 
@@ -146,12 +147,6 @@ public record ProgramTemplateDto(
 /// </summary>
 public class SaveProgramTemplateRequest
 {
-    public string? Description { get; set; }
-    public string? Objective { get; set; }
-
-    [StringLength(300, ErrorMessage = "O público sugerido deve ter no máximo 300 caracteres.")]
-    public string? TargetAudience { get; set; }
-
     public List<SaveTemplateActivityRequest> Activities { get; set; } = new();
     public List<SaveTemplateIndicatorRequest> Indicators { get; set; } = new();
 }
@@ -213,7 +208,14 @@ public class UpdateProgramRequest
     public string? Icon { get; set; }
     public string? Color { get; set; }
 
-    /// <summary>"Sobre o programa" (vazio apaga o texto): a tela sempre manda o texto atual.</summary>
-    [StringLength(1500, ErrorMessage = "O texto sobre o programa deve ter no máximo 1500 caracteres.")]
-    public string? About { get; set; }
+    // Ficha do programa (vazio apaga o texto): a tela sempre manda os tres como estao.
+
+    [StringLength(1500, ErrorMessage = "\"O que o programa faz\" deve ter no máximo 1500 caracteres.")]
+    public string? Description { get; set; }
+
+    [StringLength(1000, ErrorMessage = "O objetivo deve ter no máximo 1000 caracteres.")]
+    public string? Objective { get; set; }
+
+    [StringLength(300, ErrorMessage = "\"Para quem\" deve ter no máximo 300 caracteres.")]
+    public string? Audience { get; set; }
 }

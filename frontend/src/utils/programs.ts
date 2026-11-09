@@ -204,12 +204,11 @@ export function suggestProgramIcon(name: string) {
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-/** "5 tarefas · 2 indicadores · textos sugeridos"; null quando o programa nao tem modelo. */
+/** "5 tarefas · 2 indicadores"; null quando o programa nao tem modelo. */
 export function programTemplateSummary(program: Program) {
   const parts = [
     program.templateActivitiesCount > 0 ? plural(program.templateActivitiesCount, 'tarefa', 'tarefas') : null,
-    program.templateIndicatorsCount > 0 ? plural(program.templateIndicatorsCount, 'indicador', 'indicadores') : null,
-    program.hasTemplateTexts ? 'textos sugeridos' : null
+    program.templateIndicatorsCount > 0 ? plural(program.templateIndicatorsCount, 'indicador', 'indicadores') : null
   ].filter(Boolean);
   return parts.length > 0 ? parts.join(' · ') : null;
 }

@@ -29,10 +29,11 @@ public class ProgramService
         p.Projects.Count(x => x.Status == ProjectStatus.Concluido),
         p.Icon,
         p.Color,
-        p.PublicDescription,
+        p.Description,
+        p.Objective,
+        p.Audience,
         p.TemplateActivities.Count,
         p.TemplateIndicators.Count,
-        p.TemplateDescription != null || p.TemplateObjective != null || p.TemplateTargetAudience != null,
         p.PublicToken != null,
         new List<string>(),
         new List<ProgramResultDto>());
@@ -117,8 +118,8 @@ public class ProgramService
     }
 
     /// <summary>
-    /// Editar programa › Sobre: nome, icone, cor e o texto "Sobre o programa"; tambem arquiva/reativa. Arquivado, o
-    /// programa some das opcoes de novos projetos.
+    /// Editar programa › Sobre: nome, icone, cor e a ficha (o que faz, objetivo, para quem); tambem arquiva/reativa.
+    /// Arquivado, o programa some das opcoes de novos projetos.
     /// </summary>
     public async Task<ProgramDto> UpdateAsync(Guid id, UpdateProgramRequest request)
     {
@@ -131,7 +132,9 @@ public class ProgramService
         program.Status = request.Status!.Value;
         program.Icon = ProgramAppearance.IconOrDefault(request.Icon ?? program.Icon);
         program.Color = ProgramAppearance.ColorOrDefault(request.Color ?? program.Color);
-        program.PublicDescription = Clean(request.About);
+        program.Description = Clean(request.Description);
+        program.Objective = Clean(request.Objective);
+        program.Audience = Clean(request.Audience);
         await _db.SaveChangesAsync();
 
         return await GetAsync(id);
@@ -183,10 +186,6 @@ public class ProgramService
                           .AsSplitQuery()
                           .FirstOrDefaultAsync(p => p.Id == id)
                       ?? throw AppException.NotFound("Programa");
-
-        program.TemplateDescription = Clean(request.Description);
-        program.TemplateObjective = Clean(request.Objective);
-        program.TemplateTargetAudience = Clean(request.TargetAudience);
 
         var activities = program.TemplateActivities.ToDictionary(a => a.Id);
         for (var i = 0; i < request.Activities.Count; i++)
@@ -280,9 +279,6 @@ public class ProgramService
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static ProgramTemplateDto ToTemplateDto(ProjectProgram p) => new(
-        p.TemplateDescription,
-        p.TemplateObjective,
-        p.TemplateTargetAudience,
         p.TemplateActivities.OrderBy(a => a.Position)
             .Select(a => new TemplateActivityDto(a.Id, a.Title, a.Description, a.Priority, a.DueDays)).ToList(),
         p.TemplateIndicators.OrderBy(x => x.Position)

@@ -71,7 +71,10 @@ function initialState(project: ProjectDetail | null, fallbackProgramId: string):
   };
 }
 
-/** "Cria 5 atividades e 2 indicadores e preenche os textos sugeridos." (null: programa sem modelo) */
+/**
+ * "Cria 5 tarefas e 2 indicadores." (null: programa sem modelo). Descricao e objetivo vem da ficha do programa
+ * sempre, com ou sem o modelo, entao nao entram aqui.
+ */
 function templateDescription(program: Program) {
   const created = [
     program.templateActivitiesCount > 0
@@ -81,13 +84,7 @@ function templateDescription(program: Program) {
       ? `${program.templateIndicatorsCount} indicador${program.templateIndicatorsCount === 1 ? '' : 'es'}`
       : null
   ].filter(Boolean);
-  const parts = [
-    created.length > 0 ? `cria ${created.join(' e ')}` : null,
-    program.hasTemplateTexts ? 'preenche os textos sugeridos' : null
-  ].filter(Boolean);
-  if (parts.length === 0) return null;
-  const sentence = parts.join(' e ');
-  return `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}.`;
+  return created.length > 0 ? `Cria ${created.join(' e ')}.` : null;
 }
 
 export function ProjectFormModal({
@@ -120,10 +117,11 @@ export function ProjectFormModal({
             doneProjectsCount: 0,
             icon: project.programIcon,
             color: project.programColor,
-            about: null,
+            description: null,
+            objective: null,
+            audience: null,
             templateActivitiesCount: 0,
             templateIndicatorsCount: 0,
-            hasTemplateTexts: false,
             publicPage: false,
             partners: [],
             results: []

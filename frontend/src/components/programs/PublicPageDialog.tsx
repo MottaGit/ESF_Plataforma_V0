@@ -144,16 +144,16 @@ export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDial
           ) : null}
 
           <div className="public-page-dialog__about">
-            <div className="meta__label">Sobre o programa (topo da página)</div>
-            {program.about ? (
-              <p className="public-page-dialog__about-text">{program.about}</p>
+            <div className="meta__label">No topo da página: o que o programa faz</div>
+            {program.description ? (
+              <p className="public-page-dialog__about-text">{program.description}</p>
             ) : (
               <p className="field__hint">
-                Ainda sem texto. Escreva para quem não conhece o núcleo: o que o programa faz, para quem e onde.
+                Ainda sem texto. Escreva o que o programa faz, o objetivo e para quem, para quem não conhece o núcleo.
               </p>
             )}
             <Link to={editAbout} className="public-page-dialog__about-link">
-              {program.about ? 'Editar o texto' : 'Escrever o texto'} em Editar programa › Sobre
+              {program.description ? 'Editar a apresentação' : 'Escrever a apresentação'} em Editar programa › Sobre
             </Link>
           </div>
         </div>
