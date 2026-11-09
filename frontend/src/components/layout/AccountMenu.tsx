@@ -60,6 +60,9 @@ export function AccountMenu() {
             className="menu__item"
             onClick={() => {
               setOpen(false);
+              // Sair vai direto para a entrada, sem guardar a tela atual: quem entrar depois (o aparelho pode ser
+              // de outra pessoa) comeca pelo Inicio.
+              navigate('/entrar', { replace: true });
               logout();
             }}
           >

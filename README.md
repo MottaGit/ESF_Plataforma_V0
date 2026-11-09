@@ -633,6 +633,12 @@ WhatsApp ou por e-mail e deixa criar uma senha nova. Depois de uma senha recusad
 a explicação já aparece aberta. A Ajuda tem a mesma resposta. Os campos de texto livre (observações e registros de andamento) lembram
 de não registrar dados sensíveis (saúde, religião, origem, opinião política) nem CPF.
 
+**Depois de entrar** — a pessoa volta para a tela que tentou abrir sem sessão, com o endereço inteiro (um link de
+tarefa recebido pelo WhatsApp, `/projetos/{id}?aba=tarefas&tarefa=…`, ou a tela em que estava quando a sessão de 12 h
+venceu); sem isso, vai para o Início. O `ProtectedRoute` guarda o caminho e a tela de entrada só aceita caminhos de
+dentro do app. **Sair** vai direto para a entrada sem guardar a tela atual: quem entrar depois no mesmo aparelho começa
+pelo Início.
+
 **Topo da tela** — mostra o nome da seção, igual ao item marcado no menu ("Projetos" também dentro de um projeto),
 sempre numa linha só. Clicar na foto e no nome abre o menu da conta: **Meu perfil** (a página do voluntário vinculado ao
 acesso; não aparece sem vínculo), **Minha conta** (Configurações › Minha conta; para o perfil Usuário, a página se chama

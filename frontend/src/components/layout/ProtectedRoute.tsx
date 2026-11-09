@@ -8,7 +8,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   if (initializing) return <Loading label="Verificando sessão…" />;
-  if (!user) return <Navigate to="/entrar" replace state={{ from: location.pathname }} />;
+  // Guarda o endereco inteiro (com ?aba=...&tarefa=...): depois de entrar, a pessoa volta exatamente para ele.
+  if (!user) {
+    return <Navigate to="/entrar" replace state={{ from: `${location.pathname}${location.search}${location.hash}` }} />;
+  }
 
   return <>{children}</>;
 }

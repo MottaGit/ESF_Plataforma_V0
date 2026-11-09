@@ -80,8 +80,8 @@ const SECTIONS: HelpSection[] = [
         question: 'Como concluo uma tarefa?',
         answer: (
           <p>
-            Marque a caixinha ao lado dela. Para outro status, como <strong>Bloqueada</strong>, abra a tarefa e troque
-            o status.
+            Marque a caixinha ao lado dela. Marcou sem querer? <strong>Desfazer</strong>, ao lado, volta como
+            estava. Para outro status, como <strong>Bloqueada</strong>, abra a tarefa e troque o status.
           </p>
         )
       },

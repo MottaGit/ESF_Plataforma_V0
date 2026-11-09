@@ -1,14 +1,25 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { Button } from '../components/ui/Button';
 import { Field, TextInput } from '../components/ui/Field';
 import { Alert } from '../components/ui/Feedback';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Para onde ir depois de entrar: a tela que a pessoa tentou abrir sem sessao (um link recebido pelo WhatsApp, a sessao
+ * que venceu no meio do uso), guardada pelo ProtectedRoute. So caminhos de dentro do app; sem ele, o Inicio.
+ */
+function destinationFrom(state: unknown) {
+  const from = (state as { from?: unknown } | null)?.from;
+  if (typeof from !== 'string' || !from.startsWith('/') || from.startsWith('//') || from.startsWith('/entrar')) return '/';
+  return from;
+}
+
 export function LoginPage() {
   const { user, initializing, login } = useAuth();
   const navigate = useNavigate();
+  const destination = destinationFrom(useLocation().state);
 
   // Ja vem com o acesso de administrador da demonstracao (o mesmo do seed).
   const [email, setEmail] = useState('leonardo.motta@esf.org.br');
@@ -19,7 +30,7 @@ export function LoginPage() {
   const [showForgot, setShowForgot] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  if (!initializing && user) return <Navigate to="/" replace />;
+  if (!initializing && user) return <Navigate to={destination} replace />;
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -28,7 +39,7 @@ export function LoginPage() {
 
     try {
       await login(email.trim(), password);
-      navigate('/', { replace: true });
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível entrar. Tente novamente.');
       setCredentialsRefused(err instanceof ApiError && [401, 403, 429].includes(err.status));
