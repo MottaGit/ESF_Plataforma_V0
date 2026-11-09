@@ -8,7 +8,7 @@ import { TaskList } from '../components/tasks/TaskList';
 import { isOverdue, normalize, useJustDone, withStatus } from '../components/tasks/taskUtils';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
-import { Alert, Loading } from '../components/ui/Feedback';
+import { Alert, LoadError, Loading } from '../components/ui/Feedback';
 import { FilterSheet } from '../components/ui/FilterSheet';
 import { IconBoard, IconClose, IconListBullet, IconPlus, IconSearch } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
@@ -448,10 +448,10 @@ export function TasksPage() {
         </div>
       ) : null}
 
-      {error ? <Alert kind="error">{error}</Alert> : null}
-
       {wantsMine && !myVolunteerId ? (
         <Alert kind="info">{UNLINKED_MESSAGE}</Alert>
+      ) : error ? (
+        <LoadError message={error} onRetry={() => void load()} />
       ) : loading ? (
         <section className="panel">
           <Loading label="Carregando tarefas…" />

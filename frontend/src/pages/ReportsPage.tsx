@@ -10,7 +10,7 @@ import {
 import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Select, TextInput } from '../components/ui/Field';
-import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
+import { EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { IconDownload, IconSearch } from '../components/ui/Icons';
 import { useToast } from '../context/ToastContext';
 import type { ProjectListItem, ProjectStatus } from '../types/api';
@@ -30,13 +30,17 @@ export function ReportsPage() {
   const [options, setOptions] = useState(DEFAULT_REPORT_OPTIONS);
   const [generating, setGenerating] = useState(false);
 
+  // "Tentar de novo" so muda esta chave e a lista e pedida outra vez.
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     projectsApi
       .list({ sort: 'name', includeArchived: true })
       .then(setProjects)
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os projetos.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -82,7 +86,7 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {error ? <Alert kind="error">{error}</Alert> : null}
+      {error ? <LoadError message={error} onRetry={() => setAttempt((current) => current + 1)} /> : null}
 
       <div className="grid-sidebar">
         <section className="panel">
@@ -126,6 +130,10 @@ export function ReportsPage() {
 
           {loading ? (
             <Loading label="Carregando projetos…" />
+          ) : error ? (
+            <p className="field__hint" style={{ padding: 16 }}>
+              A lista de projetos não carregou.
+            </p>
           ) : filtered.length === 0 ? (
             <EmptyState title="Nenhum projeto encontrado" description="Ajuste a busca ou o filtro de status." />
           ) : (

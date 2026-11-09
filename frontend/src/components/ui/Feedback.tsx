@@ -20,6 +20,23 @@ export function Alert({ kind = 'info', children }: AlertProps) {
   return <div className={`alert alert--${kind}`}>{children}</div>;
 }
 
+/**
+ * Falha ao carregar (sem internet, servidor fora do ar): a mensagem e o "Tentar de novo" no lugar do conteudo, que
+ * nao aparece vazio como se nao houvesse nada ("Nenhuma tarefa"), o que engana em obra com sinal fraco.
+ */
+export function LoadError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <Alert kind="error">
+      <div className="load-error">
+        <span>{message}</span>
+        <button type="button" className="btn btn--sm" onClick={onRetry}>
+          Tentar de novo
+        </button>
+      </div>
+    </Alert>
+  );
+}
+
 interface EmptyStateProps {
   title: string;
   description?: string;

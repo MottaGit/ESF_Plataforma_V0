@@ -141,7 +141,17 @@ export function ProjectDetailPage() {
     return (
       <>
         <Alert kind="error">{error ?? 'Projeto não encontrado.'}</Alert>
-        <div style={{ marginTop: 14 }}>
+        <div className="row-actions" style={{ marginTop: 14, justifyContent: 'flex-start' }}>
+          {error ? (
+            <Button
+              onClick={() => {
+                setLoading(true);
+                void load();
+              }}
+            >
+              Tentar de novo
+            </Button>
+          ) : null}
           <Button onClick={() => navigate('/projetos')}>Voltar para projetos</Button>
         </div>
       </>

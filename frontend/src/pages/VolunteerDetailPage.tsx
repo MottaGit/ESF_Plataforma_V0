@@ -86,7 +86,8 @@ export function VolunteerDetailPage() {
     return (
       <>
         <Alert kind="error">{error ?? 'Voluntário não encontrado.'}</Alert>
-        <div style={{ marginTop: 14 }}>
+        <div className="row-actions" style={{ marginTop: 14, justifyContent: 'flex-start' }}>
+          {error ? <Button onClick={() => void load()}>Tentar de novo</Button> : null}
           <Button onClick={() => navigate('/voluntarios')}>Voltar para voluntários</Button>
         </div>
       </>

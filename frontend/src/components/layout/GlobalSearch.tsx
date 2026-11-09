@@ -82,6 +82,9 @@ export function GlobalSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResults | null>(null);
   const [loading, setLoading] = useState(false);
+  // A busca falhou (sem internet): o painel diz isso, com "Tentar de novo", em vez de ficar vazio.
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [highlight, setHighlight] = useState(0);
   const sequence = useRef(0);
 
@@ -112,10 +115,12 @@ export function GlobalSearch() {
     if (term.length < 2) {
       setResults(null);
       setLoading(false);
+      setFailed(false);
       return;
     }
     const current = ++sequence.current;
     setLoading(true);
+    setFailed(false);
     const timer = window.setTimeout(() => {
       searchApi
         .search(term)
@@ -124,11 +129,15 @@ export function GlobalSearch() {
           setResults(found);
           setHighlight(0);
         })
-        .catch(() => current === sequence.current && setResults(null))
+        .catch(() => {
+          if (current !== sequence.current) return;
+          setResults(null);
+          setFailed(true);
+        })
         .finally(() => current === sequence.current && setLoading(false));
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [term]);
+  }, [term, attempt]);
 
   function go(item: ResultItem) {
     setOpen(false);
@@ -201,6 +210,20 @@ export function GlobalSearch() {
       {showPanel ? (
         <div className="global-search__panel" id="global-search-results" role="listbox" aria-label="Resultados da busca">
           {loading && !results ? <p className="global-search__empty">Buscando…</p> : null}
+          {failed && !loading ? (
+            <p className="global-search__empty">
+              Não foi possível buscar (sem internet?).{' '}
+              <button
+                type="button"
+                className="link-button"
+                // Sem tirar o foco do campo: o painel continua aberto.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => setAttempt((value) => value + 1)}
+              >
+                Tentar de novo
+              </button>
+            </p>
+          ) : null}
           {results && items.length === 0 ? (
             <p className="global-search__empty">Nada encontrado para "{term}".</p>
           ) : null}

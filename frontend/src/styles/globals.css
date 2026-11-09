@@ -450,6 +450,8 @@ button { font: inherit; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .form-grid--single { grid-template-columns: minmax(0, 1fr); }
 .span-2 { grid-column: 1 / -1; }
+.load-error { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.load-error span { flex: 1 1 220px; }
 /* Formulario do voluntario: o que fazer com o acesso e as tarefas de quem sai do nucleo. */
 .leave-options {
   display: grid;

@@ -11,7 +11,7 @@ import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
-import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
+import { ConfirmDialog, EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
 import { IconDownload, IconEdit, IconGlobe, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
@@ -378,9 +378,9 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         />
       ) : null}
 
-      {error ? <Alert kind="error">{error}</Alert> : null}
-
-      {showMap && !loading ? (
+      {error ? (
+        <LoadError message={error} onRetry={() => void load()} />
+      ) : showMap && !loading ? (
         <Suspense
           fallback={
             <section className="panel">

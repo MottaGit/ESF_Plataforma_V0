@@ -7,7 +7,7 @@ import { BirthdayBadge, VolunteerStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
-import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
+import { Alert, EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
 import { IconDownload, IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
@@ -215,7 +215,7 @@ export function VolunteersPage() {
         </CollapsibleFilters>
       </div>
 
-      {error ? <Alert kind="error">{error}</Alert> : null}
+      {error ? <LoadError message={error} onRetry={() => void load()} /> : null}
 
       {pending.length > 0 || onlyPendingTerm ? (
         <div className="term-notice" role="status">
@@ -246,6 +246,7 @@ export function VolunteersPage() {
         </div>
       ) : null}
 
+      {error ? null : (
       <section className="panel">
         {loading ? (
           <Loading label="Carregando voluntários…" />
@@ -353,6 +354,7 @@ export function VolunteersPage() {
           </div>
         )}
       </section>
+      )}
 
       {formOpen ? (
         <VolunteerFormModal

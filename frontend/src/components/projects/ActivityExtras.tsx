@@ -6,7 +6,7 @@ import type { Activity, ActivityDetails, ProjectFile } from '../../types/api';
 import { formatFileSize } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
-import { ConfirmDialog, Loading } from '../ui/Feedback';
+import { ConfirmDialog, LoadError, Loading } from '../ui/Feedback';
 import { IconClose, IconPaperclip, IconUpload } from '../ui/Icons';
 import { ActivityComments } from './ActivityComments';
 
@@ -30,13 +30,16 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // Sem internet, o erro fica no lugar do checklist, com "Tentar de novo" (antes ficava "Carregando…" para sempre).
+  const [loadError, setLoadError] = useState<string | null>(null);
   const load = useCallback(async () => {
+    setLoadError(null);
     try {
       setDetails(await activitiesApi.details(activity.id));
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível carregar o checklist e os anexos.');
+      setLoadError(err instanceof ApiError ? err.message : 'Não foi possível carregar o checklist, os anexos e os comentários.');
     }
-  }, [activity.id, notifyError]);
+  }, [activity.id]);
 
   useEffect(() => {
     void load();
@@ -121,7 +124,9 @@ export function ActivityExtras({ activity, onChanged }: ActivityExtrasProps) {
     }
   }
 
-  if (!details) return <Loading label="Carregando…" />;
+  if (!details) {
+    return loadError ? <LoadError message={loadError} onRetry={() => void load()} /> : <Loading label="Carregando…" />;
+  }
 
   const total = details.checklist.length;
   const done = details.checklist.filter((item) => item.done).length;

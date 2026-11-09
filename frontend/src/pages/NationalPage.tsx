@@ -6,7 +6,7 @@ import { AccessLinkResultModal, NewAccessLinkModal } from '../components/access/
 import { NeutralBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Field, TextArea, TextInput } from '../components/ui/Field';
-import { Alert, ConfirmDialog, EmptyState, Loading } from '../components/ui/Feedback';
+import { Alert, ConfirmDialog, EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { IconKey, IconPlus } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { Modal } from '../components/ui/Modal';
@@ -90,6 +90,9 @@ function PanelSection() {
   const [to, setTo] = useState(today);
   const [panel, setPanel] = useState<NationalPanel | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Trocar o periodo mantem os numeros anteriores na tela ate chegarem os novos: "Atualizando…" avisa.
+  const [refreshing, setRefreshing] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   const periodError = from && to && to < from ? 'O fim do período não pode ser antes do início.' : null;
 
@@ -97,14 +100,16 @@ function PanelSection() {
     if (periodError) return;
     let active = true;
     setError(null);
+    setRefreshing(true);
     nationalApi
       .panel(from || null, to || null)
       .then((result) => active && setPanel(result))
-      .catch((err) => active && setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o painel.'));
+      .catch((err) => active && setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o painel.'))
+      .finally(() => active && setRefreshing(false));
     return () => {
       active = false;
     };
-  }, [from, to, periodError]);
+  }, [from, to, periodError, attempt]);
 
   const totals = panel?.totals;
   const stats = totals
@@ -150,10 +155,15 @@ function PanelSection() {
         </p>
       </div>
 
-      {error ? <Alert kind="error">{error}</Alert> : null}
+      {error ? <LoadError message={error} onRetry={() => setAttempt((current) => current + 1)} /> : null}
+      {refreshing && panel ? (
+        <p className="field__hint" role="status">
+          Atualizando os números…
+        </p>
+      ) : null}
 
       {!panel ? (
-        <Loading label="Carregando o painel…" />
+        error ? null : <Loading label="Carregando o painel…" />
       ) : (
         <>
           <div className="national-stats">

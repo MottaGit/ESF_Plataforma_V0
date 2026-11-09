@@ -257,7 +257,12 @@ no Safari, "Instalar app" no Chrome): vira o ícone **CtrlESF** (o globo do logo
 com a faixa "Sem internet" no topo; os projetos de "Meus projetos" ficam guardados sozinhos quando o Início abre, mesmo
 os que a pessoa não abriu. Tela nunca aberta mostra "Sem internet, e esta informação ainda não foi aberta neste
 aparelho com internet". Salvar (registro, tarefa, horas) ainda precisa de internet: sem ela, o aviso de erro diz "Sem
-internet. Conecte-se e tente de novo.". Ao sair (ou entrar com outra pessoa), os dados guardados são apagados. Como
+internet. Conecte-se e tente de novo.". Tela que não carrega (sem internet e sem cópia guardada, ou o servidor fora
+do ar) mostra o erro com **Tentar de novo** no lugar do conteúdo, e nunca uma lista vazia que parece "nada aqui"
+("Nenhuma tarefa em aberto"): Tarefas, Projetos, Voluntários, Relatórios, o painel nacional, a página de um projeto ou
+de um voluntário, o checklist, os anexos e os comentários da janela da tarefa (antes ficavam em "Carregando…" para
+sempre) e a busca geral (componente `LoadError`, em `components/ui/Feedback.tsx`). No painel nacional, trocar o período
+mostra "Atualizando os números…" enquanto os novos não chegam. Ao sair (ou entrar com outra pessoa), os dados guardados são apagados. Como
 funciona: `frontend/service-worker.js` vira o `/sw.js` no build (o `vite.config.ts` põe a lista de arquivos e a
 versão); só existe no build de produção, não no `npm run dev`.
 - App (HTML, JS, CSS, ícones): guardado inteiro no primeiro acesso. A página vem da rede primeiro (com a rede lenta,
