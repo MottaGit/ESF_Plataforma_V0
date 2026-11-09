@@ -537,7 +537,9 @@ valor: "—" na tela, fora do PDF e da página pública); e cada resultado sabe 
 arquivados: arquivar só tira o projeto da lista, o que ele entregou continua sendo resultado. No PDF, entram os projetos
 escolhidos.
 
-**Arquivos** — um lugar só para todos os arquivos do projeto, inclusive as fotos publicadas no Andamento (marcadas com
+**Arquivos** — um lugar só para todos os arquivos do projeto, em dois grupos: **Documentos** primeiro (plantas,
+orçamentos, listas de presença: são poucos e é o que mais se procura) e **Fotos** depois, com o filtro **Tudo |
+Documentos | Fotos** (cada um com a quantidade) acima, para a planta não sumir no meio de 200 fotos de obra. Todos os arquivos, inclusive as fotos publicadas no Andamento (marcadas com
 a data do registro). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
 arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
 Os arquivos ficam guardados no próprio banco (tabela `StoredFiles`), então não se perdem quando o servidor é recriado

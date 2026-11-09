@@ -27,6 +27,22 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
   const [viewing, setViewing] = useState<number | null>(null);
 
   const images = project.files.filter((file) => file.isImage);
+  const documents = project.files.filter((file) => !file.isImage);
+  // Fotos e documentos separados: num projeto com 200 fotos, a planta e a lista de presenca nao somem no meio delas.
+  // Documentos vem primeiro (sao poucos e e o que mais se procura); o filtro mostra so um dos dois.
+  const [kind, setKind] = useState<'tudo' | 'fotos' | 'documentos'>('tudo');
+  const showDocuments = kind !== 'fotos';
+  const showPhotos = kind !== 'documentos';
+
+  const card = (file: ProjectFile) => (
+    <FileCard
+      key={file.id}
+      file={file}
+      onChanged={onChanged}
+      onRemove={() => setRemoving(file)}
+      onView={() => setViewing(images.findIndex((image) => image.id === file.id))}
+    />
+  );
 
   async function uploadAll(files: File[]) {
     if (files.length === 0) return;
@@ -116,6 +132,28 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
         <input ref={inputRef} type="file" multiple hidden onChange={handleSelect} />
       </div>
 
+      {project.files.length > 0 ? (
+        <div className="segmented files-kind" role="group" aria-label="Mostrar">
+          {(
+            [
+              ['tudo', 'Tudo', project.files.length],
+              ['documentos', 'Documentos', documents.length],
+              ['fotos', 'Fotos', images.length]
+            ] as const
+          ).map(([key, label, count]) => (
+            <button
+              key={key}
+              type="button"
+              className={`segmented__option${kind === key ? ' segmented__option--active' : ''}`}
+              aria-pressed={kind === key}
+              onClick={() => setKind(key)}
+            >
+              {label} <span className="num files-kind__count">{count}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="panel">
         {project.files.length === 0 ? (
           <EmptyState
@@ -123,18 +161,31 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
             description="Fotos do antes e depois, plantas, autorizações e listas de presença ficam guardadas aqui."
           />
         ) : (
-          <div className="panel__body">
-            <div className="file-grid">
-              {project.files.map((file) => (
-                <FileCard
-                  key={file.id}
-                  file={file}
-                  onChanged={onChanged}
-                  onRemove={() => setRemoving(file)}
-                  onView={() => setViewing(images.findIndex((image) => image.id === file.id))}
-                />
-              ))}
-            </div>
+          <div className="panel__body files-groups">
+            {showDocuments ? (
+              <section aria-label="Documentos">
+                <h3 className="files-group__title">
+                  Documentos <span className="num">{documents.length}</span>
+                </h3>
+                {documents.length === 0 ? (
+                  <p className="field__hint">Nenhum documento ainda (plantas, orçamentos, listas de presença, termos).</p>
+                ) : (
+                  <div className="file-grid">{documents.map(card)}</div>
+                )}
+              </section>
+            ) : null}
+            {showPhotos ? (
+              <section aria-label="Fotos">
+                <h3 className="files-group__title">
+                  Fotos <span className="num">{images.length}</span>
+                </h3>
+                {images.length === 0 ? (
+                  <p className="field__hint">Nenhuma foto ainda. As fotos publicadas no Andamento também aparecem aqui.</p>
+                ) : (
+                  <div className="file-grid">{images.map(card)}</div>
+                )}
+              </section>
+            ) : null}
           </div>
         )}
       </div>

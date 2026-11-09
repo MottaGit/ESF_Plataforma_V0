@@ -1685,6 +1685,21 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
    Arquivos e mapa
    --------------------------------------------------------- */
 
+/* Aba Arquivos: documentos e fotos em grupos separados, com o filtro Tudo | Documentos | Fotos acima. */
+.files-kind { margin-bottom: 12px; }
+.files-kind__count { margin-left: 4px; color: var(--text-muted); font-size: 12px; }
+.files-groups { display: grid; gap: 22px; }
+.files-group__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
 .file-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
