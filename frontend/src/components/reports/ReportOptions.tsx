@@ -1,4 +1,5 @@
 import type { ReportPayload } from '../../types/api';
+import { periodShortcuts } from '../../utils/periods';
 import { Field, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
 
@@ -20,22 +21,6 @@ export const DEFAULT_REPORT_OPTIONS: ReportOptions = {
   note: ''
 };
 
-/** Data local no formato do campo de data (aaaa-mm-dd). */
-function inputDate(date: Date) {
-  return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`;
-}
-
-/** Atalhos de periodo, pelo calendario de quem esta usando: mes passado inteiro, ultimos 3 meses e o ano ate hoje. */
-function periodShortcuts(today = new Date()) {
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  return [
-    { label: 'Mês passado', from: inputDate(new Date(year, month - 1, 1)), to: inputDate(new Date(year, month, 0)) },
-    { label: 'Últimos 3 meses', from: inputDate(new Date(year, month - 3, today.getDate())), to: inputDate(today) },
-    { label: 'Este ano', from: inputDate(new Date(year, 0, 1)), to: inputDate(today) },
-    { label: 'Tudo', from: '', to: '' }
-  ];
-}
 
 /** Problema nas opcoes que impede gerar o PDF (null: pode gerar). */
 export function reportOptionsError(options: ReportOptions) {

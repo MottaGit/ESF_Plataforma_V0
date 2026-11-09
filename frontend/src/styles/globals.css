@@ -856,6 +856,15 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .national-stat__value small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
 .national-stat__label { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
 .national-stat__hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+.last-activity { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.stale-mark {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--warning-bg, #fff4e5);
+  color: var(--warning);
+  font-size: 11.5px;
+  font-weight: 600;
+}
 .national-stat--result { background: var(--accent-soft); border-color: #cfe2dd; }
 .national-stat--result .national-stat__value { color: var(--accent-text); }
 
@@ -2736,6 +2745,29 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 /* ---------------------------------------------------------
    Barra fixa embaixo (celular) e "Registrar"
    --------------------------------------------------------- */
+
+/* Relatorios no celular: o "Gerar PDF" preso acima da barra de baixo enquanto ha projetos marcados. */
+.report-mobile-bar { display: none; }
+@media (max-width: 900px) {
+  .report-mobile-bar {
+    position: sticky;
+    bottom: 12px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 4px 16px rgba(16, 24, 40, 0.12);
+  }
+}
+@media (max-width: 760px) {
+  .report-mobile-bar { bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
 
 .bottom-bar { display: none; }
 @media (max-width: 760px) {

@@ -221,7 +221,9 @@ números (ativos, isto é, em planejamento, em andamento ou pausados, sem os arq
 os **resultados somados** — os indicadores nacionais e os padrão do modelo, pela regra de **Resultados somados** (abaixo
 de Indicadores): "—" com "não informado" quando nenhum projeto informou, e "informado em 3 de 5 projetos" quando falta
 algum —, mais, para a coordenação,
-**Modelo do programa**, **Editar** (nome, ícone e cor) e arquivar/reativar ou excluir (só sem projetos). A lista
+**Gerar relatório** (qualquer perfil: abre Relatórios
+com os projetos do programa já marcados, menos cancelados e arquivados, e a lista filtrada nele), **Modelo do
+programa**, **Editar** (nome, ícone e cor) e arquivar/reativar ou excluir (só sem projetos). A lista
 embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com ele escolhido. Os endereços antigos
 (`/programas`, `/programas/{id}` e `/configuracoes?aba=programas`) levam para cá; no topo de cada projeto, o nome do
 programa abre a visão dele.
@@ -545,11 +547,15 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
-**Relatórios** — seleção de um ou vários projetos, observação livre e geração de um **PDF consolidado** com
+**Relatórios** — seleção de um ou vários projetos (busca e filtros de programa e de status; vindo de Projetos ›
+programa › **Gerar relatório**, `?programa=`, os projetos dele já vêm marcados; no celular, com projetos marcados, o
+**Gerar PDF** fica preso embaixo da tela, com o atalho "Período e opções", porque as opções ficam depois da lista
+inteira), observação livre e geração de um **PDF consolidado** com
 identificação, descrição, objetivo, período, status, responsável, localização, voluntários (nome, papel no
 projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
-referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Últimos 3 meses**, **Este
-ano** e **Todo o histórico**) aparece no topo de todas as páginas e filtra a linha do
+referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Trimestre passado**, **Últimos 3
+meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
+não serve para o relatório anual; `utils/periods.ts`, os mesmos do painel nacional) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
 andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico): por isso o título "Indicadores"
 de cada projeto diz "valores até 09/11/2026" e, com período de referência, "valores acumulados até 09/11/2026, não só
@@ -594,7 +600,10 @@ cadastro de voluntário, pode ser ligado a um ali.
   nacional. Os indicadores nacionais aparecem também somados em cartões, pela regra de **Resultados somados** (pelo
   vínculo com o nacional): "—" quando nenhum projeto informou, nunca zero, e "informado em 3 de 5 projetos" quando falta
   algum, no cartão e em cada núcleo. Horas, tarefas e registros contam no **período** escolhido (de início, o ano
-  corrente); projetos, voluntários e indicadores são a situação de hoje (os indicadores não guardam histórico). Só
+  corrente, com os mesmos atalhos de período dos relatórios); projetos, voluntários e indicadores são a situação de
+  hoje (os indicadores não guardam histórico). A tabela por núcleo começa por quem está há mais tempo sem atividade
+  (nenhuma primeiro), com a **última atividade** logo depois do nome, em tempo relativo ("ontem", "25/09"), e a marca
+  **parado** a partir de 30 dias (ou quando nunca houve). Só
   números: nada de nomes de pessoas nem de projetos.
 - **Núcleos**: cada núcleo com cidade/UF, voluntários ativos, projetos ativos e quem o administra (nome,
   e-mail, situação do acesso). **Novo núcleo** pede nome, cidade, estado e quem vai administrar: a pessoa entra como

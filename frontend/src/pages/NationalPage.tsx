@@ -21,7 +21,16 @@ import type {
   NucleoAdmin,
   SummedValue
 } from '../types/api';
-import { coverageLabel, emptyToNull, formatDate, formatNumber, todayInputValue } from '../utils/format';
+import { coverageLabel, daysFromToday, emptyToNull, formatDate, formatNumber, timeAgo, todayInputValue } from '../utils/format';
+import { periodShortcuts } from '../utils/periods';
+
+/** A partir de quantos dias sem registro nem tarefa concluida o nucleo aparece como parado. */
+const STALE_DAYS = 30;
+
+/** Dias desde a ultima atividade (null: nunca teve). */
+function daysSince(value: string | null) {
+  return value ? -daysFromToday(value.slice(0, 10)) : null;
+}
 
 type TabKey = 'panel' | 'nucleos' | 'indicators' | 'people';
 
@@ -146,6 +155,25 @@ function PanelSection() {
               onChange={(event) => setTo(event.target.value)}
             />
           </div>
+          <div className="chip-group report-period__shortcuts" role="group" aria-label="Atalhos de período">
+            {periodShortcuts().map((shortcut) => {
+              const active = from === shortcut.from && to === shortcut.to;
+              return (
+                <button
+                  key={shortcut.label}
+                  type="button"
+                  className={`chip${active ? ' chip--active' : ''}`}
+                  aria-pressed={active}
+                  onClick={() => {
+                    setFrom(shortcut.from);
+                    setTo(shortcut.to);
+                  }}
+                >
+                  {shortcut.label}
+                </button>
+              );
+            })}
+          </div>
           {periodError ? <span className="field__error">{periodError}</span> : null}
         </div>
         <p className="field__hint" style={{ maxWidth: 420 }}>
@@ -225,19 +253,23 @@ function PanelSection() {
           <section className="panel" style={{ marginTop: 16 }}>
             <div className="panel__head">
               <h2>Por núcleo</h2>
+              <span className="field__hint">
+                Primeiro quem está há mais tempo sem atividade (registro de andamento ou tarefa concluída); {STALE_DAYS}{' '}
+                dias ou mais: parado.
+              </span>
             </div>
             <div className="table-wrap">
               <table className="table table--cards">
                 <thead>
                   <tr>
                     <th>Núcleo</th>
+                    <th className="tight">Última atividade</th>
                     <th className="tight">Projetos ativos</th>
                     <th className="tight">Concluídos</th>
                     <th className="tight">Voluntários ativos</th>
                     <th className="tight">Horas estimadas no período</th>
                     <th className="tight">Tarefas no período</th>
                     <th className="tight">Registros no período</th>
-                    <th className="tight">Última atividade</th>
                     {panel.indicators.map((indicator) => (
                       <th key={indicator.id} className="tight">
                         {indicator.name}
@@ -246,11 +278,17 @@ function PanelSection() {
                   </tr>
                 </thead>
                 <tbody>
-                  {panel.nucleos.map((row) => (
+                  {/* Quem esta parado ha mais tempo primeiro (sem nenhuma atividade, no topo). */}
+                  {[...panel.nucleos]
+                    .sort((a, b) => (daysSince(b.lastActivityAt) ?? Infinity) - (daysSince(a.lastActivityAt) ?? Infinity))
+                    .map((row) => (
                     <tr key={row.id}>
                       <td className="cell--main" style={{ minWidth: 150 }}>
                         <div className="table__primary">{row.name}</div>
                         <div className="table__secondary">{[row.city, row.state].filter(Boolean).join(' / ') || '—'}</div>
+                      </td>
+                      <td className="tight" data-label="Última atividade">
+                        <LastActivity value={row.lastActivityAt} />
                       </td>
                       <td className="tight num" data-label="Projetos ativos">{row.activeProjects}</td>
                       <td className="tight num" data-label="Concluídos">{row.concludedProjects}</td>
@@ -258,7 +296,6 @@ function PanelSection() {
                       <td className="tight num" data-label="Horas estimadas">{formatNumber(row.volunteerHours)}</td>
                       <td className="tight num" data-label="Tarefas">{row.tasksCompleted}</td>
                       <td className="tight num" data-label="Registros">{row.records}</td>
-                      <td className="tight" data-label="Última atividade">{row.lastActivityAt ? formatDate(row.lastActivityAt) : 'nenhuma'}</td>
                       {panel.indicators.map((indicator) => (
                         <td key={indicator.id} className="tight num" data-label={indicator.name}>
                           <SummedCell value={row.indicators[indicator.id]} />
@@ -273,6 +310,18 @@ function PanelSection() {
         </>
       )}
     </>
+  );
+}
+
+/** "há 3 dias" (data na dica) e a marca "parado" a partir de STALE_DAYS, ou quando nunca houve atividade. */
+function LastActivity({ value }: { value: string | null }) {
+  const days = daysSince(value);
+  const stale = days === null || days >= STALE_DAYS;
+  return (
+    <span className="last-activity" title={value ? formatDate(value) : undefined}>
+      {value ? timeAgo(value) : 'nenhuma'}
+      {stale ? <span className="stale-mark">parado</span> : null}
+    </span>
   );
 }
 

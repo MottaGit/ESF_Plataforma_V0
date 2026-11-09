@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { projectsApi, reportsApi } from '../api/endpoints';
 import {
@@ -26,6 +27,12 @@ export function ReportsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ProjectStatus | ''>('');
   const [selected, setSelected] = useState<string[]>([]);
+  // Vindo da visao de um programa (?programa=): a lista abre filtrada nele, com os projetos dele ja marcados (menos
+  // cancelados e arquivados).
+  const [searchParams] = useSearchParams();
+  const [programFilter, setProgramFilter] = useState(searchParams.get('programa') ?? '');
+  const preselected = useRef(false);
+  const optionsRef = useRef<HTMLElement>(null);
 
   const [options, setOptions] = useState(DEFAULT_REPORT_OPTIONS);
   const [generating, setGenerating] = useState(false);
@@ -37,7 +44,18 @@ export function ReportsPage() {
     setError(null);
     projectsApi
       .list({ sort: 'name', includeArchived: true })
-      .then(setProjects)
+      .then((list) => {
+        setProjects(list);
+        const program = searchParams.get('programa');
+        if (program && !preselected.current) {
+          preselected.current = true;
+          setSelected(
+            list
+              .filter((project) => project.programId === program && !project.isArchived && project.status !== 'Cancelado')
+              .map((project) => project.id)
+          );
+        }
+      })
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os projetos.'))
       .finally(() => setLoading(false));
   }, [attempt]);
@@ -45,6 +63,7 @@ export function ReportsPage() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return projects.filter((project) => {
+      if (programFilter && project.programId !== programFilter) return false;
       const matchesStatus = !status || project.status === status;
       const matchesTerm =
         !term ||
@@ -53,7 +72,14 @@ export function ReportsPage() {
         (project.city ?? '').toLowerCase().includes(term);
       return matchesStatus && matchesTerm;
     });
-  }, [projects, search, status]);
+  }, [projects, search, status, programFilter]);
+
+  // Programas que aparecem nos projetos, para o filtro.
+  const programs = useMemo(() => {
+    const byId = new Map<string, string>();
+    projects.forEach((project) => byId.set(project.programId, project.programName));
+    return [...byId.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [projects]);
 
   // Selecionados sem autorizacao de uso de imagem dos beneficiarios: so um aviso, o PDF nao muda.
   const withoutImageAuthorization = projects.filter(
@@ -113,6 +139,20 @@ export function ReportsPage() {
                   aria-label="Buscar projeto"
                 />
               </span>
+              {programs.length > 1 ? (
+                <Select
+                  value={programFilter}
+                  onChange={(event) => setProgramFilter(event.target.value)}
+                  aria-label="Filtrar por programa"
+                >
+                  <option value="">Todos os programas</option>
+                  {programs.map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </Select>
+              ) : null}
               <Select
                 value={status}
                 onChange={(event) => setStatus(event.target.value as ProjectStatus | '')}
@@ -182,7 +222,7 @@ export function ReportsPage() {
           )}
         </section>
 
-        <section className="panel" style={{ alignSelf: 'start' }}>
+        <section className="panel" style={{ alignSelf: 'start' }} ref={optionsRef}>
           <div className="panel__head">
             <h2>Conteúdo do PDF</h2>
           </div>
@@ -206,13 +246,35 @@ export function ReportsPage() {
               </Button>
               {selected.length === 0 ? (
                 <p className="field__hint" style={{ marginTop: 8 }}>
-                  Selecione ao menos um projeto na lista ao lado.
+                  Marque ao menos um projeto na lista.
                 </p>
               ) : null}
             </div>
           </div>
         </section>
       </div>
+
+      {/* No celular as opcoes ficam depois da lista inteira: o botao fica preso embaixo enquanto ha projetos marcados. */}
+      {selected.length > 0 ? (
+        <div className="report-mobile-bar" role="region" aria-label="Gerar o PDF">
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => optionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            Período e opções
+          </button>
+          <Button
+            variant="primary"
+            icon={<IconDownload size={15} />}
+            loading={generating}
+            disabled={Boolean(reportOptionsError(options))}
+            onClick={() => void handleGenerate()}
+          >
+            Gerar PDF ({selected.length})
+          </Button>
+        </div>
+      ) : null}
     </>
   );
 }

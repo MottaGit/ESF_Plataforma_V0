@@ -621,26 +621,33 @@ function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArc
             {canManage && program.publicPage ? ' · página pública ligada' : ''}
           </span>
         </div>
-        {canManage ? (
-          <div className="program-overview__actions">
-            <Link className="btn" to={`/programas/${program.id}/modelo`}>
-              Modelo do programa
-            </Link>
-            <Button icon={<IconEdit size={15} />} onClick={onEdit}>
-              Editar
-            </Button>
-            <Button icon={<IconGlobe size={15} />} onClick={onPublicPage}>
-              Página pública
-            </Button>
-            <Menu
-              label="Mais ações do programa"
-              items={[
-                { label: archived ? 'Reativar programa' : 'Arquivar programa', onSelect: onToggleArchived },
-                ...(program.projectsCount === 0 ? [{ label: 'Excluir programa', danger: true, onSelect: onDelete }] : [])
-              ]}
-            />
-          </div>
-        ) : null}
+        <div className="program-overview__actions">
+          {/* Relatorio do programa (qualquer perfil): a tela Relatorios abre com os projetos dele marcados. */}
+          <Link className="btn" to={`/relatorios?programa=${program.id}`}>
+            <IconDownload size={15} />
+            Gerar relatório
+          </Link>
+          {canManage ? (
+            <>
+              <Link className="btn" to={`/programas/${program.id}/modelo`}>
+                Modelo do programa
+              </Link>
+              <Button icon={<IconEdit size={15} />} onClick={onEdit}>
+                Editar
+              </Button>
+              <Button icon={<IconGlobe size={15} />} onClick={onPublicPage}>
+                Página pública
+              </Button>
+              <Menu
+                label="Mais ações do programa"
+                items={[
+                  { label: archived ? 'Reativar programa' : 'Arquivar programa', onSelect: onToggleArchived },
+                  ...(program.projectsCount === 0 ? [{ label: 'Excluir programa', danger: true, onSelect: onDelete }] : [])
+                ]}
+              />
+            </>
+          ) : null}
+        </div>
       </div>
       <div className="program-overview__numbers">
         {numbers.map((item) => (

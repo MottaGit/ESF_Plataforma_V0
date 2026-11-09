@@ -134,8 +134,9 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <p>
             De um projeto: no topo dele, <strong>Gerar relatório</strong> (no celular, pode estar no{' '}
-            <strong>⋯</strong>). De vários: na tela <strong>Relatórios</strong>, marque os projetos. Dá para escolher
-            um período, como o trimestre que o parceiro pediu.
+            <strong>⋯</strong>). De um programa inteiro: em Projetos, escolha o programa e toque em{' '}
+            <strong>Gerar relatório</strong>. De vários: na tela <strong>Relatórios</strong>, marque os projetos. Dá
+            para escolher um período, como o trimestre passado.
           </p>
         )
       },
