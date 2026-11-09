@@ -85,6 +85,18 @@ public class SaveVolunteerRequest
     /// voluntariado) comeca nesse dia; vazio, hoje.
     /// </summary>
     public DateOnly? ActiveSince { get; set; }
+
+    /// <summary>
+    /// Saindo do nucleo (Inativo ou Ex-membro): desativa tambem o acesso a plataforma (a pessoa deixa de entrar e de
+    /// ver os contatos de todos). Ignorado nas outras situacoes.
+    /// </summary>
+    public bool DeactivateAccess { get; set; }
+
+    /// <summary>
+    /// Saindo do nucleo (Inativo ou Ex-membro): as tarefas em aberto dela ficam sem responsavel, para a coordenacao
+    /// reatribuir (Tarefas > Sem responsavel). Ignorado nas outras situacoes.
+    /// </summary>
+    public bool ReleaseTasks { get; set; }
 }
 
 public class AddProjectVolunteerRequest

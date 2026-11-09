@@ -294,7 +294,7 @@ interface VolunteerFormModalProps {
 }
 
 export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFormModalProps) {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, isAdmin: userIsAdmin } = useAuth();
   const [name, setName] = useState(volunteer?.name ?? '');
   const [email, setEmail] = useState(volunteer?.email ?? '');
   const [phone, setPhone] = useState(volunteer?.phone ?? '');
@@ -302,6 +302,24 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
   const [skills, setSkills] = useState(volunteer?.skills ?? '');
   const [notes, setNotes] = useState(volunteer?.notes ?? '');
   const [status, setStatus] = useState<VolunteerStatus>(volunteer?.status ?? 'Ativo');
+
+  // Saindo do nucleo (passou a Inativo ou Ex-membro nesta edicao): o formulario pergunta o que fazer com o acesso e
+  // com as tarefas em aberto. As duas ja vem marcadas, porque e o que quase sempre se quer.
+  const leaving =
+    Boolean(volunteer) && (status === 'Inativo' || status === 'ExMembro') && volunteer?.status !== status;
+  const access = volunteer?.access ?? null;
+  const accessIsMine = Boolean(access && access.userId === user?.id);
+  const canDeactivate = Boolean(access?.isActive) && !accessIsMine && (userIsAdmin || access?.role !== 'Administrador');
+  const [deactivateAccess, setDeactivateAccess] = useState(true);
+  const [releaseTasks, setReleaseTasks] = useState(true);
+  const [openTasks, setOpenTasks] = useState<number | null>(null);
+  useEffect(() => {
+    if (!leaving || !volunteer || openTasks !== null) return;
+    volunteersApi
+      .load()
+      .then((list) => setOpenTasks(list.find((item) => item.volunteerId === volunteer.id)?.openActivities ?? 0))
+      .catch(() => setOpenTasks(0));
+  }, [leaving, volunteer, openTasks]);
   const [birthDay, setBirthDay] = useState(volunteer?.birthDay ? String(volunteer.birthDay) : '');
   const [birthMonth, setBirthMonth] = useState(volunteer?.birthMonth ? String(volunteer.birthMonth) : '');
   const [birthdayError, setBirthdayError] = useState<string | null>(null);
@@ -359,7 +377,9 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
       status,
       birthDay: birthDay ? Number(birthDay) : null,
       birthMonth: birthMonth ? Number(birthMonth) : null,
-      activeSince: volunteer ? null : activeSince || null
+      activeSince: volunteer ? null : activeSince || null,
+      deactivateAccess: leaving && canDeactivate && deactivateAccess,
+      releaseTasks: leaving && (openTasks ?? 0) > 0 && releaseTasks
     };
 
     setSaving(true);
@@ -551,6 +571,49 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
               ))}
             </Select>
           </Field>
+
+          {leaving && (access?.isActive || (openTasks ?? 0) > 0) ? (
+            <fieldset className="leave-options span-2">
+              <legend className="field__label">Saindo do núcleo</legend>
+              {access?.isActive ? (
+                canDeactivate ? (
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={deactivateAccess}
+                      onChange={(event) => setDeactivateAccess(event.target.checked)}
+                    />
+                    <span>
+                      Desativar o acesso à plataforma
+                      <span className="field__hint">
+                        A pessoa deixa de entrar (e de ver os contatos de todos). Dá para reativar em Configurações ›
+                        Acessos.
+                      </span>
+                    </span>
+                  </label>
+                ) : (
+                  <p className="field__hint">
+                    {accessIsMine
+                      ? 'O acesso é o seu: ele continua ativo.'
+                      : 'O acesso é de administrador: só outro administrador desativa (Configurações › Acessos).'}
+                  </p>
+                )
+              ) : null}
+              {(openTasks ?? 0) > 0 ? (
+                <label className="checkbox">
+                  <input type="checkbox" checked={releaseTasks} onChange={(event) => setReleaseTasks(event.target.checked)} />
+                  <span>
+                    {openTasks === 1
+                      ? 'Deixar sem responsável a tarefa em aberto dela'
+                      : `Deixar sem responsável as ${openTasks} tarefas em aberto dela`}
+                    <span className="field__hint">
+                      Para reatribuir em Tarefas › Filtros › Responsável: Sem responsável.
+                    </span>
+                  </span>
+                </label>
+              ) : null}
+            </fieldset>
+          ) : null}
 
           {!volunteer ? (
             <Field

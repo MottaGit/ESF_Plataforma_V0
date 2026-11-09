@@ -251,6 +251,16 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Alguém saiu do núcleo. O que faço?',
+        answer: (
+          <p>
+            Edite o voluntário e mude a <strong>Situação</strong> para Inativo ou Ex-membro: a janela oferece desativar o
+            acesso e deixar as tarefas dele sem responsável, para reatribuir. Para apagar os dados pessoais, use{' '}
+            <strong>Anonimizar dados</strong> no <strong>⋯</strong> da página dele.
+          </p>
+        )
+      },
+      {
         question: 'Como cadastro um voluntário e dou acesso?',
         answer: (
           <p>

@@ -429,6 +429,14 @@ lista), e cada um deles ganha um ponto vermelho com "!" no canto da foto. Os doc
 Configurações › Organização. Termos enviados como arquivo antes da assinatura online continuam valendo e aparecem como
 "Assinado em dd/mm/aaaa".
 
+**Saída do núcleo** — ao editar um voluntário e mudar a situação para **Inativo** ou **Ex-membro**, o formulário mostra
+"Saindo do núcleo" com duas caixinhas, já marcadas: **Desativar o acesso à plataforma** (a pessoa deixa de entrar e de
+ver os contatos de todos; reativa em Configurações › Acessos) e **Deixar sem responsável as N tarefas em aberto dela**
+(as dos projetos em planejamento ou em andamento, não arquivados: o mesmo recorte da carga no Início; ficam em Tarefas ›
+Responsável: Sem responsável, para reatribuir). Tudo grava junto com a situação. Ninguém desativa o próprio acesso, e o
+de um administrador só outro administrador desativa (para o coordenador, a janela explica no lugar da caixinha).
+Afastado não pergunta nada: é temporário. Para apagar os dados pessoais, continua o Anonimizar.
+
 **Anonimizar voluntário** — na página do voluntário, a coordenação usa "Anonimizar dados" (no menu "⋯" ao lado de "Editar voluntário")
 no lugar de excluir (quando a pessoa sai da
 organização ou pede a exclusão dos dados): nome vira "Voluntário removido", saem e-mail, telefone, habilidades,

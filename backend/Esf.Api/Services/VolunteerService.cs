@@ -17,13 +17,27 @@ public class VolunteerService
     private readonly EsfDbContext _db;
     private readonly FileStorageService _storage;
     private readonly NotificationService _notifications;
+    private readonly ICurrentUser? _currentUser;
 
-    public VolunteerService(EsfDbContext db, FileStorageService storage, NotificationService notifications)
+    public VolunteerService(EsfDbContext db, FileStorageService storage, NotificationService notifications,
+        ICurrentUser? currentUser = null)
     {
         _db = db;
         _storage = storage;
         _notifications = notifications;
+        _currentUser = currentUser;
     }
+
+    /// <summary>
+    /// Tarefas em aberto que contam como carga da pessoa: as de projetos em planejamento ou em andamento, nao
+    /// arquivados (o mesmo recorte do Inicio, da escolha do responsavel e da saida do nucleo).
+    /// </summary>
+    private IQueryable<Activity> OpenTasksOf(Guid volunteerId) =>
+        _db.Activities.Where(a => a.AssignedVolunteerId == volunteerId
+                                  && a.Status != ActivityStatus.Concluida
+                                  && !a.Project!.IsArchived
+                                  && (a.Project.Status == ProjectStatus.Planejamento
+                                      || a.Project.Status == ProjectStatus.EmAndamento));
 
     public async Task<List<VolunteerDto>> ListAsync(string? search, bool onlyActive, VolunteerSector? sector)
     {
@@ -174,10 +188,34 @@ public class VolunteerService
         // Mudou a situacao pelo cadastro: entra no historico a partir de hoje.
         if (volunteer.Status != previousStatus)
             await VolunteerStatusHistoryService.ApplyPeriodAsync(_db, volunteer, volunteer.Status, Mapping.Today, null);
+        // Saiu do nucleo: o formulario pergunta se o acesso fica desativado e se as tarefas ficam sem responsavel.
+        // Tudo no mesmo SaveChanges da situacao.
+        if (volunteer.Status is VolunteerStatus.Inativo or VolunteerStatus.ExMembro)
+        {
+            if (request.DeactivateAccess) await DeactivateAccessAsync(volunteer.Id);
+            if (request.ReleaseTasks)
+                foreach (var task in await OpenTasksOf(volunteer.Id).ToListAsync())
+                    task.AssignedVolunteerId = null;
+        }
         await _db.SaveChangesAsync();
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
         return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
+    }
+
+    /// <summary>
+    /// Desativa o acesso de quem saiu do nucleo. Ninguem desativa o proprio, e o de um administrador so outro
+    /// administrador desativa (como em Configuracoes > Acessos).
+    /// </summary>
+    private async Task DeactivateAccessAsync(Guid volunteerId)
+    {
+        var access = await _db.Users.FirstOrDefaultAsync(u => u.VolunteerId == volunteerId);
+        if (access is null || !access.IsActive) return;
+        if (access.Id == _currentUser?.Id)
+            throw new AppException("Você não pode desativar o próprio acesso.");
+        if (access.Role == UserRole.Administrador && _currentUser?.IsAdmin != true)
+            throw AppException.Forbidden("Só um administrador desativa o acesso de outro administrador.");
+        access.IsActive = false;
     }
 
     /// <summary>

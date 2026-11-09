@@ -784,6 +784,10 @@ export interface SaveVolunteerPayload {
   birthMonth: number | null;
   /** So no cadastro novo: desde quando esta no nucleo (vazio: hoje). */
   activeSince?: string | null;
+  /** Saindo do nucleo (Inativo ou Ex-membro): desativa tambem o acesso. */
+  deactivateAccess?: boolean;
+  /** Saindo do nucleo (Inativo ou Ex-membro): as tarefas em aberto ficam sem responsavel. */
+  releaseTasks?: boolean;
 }
 
 export interface SaveProgramPayload {

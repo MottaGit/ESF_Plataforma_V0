@@ -12,7 +12,7 @@ namespace Esf.Api.Tests;
 public class VolunteerLifecycleTests
 {
     private static VolunteerService Service(EsfDbContext db, TestUser user) =>
-        new(db, new FileStorageService(db, Options.Create(new StorageOptions())), new NotificationService(db, user));
+        new(db, new FileStorageService(db, Options.Create(new StorageOptions())), new NotificationService(db, user), user);
 
     private static SaveVolunteerRequest Request(string name, VolunteerStatus status = VolunteerStatus.Ativo) => new()
     {
@@ -46,5 +46,53 @@ public class VolunteerLifecycleTests
         var future = Request("Pessoa Futura");
         future.ActiveSince = Mapping.Today.AddDays(1);
         await Assert.ThrowsAsync<AppException>(() => volunteers.CreateAsync(future));
+    }
+
+    [Fact]
+    public async Task LeavingTheNucleoCanDeactivateTheAccessAndReleaseTheTasks()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var coordinator = new TestUser { Id = Guid.NewGuid(), Name = "Coord", Role = UserRole.Coordenador, OrganizationId = f.A.OrganizationId };
+        Guid userId;
+        await using (var system = f.SystemContext())
+        {
+            var user = new Domain.Entities.User
+            {
+                OrganizationId = f.A.OrganizationId, Name = "Sem acesso a", Email = "sem.acesso.a@teste.org",
+                PasswordHash = "x", Role = UserRole.Usuario, VolunteerId = f.A.VolunteerWithoutAccessId
+            };
+            system.Users.Add(user);
+            system.Activities.Add(new Domain.Entities.Activity
+            {
+                ProjectId = f.A.ProjectId, Title = "Comprar material", Status = ActivityStatus.EmAndamento,
+                Priority = ActivityPriority.Media, AssignedVolunteerId = f.A.VolunteerWithoutAccessId
+            });
+            await system.SaveChangesAsync();
+            userId = user.Id;
+        }
+
+        await using var db = f.Context(coordinator);
+        var volunteers = Service(db, coordinator);
+
+        // Afastado nao mexe em nada, mesmo com as caixinhas marcadas.
+        var away = Request("Sem acesso a", VolunteerStatus.Afastado);
+        away.DeactivateAccess = true;
+        away.ReleaseTasks = true;
+        await volunteers.UpdateAsync(f.A.VolunteerWithoutAccessId, away);
+        Assert.True((await db.Users.SingleAsync(u => u.Id == userId)).IsActive);
+
+        // Ex-membro: acesso desativado e a tarefa sem responsavel.
+        var leaving = Request("Sem acesso a", VolunteerStatus.ExMembro);
+        leaving.DeactivateAccess = true;
+        leaving.ReleaseTasks = true;
+        await volunteers.UpdateAsync(f.A.VolunteerWithoutAccessId, leaving);
+        Assert.False((await db.Users.SingleAsync(u => u.Id == userId)).IsActive);
+        Assert.Empty(await db.Activities.Where(a => a.AssignedVolunteerId == f.A.VolunteerWithoutAccessId).ToListAsync());
+        Assert.Single(await db.Activities.Where(a => a.Title == "Comprar material" && a.AssignedVolunteerId == null).ToListAsync());
+
+        // O acesso de um administrador, o coordenador nao desativa.
+        var admin = Request("Voluntario a", VolunteerStatus.Inativo);
+        admin.DeactivateAccess = true;
+        await Assert.ThrowsAsync<AppException>(() => volunteers.UpdateAsync(f.A.VolunteerId, admin));
     }
 }
