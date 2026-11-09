@@ -188,7 +188,7 @@ export function ProjectDetailPage() {
             {project.isArchived ? <NeutralBadge>Arquivado</NeutralBadge> : null}
             <span className={`project-head__deadline${project.isLate ? ' project-head__deadline--late' : ''}`}>
               <IconCalendar size={14} />
-              {deadlineLabel(project.endDateForecast, project.status)}
+              {deadlineLabel(project.endDateForecast, project.status, project.closedOn)}
             </span>
           </div>
         </div>

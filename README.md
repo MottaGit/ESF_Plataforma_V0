@@ -335,9 +335,19 @@ com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aber
 (componente `components/reports/ReportOptions.tsx`), já com o projeto escolhido.
 
 **Concluir ou cancelar o projeto** — escolher Concluído ou Cancelado no badge do topo abre uma confirmação: avisa
-quantas tarefas ainda estão em aberto (com atrasadas e bloqueadas, e o botão "Ver tarefas") e pede, sem obrigar, um
-**registro de encerramento** (ou o motivo do cancelamento), que é publicado no Andamento como um registro comum e por
-isso entra no relatório. Os outros status mudam direto. Quando todas as tarefas estão concluídas e o projeto ainda está em
+quantas tarefas ainda estão em aberto (com atrasadas e bloqueadas, e o botão "Ver tarefas"), pede o **dia em que
+terminou** ("Concluído em" / "Cancelado em", hoje por padrão; não pode ser depois de hoje, e a conclusão não pode ser
+antes do início) e, sem obrigar, um **registro de encerramento** (ou o motivo do cancelamento), que é publicado no
+Andamento como um registro comum e por isso entra no relatório. Ao concluir, a janela mostra também os **resultados do
+projeto**: cada indicador com o valor atual num campo, para conferir os números finais (é quando se sabe o resultado;
+diz quantos ainda estão "não informado", e em branco continua não informado). Os números são gravados antes do status:
+se um falhar, nada muda. O dia fica guardado no projeto (`Projects.ClosedOn`): o topo passa a dizer "Concluído em
+12/09/2026", Sobre mostra o período até esse dia, o PDF imprime "Período do projeto" até ele (em aberto, até a previsão,
+com "(previsão)"), a página pública mostra "De mar/2026 a mai/2026", o certificado por projeto termina nele e a planilha
+o exporta em "Término (ou previsão)" (e, na importação, essa coluna vira o dia do encerramento dos concluídos e
+cancelados). Voltar a um status aberto apaga o dia; em **Editar projeto**, um projeto encerrado ganha o campo para
+corrigir o dia. Projetos encerrados antes de o campo existir ficam sem ele (aparece a previsão, como antes) até alguém
+preencher em Editar projeto. Os outros status mudam direto. Quando todas as tarefas estão concluídas e o projeto ainda está em
 planejamento, em andamento ou pausado, aparece abaixo da faixa de situação a sugestão "Todas as tarefas estão
 concluídas…" com **Concluir projeto** (abre a mesma confirmação) e **Agora não** (some daquele projeto até fechar o
 navegador).

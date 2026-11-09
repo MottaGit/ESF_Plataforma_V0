@@ -175,11 +175,22 @@ public class ProjectService
         return await GetDetailAsync(id);
     }
 
-    public async Task<ProjectDetailDto> UpdateStatusAsync(Guid id, ProjectStatus status)
+    /// <summary>
+    /// Muda o status. Concluir ou cancelar grava o dia em que isso aconteceu (o informado ou hoje); voltar a um status
+    /// aberto apaga esse dia. Escolher de novo o mesmo status encerrado, sem dia, mantem o que ja havia.
+    /// </summary>
+    public async Task<ProjectDetailDto> UpdateStatusAsync(Guid id, ProjectStatus status, DateOnly? closedOn = null)
     {
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
 
+        var changed = project.Status != status;
         project.Status = status;
+        if (!IsClosed(status))
+            project.ClosedOn = null;
+        else if (closedOn.HasValue)
+            project.ClosedOn = ValidClosedOn(project, closedOn.Value);
+        else if (changed || project.ClosedOn is null)
+            project.ClosedOn = Mapping.Today;
         project.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -264,6 +275,21 @@ public class ProjectService
         }
     }
 
+    private static bool IsClosed(ProjectStatus status) => status is ProjectStatus.Concluido or ProjectStatus.Cancelado;
+
+    /// <summary>O dia do encerramento nao pode ser depois de hoje, e a conclusao nao pode ser antes do inicio.</summary>
+    private static DateOnly ValidClosedOn(Project project, DateOnly day)
+    {
+        var concluded = project.Status == ProjectStatus.Concluido;
+        if (day > Mapping.Today)
+            throw new AppException(concluded
+                ? "A data de conclusão não pode ser depois de hoje."
+                : "A data do cancelamento não pode ser depois de hoje.");
+        if (concluded && day < project.StartDate)
+            throw new AppException("A data de conclusão não pode ser antes da data de início.");
+        return day;
+    }
+
     private static void Validate(SaveProjectRequest request)
     {
         if (request.EndDateForecast.HasValue && request.StartDate.HasValue
@@ -301,7 +327,16 @@ public class ProjectService
         project.Longitude = r.Longitude;
         project.StartDate = r.StartDate!.Value;
         project.EndDateForecast = r.EndDateForecast;
+        // Em Editar projeto, o dia do encerramento pode ser corrigido (ou ficar vazio nos encerrados antes de o campo
+        // existir); mudar para encerrado por aqui grava hoje quando nao vem o dia.
+        var changed = project.Status != r.Status!.Value;
         project.Status = r.Status!.Value;
+        if (!IsClosed(project.Status))
+            project.ClosedOn = null;
+        else if (r.ClosedOn.HasValue)
+            project.ClosedOn = ValidClosedOn(project, r.ClosedOn.Value);
+        else
+            project.ClosedOn = changed ? Mapping.Today : null;
     }
 
     private static string? Clean(string? value) =>

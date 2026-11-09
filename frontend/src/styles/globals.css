@@ -1027,6 +1027,15 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .close-project__intro { font-size: 13.5px; color: var(--text-muted); }
 .close-project__open { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
 .close-project__open span { flex: 1 1 240px; }
+/* Concluir: os numeros finais dos indicadores, um por linha (nome a esquerda, valor a direita). */
+.close-project__results { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.close-project__results legend { padding: 0; margin-bottom: 4px; }
+.close-project__results .field__hint { margin: 0; }
+.close-project__blank { color: var(--text); font-weight: 600; }
+.close-project__result { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-items: center; gap: 4px 12px; }
+.close-project__result-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; }
+.close-project__result-unit { font-size: 12.5px; color: var(--text-muted); }
+.close-project__result-error { grid-column: 1 / -1; }
 
 /* Andamento: o feed com largura confortavel de leitura, alinhado as abas, e a lateral com tarefas e equipe. */
 .feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }

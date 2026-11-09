@@ -50,7 +50,8 @@ public static class AuditTrail
         [typeof(Project)] = new()
         {
             ["Name"] = "Nome", ["Status"] = "Status", ["ProgramId"] = "Programa", ["OwnerVolunteerId"] = "Responsável",
-            ["StartDate"] = "Início", ["EndDateForecast"] = "Previsão de término", ["IsArchived"] = "Arquivado",
+            ["StartDate"] = "Início", ["EndDateForecast"] = "Previsão de término", ["ClosedOn"] = "Encerrado em",
+            ["IsArchived"] = "Arquivado",
             ["Description"] = "Descrição", ["Objective"] = "Objetivo", ["Address"] = "Endereço",
             ["District"] = "Bairro", ["City"] = "Cidade", ["State"] = "Estado"
         },

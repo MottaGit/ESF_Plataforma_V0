@@ -101,8 +101,9 @@ export const projectsApi = {
     http.request<ProjectDetail>('/api/projects', { method: 'POST', body: payload }),
   update: (id: string, payload: SaveProjectPayload) =>
     http.request<ProjectDetail>(`/api/projects/${id}`, { method: 'PUT', body: payload }),
-  updateStatus: (id: string, status: string) =>
-    http.request<ProjectDetail>(`/api/projects/${id}/status`, { method: 'PATCH', body: { status } }),
+  /** closedOn: ao concluir ou cancelar, o dia em que isso aconteceu (vazio: hoje). */
+  updateStatus: (id: string, status: string, closedOn: string | null = null) =>
+    http.request<ProjectDetail>(`/api/projects/${id}/status`, { method: 'PATCH', body: { status, closedOn } }),
   archive: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}/archive`, { method: 'POST' }),
   unarchive: (id: string) => http.request<ProjectDetail>(`/api/projects/${id}/unarchive`, { method: 'POST' }),
   remove: (id: string) => http.request<void>(`/api/projects/${id}`, { method: 'DELETE' })

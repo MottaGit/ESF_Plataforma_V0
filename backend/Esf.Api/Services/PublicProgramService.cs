@@ -55,6 +55,7 @@ public class PublicProgramService
                 p.State,
                 p.StartDate,
                 p.EndDateForecast,
+                p.ClosedOn,
                 Tasks = p.Activities.Count,
                 TasksDone = p.Activities.Count(a => a.Status == ActivityStatus.Concluida),
                 LastUpdateAt = p.Updates.Max(u => (DateTime?)u.CreatedAt),
@@ -99,7 +100,8 @@ public class PublicProgramService
                 p.Name, p.Status, p.District, p.City, p.State, p.StartDate, p.EndDateForecast,
                 Mapping.ProjectProgress(p.Status, p.Tasks, p.TasksDone),
                 p.Indicators.Select(i => new PublicIndicatorDto(i.Name, i.Unit, i.Value, i.NationalIndicatorId != null)).ToList(),
-                p.LastUpdateAt))
+                p.LastUpdateAt,
+                p.ClosedOn))
             .ToList();
 
         return new PublicProgramDto(

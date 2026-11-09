@@ -12,7 +12,7 @@ import { Modal } from '../ui/Modal';
 const BLANK_HINT = 'Em branco: ainda não informado (não conta como zero).';
 
 /** Valor digitado: vazio vira "nao informado" (null); undefined quando nao e um numero valido. */
-function parseValue(text: string): number | null | undefined {
+export function parseIndicatorValue(text: string): number | null | undefined {
   if (text.trim() === '') return null;
   const value = Number(text);
   return Number.isNaN(value) || value < 0 ? undefined : value;
@@ -52,7 +52,7 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
     event.preventDefault();
     setFormError(null);
 
-    const parsed = parseValue(value);
+    const parsed = parseIndicatorValue(value);
     const found: Record<string, string> = {};
     if (!isNational && name.trim().length < 2) found.name = 'Informe o nome do indicador.';
     if (parsed === undefined) found.value = 'Informe um número (0 ou mais) ou deixe em branco.';
@@ -164,7 +164,7 @@ export function IndicatorValueModal({ indicator, onClose, onSaved }: IndicatorVa
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const parsed = parseValue(value);
+    const parsed = parseIndicatorValue(value);
     if (parsed === undefined) {
       setError('Informe um número (0 ou mais) ou deixe em branco.');
       return;

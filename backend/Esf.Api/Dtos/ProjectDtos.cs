@@ -70,7 +70,9 @@ public record ProjectDetailDto(
     // Data da autorizacao de uso de imagem dos beneficiarios mais recente (null: nao registrada).
     DateOnly? ImageAuthorizedOn,
     string ProgramIcon,
-    string ProgramColor)
+    string ProgramColor,
+    // Dia em que foi concluido ou cancelado (null: em aberto, ou encerrado antes de o campo existir).
+    DateOnly? ClosedOn)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(
@@ -126,6 +128,9 @@ public class SaveProjectRequest
     [Required(ErrorMessage = "Selecione o status.")]
     public ProjectStatus? Status { get; set; }
 
+    /// <summary>Dia em que foi concluido ou cancelado (so vale para esses dois status; pode ficar vazio).</summary>
+    public DateOnly? ClosedOn { get; set; }
+
     /// <summary>
     /// So na criacao: usa o modelo do programa (cria as atividades e os indicadores padrao e preenche descricao,
     /// objetivo e publico que vierem vazios).
@@ -137,6 +142,9 @@ public class UpdateProjectStatusRequest
 {
     [Required(ErrorMessage = "Selecione o status.")]
     public ProjectStatus? Status { get; set; }
+
+    /// <summary>Ao concluir ou cancelar: o dia em que isso aconteceu (vazio: hoje).</summary>
+    public DateOnly? ClosedOn { get; set; }
 }
 
 /// <summary>Filtros da listagem de projetos.</summary>

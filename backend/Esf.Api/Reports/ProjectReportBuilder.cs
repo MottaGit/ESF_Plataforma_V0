@@ -571,10 +571,12 @@ public static class ProjectReportBuilder
         _ => "todo o histórico"
     };
 
+    /// <summary>Do inicio ao dia em que foi concluido ou cancelado; em aberto (ou sem esse dia), ate a previsao.</summary>
     private static string PeriodLine(Project p)
     {
         var start = p.StartDate.ToString("dd/MM/yyyy");
-        var end = p.EndDateForecast?.ToString("dd/MM/yyyy") ?? "sem previsão";
+        if (p.ClosedOn is { } closed) return $"{start} a {closed:dd/MM/yyyy}";
+        var end = p.EndDateForecast is { } forecast ? $"{forecast:dd/MM/yyyy} (previsão)" : "sem previsão de término";
         return $"{start} a {end}";
     }
 

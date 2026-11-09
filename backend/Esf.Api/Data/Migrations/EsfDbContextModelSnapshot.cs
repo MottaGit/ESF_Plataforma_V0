@@ -513,6 +513,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<DateOnly?>("ClosedOn")
+                        .HasColumnType("date");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 

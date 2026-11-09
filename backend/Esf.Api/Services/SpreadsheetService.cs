@@ -201,7 +201,8 @@ public partial class SpreadsheetService
                     SearchText.Fold(p.Name) == SearchText.Fold(program) ? null : p.Name,
                     p.Status,
                     p.StartDate,
-                    p.EndDateForecast,
+                    // "Termino (ou previsao)": encerrado, o dia em que terminou; em aberto, a previsao.
+                    p.ClosedOn ?? p.EndDateForecast,
                     p.OwnerVolunteer?.Name,
                     p.Indicators.Where(i => i.NationalIndicatorId != null)
                         .GroupBy(i => i.NationalIndicatorId!.Value)

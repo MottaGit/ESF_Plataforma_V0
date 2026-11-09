@@ -34,6 +34,12 @@ public class Project : IOrganizationOwned
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDateForecast { get; set; }
 
+    /// <summary>
+    /// Dia em que o projeto foi concluido ou cancelado: gravado ao mudar o status (o dia escolhido na confirmacao, ou
+    /// hoje) e apagado quando ele volta a um status aberto. Vazio nos encerrados antes de o campo existir.
+    /// </summary>
+    public DateOnly? ClosedOn { get; set; }
+
     public ProjectStatus Status { get; set; } = ProjectStatus.Planejamento;
 
     public bool IsArchived { get; set; }

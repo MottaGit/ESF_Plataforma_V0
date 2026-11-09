@@ -170,7 +170,8 @@ public class CertificateService
             .Where(p => ids.Contains(p.Id))
             .Select(p => new
             {
-                p.Id, p.Name, Program = p.Program!.Name, p.Status, p.StartDate, p.EndDateForecast, p.Objective, p.Description
+                p.Id, p.Name, Program = p.Program!.Name, p.Status, p.StartDate, p.EndDateForecast, p.ClosedOn, p.Objective,
+                p.Description
             })
             .ToListAsync();
 
@@ -189,7 +190,8 @@ public class CertificateService
                 if (closed)
                 {
                     var last = mine.Count > 0 ? mine[^1].Date : (DateOnly?)null;
-                    var forecast = p.EndDateForecast is { } f && f <= today ? f : (DateOnly?)null;
+                    // O dia em que foi encerrado; sem ele (encerrado antes de o campo existir), a previsao que ja passou.
+                    var forecast = p.ClosedOn ?? (p.EndDateForecast is { } f && f <= today ? f : (DateOnly?)null);
                     end = last is null && forecast is null ? today : Max(last ?? DateOnly.MinValue, forecast ?? DateOnly.MinValue);
                 }
                 if (end < start) end = start;

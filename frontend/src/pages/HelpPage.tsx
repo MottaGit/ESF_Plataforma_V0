@@ -136,6 +136,16 @@ const SECTIONS: HelpSection[] = [
             um período, como o trimestre que o parceiro pediu.
           </p>
         )
+      },
+      {
+        question: 'Como concluo um projeto?',
+        answer: (
+          <p>
+            No status do topo do projeto, escolha <strong>Concluído</strong>. A janela pede o dia em que terminou e os
+            números finais dos indicadores: confira antes de confirmar, porque são eles que vão para o relatório e a
+            soma nacional.
+          </p>
+        )
       }
     ]
   },

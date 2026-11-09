@@ -41,7 +41,8 @@ function isFuture(date: string) {
 
 function periodText(project: PublicProject) {
   const start = monthYear(project.startDate);
-  if (project.status === 'Concluido') return `Início em ${start}`;
+  if (project.status === 'Concluido')
+    return project.closedOn ? `De ${start} a ${monthYear(project.closedOn)}` : `Início em ${start}`;
   const forecast = project.endDateForecast ? ` · previsão de término em ${monthYear(project.endDateForecast)}` : '';
   if (project.status === 'Planejamento' && isFuture(project.startDate)) return `Início previsto para ${start}${forecast}`;
   return `Desde ${start}${forecast}`;

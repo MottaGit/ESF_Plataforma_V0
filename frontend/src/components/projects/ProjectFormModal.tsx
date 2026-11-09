@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { organizationApi, programsApi, projectsApi } from '../../api/endpoints';
 import type { Program, ProjectDetail, ProjectStatus, SaveProjectPayload, Volunteer } from '../../types/api';
-import { SENSITIVE_DATA_HINT, emptyToNull, todayInputValue } from '../../utils/format';
+import { SENSITIVE_DATA_HINT, emptyToNull, isPastProjectStatus, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, Select, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
@@ -44,6 +44,8 @@ interface FormState {
   endDateForecast: string;
   /** O status muda so no topo do projeto (com a confirmacao ao concluir ou cancelar); aqui vai o atual. */
   status: ProjectStatus;
+  /** Projeto encerrado: o dia em que foi concluido ou cancelado (corrigivel; pode ficar vazio nos antigos). */
+  closedOn: string;
 }
 
 function initialState(project: ProjectDetail | null, fallbackProgramId: string): FormState {
@@ -64,7 +66,8 @@ function initialState(project: ProjectDetail | null, fallbackProgramId: string):
     longitude: project?.longitude != null ? String(project.longitude) : '',
     startDate: project?.startDate?.slice(0, 10) ?? todayInputValue(),
     endDateForecast: project?.endDateForecast?.slice(0, 10) ?? '',
-    status: project?.status ?? 'Planejamento'
+    status: project?.status ?? 'Planejamento',
+    closedOn: project?.closedOn?.slice(0, 10) ?? ''
   };
 }
 
@@ -98,6 +101,8 @@ export function ProjectFormModal({
   const [form, setForm] = useState<FormState>(() => initialState(project, initialProgramId ?? programs[0]?.id ?? ''));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  // Concluido ou cancelado: o formulario mostra o dia em que terminou.
+  const closed = isPastProjectStatus(form.status);
   const [saving, setSaving] = useState(false);
 
   // Programas ativos; ao editar um projeto de programa arquivado, o dele continua na lista.
@@ -178,6 +183,10 @@ export function ProjectFormModal({
     if (!form.startDate) found.startDate = 'Informe a data de início.';
     if (form.endDateForecast && form.startDate && form.endDateForecast < form.startDate)
       found.endDateForecast = 'A previsão não pode ser anterior ao início.';
+    if (closed && form.closedOn && form.closedOn > todayInputValue())
+      found.closedOn = 'Não pode ser depois de hoje.';
+    else if (form.status === 'Concluido' && form.closedOn && form.startDate && form.closedOn < form.startDate)
+      found.closedOn = 'A conclusão não pode ser antes do início.';
 
 
     setErrors(found);
@@ -207,6 +216,7 @@ export function ProjectFormModal({
       startDate: form.startDate,
       endDateForecast: form.endDateForecast || null,
       status: form.status,
+      closedOn: closed ? form.closedOn || null : null,
       useTemplate: !project && Boolean(templateParts) && useTemplate
     };
 
@@ -426,6 +436,24 @@ export function ProjectFormModal({
                     onChange={(event) => update('endDateForecast', event.target.value)}
                   />
                 </Field>
+
+                {closed ? (
+                  <Field
+                    label={form.status === 'Cancelado' ? 'Cancelado em' : 'Concluído em'}
+                    htmlFor="closedOn"
+                    error={errors.closedOn}
+                    hint="O dia em que terminou. Sai no relatório e na página pública."
+                  >
+                    <TextInput
+                      id="closedOn"
+                      type="date"
+                      value={form.closedOn}
+                      max={todayInputValue()}
+                      invalid={Boolean(errors.closedOn)}
+                      onChange={(event) => update('closedOn', event.target.value)}
+                    />
+                  </Field>
+                ) : null}
 
                 <Field label="Observações" htmlFor="notes" span hint={SENSITIVE_DATA_HINT}>
                   <TextArea id="notes" value={form.notes} onChange={(event) => update('notes', event.target.value)} />

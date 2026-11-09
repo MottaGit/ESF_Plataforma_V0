@@ -405,6 +405,9 @@ public class SpreadsheetImportService
                     plan.Errors.Add("O término não pode ser antes da data de início.");
                 p.StartDate = start ?? _today;
                 p.EndDateForecast = end;
+                // Concluido ou cancelado: a coluna e o dia em que terminou.
+                if (p.Status is ProjectStatus.Concluido or ProjectStatus.Cancelado && end.HasValue && end.Value <= _today)
+                    p.ClosedOn = end;
 
                 foreach (var national in _nationals)
                 {

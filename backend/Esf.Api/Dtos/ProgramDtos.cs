@@ -71,7 +71,9 @@ public record PublicProjectDto(
     DateOnly? EndDateForecast,
     int Progress,
     List<PublicIndicatorDto> Indicators,
-    DateTime? LastUpdateAt);
+    DateTime? LastUpdateAt,
+    // Concluido: o dia em que terminou (null nos encerrados antes de o campo existir).
+    DateOnly? ClosedOn);
 
 public record TemplateActivityDto(Guid Id, string Title, string? Description, ActivityPriority Priority, int? DueDays);
 

@@ -44,7 +44,7 @@ public class ProjectsController : ControllerBase
     /// <summary>Alterar status e permitido a qualquer usuario autenticado (execucao do projeto).</summary>
     [HttpPatch("{id:guid}/status")]
     public async Task<ActionResult<ProjectDetailDto>> UpdateStatus(Guid id, UpdateProjectStatusRequest request)
-        => Ok(await _projects.UpdateStatusAsync(id, request.Status!.Value));
+        => Ok(await _projects.UpdateStatusAsync(id, request.Status!.Value, request.ClosedOn));
 
     [HttpPost("{id:guid}/archive")]
     [Authorize(Policy = Policies.ManageProjects)]

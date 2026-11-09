@@ -162,7 +162,11 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
               <MetaItem
                 label="Período"
                 value={`${formatDate(project.startDate)} até ${
-                  project.endDateForecast ? formatDate(project.endDateForecast) : 'sem previsão'
+                  project.closedOn
+                    ? `${formatDate(project.closedOn)} (${project.status === 'Cancelado' ? 'cancelado' : 'concluído'})`
+                    : project.endDateForecast
+                      ? `${formatDate(project.endDateForecast)} (previsão)`
+                      : 'sem previsão'
                 }`}
               />
               <MetaItem label="Comunidade ou família atendida" value={project.beneficiaries ?? '—'} />

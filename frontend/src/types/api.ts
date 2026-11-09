@@ -238,6 +238,8 @@ export interface PublicProject {
   progress: number;
   indicators: PublicIndicator[];
   lastUpdateAt: string | null;
+  /** Concluido: o dia em que terminou (null nos encerrados antes de o campo existir). */
+  closedOn: string | null;
 }
 
 export interface ProgramResult extends SummedValue {
@@ -565,6 +567,8 @@ export interface ProjectDetail {
   imageAuthorizedOn: string | null;
   programIcon: string;
   programColor: string;
+  /** Dia em que foi concluido ou cancelado (null: em aberto, ou encerrado antes de o campo existir). */
+  closedOn: string | null;
 }
 
 /** Voluntario ativo sem nenhuma tarefa em aberto (Inicio da coordenacao). */
@@ -748,6 +752,8 @@ export interface SaveProjectPayload {
   startDate: string;
   endDateForecast: string | null;
   status: ProjectStatus;
+  /** Dia em que foi concluido ou cancelado (so vale para esses dois status). */
+  closedOn?: string | null;
   /** So na criacao: usa o modelo do programa. */
   useTemplate?: boolean;
 }

@@ -208,7 +208,10 @@ export function daysFromToday(date: string) {
 }
 
 /** Prazo do projeto em texto: "Faltam 45 dias (até 30/11/2026)", "Atrasado há 5 dias". */
-export function deadlineLabel(endDate: string | null, status: ProjectStatus) {
+export function deadlineLabel(endDate: string | null, status: ProjectStatus, closedOn: string | null = null) {
+  // Encerrado: o dia em que terminou (sem ele, nos encerrados antes de o campo existir, a previsao).
+  if (closedOn && isPastProjectStatus(status))
+    return `${status === 'Cancelado' ? 'Cancelado' : 'Concluído'} em ${formatDate(closedOn)}`;
   if (!endDate) return 'Sem previsão de término';
   if (isPastProjectStatus(status)) return `Previsão de término: ${formatDate(endDate)}`;
 

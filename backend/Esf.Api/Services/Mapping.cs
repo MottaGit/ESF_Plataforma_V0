@@ -173,5 +173,6 @@ public static class Mapping
             p.Updates.OrderByDescending(u => u.CreatedAt).Select(ToDto).ToList(),
             imageAuthorizedOn,
             p.Program.Icon,
-            p.Program.Color);
+            p.Program.Color,
+            p.ClosedOn);
 }
