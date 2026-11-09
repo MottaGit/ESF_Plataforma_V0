@@ -53,8 +53,8 @@ interface ProgramTemplateTabProps {
 }
 
 /**
- * Modelo do programa: atividades padrao, indicadores padrao e textos sugeridos. Cada mudanca grava o modelo
- * inteiro (a API recebe a lista como ficou).
+ * Editar programa › Modelo de projeto: tarefas padrao, indicadores padrao e textos sugeridos. Cada mudanca grava o
+ * modelo inteiro (a API recebe a lista como ficou).
  */
 export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTemplateTabProps) {
   const { notify, notifyError } = useToast();
@@ -265,6 +265,9 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
               ) : null}
             </div>
             <div className="panel__body">
+              <p className="field__hint template__texts-hint">
+                Preenchem cada projeto novo. O texto que apresenta o programa fica na aba Sobre.
+              </p>
               <div className="meta-list">
                 {texts.map((text) => (
                   <div key={text.label}>

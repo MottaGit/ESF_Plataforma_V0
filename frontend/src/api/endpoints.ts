@@ -119,15 +119,15 @@ export const programsApi = {
     http.request<ProgramTemplate>(`/api/programs/${id}/template`, { method: 'PUT', body: payload }),
   create: (payload: SaveProgramPayload) =>
     http.request<Program>('/api/programs', { method: 'POST', body: payload }),
-  /** Renomear, trocar icone e cor e arquivar/reativar. */
+  /** Nome, icone, cor e "Sobre o programa"; arquivar/reativar. */
   update: (id: string, payload: UpdateProgramPayload) =>
     http.request<Program>(`/api/programs/${id}`, { method: 'PUT', body: payload }),
   /** So para programa sem projetos. */
   remove: (id: string) => http.request<void>(`/api/programs/${id}`, { method: 'DELETE' }),
   /** Pagina publica do programa (coordenacao). */
   publicPage: (id: string) => http.request<ProgramPublicPage>(`/api/programs/${id}/public-page`),
-  /** Liga/desliga a pagina publica e grava o "Sobre o programa"; desligar invalida o link. */
-  savePublicPage: (id: string, payload: { enabled: boolean; description: string | null }) =>
+  /** Liga/desliga a pagina publica; desligar invalida o link. */
+  savePublicPage: (id: string, payload: { enabled: boolean }) =>
     http.request<ProgramPublicPage>(`/api/programs/${id}/public-page`, { method: 'PUT', body: payload })
 };
 

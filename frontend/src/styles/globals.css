@@ -854,6 +854,10 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .public-page-dialog > .field__hint { margin: 0; }
 .public-page-dialog__disable { margin-right: auto; color: var(--danger); }
 .public-page-dialog__disable:hover { color: var(--danger); background: var(--danger-bg); }
+.public-page-dialog__about { display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-soft); }
+.public-page-dialog__about p { margin: 0; }
+.public-page-dialog__about-text { font-size: 13.5px; white-space: pre-line; overflow-wrap: anywhere; }
+.public-page-dialog__about-link { font-size: 13px; font-weight: 500; justify-self: start; }
 
 /* Indicador ligado a um indicador nacional (entra na soma de todos os nucleos). */
 .national-mark {
@@ -2160,6 +2164,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 
 /* Modelo do programa */
 .template__intro { display: block; max-width: 760px; margin: 0 0 14px; }
+.template__texts-hint { margin: 0 0 12px; }
 .template-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .template-side { display: grid; gap: 16px; }
 .template-list { list-style: none; margin: 0; padding: 0; }
@@ -2762,7 +2767,30 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .program-overview__number b { font-size: 22px; }
 .program-overview__number span { font-size: 12.5px; color: var(--text-muted); }
 .program-overview__number .program-overview__coverage { font-size: 11.5px; }
-.program-overview__note { margin: -4px 0 0; }
+/* Embaixo dos numeros: a explicacao dos resultados e, no canto, o relatorio do programa. */
+.program-overview__foot { display: flex; align-items: flex-start; gap: 8px 16px; margin-top: -4px; }
+.program-overview__note { margin: 0; flex: 1; min-width: 0; }
+.program-overview__report {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  /* Pagina publica, Editar programa e o "⋯" numa linha so, dividindo a largura. */
+  .program-overview__actions { width: 100%; flex-wrap: nowrap; }
+  .program-overview__actions > .btn { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; }
+  .program-overview__foot { flex-direction: column; }
+  .program-overview__report { margin-left: 0; min-height: 36px; }
+}
+
+/* Editar programa › Sobre */
+.program-about { max-width: 760px; }
+.program-about__actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 .project-cell { display: flex; align-items: center; gap: 10px; }
 .table-foot { margin: 0; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-muted); }

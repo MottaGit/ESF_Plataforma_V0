@@ -36,7 +36,7 @@ public class ProgramsController : ControllerBase
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramPublicPageDto>> PublicPage(Guid id) => Ok(await _programs.GetPublicPageAsync(id));
 
-    /// <summary>Liga/desliga a pagina publica e grava o "Sobre o programa"; desligar invalida o link.</summary>
+    /// <summary>Liga/desliga a pagina publica; desligar invalida o link.</summary>
     [HttpPut("{id:guid}/public-page")]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramPublicPageDto>> SavePublicPage(Guid id, SaveProgramPublicPageRequest request)
@@ -47,7 +47,7 @@ public class ProgramsController : ControllerBase
     public async Task<ActionResult<ProgramDto>> Create(SaveProgramRequest request)
         => Ok(await _programs.CreateAsync(request));
 
-    /// <summary>Renomear e arquivar/reativar.</summary>
+    /// <summary>Nome, icone, cor e "Sobre o programa"; arquivar/reativar.</summary>
     [HttpPut("{id:guid}")]
     [Authorize(Policy = Policies.ManageProjects)]
     public async Task<ActionResult<ProgramDto>> Update(Guid id, UpdateProgramRequest request)

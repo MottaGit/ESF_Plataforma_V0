@@ -111,7 +111,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [removing, setRemoving] = useState<ProjectListItem | null>(null);
   const [busy, setBusy] = useState(false);
-  const [programForm, setProgramForm] = useState<Program | 'new' | null>(null);
+  const [creatingProgram, setCreatingProgram] = useState(false);
   const [removingProgram, setRemovingProgram] = useState<Program | null>(null);
   const [publicPageProgram, setPublicPageProgram] = useState<Program | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -224,7 +224,8 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         name: program.name,
         status: archive ? 'Arquivado' : 'Ativo',
         icon: program.icon,
-        color: program.color
+        color: program.color,
+        about: program.about
       });
       notify(archive ? 'Programa arquivado.' : 'Programa reativado.');
       loadPrograms();
@@ -280,7 +281,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           programs={programs}
           selectedId={programId}
           onSelect={(id) => updateParams({ programa: id })}
-          onCreate={canManage ? () => setProgramForm('new') : undefined}
+          onCreate={canManage ? () => setCreatingProgram(true) : undefined}
         />
 
         <CollapsibleFilters active={activeFilters}>
@@ -385,7 +386,6 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         <ProgramOverview
           program={selected}
           canManage={canManage}
-          onEdit={() => setProgramForm(selected)}
           onPublicPage={() => setPublicPageProgram(selected)}
           onToggleArchived={() => void toggleProgramArchived(selected)}
           onDelete={() => setRemovingProgram(selected)}
@@ -543,15 +543,14 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         />
       ) : null}
 
-      {programForm ? (
+      {/* Programa novo: depois de criar, ja abre o modelo de projeto dele (o proximo passo natural). */}
+      {creatingProgram ? (
         <ProgramFormModal
-          program={programForm === 'new' ? null : programForm}
-          onClose={() => setProgramForm(null)}
+          onClose={() => setCreatingProgram(false)}
           onSaved={(saved) => {
-            setProgramForm(null);
-            notify(programForm === 'new' ? 'Programa criado.' : 'Programa atualizado.');
-            loadPrograms();
-            updateParams({ programa: saved.id });
+            setCreatingProgram(false);
+            notify('Programa criado. Monte aqui o modelo que cada projeto novo dele vai receber.');
+            navigate(`/programas/${saved.id}/editar?aba=modelo`);
           }}
         />
       ) : null}
@@ -588,15 +587,19 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
 interface ProgramOverviewProps {
   program: Program;
   canManage: boolean;
-  onEdit: () => void;
   onPublicPage: () => void;
   onToggleArchived: () => void;
   onDelete: () => void;
 }
 
-/** Visao do programa escolhido: numeros, resultados somados e (para a coordenacao) modelo e edicao. */
-function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArchived, onDelete }: ProgramOverviewProps) {
+/**
+ * Visao do programa escolhido: numeros, resultados somados e o relatorio do programa; para a coordenacao, a pagina
+ * publica, "Editar programa" (Sobre, Modelo de projeto) e, no "⋯", arquivar e excluir.
+ */
+function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, onDelete }: ProgramOverviewProps) {
   const archived = program.status === 'Arquivado';
+  const editUrl = `/programas/${program.id}/editar`;
+  const templateUrl = `${editUrl}?aba=modelo`;
   const numbers = [
     {
       key: 'active',
@@ -635,33 +638,24 @@ function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArc
             {canManage && program.publicPage ? ' · página pública ligada' : ''}
           </span>
         </div>
-        <div className="program-overview__actions">
-          {/* Relatorio do programa (qualquer perfil): a tela Relatorios abre com os projetos dele marcados. */}
-          <Link className="btn" to={`/relatorios?programa=${program.id}`}>
-            <IconDownload size={15} />
-            Gerar relatório
-          </Link>
-          {canManage ? (
-            <>
-              <Link className="btn" to={`/programas/${program.id}/modelo`}>
-                Modelo do programa
-              </Link>
-              <Button icon={<IconEdit size={15} />} onClick={onEdit}>
-                Editar
-              </Button>
-              <Button icon={<IconGlobe size={15} />} onClick={onPublicPage}>
-                Página pública
-              </Button>
-              <Menu
-                label="Mais ações do programa"
-                items={[
-                  { label: archived ? 'Reativar programa' : 'Arquivar programa', onSelect: onToggleArchived },
-                  ...(program.projectsCount === 0 ? [{ label: 'Excluir programa', danger: true, onSelect: onDelete }] : [])
-                ]}
-              />
-            </>
-          ) : null}
-        </div>
+        {canManage ? (
+          <div className="program-overview__actions">
+            <Button icon={<IconGlobe size={15} />} onClick={onPublicPage}>
+              Página pública
+            </Button>
+            <Link className="btn" to={editUrl}>
+              <IconEdit size={15} />
+              Editar programa
+            </Link>
+            <Menu
+              label="Mais ações do programa"
+              items={[
+                { label: archived ? 'Reativar programa' : 'Arquivar programa', onSelect: onToggleArchived },
+                ...(program.projectsCount === 0 ? [{ label: 'Excluir programa', danger: true, onSelect: onDelete }] : [])
+              ]}
+            />
+          </div>
+        ) : null}
       </div>
       <div className="program-overview__numbers">
         {numbers.map((item) => (
@@ -672,24 +666,30 @@ function ProgramOverview({ program, canManage, onEdit, onPublicPage, onToggleArc
           </div>
         ))}
       </div>
-      {program.results.length > 0 ? (
-        <p className="field__hint program-overview__note">
-          Resultados: os indicadores nacionais e os do modelo, somados nos projetos do programa (só o que foi
-          informado; arquivados entram, cancelados não).
-          {canManage && !program.results.some((result) => !result.national) ? (
-            <>
-              {' '}
-              Para somar outros resultados, inclua indicadores padrão no{' '}
-              <Link to={`/programas/${program.id}/modelo`}>modelo do programa</Link>.
-            </>
-          ) : null}
-        </p>
-      ) : canManage ? (
-        <p className="field__hint program-overview__note">
-          Para ver resultados somados aqui, inclua indicadores padrão no{' '}
-          <Link to={`/programas/${program.id}/modelo`}>modelo do programa</Link>.
-        </p>
-      ) : null}
+      <div className="program-overview__foot">
+        {program.results.length > 0 ? (
+          <p className="field__hint program-overview__note">
+            Resultados: os indicadores nacionais e os do modelo, somados nos projetos do programa (só o que foi
+            informado; arquivados entram, cancelados não).
+            {canManage && !program.results.some((result) => !result.national) ? (
+              <>
+                {' '}
+                Para somar outros resultados, inclua indicadores padrão no{' '}
+                <Link to={templateUrl}>modelo de projeto</Link>.
+              </>
+            ) : null}
+          </p>
+        ) : canManage ? (
+          <p className="field__hint program-overview__note">
+            Para ver resultados somados aqui, inclua indicadores padrão no <Link to={templateUrl}>modelo de projeto</Link>.
+          </p>
+        ) : null}
+        {/* Relatorio do programa (qualquer perfil), junto dos numeros que ele leva: Relatorios abre com os projetos marcados. */}
+        <Link className="program-overview__report" to={`/relatorios?programa=${program.id}`}>
+          <IconDownload size={14} />
+          Relatório do programa
+        </Link>
+      </div>
     </section>
   );
 }

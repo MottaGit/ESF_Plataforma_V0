@@ -15,6 +15,8 @@ public record ProgramDto(
     int DoneProjectsCount,
     string Icon,
     string Color,
+    // "Sobre o programa": texto para quem nao conhece o nucleo (vai para o topo da pagina publica).
+    string? About,
     // Resumo do modelo (atividades e indicadores padrao; textos sugeridos preenchidos).
     int TemplateActivitiesCount,
     int TemplateIndicatorsCount,
@@ -27,15 +29,15 @@ public record ProgramDto(
 /// <summary>Resultado somado: Total null quando nenhum projeto informou; Informed de Projects projetos informaram.</summary>
 public record ProgramResultDto(string Name, string? Unit, decimal? Total, int Informed, int Projects, bool National);
 
-/// <summary>Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada).</summary>
-public record ProgramPublicPageDto(bool Enabled, string? Token, string? Description);
+/// <summary>
+/// Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada). O texto do topo e o
+/// "Sobre o programa", editado junto com o nome (UpdateProgramRequest.About).
+/// </summary>
+public record ProgramPublicPageDto(bool Enabled, string? Token);
 
 public class SaveProgramPublicPageRequest
 {
     public bool Enabled { get; set; }
-
-    [StringLength(1500, ErrorMessage = "O texto sobre o programa deve ter no máximo 1500 caracteres.")]
-    public string? Description { get; set; }
 }
 
 /// <summary>
@@ -160,4 +162,8 @@ public class UpdateProgramRequest
 
     public string? Icon { get; set; }
     public string? Color { get; set; }
+
+    /// <summary>"Sobre o programa" (vazio apaga o texto): a tela sempre manda o texto atual.</summary>
+    [StringLength(1500, ErrorMessage = "O texto sobre o programa deve ter no máximo 1500 caracteres.")]
+    public string? About { get; set; }
 }

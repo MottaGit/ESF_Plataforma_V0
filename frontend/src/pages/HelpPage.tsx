@@ -135,7 +135,8 @@ const SECTIONS: HelpSection[] = [
           <p>
             De um projeto: no topo dele, <strong>Gerar relatório</strong> (no celular, pode estar no{' '}
             <strong>⋯</strong>). De um programa inteiro: em Projetos, escolha o programa e toque em{' '}
-            <strong>Gerar relatório</strong>. De vários: na tela <strong>Relatórios</strong>, marque os projetos. Dá
+            <strong>Relatório do programa</strong>, embaixo dos números. De vários: na tela <strong>Relatórios</strong>,
+            marque os projetos. Dá
             para escolher um período, como o trimestre passado.
           </p>
         )
@@ -224,12 +225,14 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
-        question: 'O que são o programa e o modelo do programa?',
+        question: 'O que são o programa e o modelo de projeto?',
         answer: (
           <p>
-            O programa reúne projetos do mesmo tipo (ex.: banheiros, hortas). O modelo do programa é a lista de tarefas
-            e indicadores que todo projeto novo dele já recebe. Em <strong>Projetos</strong>, escolha o programa no
-            topo para ver os resultados somados.
+            O programa reúne projetos do mesmo tipo (ex.: banheiros, hortas). Em <strong>Projetos</strong>, escolha o
+            programa no topo para ver os resultados somados. A coordenação cuida dele em{' '}
+            <strong>Editar programa</strong>: em <strong>Sobre</strong>, o nome, o ícone e o texto que apresenta o
+            programa; em <strong>Modelo de projeto</strong>, as tarefas e os indicadores que todo projeto novo dele já
+            recebe.
           </p>
         )
       },
@@ -239,7 +242,8 @@ const SECTIONS: HelpSection[] = [
           <p>
             Em <strong>Projetos</strong>, escolha o programa, abra <strong>Página pública</strong>, use{' '}
             <strong>Gerar link</strong> e mande o link. Ele abre sem login, com os projetos, os resultados e os números
-            da equipe, sem dados pessoais. <strong>Desligar link</strong> faz ele parar de abrir.
+            da equipe, sem dados pessoais. O texto do topo da página é o "Sobre o programa", em{' '}
+            <strong>Editar programa › Sobre</strong>. <strong>Desligar link</strong> faz ele parar de abrir.
           </p>
         )
       },

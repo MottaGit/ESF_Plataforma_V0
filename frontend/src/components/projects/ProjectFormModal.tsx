@@ -120,6 +120,7 @@ export function ProjectFormModal({
             doneProjectsCount: 0,
             icon: project.programIcon,
             color: project.programColor,
+            about: null,
             templateActivitiesCount: 0,
             templateIndicatorsCount: 0,
             hasTemplateTexts: false,
@@ -486,7 +487,6 @@ export function ProjectFormModal({
       {/* Abre por cima do formulario; o programa criado ja fica escolhido. */}
       {creatingProgram ? (
         <ProgramFormModal
-          program={null}
           onClose={() => setCreatingProgram(false)}
           onSaved={(created) => {
             setProgramOptions((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));

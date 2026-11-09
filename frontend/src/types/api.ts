@@ -169,6 +169,8 @@ export interface Program {
   /** Chaves de icone e cor (ver utils/programs.ts). */
   icon: string;
   color: string;
+  /** "Sobre o programa": texto para quem nao conhece o nucleo (topo da pagina publica). */
+  about: string | null;
   /** Resumo do modelo do programa. */
   templateActivitiesCount: number;
   templateIndicatorsCount: number;
@@ -183,7 +185,6 @@ export interface Program {
 export interface ProgramPublicPage {
   enabled: boolean;
   token: string | null;
-  description: string | null;
 }
 
 /**
@@ -808,6 +809,8 @@ export interface UpdateProgramPayload {
   status: ProgramStatus;
   icon: string;
   color: string;
+  /** "Sobre o programa" (null apaga): sempre o texto atual. */
+  about: string | null;
 }
 
 export interface SaveIndicatorPayload {

@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { programsApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { Program, ProgramPublicPage } from '../../types/api';
 import { Button } from '../ui/Button';
-import { Field, TextArea, TextInput } from '../ui/Field';
+import { TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, Loading } from '../ui/Feedback';
 import { IconGlobe } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
-
-const ABOUT_MAX = 1500;
 
 interface PublicPageDialogProps {
   program: Program;
@@ -20,74 +19,48 @@ interface PublicPageDialogProps {
 
 /**
  * Pagina publica do programa (coordenacao). Sem link: "Gerar link" liga a pagina na hora. Com link: copiar, ver como o
- * publico ve e "Desligar link". O "Sobre o programa" e salvo sozinho ao sair do campo.
+ * publico ve e "Desligar link". O texto do topo e o "Sobre o programa", editado em Editar programa › Sobre.
  */
 export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDialogProps) {
   const { notify, notifyError } = useToast();
   const [saved, setSaved] = useState<ProgramPublicPage | null>(null);
-  const [description, setDescription] = useState('');
   const [working, setWorking] = useState<'generate' | 'disable' | null>(null);
   const [confirmingDisable, setConfirmingDisable] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // As gravacoes vao uma de cada vez, na ordem: sair do campo de texto e clicar em "Gerar link" logo depois manda
-  // as duas, e a segunda precisa chegar por ultimo.
-  const queue = useRef<Promise<unknown>>(Promise.resolve());
-  const savedRef = useRef<ProgramPublicPage | null>(null);
-
   useEffect(() => {
     programsApi
       .publicPage(program.id)
-      .then((page) => {
-        savedRef.current = page;
-        setSaved(page);
-        setDescription(page.description ?? '');
-      })
+      .then(setSaved)
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível abrir a página pública.'));
   }, [program.id]);
 
-  function persist(enabled: boolean, text: string, success: string) {
-    const run = async () => {
-      setError(null);
-      try {
-        const page = await programsApi.savePublicPage(program.id, {
-          enabled,
-          description: text.trim() === '' ? null : text.trim()
-        });
-        const toggled = page.enabled !== savedRef.current?.enabled;
-        savedRef.current = page;
-        setSaved(page);
-        notify(success);
-        if (toggled) onChanged();
-      } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível salvar a página pública.');
-      }
-    };
-    const next = queue.current.then(run);
-    queue.current = next.catch(() => undefined);
-    return next;
-  }
-
-  function saveTextIfChanged() {
-    const current = savedRef.current;
-    if (!current || description.trim() === (current.description ?? '')) return;
-    void persist(current.enabled, description, 'Texto da página salvo.');
+  async function persist(enabled: boolean, success: string) {
+    setError(null);
+    try {
+      setSaved(await programsApi.savePublicPage(program.id, { enabled }));
+      notify(success);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível salvar a página pública.');
+    }
   }
 
   async function generate() {
     setWorking('generate');
-    await persist(true, description, 'Link gerado. Copie e mande para quem vai acompanhar o programa.');
+    await persist(true, 'Link gerado. Copie e mande para quem vai acompanhar o programa.');
     setWorking(null);
   }
 
   async function disable() {
     setConfirmingDisable(false);
     setWorking('disable');
-    await persist(false, description, 'Link desligado: ele não abre mais.');
+    await persist(false, 'Link desligado: ele não abre mais.');
     setWorking(null);
   }
 
   const url = saved?.enabled && saved.token ? `${window.location.origin}/publico/${saved.token}` : null;
+  const editAbout = `/programas/${program.id}/editar`;
 
   async function copy() {
     if (!url) return;
@@ -112,7 +85,6 @@ export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDial
               variant="ghost"
               className="public-page-dialog__disable"
               loading={working === 'disable'}
-              data-carries-text
               onClick={() => setConfirmingDisable(true)}
             >
               Desligar link
@@ -131,7 +103,6 @@ export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDial
               variant="primary"
               loading={working === 'generate'}
               disabled={!saved}
-              data-carries-text
               onClick={() => void generate()}
             >
               Gerar link
@@ -172,24 +143,19 @@ export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDial
             </div>
           ) : null}
 
-          <Field
-            label="Sobre o programa"
-            htmlFor="public-about"
-            hint={`Aparece no topo da página; é salvo ao sair do campo. Escreva para quem não conhece o núcleo: o que o programa faz, para quem e onde. ${description.length}/${ABOUT_MAX}`}
-          >
-            <TextArea
-              id="public-about"
-              rows={5}
-              maxLength={ABOUT_MAX}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              // Clicar em "Gerar link" ou "Desligar link" ja leva o texto junto: nao grava duas vezes.
-              onBlur={(event) => {
-                if (!(event.relatedTarget instanceof HTMLElement && event.relatedTarget.dataset.carriesText !== undefined))
-                  saveTextIfChanged();
-              }}
-            />
-          </Field>
+          <div className="public-page-dialog__about">
+            <div className="meta__label">Sobre o programa (topo da página)</div>
+            {program.about ? (
+              <p className="public-page-dialog__about-text">{program.about}</p>
+            ) : (
+              <p className="field__hint">
+                Ainda sem texto. Escreva para quem não conhece o núcleo: o que o programa faz, para quem e onde.
+              </p>
+            )}
+            <Link to={editAbout} className="public-page-dialog__about-link">
+              {program.about ? 'Editar o texto' : 'Escrever o texto'} em Editar programa › Sobre
+            </Link>
+          </div>
         </div>
       )}
 

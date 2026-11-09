@@ -10,7 +10,7 @@ import { LoginPage } from './pages/LoginPage';
 import { NationalPage } from './pages/NationalPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { PublicProgramPage } from './pages/PublicProgramPage';
-import { ProgramRedirect, ProgramTemplatePage } from './pages/ProgramTemplatePage';
+import { ProgramEditPage, ProgramRedirect, ProgramTemplateRedirect } from './pages/ProgramEditPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -49,7 +49,8 @@ export function App() {
               <Route path="/tarefas" element={<TasksPage />} />
               <Route path="/programas" element={<Navigate to="/projetos" replace />} />
               <Route path="/programas/:id" element={<ProgramRedirect />} />
-              <Route path="/programas/:id/modelo" element={<ProgramTemplatePage />} />
+              <Route path="/programas/:id/editar" element={<ProgramEditPage />} />
+              <Route path="/programas/:id/modelo" element={<ProgramTemplateRedirect />} />
               <Route path="/voluntarios" element={<VolunteersPage />} />
               <Route path="/voluntarios/:id" element={<VolunteerDetailPage />} />
               <Route path="/relatorios" element={<ReportsPage />} />

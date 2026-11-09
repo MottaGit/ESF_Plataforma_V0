@@ -29,6 +29,7 @@ public class ProgramService
         p.Projects.Count(x => x.Status == ProjectStatus.Concluido),
         p.Icon,
         p.Color,
+        p.PublicDescription,
         p.TemplateActivities.Count,
         p.TemplateIndicators.Count,
         p.TemplateDescription != null || p.TemplateObjective != null || p.TemplateTargetAudience != null,
@@ -107,7 +108,10 @@ public class ProgramService
         return await GetAsync(program.Id);
     }
 
-    /// <summary>Renomeia, troca icone e cor e arquiva/reativa. Arquivado, o programa some das opcoes de novos projetos.</summary>
+    /// <summary>
+    /// Editar programa › Sobre: nome, icone, cor e o texto "Sobre o programa"; tambem arquiva/reativa. Arquivado, o
+    /// programa some das opcoes de novos projetos.
+    /// </summary>
     public async Task<ProgramDto> UpdateAsync(Guid id, UpdateProgramRequest request)
     {
         var program = await _db.Programs.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Programa");
@@ -119,33 +123,33 @@ public class ProgramService
         program.Status = request.Status!.Value;
         program.Icon = ProgramAppearance.IconOrDefault(request.Icon ?? program.Icon);
         program.Color = ProgramAppearance.ColorOrDefault(request.Color ?? program.Color);
+        program.PublicDescription = Clean(request.About);
         await _db.SaveChangesAsync();
 
         return await GetAsync(id);
     }
 
-    /// <summary>Pagina publica do programa (coordenacao): se esta ligada, o codigo do link e o texto "Sobre o programa".</summary>
+    /// <summary>Pagina publica do programa (coordenacao): se esta ligada e o codigo do link.</summary>
     public async Task<ProgramPublicPageDto> GetPublicPageAsync(Guid id)
     {
         var program = await _db.Programs.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id)
                       ?? throw AppException.NotFound("Programa");
-        return new ProgramPublicPageDto(program.PublicToken != null, program.PublicToken, program.PublicDescription);
+        return new ProgramPublicPageDto(program.PublicToken != null, program.PublicToken);
     }
 
     /// <summary>
-    /// Liga ou desliga a pagina publica e grava o texto dela. Ligar cria o codigo do link; desligar apaga o codigo,
-    /// entao o link enviado deixa de abrir, e ligar de novo gera um link novo.
+    /// Liga ou desliga a pagina publica. Ligar cria o codigo do link; desligar apaga o codigo, entao o link enviado
+    /// deixa de abrir, e ligar de novo gera um link novo.
     /// </summary>
     public async Task<ProgramPublicPageDto> SavePublicPageAsync(Guid id, SaveProgramPublicPageRequest request)
     {
         var program = await _db.Programs.FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Programa");
 
-        program.PublicDescription = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         if (!request.Enabled) program.PublicToken = null;
         else program.PublicToken ??= WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(16));
         await _db.SaveChangesAsync();
 
-        return new ProgramPublicPageDto(program.PublicToken != null, program.PublicToken, program.PublicDescription);
+        return new ProgramPublicPageDto(program.PublicToken != null, program.PublicToken);
     }
 
     public async Task<ProgramTemplateDto> GetTemplateAsync(Guid id)
