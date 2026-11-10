@@ -9,7 +9,7 @@ public class ProjectVolunteer
     public Guid VolunteerId { get; set; }
     public Volunteer? Volunteer { get; set; }
 
-    /// <summary>Papel do voluntario neste projeto especifico.</summary>
+    /// <summary>Funcao do voluntario neste projeto especifico.</summary>
     public string? RoleInProject { get; set; }
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 }

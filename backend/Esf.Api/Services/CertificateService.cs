@@ -150,7 +150,7 @@ public class CertificateService
 
     /// <summary>
     /// Projetos da pessoa (na equipe ou com horas lancadas), com o periodo sugerido (da entrada na equipe ou da primeira
-    /// hora lancada ate o fim do projeto ou hoje), as horas e os textos: o objetivo do projeto e o papel mais o que ela
+    /// hora lancada ate o fim do projeto ou hoje), as horas e os textos: o objetivo do projeto e a funcao mais o que ela
     /// lancou que fez.
     /// </summary>
     private async Task<List<CertificateProjectDto>> ProjectsAsync(Guid volunteerId)

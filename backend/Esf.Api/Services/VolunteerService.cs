@@ -366,7 +366,7 @@ public class VolunteerService
         return Mapping.ToDto(link);
     }
 
-    /// <summary>Papel no projeto de quem ja esta na equipe; desvincular e vincular de novo perderia o "Desde".</summary>
+    /// <summary>Funcao no projeto de quem ja esta na equipe; desvincular e vincular de novo perderia o "Desde".</summary>
     public async Task<ProjectVolunteerDto> UpdateRoleInProjectAsync(Guid projectId, Guid volunteerId, string? roleInProject)
     {
         var link = await _db.ProjectVolunteers

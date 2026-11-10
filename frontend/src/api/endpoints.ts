@@ -208,7 +208,7 @@ export const volunteersApi = {
       method: 'POST',
       body: { volunteerId, roleInProject }
     }),
-  /** Papel de quem ja esta na equipe (vazio: sem papel). */
+  /** Funcao de quem ja esta na equipe (vazio: sem funcao). */
   updateProjectRole: (projectId: string, volunteerId: string, roleInProject: string | null) =>
     http.request<ProjectVolunteer>(`/api/projects/${projectId}/volunteers/${volunteerId}`, {
       method: 'PUT',

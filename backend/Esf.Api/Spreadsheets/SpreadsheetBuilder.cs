@@ -570,7 +570,7 @@ public static class SpreadsheetBuilder
                     "Projeto em planejamento ou em andamento: indicador de entrega (banheiros construídos) conta só o que já foi "
                     + "entregue. Se a própria informação deixa claro que nada foi entregue ainda (a obra do único banheiro está em "
                     + "andamento), escreva 0; sem como saber, em branco.",
-                    "Equipe: só nomes, completos e separados por ponto e vírgula, com o papel entre parênteses quando souber. Quem "
+                    "Equipe: só nomes, completos e separados por ponto e vírgula, com a função entre parênteses quando souber. Quem "
                     + "coordenou ou organizou é o Responsável e também entra na equipe, como \"(Responsável pelo projeto)\". Mais de "
                     + "um coordenador: o primeiro citado é o Responsável e os outros entram só na Equipe.",
                     "Local: rua, beco ou avenida vão em Endereço; o nome do lugar (vila, bairro, comunidade) vai em Bairro; Cidade só "

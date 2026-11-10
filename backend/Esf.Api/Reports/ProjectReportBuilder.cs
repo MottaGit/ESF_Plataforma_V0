@@ -420,11 +420,11 @@ public static class ProjectReportBuilder
                 });
 
                 // Sem contato (e-mail, telefone): o relatorio vai para parceiros e financiadores, que so precisam
-                // saber quem fez parte e em que papel.
+                // saber quem fez parte e em que funcao.
                 table.Header(header =>
                 {
                     header.Cell().Element(HeadCell).Text("Nome");
-                    header.Cell().Element(HeadCell).Text("Papel no projeto");
+                    header.Cell().Element(HeadCell).Text("Função no projeto");
                     if (total > 0) header.Cell().Element(HeadCell).AlignRight().Text("Horas");
                 });
 

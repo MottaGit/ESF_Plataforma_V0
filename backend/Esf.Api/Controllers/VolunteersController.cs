@@ -101,7 +101,7 @@ public class VolunteersController : ControllerBase
     public async Task<ActionResult<ProjectVolunteerDto>> AddToProject(Guid projectId, AddProjectVolunteerRequest request)
         => Ok(await _volunteers.AddToProjectAsync(projectId, request));
 
-    /// <summary>Muda o papel de quem ja esta na equipe (sem desvincular, o "Desde" continua).</summary>
+    /// <summary>Muda a funcao de quem ja esta na equipe (sem desvincular, o "Desde" continua).</summary>
     [HttpPut("projects/{projectId:guid}/volunteers/{volunteerId:guid}")]
     public async Task<ActionResult<ProjectVolunteerDto>> UpdateInProject(Guid projectId, Guid volunteerId,
         UpdateProjectVolunteerRequest request)

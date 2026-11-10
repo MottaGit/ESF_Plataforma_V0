@@ -26,15 +26,15 @@ const fold = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').to
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /**
- * Equipe do projeto: quem participa (setor ao lado do nome), o papel de cada um, as tarefas em aberto e as horas
- * lancadas. O contato fica na pagina do voluntario (o nome leva ate ela); mudar o papel e desvincular ficam no "...".
+ * Equipe do projeto: quem participa (setor ao lado do nome), a funcao de cada um, as tarefas em aberto e as horas
+ * lancadas. O contato fica na pagina do voluntario (o nome leva ate ela); mudar a funcao e desvincular ficam no "...".
  */
 export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
   const { notify, notifyError } = useToast();
   const [allVolunteers, setAllVolunteers] = useState<Volunteer[]>([]);
   const [linkOpen, setLinkOpen] = useState(false);
   const [removing, setRemoving] = useState<ProjectVolunteer | null>(null);
-  // Papel no projeto, editado ali mesmo na linha (Enter ou sair do campo salva; Esc desiste).
+  // Funcao no projeto, editada ali mesmo na linha (Enter ou sair do campo salva; Esc desiste).
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [roleText, setRoleText] = useState('');
 
@@ -44,10 +44,10 @@ export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
     if (text === (member.roleInProject ?? '')) return;
     try {
       await volunteersApi.updateProjectRole(project.id, member.volunteerId, text || null);
-      notify('Papel no projeto atualizado.');
+      notify('Função no projeto atualizada.');
       onChanged();
     } catch (err) {
-      notifyError(err instanceof ApiError ? err.message : 'Não foi possível mudar o papel.');
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível mudar a função.');
     }
   }
   const [busy, setBusy] = useState(false);
@@ -119,7 +119,7 @@ export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
     <>
       <div className="toolbar">
         <p className="field__hint" style={{ maxWidth: 560 }}>
-          Quem participa do projeto e o papel de cada um. O responsável pelo projeto e quem recebe uma tarefa entram
+          Quem participa do projeto e a função de cada um. O responsável pelo projeto e quem recebe uma tarefa entram
           aqui automaticamente.
         </p>
         <div className="toolbar__right">
@@ -167,8 +167,8 @@ export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
                           autoFocus
                           value={roleText}
                           maxLength={120}
-                          placeholder="Papel no projeto. Ex.: compras, projeto elétrico"
-                          aria-label={`Papel de ${member.name} no projeto`}
+                          placeholder="Função no projeto. Ex.: compras, projeto elétrico"
+                          aria-label={`Função de ${member.name} no projeto`}
                           onChange={(event) => setRoleText(event.target.value)}
                           onBlur={() => void saveRole(member)}
                           onKeyDown={(event) => {
@@ -216,7 +216,7 @@ export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
                     label={`Ações para ${member.name}`}
                     items={[
                       {
-                        label: member.roleInProject ? 'Mudar papel' : 'Definir papel',
+                        label: member.roleInProject ? 'Mudar função' : 'Definir função',
                         icon: <IconEdit size={14} />,
                         onSelect: () => startEditingRole(member)
                       },
@@ -396,7 +396,7 @@ function LinkVolunteerModal({ projectId, available, onClose, onSaved }: LinkVolu
             })}
           </div>
 
-          <Field label="Papel no projeto" htmlFor="link-role" hint="Ex.: responsável técnico, oficinas, mobilização.">
+          <Field label="Função no projeto" htmlFor="link-role" hint="Ex.: responsável técnico, oficinas, mobilização.">
             <TextInput
               id="link-role"
               value={roleInProject}

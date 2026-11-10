@@ -156,7 +156,7 @@ public static partial class SheetReader
         return true;
     }
 
-    /// <summary>"Nome (papel)" ou "Capacidade (litros)": o texto e o que vem entre os parenteses no fim.</summary>
+    /// <summary>"Nome (funcao)" ou "Capacidade (litros)": o texto e o que vem entre os parenteses no fim.</summary>
     public static (string Text, string? Inside) SplitParentheses(string value)
     {
         var match = TrailingParentheses().Match(value);

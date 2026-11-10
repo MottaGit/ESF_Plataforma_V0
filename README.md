@@ -141,7 +141,7 @@ Os projetos mostram uma situação diferente cada um:
 | Horta Comunitária Vila Farrapos | Horta comunitária | Em andamento |
 
 Os de banheiro vêm dos registros reais do programa (INFOBANs); os de horta são estimados. Cada projeto tem equipe
-com papéis, tarefas com checklist, registros de andamento e indicadores com os mesmos nomes do modelo do programa,
+com funções, tarefas com checklist, registros de andamento e indicadores com os mesmos nomes do modelo do programa,
 para a página do programa somar os resultados. O programa de banheiros tem como parceiras as gestoras locais (ACONVI
 / Banco Comunitário Justa Troca e CPCA) e o de hortas, a associação de moradores, sem contato preenchido. Há
 comentários com menção em duas tarefas e autorização de imagem
@@ -434,12 +434,12 @@ escolhido ("2 tarefas em aberto, 1 atrasada."). O filtro de responsável fica na
 (`filtro=atrasadas`).
 
 **Equipe** — uma linha por pessoa, o responsável pelo projeto primeiro: foto, nome (leva à página do voluntário, onde
-fica o contato) com o setor ao lado, em cinza, e embaixo o papel no projeto ("Responsável · projeto elétrico"); à
+fica o contato) com o setor ao lado, em cinza, e embaixo a função no projeto ("Responsável · projeto elétrico"); à
 direita, as tarefas em aberto no projeto ("3 tarefas · 1 atrasada", só o "atrasada" em vermelho; tocar abre a aba
-Tarefas filtrada pela pessoa) e as horas lançadas. O "⋯" de cada linha tem **Definir papel**/**Mudar papel** (o campo
+Tarefas filtrada pela pessoa) e as horas lançadas. O "⋯" de cada linha tem **Definir função**/**Mudar função** (o campo
 abre na própria linha: Enter ou sair do campo salva; Esc desiste; `PUT /api/projects/{id}/volunteers/{voluntario}`,
 sem desvincular e vincular de novo, o que perdia a data de entrada) e **Desvincular** (o responsável pelo projeto só
-depois de trocado em Editar projeto). No celular, tarefas e horas descem para uma linha só, embaixo do papel, e o que
+depois de trocado em Editar projeto). No celular, tarefas e horas descem para uma linha só, embaixo da função, e o que
 está vazio some. **Vincular voluntário** abre uma lista dos voluntários ativos que ainda não estão na equipe, com
 foto, nome e, embaixo, o setor e as tarefas em aberto em todos os projetos (para ver quem está livre); a partir de 7
 pessoas aparece a busca pelo nome ou pelo setor, sem diferenciar acentos. Abaixo da equipe, o painel de horas (ver
@@ -483,8 +483,8 @@ e-mail) e WhatsApp (só quando o telefone é celular do Brasil: DDD + 9 + 8 díg
 na página do voluntário, o e-mail e o telefone por extenso viram links (o telefone liga ao toque), com "WhatsApp" ao
 lado do celular (a aba Equipe do projeto não mostra contato: o nome leva à página da pessoa). A lista não tem coluna de ações: editar e anonimizar ficam na página da
 pessoa. A **página do voluntário** traz primeiro o contato e o perfil (e-mail, telefone, aniversário, competências) e
-os projetos atuais e anteriores; ao lado (embaixo, no celular), a parte administrativa: acesso, horas e termo. O papel de quem já está na equipe muda no "⋯" da
-pessoa na aba Equipe do projeto (ver Equipe, acima). O vínculo com projetos (e o papel exercido em cada um) pode ser feito
+os projetos atuais e anteriores; ao lado (embaixo, no celular), a parte administrativa: acesso, horas e termo. A função de quem já está na equipe muda no "⋯" da
+pessoa na aba Equipe do projeto (ver Equipe, acima). O vínculo com projetos (e a função exercida em cada um) pode ser feito
 tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o voluntário, sempre entre projeto e
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
 hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
@@ -541,7 +541,7 @@ histórico, com as horas que a plataforma calcula: as mesmas da página do volun
 horas por semana, 6 por padrão; o total é semanas do período, contando o primeiro e o último dia, vezes a carga semanal,
 arredondado para baixo: de 07/10 a 31/12/2025, com 6 h/semana, são 73 horas) e **por projeto** (um dos projetos da
 pessoa: o certificado diz o projeto, o programa, o período e as horas lançadas nele, quando há, seguidos de "Sobre o
-projeto" — sugerido pelo objetivo — e "Atuação" — sugerida pelo papel na equipe e pelo que a pessoa lançou que fez;
+projeto" — sugerido pelo objetivo — e "Atuação" — sugerida pela função na equipe e pelo que a pessoa lançou que fez;
 os dois textos são editáveis, até 300 e 400 caracteres, e o período sugerido vai da entrada na equipe ou da primeira
 hora lançada até hoje ou até o fim do projeto). O certificado sai em A4 deitado, no modelo da organização: nome e CNPJ,
 CPF, o nome do voluntário em destaque e o texto da opção escolhida. Embaixo vão a assinatura (imagem enviada em Configurações › Organização, que
@@ -602,7 +602,7 @@ programa › **Relatório do programa**, `?programa=`, os projetos dele já vêm
 **Gerar PDF** fica preso embaixo da tela, com o atalho "Período e opções", porque as opções ficam depois da lista
 inteira), observação livre e geração de um **PDF consolidado** com
 identificação (no topo de cada projeto, embaixo do programa, a linha **Parceiros:** com os parceiros do programa —
-nome e papel, sem contato), descrição, objetivo, período, status, responsável, localização, voluntários (nome, papel no
+nome e papel, sem contato), descrição, objetivo, período, status, responsável, localização, voluntários (nome, função no
 projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
 referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Trimestre passado**, **Últimos 3
 meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
@@ -718,7 +718,7 @@ Acessos).
 **Planilhas (exportar e importar)** — em Configurações › Planilhas (só administradores, porque o arquivo leva dados
 pessoais). **Exportar planilha** abre uma lista do que entra no arquivo do Excel (.xlsx): **Projetos** (um por linha, com
 situação, datas, responsável, uma coluna para cada indicador nacional, até três pares Indicador/Valor para os
-específicos — mais, se algum programa tiver mais —, equipe com o papel de cada um, local e a autorização de imagem; vem
+específicos — mais, se algum programa tiver mais —, equipe com a função de cada um, local e a autorização de imagem; vem
 junto a aba **Programas**, um resumo só de consulta) e **Voluntários** (contatos, setor, situação, entrada e saída tiradas
 do histórico de status, aniversário, termo, horas e acesso; anonimizados ficam de fora). O mesmo atalho é o botão **Exportar** ao lado
 de Novo projeto e de Novo voluntário (já marcado com o que é daquela tela). Cada exportação entra no histórico de
@@ -897,7 +897,7 @@ ESF_Plataforma_V0/
 | `NationalIndicators` | indicadores nacionais da gestão nacional (nome, unidade, como contar, arquivado); sem núcleo |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
-| `ProjectVolunteers` | vínculo N:N projeto × voluntário, com papel no projeto |
+| `ProjectVolunteers` | vínculo N:N projeto × voluntário, com a função no projeto |
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento |
 | `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |

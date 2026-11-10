@@ -242,7 +242,7 @@ export function CertificateModal({ volunteer, onClose }: { volunteer: Volunteer;
                 <Field
                   label="O que a pessoa fez"
                   htmlFor="certificate-activities"
-                  hint={`Sugerido pelo papel na equipe e pelas horas lançadas. ${activities.length}/${ACTIVITIES_MAX}`}
+                  hint={`Sugerido pela função na equipe e pelas horas lançadas. ${activities.length}/${ACTIVITIES_MAX}`}
                   span
                 >
                   <TextArea

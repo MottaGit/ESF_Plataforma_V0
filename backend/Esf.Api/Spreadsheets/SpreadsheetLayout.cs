@@ -226,7 +226,7 @@ public static class SpreadsheetLayout
         columns.AddRange(new SheetColumn<ProjectSheetRow>[]
         {
             new(Team, ColumnKind.Optional, 60, null, "Voluntários que trabalharam no projeto (o responsável também).",
-                "Nomes completos separados por ponto e vírgula, com o papel entre parênteses (opcional).",
+                "Nomes completos separados por ponto e vírgula, com a função entre parênteses (opcional).",
                 "Rodrigo Teixeira (Responsável pelo projeto); Patrícia Lemos (Projeto hidráulico)", r => r.Team),
             new(Objective, ColumnKind.Optional, 40, null, "O que o projeto quer alcançar.", "Texto livre, uma ou duas frases.",
                 "Reduzir a falta de água nos banheiros da escola.", r => r.Objective),
