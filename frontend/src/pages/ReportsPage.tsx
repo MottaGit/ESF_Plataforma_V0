@@ -36,7 +36,7 @@ const FORMATS: Array<{ value: ReportFormat; slug: string; label: string; hint: s
     value: 'Completo',
     slug: 'completo',
     label: 'Completo',
-    hint: 'O resumo e mais um capítulo por projeto: equipe, tarefas concluídas, linha do tempo e fotos.'
+    hint: 'O resumo e mais um capítulo por projeto: indicadores, linha do tempo com fotos, tarefas e equipe.'
   }
 ];
 

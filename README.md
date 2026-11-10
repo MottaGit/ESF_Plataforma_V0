@@ -630,10 +630,14 @@ capítulo e a última coluna diz a página. O PDF termina com **Quem somos** (ra
 contatos do núcleo, de Configurações). O arquivo leva o recorte e o período
 (`relatorio-banheiro-direito-da-gente-2026-t3.pdf`, `relatorio-projetos-20261110.pdf`), e o título vai também nas
 propriedades do PDF. O capítulo de
-cada projeto traz
-identificação (no topo de cada projeto, embaixo do programa, a linha **Parceiros:** com os parceiros do programa —
-nome e papel, sem contato), descrição, objetivo, período, status, responsável, localização, voluntários (nome, função no
-projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
+cada projeto segue a ordem em que o parceiro lê a história: identificação (nome, programa e, embaixo, a linha
+**Parceiros:** com os parceiros do programa — nome e papel, sem contato —, e o status), os dados em duas colunas
+(responsável, período, comunidade atendida, quem se beneficia e localização, uma vez só; rótulo pequeno e cinza em
+cima, valor escuro embaixo; campo vazio não sai), objetivo, descrição, indicadores, linha do tempo com as fotos,
+tarefas concluídas, **Próximas etapas** (até 5 tarefas em aberto, pelo prazo, sem responsável; só em projeto que não
+terminou), equipe (nome, função no projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e
+observações. Indicadores, linha do tempo e equipe sempre entram; tarefas (concluídas e próximas etapas) e fotos são
+opcionais, marcados por padrão. O **período de
 referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Trimestre passado**, **Últimos 3
 meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
 não serve para o relatório anual; `utils/periods.ts`, os mesmos do painel nacional) aparece no topo de todas as páginas e filtra a linha do
@@ -659,9 +663,11 @@ o que aconteceu nele fica separado do que é acumulado: primeiro os projetos ("s
 tarefas concluídas, registros de andamento e horas lançadas, quando há); depois **Indicadores acumulados até 30/09/2026**,
 com os programas e, em cada cartão, a mudança no período (a mesma soma feita com os valores da véspera do início).
 Depois vem o
-**Resumo dos projetos**: uma linha por projeto (com programa e cidade), status, equipe, registros de andamento no período
+**Resumo dos projetos**: uma linha por projeto (com a cidade embaixo; com mais de um programa, agrupadas sob uma
+linha com o nome de cada programa), status, equipe, registros de andamento no período
 e uma coluna por indicador nacional, com o valor do fim do período ("–" é não informado, diferente de zero). Títulos
-de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
+de seção não ficam sozinhos no pé da página, os cartões de indicadores não se dividem entre duas páginas e as
+linhas das tabelas também não.
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
 Configurações › Acessos, **Novo acesso**, escolhendo o voluntário) pede o perfil e usa como login

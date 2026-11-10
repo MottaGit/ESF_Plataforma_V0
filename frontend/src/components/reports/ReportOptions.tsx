@@ -128,7 +128,7 @@ export function ReportExtrasField({ value, onChange }: ReportExtrasProps) {
           checked={value.includeTasks}
           onChange={(event) => onChange({ ...value, includeTasks: event.target.checked })}
         />
-        Tarefas concluídas
+        Tarefas concluídas e próximas etapas
       </label>
       <label className="checkbox">
         <input

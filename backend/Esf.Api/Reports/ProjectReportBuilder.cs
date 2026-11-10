@@ -434,6 +434,9 @@ public static class ProjectReportBuilder
             p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id) is { } indicator ? model.Figure(indicator).Value : null;
         var anyMissing = model.Projects.Any(p => nationals.Any(n => NationalValue(p, n.Id) == null));
         var withPages = !model.Summary;
+        var columnCount = (uint)(4 + nationals.Count + (withPages ? 1 : 0));
+        // Com mais de um programa, uma linha-titulo por programa (os projetos ja vem em ordem de programa).
+        var grouped = model.Programs.Count > 1;
 
         container.EnsureSpace(80).Column(col =>
         {
@@ -464,18 +467,27 @@ public static class ProjectReportBuilder
                         header.Cell().Element(HeadCell).AlignRight().Text("Pág.");
                 });
 
+                Guid? currentProgram = null;
                 foreach (var p in model.Projects)
                 {
+                    if (grouped && p.ProgramId != currentProgram)
+                    {
+                        currentProgram = p.ProgramId;
+                        table.Cell().ColumnSpan(columnCount).BorderBottom(1).BorderColor(Line)
+                            .PaddingTop(8).PaddingBottom(3).PaddingHorizontal(5)
+                            .Text(p.Program!.Name).FontSize(8.5f).SemiBold().FontColor(Accent);
+                    }
+
                     var nameCell = table.Cell().Element(BodyCell);
                     if (withPages)
                         nameCell = nameCell.SectionLink(SectionOf(p));
                     nameCell.Column(cell =>
                     {
                         cell.Item().Text(p.Name);
-                        var place = new[] { p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x));
-                        var detail = string.Join(" · ", new[] { p.Program!.Name, string.Join("/", place) }
-                            .Where(x => !string.IsNullOrWhiteSpace(x)));
-                        cell.Item().Text(detail).FontSize(7.5f).FontColor(Muted);
+                        // O programa ja esta no titulo do grupo (ou do relatorio): embaixo, so a cidade.
+                        var place = string.Join("/", new[] { p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                        if (place.Length > 0)
+                            cell.Item().Text(place).FontSize(7.5f).FontColor(Muted);
                     });
                     table.Cell().Element(BodyCell).Text(StatusLabel(p.Status));
                     table.Cell().Element(BodyCell).AlignRight().Text(Number(p.Volunteers.Count));
@@ -495,7 +507,7 @@ public static class ProjectReportBuilder
                 // A nota vai no rodape da tabela: fora dela, podia sobrar sozinha numa pagina.
                 var asOf = model.AsOf.ToString("dd/MM/yyyy");
                 if (nationals.Count > 0)
-                    table.Footer(footer => footer.Cell().ColumnSpan((uint)(4 + nationals.Count + (withPages ? 1 : 0)))
+                    table.Footer(footer => footer.Cell().ColumnSpan(columnCount)
                         .PaddingTop(4)
                         .Text(anyMissing
                             ? $"Indicadores com os valores de {asOf}. – indicador não informado (diferente de zero)."
@@ -505,6 +517,14 @@ public static class ProjectReportBuilder
         });
     }
 
+    /// <summary>Quantas tarefas em aberto entram em "Próximas etapas".</summary>
+    private const int MaxNextSteps = 5;
+
+    /// <summary>
+    /// Capitulo do projeto, na ordem em que o parceiro le a historia: o que e (identificacao, objetivo, descricao), o
+    /// que rendeu (indicadores), o que aconteceu (linha do tempo com as fotos), o que foi entregue e o que vem (tarefas)
+    /// e quem fez (equipe). Campo vazio nao aparece.
+    /// </summary>
     private static void ComposeProject(IContainer container, ReportModel model, Project p)
     {
         // Com periodo de referencia, so os registros e as tarefas concluidas dentro dele.
@@ -514,25 +534,35 @@ public static class ProjectReportBuilder
             .Where(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value))
             .OrderBy(a => a.CompletedAt)
             .ToList();
+        // O que vem: as tarefas em aberto de quem ainda nao terminou, pelo prazo (sem prazo por ultimo).
+        var nextSteps = p.Status is ProjectStatus.Concluido or ProjectStatus.Cancelado
+            ? new List<Activity>()
+            : p.Activities
+                .Where(a => a.Status != ActivityStatus.Concluida)
+                .OrderBy(a => a.DueDate == null)
+                .ThenBy(a => a.DueDate)
+                .ThenBy(a => a.CreatedAt)
+                .Take(MaxNextSteps)
+                .ToList();
 
         container.EnsureSpace(160).Column(col =>
         {
             col.Spacing(8);
 
-            // Identificacao
+            // Identificacao: nome, programa (a localizacao fica so no campo dela) e parceiros do programa.
             col.Item().BorderBottom(2).BorderColor(Accent).PaddingBottom(4).Row(row =>
             {
                 row.RelativeItem().Column(head =>
                 {
                     head.Item().Text(p.Name).FontSize(12.5f).SemiBold();
-                    head.Item().Text($"{p.Program!.Name} - {LocationLine(p)}").FontSize(8.5f).FontColor(Muted);
+                    head.Item().Text(p.Program!.Name).FontSize(8.5f).FontColor(Muted);
                     // Parceiros do programa logo abaixo do nome dele (so nome e papel).
                     var partners = model.PartnersLine(p.ProgramId);
                     if (partners != null)
                         head.Item().Text(text =>
                         {
-                            text.Span("Parceiros: ").FontSize(8.5f).SemiBold().FontColor(Ink);
-                            text.Span(partners).FontSize(8.5f).FontColor(Muted);
+                            text.Span("Parceiros: ").FontSize(8.5f).SemiBold().FontColor(Muted);
+                            text.Span(partners).FontSize(8.5f).FontColor(Ink);
                         });
                 });
 
@@ -542,26 +572,7 @@ public static class ProjectReportBuilder
                 });
             });
 
-            // Dados gerais
-            col.Item().Row(row =>
-            {
-                row.RelativeItem().Column(left =>
-                {
-                    left.Spacing(2);
-                    left.Item().Element(c => Field(c, "Responsável", p.OwnerVolunteer?.Name ?? "Não definido"));
-                    left.Item().Element(c => Field(c, "Período do projeto", PeriodLine(p)));
-                    left.Item().Element(c => Field(c, "Comunidade ou família atendida", p.Beneficiaries ?? "-"));
-                });
-
-                row.ConstantItem(16);
-
-                row.RelativeItem().Column(right =>
-                {
-                    right.Spacing(2);
-                    right.Item().Element(c => Field(c, "Quem se beneficia", p.TargetAudience ?? "-"));
-                    right.Item().Element(c => Field(c, "Localização", FullAddress(p)));
-                });
-            });
+            col.Item().Element(c => ComposeFields(c, p));
 
             if (!string.IsNullOrWhiteSpace(p.Objective))
                 col.Item().Element(c => Paragraph(c, "Objetivo", p.Objective!));
@@ -572,19 +583,73 @@ public static class ProjectReportBuilder
             if (model.IncludeIndicators && p.Indicators.Count > 0)
                 col.Item().Element(c => ComposeIndicators(c, model, p));
 
-            if (model.IncludeVolunteers && p.Volunteers.Count > 0)
-                col.Item().Element(c => ComposeVolunteers(c, model, p));
-
-            if (model.IncludeTasks && doneTasks.Count > 0)
-                col.Item().Element(c => ComposeTasks(c, model, doneTasks));
-
             if (model.IncludeUpdates && updates.Count > 0)
                 col.Item().Element(c => ComposeUpdates(c, model, updates));
             else if (model.IncludeUpdates && model.HasPeriod)
                 col.Item().Text("Nenhum registro de andamento no período.").FontSize(9).FontColor(Muted);
 
+            if (model.IncludeTasks && doneTasks.Count > 0)
+                col.Item().Element(c => ComposeTasks(c, model, doneTasks));
+
+            if (model.IncludeTasks && nextSteps.Count > 0)
+                col.Item().Element(c => ComposeNextSteps(c, nextSteps));
+
+            if (model.IncludeVolunteers && p.Volunteers.Count > 0)
+                col.Item().Element(c => ComposeVolunteers(c, model, p));
+
             if (!string.IsNullOrWhiteSpace(p.Notes))
                 col.Item().Element(c => Paragraph(c, "Observações", p.Notes!));
+        });
+    }
+
+    /// <summary>Dados do projeto em duas colunas, rotulo pequeno em cima e valor embaixo; o que esta vazio nao sai.</summary>
+    private static void ComposeFields(IContainer container, Project p)
+    {
+        var fields = new List<(string Label, string? Value)>
+            {
+                ("Responsável", p.OwnerVolunteer?.Name),
+                ("Período do projeto", PeriodLine(p)),
+                ("Comunidade ou família atendida", p.Beneficiaries),
+                ("Quem se beneficia", p.TargetAudience),
+                ("Localização", FullAddress(p))
+            }
+            .Where(f => !string.IsNullOrWhiteSpace(f.Value))
+            .ToList();
+
+        container.Table(table =>
+        {
+            table.ColumnsDefinition(columns =>
+            {
+                columns.RelativeColumn();
+                columns.RelativeColumn();
+            });
+
+            foreach (var (label, value) in fields)
+                table.Cell().PaddingBottom(5).PaddingRight(12).Element(c => Field(c, label, value!.Trim()));
+        });
+    }
+
+    /// <summary>O que vem: ate 5 tarefas em aberto, com o prazo (sem responsavel: o parceiro quer o que, nao quem).</summary>
+    private static void ComposeNextSteps(IContainer container, List<Activity> tasks)
+    {
+        container.EnsureSpace(60).Column(col =>
+        {
+            col.Item().Text("Próximas etapas").FontSize(10).SemiBold();
+            col.Item().PaddingTop(4).Column(list =>
+            {
+                list.Spacing(3);
+                foreach (var task in tasks)
+                    list.Item().Row(row =>
+                    {
+                        row.ConstantItem(12).Text("•").FontColor(Accent);
+                        row.RelativeItem().Text(text =>
+                        {
+                            text.Span(task.Title);
+                            if (task.DueDate is { } due)
+                                text.Span($" · até {due:dd/MM/yyyy}").FontSize(8.5f).FontColor(Muted);
+                        });
+                    });
+            });
         });
     }
 
@@ -797,12 +862,13 @@ public static class ProjectReportBuilder
 
     // ---------- helpers de layout ----------
 
+    /// <summary>Rotulo pequeno e cinza em cima, valor escuro embaixo: o olho vai para a informacao, nao para o rotulo.</summary>
     private static void Field(IContainer container, string label, string value)
     {
-        container.Text(text =>
+        container.Column(field =>
         {
-            text.Span($"{label}: ").FontSize(8.5f).SemiBold();
-            text.Span(value).FontSize(8.5f).FontColor(Muted);
+            field.Item().Text(label).FontSize(7.5f).FontColor(Muted);
+            field.Item().Text(value).FontSize(9);
         });
     }
 
@@ -820,8 +886,9 @@ public static class ProjectReportBuilder
             .PaddingVertical(4).PaddingHorizontal(5)
             .DefaultTextStyle(style => style.FontSize(8).SemiBold());
 
+    /// <summary>Celula de tabela; ShowEntire: a linha nao se divide entre duas paginas (nome numa, cidade na outra).</summary>
     private static IContainer BodyCell(IContainer container) =>
-        container.BorderBottom(1).BorderColor(Line)
+        container.ShowEntire().BorderBottom(1).BorderColor(Line)
             .PaddingVertical(4).PaddingHorizontal(5)
             .DefaultTextStyle(style => style.FontSize(8.5f));
 
@@ -851,17 +918,11 @@ public static class ProjectReportBuilder
         return $"{start} a {end}";
     }
 
-    private static string LocationLine(Project p)
-    {
-        var parts = new[] { p.District, p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x));
-        var joined = string.Join(", ", parts);
-        return string.IsNullOrWhiteSpace(joined) ? "localização não informada" : joined;
-    }
-
-    private static string FullAddress(Project p)
+    /// <summary>Endereco, bairro, cidade e estado; null quando nada foi informado (o campo nao sai).</summary>
+    private static string? FullAddress(Project p)
     {
         var parts = new[] { p.Address, p.District, p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x));
         var joined = string.Join(", ", parts);
-        return string.IsNullOrWhiteSpace(joined) ? "-" : joined;
+        return string.IsNullOrWhiteSpace(joined) ? null : joined;
     }
 }
