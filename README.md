@@ -105,7 +105,9 @@ as horas do dia e o relatório soma no período. E o certificado: o período com
 a pessoa fez), cada opção gera o PDF e o certificado por projeto exige que a pessoa participe dele. E a fila em segundo
 plano: o relatório sai pronto para quem pediu e mais ninguém (nem do mesmo núcleo) vê ou baixa, a tarefa roda no núcleo
 de quem pediu (a exportação entra no histórico em nome dela; a importação cria no núcleo dela e apaga o arquivo enviado), o aviso vai para o sininho só se a pessoa saiu da tela, a tarefa interrompida volta para a fila uma vez
-e depois falha, as antigas são apagadas com os arquivos e o histórico de alterações fica em nome de quem pediu.
+e depois falha, as antigas são apagadas com os arquivos e o histórico de alterações fica em nome de quem pediu. E as fotos: miniatura com o maior lado em 640 px e versão do
+PDF em 4:3 geradas em segundo plano, imagem que não pode ser lida fica com a original, o relatório usa a versão
+pronta e apagar a foto apaga as versões (este, só no PostgreSQL).
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
 ```bash
@@ -622,7 +624,13 @@ Documentos | Fotos** (cada um com a quantidade) acima, para a planta não sumir 
 a data do registro). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
 arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
 Os arquivos ficam guardados no próprio banco (tabela `StoredFiles`), então não se perdem quando o servidor é recriado
-a cada deploy. Fotos grandes são reduzidas no navegador antes do envio (JPEG com o maior lado em 2048 px).
+a cada deploy. Fotos grandes são reduzidas no navegador antes do envio (JPEG com o maior lado em 2048 px). Logo
+depois do envio, cada foto (JPEG, PNG ou WebP) ganha em segundo plano uma **miniatura** (a foto inteira com o maior
+lado em 640 px), usada nas listas, na galeria e no Andamento, e a **versão do PDF** (4:3, até 1200 px), que o
+relatório usa sem precisar reduzir centenas de fotos na hora. O visualizador em tela cheia e o download continuam
+com a original. Enquanto a miniatura não fica pronta (alguns segundos), ou se a imagem não puder ser lida, aparece a
+original. As versões ficam em `StoredFiles` com o nome da original mais `.t.jpg` e `.r.jpg` e são apagadas junto com
+ela. As fotos enviadas antes disso entram na mesma fila depois do deploy (migração `AddFilePreviews`).
 
 **Autorização de imagem dos beneficiários** — na aba Sobre de cada projeto, a coordenação gera o termo de autorização
 de uso de imagem em PDF (com o nome e o local do projeto e espaço para os dados de quem autoriza e das crianças e
@@ -955,7 +963,9 @@ alterações funcionam como numa requisição. O arquivo gerado fica em `StoredF
 para a fila. Na segunda queda, ela falha com explicação. No desligamento normal (deploy), a tarefa volta para a fila
 sem contar tentativa. Dois servidores não pegam a mesma tarefa: a coluna `Stamp` é o controle de concorrência. Quando
 termina e a tela não pergunta há mais de 20 s (a pessoa saiu), vai um aviso para o sininho de quem pediu. Tarefas e
-arquivos com mais de 7 dias são apagados uma vez por hora. O histórico de alterações (`AuditInterceptor`) lê quem age
+arquivos com mais de 7 dias são apagados uma vez por hora. Uma segunda rotina do mesmo `JobWorker`, independente da
+fila de tarefas (uma foto não espera um relatório grande), procura a cada 5 s as fotos com `PreviewState = Pending` e
+gera a miniatura e a versão do PDF (`Reports/ImagePreviews.cs`), uma por vez. O histórico de alterações (`AuditInterceptor`) lê quem age
 pelo próprio contexto (`EsfDbContext.CurrentUserId`), que na fila é quem pediu.
 
 **Bibliotecas usadas:** Npgsql/EF Core (persistência), BCrypt.Net (hash de senha), JwtBearer (autenticação),
@@ -1024,7 +1034,7 @@ ESF_Plataforma_V0/
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com a função no projeto |
-| `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento |
+| `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento; `PreviewState` diz se a foto já tem miniatura e versão do PDF |
 | `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |

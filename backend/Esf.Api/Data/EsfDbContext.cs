@@ -398,6 +398,8 @@ public class EsfDbContext : DbContext
             e.Property(x => x.StoredName).HasMaxLength(160).IsRequired();
             e.Property(x => x.ContentType).HasMaxLength(160).IsRequired();
             e.Property(x => x.Description).HasMaxLength(300);
+            // Fotos esperando a miniatura (o JobWorker procura por este indice).
+            e.HasIndex(x => x.PreviewState);
 
             e.HasOne(x => x.Project)
                 .WithMany(p => p.Files)

@@ -37,32 +37,51 @@ public static class ReportImageProcessor
 
     /// <summary>Tenta preparar; se a imagem nao puder ser decodificada por algum motivo,
     /// devolve os bytes originais em vez de falhar o relatorio inteiro por causa de 1 foto.</summary>
-    public static byte[] Compress(byte[] original)
+    public static byte[] Compress(byte[] original) => Prepare(original) ?? original;
+
+    /// <summary>A versao da foto que vai no PDF (4:3, ate 1200 px, JPEG); null se a imagem nao puder ser lida.</summary>
+    public static byte[]? Prepare(byte[] original) =>
+        Draw(original, oriented =>
+        {
+            var crop = CropRect(oriented.Width, oriented.Height);
+            var width = Math.Max(1, (int)Math.Min(MaxWidthPx, crop.Width));
+            return (crop, width, Math.Max(1, (int)Math.Round(width / AspectRatio)), JpegQuality);
+        });
+
+    /// <summary>Miniatura para as listas e a galeria: a foto inteira (sem corte), com o maior lado em maxSide.</summary>
+    public static byte[]? Thumbnail(byte[] original, int maxSide = 640) =>
+        Draw(original, oriented =>
+        {
+            var scale = Math.Min(1f, maxSide / (float)Math.Max(oriented.Width, oriented.Height));
+            return (SKRect.Create(0, 0, oriented.Width, oriented.Height),
+                Math.Max(1, (int)Math.Round(oriented.Width * scale)), Math.Max(1, (int)Math.Round(oriented.Height * scale)), 72);
+        });
+
+    /// <summary>Le, endireita pela orientacao da camera e desenha o recorte no tamanho pedido, em JPEG.</summary>
+    private static byte[]? Draw(byte[] original, Func<SKBitmap, (SKRect Source, int Width, int Height, int Quality)> layout)
     {
         try
         {
             using var codec = SKCodec.Create(new SKMemoryStream(original));
-            if (codec is null) return original;
+            if (codec is null) return null;
 
             using var decoded = SKBitmap.Decode(codec);
-            if (decoded is null) return original;
+            if (decoded is null) return null;
 
             var oriented = Orient(decoded, codec.EncodedOrigin);
             try
             {
-                var crop = CropRect(oriented.Width, oriented.Height);
-                var width = Math.Max(1, (int)Math.Min(MaxWidthPx, crop.Width));
-                var height = Math.Max(1, (int)Math.Round(width / AspectRatio));
+                var (source, width, height, quality) = layout(oriented);
 
                 using var surface = SKSurface.Create(new SKImageInfo(width, height));
                 var canvas = surface.Canvas;
                 // PNG com transparencia vira JPEG: fundo branco no lugar do transparente.
                 canvas.Clear(SKColors.White);
                 using var paint = new SKPaint { FilterQuality = SKFilterQuality.Medium, IsAntialias = true };
-                canvas.DrawBitmap(oriented, crop, new SKRect(0, 0, width, height), paint);
+                canvas.DrawBitmap(oriented, source, new SKRect(0, 0, width, height), paint);
 
                 using var image = surface.Snapshot();
-                using var data = image.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
+                using var data = image.Encode(SKEncodedImageFormat.Jpeg, quality);
                 return data.ToArray();
             }
             finally
@@ -72,7 +91,7 @@ public static class ReportImageProcessor
         }
         catch
         {
-            return original;
+            return null;
         }
     }
 

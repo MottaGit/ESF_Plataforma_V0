@@ -81,6 +81,17 @@ public enum NotificationType
     SpreadsheetFinished = 11
 }
 
+/// <summary>Miniatura e versao do PDF de uma foto (ver Reports/ImagePreviews), geradas em segundo plano.</summary>
+public enum PreviewState
+{
+    /// <summary>Nao e foto, ou e um formato sem versoes (documento, GIF, HEIC).</summary>
+    None = 0,
+    Pending = 1,
+    Ready = 2,
+    /// <summary>A imagem nao pode ser lida: as telas e o PDF usam a original.</summary>
+    Failed = 3
+}
+
 /// <summary>Tarefa longa feita em segundo plano (ver BackgroundJob).</summary>
 public enum BackgroundJobKind
 {

@@ -295,7 +295,7 @@ export function ActivityExtras({ activity, onChanged, focusComments = false }: A
               <li key={file.id}>
                 <a href={assetUrl(file.url)} target="_blank" rel="noreferrer" className="attachments__link">
                   {file.isImage ? (
-                    <img src={assetUrl(file.url)} alt="" className="attachments__thumb" />
+                    <img src={assetUrl(file.thumbnailUrl ?? file.url)} alt="" className="attachments__thumb" />
                   ) : (
                     <span className="attachments__icon">
                       <IconPaperclip size={15} />

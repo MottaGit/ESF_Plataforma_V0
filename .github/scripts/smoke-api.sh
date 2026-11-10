@@ -152,6 +152,40 @@ call "$admin" GET /api/audit
 expect '[.. | strings | select(test("pelo CI"))] | length > 0' \
   'O histórico de alterações não registrou a tarefa criada pelo CI.'
 
+echo "== Foto num registro (miniatura e versão do PDF em segundo plano)"
+# Foto JPEG de verdade (96x72), para o servidor decodificar e reduzir.
+photo=$(mktemp --suffix=.jpg)
+base64 -d > "$photo" <<'B64'
+/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIU
+FRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCABIAGADASIAAhEB
+AxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS
+0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKz
+tLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgEC
+BAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpj
+ZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6
+/9oADAMBAAIRAxEAPwDi4kq1ElNjSrUSV83OR+RUqY+JKtxpTI0q3FHXJKR7NGmOiSrcSUyJKtxpXJKR7VKmOjSrcUdMijq5FHXLKR7NKmOijq3GlMjS
+rcaVyykexSpjokq3GlNiSrUaVySke1RpniUaVaiSmxR1aiSvrZSPxSlTHxJVuKOmRJVuNK5JSPapUx0aVaiSmxpVuKOuWUj2aVMfFHVuNKZElWo0rklI
+9ilTHxpVuKOmRR1bjSuWUj2aNMdGlW4o6ZEmatxpXJKR7VKmeJRpVqJKbFHVqJK+tlI/FaNMfElWo0psaVaijrklI9ilTHxR1bijpsUdWo0rllI9mlTH
+xpVqJKbGlW4krklI9mjTHRpVqNKbGlWoo65ZSPZpUx8UdW40pkaVaiSuSUj2aVM8Tijq1GlNjSrUaV9bKR+K0qY6JKuRR0yKOrcSVySkezSpj40q1GlM
+jSrcUdcspHsUqY+KOrUaU2NKtRJmuSUj2qNMfFHVuNKZGlWo0rllI9mlTHxpVuNKZFHVqJK5JSPZpUzxKNKtxR0UV9dJn4lSii3FHVuNKKK5ZM9ilFFq
+JKtxpRRXJJntUYotRpVuKOiiuSTPZpRRbjSrUUdFFcsmexSSLcaVaiSiiuWTPaoxR//Z
+B64
+call "$admin" POST "/api/projects/$project/updates" --form-string 'text=<p>Registro com foto do CI</p>' \
+  -F "files=@$photo;type=image/jpeg;filename=foto.jpg"
+update=$(field '.id')
+thumb=""
+for _ in $(seq 1 30); do
+  curl -sS -o "$BODY" "$API/api/projects/$project/updates" -H "Authorization: Bearer $admin" || true
+  thumb=$(field "map(select(.id == \"$update\")) | .[0].attachments[0].thumbnailUrl")
+  if [[ -n $thumb ]]; then break; fi
+  sleep 1
+done
+if [[ -n $thumb ]]; then
+  call - GET "$thumb"
+else
+  fail "Miniatura" "A foto enviada no registro não ganhou miniatura em 30 s."
+fi
+
 call "$admin" PUT "/api/programs/$program/public-page" "${JSON[@]}" -d '{"enabled":true}'
 public_token=$(field '.token')
 if [[ -n $public_token ]]; then

@@ -575,6 +575,8 @@ export interface ProjectFile {
   /** Preenchidos quando o arquivo foi anexado numa atividade. */
   activityId: string | null;
   activityTitle: string | null;
+  /** Miniatura da foto (listas e galeria); null enquanto não foi gerada ou quando não é foto: use a url. */
+  thumbnailUrl: string | null;
 }
 
 export interface ProjectDetail {

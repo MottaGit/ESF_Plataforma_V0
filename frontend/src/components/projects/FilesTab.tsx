@@ -249,7 +249,7 @@ function FileCard({ file, onChanged, onRemove, onView }: FileCardProps) {
     <article className="file-card">
       {file.isImage ? (
         <button type="button" className="file-card__thumb file-card__thumb--button" title="Ver foto" onClick={onView}>
-          <img src={assetUrl(file.url)} alt={file.description ?? file.fileName} loading="lazy" />
+          <img src={assetUrl(file.thumbnailUrl ?? file.url)} alt={file.description ?? file.fileName} loading="lazy" />
         </button>
       ) : (
         <a className="file-card__thumb" href={assetUrl(file.url)} target="_blank" rel="noreferrer" title="Abrir arquivo">

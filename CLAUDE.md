@@ -92,6 +92,9 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   esse, nunca o `X-Forwarded-For` cru (o navegador pode inventar).
 - **Arquivos:** ficam no banco (`StoredFiles`), não em disco, porque o disco do servidor some a cada deploy. Saem
   públicos em `/uploads/{nome}` (nome imutável, cache longo); documentos assinados são privados e só baixam com login.
+  Cada foto ganha em segundo plano a miniatura (`.t.jpg`) e a versão do PDF (`.r.jpg`), por `ProjectFile.PreviewState`
+  (`Reports/ImagePreviews.cs`); lugar novo que mostra foto em lista usa `thumbnailUrl ?? url`. Apagar arquivo sempre
+  pelo `FileStorageService`, que leva as versões junto.
 - **Busca sem acento:** funções do Postgres `esf_fold`/`esf_fold_html` (migração `AddSearchFunctions`), mapeadas como
   `EsfDbContext.Fold`/`FoldHtml`; só funcionam dentro de consultas.
 - **Texto formatado:** registros de andamento são HTML limpo no servidor (`Services/RichText.cs`, HtmlSanitizer) e

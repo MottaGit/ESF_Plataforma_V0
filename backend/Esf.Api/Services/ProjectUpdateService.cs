@@ -1,7 +1,9 @@
 using Esf.Api.Common;
 using Esf.Api.Data;
+using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
+using Esf.Api.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
@@ -141,7 +143,8 @@ public class ProjectUpdateService
             ContentType = saved.ContentType,
             SizeBytes = saved.Size,
             UploadedByUserId = uploadedByUserId,
-            UploadedAt = DateTime.UtcNow
+            UploadedAt = DateTime.UtcNow,
+            PreviewState = ImagePreviews.Supports(saved.ContentType, saved.StoredName) ? PreviewState.Pending : PreviewState.None
         };
     }
 

@@ -38,7 +38,7 @@ export function UpdateAttachments({ files, onRemove }: UpdateAttachmentsProps) {
                 title={file.description ?? file.fileName}
                 onClick={() => setViewing(index)}
               >
-                <img src={assetUrl(file.url)} alt={file.description ?? file.fileName} loading="lazy" />
+                <img src={assetUrl(file.thumbnailUrl ?? file.url)} alt={file.description ?? file.fileName} loading="lazy" />
                 {index === visible.length - 1 && hiddenCount > 0 ? (
                   <span className="media-thumb__more num">+{hiddenCount}</span>
                 ) : null}

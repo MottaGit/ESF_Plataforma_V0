@@ -23,6 +23,9 @@ public class ProjectFile
     public long SizeBytes { get; set; }
     public string? Description { get; set; }
 
+    /// <summary>Miniatura e versao do PDF (fotos): geradas pelo JobWorker logo depois do envio.</summary>
+    public PreviewState PreviewState { get; set; }
+
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
     public Guid? UploadedByUserId { get; set; }
     public User? UploadedByUser { get; set; }

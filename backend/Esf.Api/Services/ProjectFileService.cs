@@ -1,7 +1,9 @@
 using Esf.Api.Common;
 using Esf.Api.Data;
+using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
+using Esf.Api.Reports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esf.Api.Services;
@@ -71,7 +73,8 @@ public class ProjectFileService
             Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             UploadedByUserId = userId,
             UploadedAt = DateTime.UtcNow,
-            ActivityId = activityId
+            ActivityId = activityId,
+            PreviewState = ImagePreviews.Supports(saved.ContentType, saved.StoredName) ? PreviewState.Pending : PreviewState.None
         };
 
         _db.ProjectFiles.Add(entity);

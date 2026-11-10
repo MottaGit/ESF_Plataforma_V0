@@ -772,6 +772,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("character varying(260)");
 
+                    b.Property<int>("PreviewState")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
@@ -795,6 +798,8 @@ namespace Esf.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActivityId");
+
+                    b.HasIndex("PreviewState");
 
                     b.HasIndex("ProjectId");
 

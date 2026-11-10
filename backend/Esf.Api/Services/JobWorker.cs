@@ -3,6 +3,7 @@ using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
+using Esf.Api.Reports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esf.Api.Services;
@@ -28,6 +29,7 @@ public record JobOutcome(byte[]? File = null, string? FileName = null, string? R
 /// Processa a fila de tarefas longas, uma de cada vez (assim dois relatorios grandes nao somam memoria), dentro da
 /// propria API. Cada tarefa roda num escopo novo com o nucleo, o perfil e o nome de quem pediu (filtro por nucleo,
 /// historico de alteracoes). Se o servidor reiniciar no meio, a tarefa volta para a fila (no maximo duas tentativas).
+/// Ao lado, uma segunda rotina gera a miniatura e a versao do PDF das fotos enviadas (ProcessNextPreviewAsync).
 /// </summary>
 public class JobWorker : BackgroundService
 {
@@ -38,6 +40,7 @@ public class JobWorker : BackgroundService
 
     private static readonly TimeSpan Heartbeat = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan IdleWait = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan PreviewIdleWait = TimeSpan.FromSeconds(5);
 
     /// <summary>Sem pergunta da tela ha mais que isso, a pessoa saiu: o aviso vai para o sininho.</summary>
     private static readonly TimeSpan Watching = TimeSpan.FromSeconds(20);
@@ -54,12 +57,10 @@ public class JobWorker : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        await Task.Yield();
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
+    /// <summary>Duas filas independentes: as tarefas pedidas (relatorio, planilha) e as versoes das fotos enviadas.</summary>
+    protected override Task ExecuteAsync(CancellationToken stoppingToken) =>
+        Task.WhenAll(
+            LoopAsync("tarefas", async () =>
             {
                 var now = DateTime.UtcNow;
                 if (now >= _nextCleanup)
@@ -71,6 +72,22 @@ public class JobWorker : BackgroundService
                 await RecoverAbandonedAsync(now);
                 if (!await ProcessNextAsync(stoppingToken))
                     await _signal.WaitJobsAsync(IdleWait, stoppingToken);
+            }, stoppingToken),
+            // Fotos: uma de cada vez, sem esperar atras de um relatorio grande.
+            LoopAsync("fotos", async () =>
+            {
+                if (!await ProcessNextPreviewAsync(stoppingToken))
+                    await Task.Delay(PreviewIdleWait, stoppingToken);
+            }, stoppingToken));
+
+    private async Task LoopAsync(string name, Func<Task> step, CancellationToken stoppingToken)
+    {
+        await Task.Yield();
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await step();
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -78,7 +95,7 @@ public class JobWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro na fila de tarefas em segundo plano.");
+                _logger.LogError(ex, "Erro na fila em segundo plano ({Fila}).", name);
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
@@ -89,6 +106,82 @@ public class JobWorker : BackgroundService
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// A proxima foto enviada sem miniatura ganha a miniatura e a versao do PDF (Reports/ImagePreviews). Falso quando
+    /// nao ha nenhuma esperando. As fotos antigas (de antes desta rotina) entram pelo mesmo caminho.
+    /// </summary>
+    public async Task<bool> ProcessNextPreviewAsync(CancellationToken stoppingToken = default)
+    {
+        using var scope = _scopes.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EsfDbContext>();
+        db.AllOrganizations = true;
+
+        var file = await db.ProjectFiles
+            .Where(f => f.PreviewState == PreviewState.Pending)
+            .OrderBy(f => f.UploadedAt)
+            .FirstOrDefaultAsync(stoppingToken);
+        if (file is null) return false;
+
+        var original = await scope.ServiceProvider.GetRequiredService<FileStorageService>().TryReadAsync(file.StoredName);
+        var previews = original is null ? null : ImagePreviews.Create(original);
+        if (previews is { } made)
+        {
+            await PutStoredFileAsync(db, ImagePreviews.ThumbnailName(file.StoredName), made.Thumbnail);
+            await PutStoredFileAsync(db, ImagePreviews.ReportName(file.StoredName), made.Report);
+            file.PreviewState = PreviewState.Ready;
+        }
+        else
+        {
+            _logger.LogWarning("Nao foi possivel gerar a miniatura de {StoredName}; fica a original.", file.StoredName);
+            file.PreviewState = PreviewState.Failed;
+        }
+
+        try
+        {
+            await db.SaveChangesAsync(stoppingToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A foto foi apagada no meio: as versoes tambem nao entram (mesmo SaveChanges).
+        }
+        catch (DbUpdateException ex)
+        {
+            // Outro erro de gravacao: marca como falha para nao tentar a mesma foto sem parar.
+            _logger.LogError(ex, "Nao foi possivel gravar a miniatura de {StoredName}.", file.StoredName);
+            using var retry = _scopes.CreateScope();
+            var retryDb = retry.ServiceProvider.GetRequiredService<EsfDbContext>();
+            retryDb.AllOrganizations = true;
+            var again = await retryDb.ProjectFiles.FirstOrDefaultAsync(f => f.Id == file.Id, stoppingToken);
+            if (again is not null)
+            {
+                again.PreviewState = PreviewState.Failed;
+                await retryDb.SaveChangesAsync(stoppingToken);
+            }
+        }
+
+        return true;
+    }
+
+    private static async Task PutStoredFileAsync(EsfDbContext db, string storedName, byte[] content)
+    {
+        var existing = await db.StoredFiles.FirstOrDefaultAsync(f => f.StoredName == storedName);
+        if (existing is null)
+        {
+            db.StoredFiles.Add(new StoredFile
+            {
+                StoredName = storedName,
+                ContentType = "image/jpeg",
+                SizeBytes = content.Length,
+                Content = content,
+                CreatedAt = DateTime.UtcNow
+            });
+            return;
+        }
+
+        existing.Content = content;
+        existing.SizeBytes = content.Length;
     }
 
     /// <summary>Pega a proxima tarefa da fila e processa. Falso quando a fila esta vazia.</summary>

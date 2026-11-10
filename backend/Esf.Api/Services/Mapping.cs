@@ -2,6 +2,7 @@ using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
+using Esf.Api.Reports;
 
 namespace Esf.Api.Services;
 
@@ -109,7 +110,8 @@ public static class Mapping
             f.ProjectUpdateId,
             f.ProjectUpdate?.CreatedAt,
             f.ActivityId,
-            f.Activity?.Title);
+            f.Activity?.Title,
+            f.PreviewState == PreviewState.Ready ? $"{UploadsUrlPrefix}/{ImagePreviews.ThumbnailName(f.StoredName)}" : null);
 
     public static ProjectUpdateDto ToDto(ProjectUpdate u) =>
         new(u.Id,

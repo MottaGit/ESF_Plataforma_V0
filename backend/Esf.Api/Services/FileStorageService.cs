@@ -1,6 +1,7 @@
 using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Reports;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -93,11 +94,13 @@ public class FileStorageService
     public Task DeleteAsync(string? storedName) =>
         string.IsNullOrWhiteSpace(storedName) ? Task.CompletedTask : DeleteManyAsync(new[] { storedName });
 
+    /// <summary>Apaga os arquivos e as versoes deles (miniatura e versao do PDF das fotos).</summary>
     public async Task DeleteManyAsync(IEnumerable<string> storedNames)
     {
         var names = storedNames
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Select(name => Path.GetFileName(name))
+            .SelectMany(name => ImagePreviews.Variants(name).Prepend(name))
             .Distinct()
             .ToList();
         if (names.Count == 0) return;

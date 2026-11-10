@@ -18,7 +18,9 @@ public record ProjectFileDto(
     DateTime? UpdateCreatedAt,
     // Preenchidos quando o arquivo foi anexado numa atividade.
     Guid? ActivityId,
-    string? ActivityTitle);
+    string? ActivityTitle,
+    // Miniatura da foto (listas e galeria); null enquanto nao foi gerada, ou quando nao e foto: use a Url.
+    string? ThumbnailUrl);
 
 public class SaveFileDescriptionRequest
 {

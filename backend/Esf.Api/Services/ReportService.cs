@@ -131,11 +131,19 @@ public class ReportService
                 var loaded = new List<ReportPhoto>();
                 foreach (var image in images)
                 {
-                    var bytes = await _storage.TryReadAsync(image.StoredName);
-                    if (bytes is not { Length: > 0 }) continue;
+                    // A versao do PDF ja vem pronta desde o envio (ImagePreviews); sem ela, reduz a original agora.
+                    var bytes = image.PreviewState == PreviewState.Ready
+                        ? await _storage.TryReadAsync(ImagePreviews.ReportName(image.StoredName))
+                        : null;
+                    if (bytes is not { Length: > 0 })
+                    {
+                        var original = await _storage.TryReadAsync(image.StoredName);
+                        if (original is not { Length: > 0 }) continue;
+                        bytes = ReportImageProcessor.Compress(original);
+                    }
 
                     var caption = string.IsNullOrWhiteSpace(image.Description) ? null : image.Description.Trim();
-                    loaded.Add(new ReportPhoto(caption, ReportImageProcessor.Compress(bytes)));
+                    loaded.Add(new ReportPhoto(caption, bytes));
                 }
 
                 if (loaded.Count > 0) photos[update.Id] = loaded;
