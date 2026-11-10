@@ -21,7 +21,7 @@ public class DemoDataTests
     [Fact]
     public async Task DemoDataHasTwoSeparateNucleosAndTheNationalTotals()
     {
-        var options = new DbContextOptionsBuilder<EsfDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        var options = await TestDatabase.CreateAsync();
         await using (var seed = new EsfDbContext(options))
             await DbSeeder.SeedAsync(seed, "Esf@2026", NullLogger.Instance);
 

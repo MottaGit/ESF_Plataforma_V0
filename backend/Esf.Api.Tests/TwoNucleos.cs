@@ -8,29 +8,29 @@ using Microsoft.EntityFrameworkCore;
 namespace Esf.Api.Tests;
 
 /// <summary>
-/// Banco em memoria com dois nucleos (A e B), cada um com ao menos um registro de cada tabela coberta pelo filtro
-/// por nucleo. O programa dos dois tem o mesmo nome de proposito (nome unico vale dentro do nucleo).
+/// Banco novo (em memoria, ou PostgreSQL no CI: ver <see cref="TestDatabase"/>) com dois nucleos (A e B), cada um com
+/// ao menos um registro de cada tabela coberta pelo filtro por nucleo. O programa dos dois tem o mesmo nome de
+/// proposito (nome unico vale dentro do nucleo).
 /// </summary>
 public sealed class TwoNucleos
 {
     public const string Password = "Senha@123";
 
-    private readonly string _database = Guid.NewGuid().ToString();
+    private DbContextOptions<EsfDbContext> _options = null!;
 
     public Nucleo A { get; private set; } = null!;
     public Nucleo B { get; private set; } = null!;
 
     public static async Task<TwoNucleos> CreateAsync()
     {
-        var fixture = new TwoNucleos();
+        var fixture = new TwoNucleos { _options = await TestDatabase.CreateAsync() };
         fixture.A = await fixture.AddNucleoAsync("Nucleo A", "a");
         fixture.B = await fixture.AddNucleoAsync("Nucleo B", "b");
         return fixture;
     }
 
     /// <summary>Contexto como se a pessoa estivesse logada: o filtro usa o nucleo dela.</summary>
-    public EsfDbContext Context(ICurrentUser user) =>
-        new(new DbContextOptionsBuilder<EsfDbContext>().UseInMemoryDatabase(_database).Options, user);
+    public EsfDbContext Context(ICurrentUser user) => new(_options, user);
 
     /// <summary>Contexto de rotina interna (ve todos os nucleos).</summary>
     public EsfDbContext SystemContext()

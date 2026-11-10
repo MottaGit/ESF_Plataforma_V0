@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <!-- Testes da API em banco em memoria (sem PostgreSQL): separacao entre nucleos e regras de acesso. -->
+  <!-- Testes da API: banco em memoria por padrao; no CI, tambem em PostgreSQL (ver TestDatabase.cs). -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -16,6 +16,8 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.33" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.33" />
+    <!-- No CI: falha de teste vira anotacao no commit (logger GitHubActions do dotnet test). -->
+    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
