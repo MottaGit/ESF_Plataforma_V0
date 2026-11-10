@@ -139,7 +139,10 @@ const SECTIONS: HelpSection[] = [
             programa e o período (como o trimestre passado), o formato e os projetos: os do programa já vêm marcados. O{' '}
             <strong>Resumo</strong> traz os números somados e uma tabela com os projetos, em poucas páginas; o{' '}
             <strong>Completo</strong> acrescenta um capítulo por projeto, com a linha do tempo e as fotos. O link da tela
-            guarda o programa, o período e o formato: salve-o para repetir o relatório no próximo trimestre.
+            guarda o programa, o período e o formato: salve-o para repetir o relatório no próximo trimestre. O PDF é montado
+            em segundo plano: dá para continuar usando a plataforma, e o download começa sozinho quando fica pronto. Se
+            você fechar a plataforma antes, o aviso chega no sininho, e o relatório fica em{' '}
+            <strong>Gerados recentemente</strong>, na tela Relatórios, por 7 dias.
           </p>
         )
       },

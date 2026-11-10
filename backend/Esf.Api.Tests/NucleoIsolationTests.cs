@@ -62,6 +62,7 @@ public class NucleoIsolationTests
             Assert.Equal(mine.ProgramId, Assert.Single(await db.ProgramPartners.ToListAsync()).ProgramId);
             Assert.Equal(mine.OrganizationId, Assert.Single(await db.AuditEntries.ToListAsync()).OrganizationId);
             Assert.Equal(mine.AdminUserId, Assert.Single(await db.AccessLinks.ToListAsync()).UserId);
+            Assert.Equal(mine.AdminUserId, Assert.Single(await db.BackgroundJobs.ToListAsync()).RequestedByUserId);
 
             Assert.False(await db.Projects.AnyAsync(p => p.Id == other.ProjectId));
             Assert.False(await db.Volunteers.AnyAsync(v => v.Id == other.VolunteerId));

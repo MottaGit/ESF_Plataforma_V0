@@ -66,6 +66,29 @@ field() {
   jq -r "$1 // empty" "$BODY" 2>/dev/null || true
 }
 
+# job TOKEN ROTA [argumentos do curl]: pede uma tarefa em segundo plano (relatorio, planilha), espera ficar pronta e
+# baixa o arquivo para $BODY. O id fica em $last_job.
+last_job=""
+job() {
+  local token=$1 path=$2
+  shift 2
+  call "$token" POST "$path" "$@"
+  last_job=$(field '.id')
+  if [[ -z $last_job ]]; then return; fi
+  local status=""
+  for _ in $(seq 1 120); do
+    curl -sS -o "$BODY" "$API/api/jobs/$last_job" -H "Authorization: Bearer $token" || true
+    status=$(field '.status')
+    if [[ $status == Done || $status == Failed ]]; then break; fi
+    sleep 1
+  done
+  if [[ $status != Done ]]; then
+    fail "Tarefa em segundo plano" "$path terminou como '${status:-sem resposta}': $(field '.error')"
+    return
+  fi
+  if [[ -n $(field '.fileName') ]]; then call "$token" GET "/api/jobs/$last_job/download"; fi
+}
+
 today=$(TZ=America/Sao_Paulo date +%F)
 
 echo "== Administrador do núcleo (ESF Porto Alegre)"
@@ -137,11 +160,14 @@ else
   fail "Página pública" "Ligar a página pública do programa não devolveu o link."
 fi
 
-echo "== Relatórios e planilha"
-call "$admin" POST /api/reports/projects "${JSON[@]}" -d "{\"projectIds\":$projects,\"format\":\"Completo\"}"
+echo "== Relatórios (em segundo plano) e planilha"
+job "$admin" /api/reports/projects "${JSON[@]}" -d "{\"projectIds\":$projects,\"format\":\"Completo\"}"
 expect_pdf "O relatório completo"
-call "$admin" POST /api/reports/projects "${JSON[@]}" -d "{\"projectIds\":$projects,\"format\":\"Resumo\"}"
+report_job=$last_job
+job "$admin" /api/reports/projects "${JSON[@]}" -d "{\"projectIds\":$projects,\"format\":\"Resumo\"}"
 expect_pdf "O relatório resumido"
+call "$admin" GET "/api/jobs?kind=Report"
+expect 'length == 2' 'A lista "Gerados recentemente" não trouxe os dois relatórios.'
 call "$admin" POST /api/spreadsheets/export "${JSON[@]}" -d '{"projects":true,"volunteers":true}'
 call "$admin" GET /api/spreadsheets/template
 
@@ -153,6 +179,8 @@ done
 deny "$user" GET /api/audit
 deny "$user" GET /api/spreadsheets/template
 deny "$user" GET /api/national/panel
+# Relatorio de outra pessoa do mesmo nucleo: so quem pediu ve e baixa.
+deny "$user" GET "/api/jobs/$report_job/download" 404
 
 echo "== Gestão nacional"
 national=$(login nacional@esf.org.br)
@@ -167,6 +195,7 @@ call "$curitiba" GET /api/projects
 expect "map(.id) | index(\"$project\") | not" 'ESF Curitiba viu um projeto de Porto Alegre na lista.'
 # Projeto de Porto Alegre: para Curitiba, nao existe.
 deny "$curitiba" GET "/api/projects/$project" 404
+deny "$curitiba" GET "/api/jobs/$report_job" 404
 
 echo
 if (( failures > 0 )); then

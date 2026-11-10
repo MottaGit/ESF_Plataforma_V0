@@ -1,8 +1,10 @@
 import { shrinkImage } from '../utils/images';
 import { http } from './client';
+import { runFileJob } from './jobs';
 import type {
   AccessLink,
   AccessLinkInfo,
+  BackgroundJob,
   Activity,
   ActivityComment,
   ActivityDetails,
@@ -270,7 +272,9 @@ export const projectUpdatesApi = {
 };
 
 export const reportsApi = {
-  generate: (payload: ReportPayload) => http.download('/api/reports/projects', payload, 'relatorio-projetos.pdf'),
+  /** O PDF é montado em segundo plano: pede, espera ficar pronto e baixa. Devolve o nome do arquivo. */
+  generate: (payload: ReportPayload, onProgress?: (job: BackgroundJob) => void) =>
+    runFileJob(() => http.request<BackgroundJob>('/api/reports/projects', { method: 'POST', body: payload }), onProgress),
   periodCounts: (from: string | null, to: string | null) =>
     http.request<ReportPeriodCount[]>('/api/reports/period-counts', { query: { from, to } })
 };

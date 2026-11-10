@@ -29,6 +29,9 @@ public class EsfDbContext : DbContext
     /// </summary>
     public bool AllOrganizations { get; set; }
 
+    /// <summary>Quem esta logado (ou quem pediu a tarefa em segundo plano): o historico de alteracoes grava em nome dele.</summary>
+    public Guid? CurrentUserId => _currentUser?.Id;
+
     public DbSet<User> Users => Set<User>();
     public DbSet<Volunteer> Volunteers => Set<Volunteer>();
     public DbSet<Project> Projects => Set<Project>();
@@ -53,6 +56,7 @@ public class EsfDbContext : DbContext
     public DbSet<ProgramPartner> ProgramPartners => Set<ProgramPartner>();
     public DbSet<AccessLink> AccessLinks => Set<AccessLink>();
     public DbSet<NationalIndicator> NationalIndicators => Set<NationalIndicator>();
+    public DbSet<BackgroundJob> BackgroundJobs => Set<BackgroundJob>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -373,6 +377,21 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Content).IsRequired();
         });
 
+        b.Entity<BackgroundJob>(e =>
+        {
+            e.Property(x => x.RequestedByName).HasMaxLength(160).IsRequired();
+            e.Property(x => x.Payload).IsRequired();
+            e.Property(x => x.InputStoredName).HasMaxLength(160);
+            e.Property(x => x.ResultStoredName).HasMaxLength(160);
+            e.Property(x => x.ResultFileName).HasMaxLength(260);
+            e.Property(x => x.Error).HasMaxLength(500);
+            e.Property(x => x.Stamp).IsConcurrencyToken();
+            // Proxima da fila e "as minhas" na tela.
+            e.HasIndex(x => new { x.Status, x.CreatedAt });
+            e.HasIndex(x => new { x.RequestedByUserId, x.CreatedAt });
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<ProjectFile>(e =>
         {
             e.Property(x => x.FileName).HasMaxLength(260).IsRequired();
@@ -481,5 +500,6 @@ public class EsfDbContext : DbContext
             .HasQueryFilter(x => AllOrganizations || x.Program!.OrganizationId == CurrentOrganizationId);
 
         b.Entity<AccessLink>().HasQueryFilter(x => AllOrganizations || x.User!.OrganizationId == CurrentOrganizationId);
+        b.Entity<BackgroundJob>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
     }
 }

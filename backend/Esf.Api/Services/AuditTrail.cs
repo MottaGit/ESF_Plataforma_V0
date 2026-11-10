@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security.Claims;
 using System.Text.Json;
 using Esf.Api.Common;
 using Esf.Api.Data;
@@ -20,15 +19,11 @@ public record AuditChange(string Field, string Before, string After);
 /// </summary>
 public class AuditInterceptor : SaveChangesInterceptor
 {
-    private readonly IHttpContextAccessor _http;
-
-    public AuditInterceptor(IHttpContextAccessor http) => _http = http;
-
+    // Quem age vem do proprio contexto: o login da requisicao ou, na fila em segundo plano, quem pediu a tarefa.
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
         InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-        var claim = _http.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (eventData.Context is EsfDbContext db && Guid.TryParse(claim, out var userId))
+        if (eventData.Context is EsfDbContext { CurrentUserId: { } userId } db)
             await AuditTrail.RecordAsync(db, userId, cancellationToken);
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken);

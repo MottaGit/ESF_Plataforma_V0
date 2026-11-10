@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, reportsApi } from '../api/endpoints';
+import { jobStatusText } from '../api/jobs';
+import { RecentJobs } from '../components/jobs/RecentJobs';
 import { ProgramPicker } from '../components/programs/ProgramPicker';
 import {
   DEFAULT_REPORT_OPTIONS,
@@ -18,7 +20,14 @@ import { Select, TextInput } from '../components/ui/Field';
 import { Alert, EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { IconAlert, IconDownload, IconSearch } from '../components/ui/Icons';
 import { useToast } from '../context/ToastContext';
-import type { Program, ProjectListItem, ProjectStatus, ReportFormat, ReportPeriodCount } from '../types/api';
+import type {
+  BackgroundJob,
+  Program,
+  ProjectListItem,
+  ProjectStatus,
+  ReportFormat,
+  ReportPeriodCount
+} from '../types/api';
 import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
 import { periodShortcuts } from '../utils/periods';
 
@@ -100,6 +109,9 @@ export function ReportsPage() {
   const [counts, setCounts] = useState<Map<string, ReportPeriodCount> | null>(null);
   const [countsFailed, setCountsFailed] = useState(false);
   const [generating, setGenerating] = useState(false);
+  // Situacao do relatorio pedido (na fila, gerando) e recarga da lista de gerados.
+  const [progress, setProgress] = useState<BackgroundJob | null>(null);
+  const [recentKey, setRecentKey] = useState(0);
   const listRef = useRef<HTMLElement>(null);
 
   const formatSlug = searchParams.get('formato');
@@ -226,18 +238,28 @@ export function ReportsPage() {
     if (marked.length === 0) return;
     setGenerating(true);
     try {
+      // Montado em segundo plano: se a pessoa sair da tela, o download acontece do mesmo jeito.
+      let started = false;
       const fileName = await reportsApi.generate(
         reportPayload(
           marked.map((project) => project.id),
           { ...options, from, to },
           format
-        )
+        ),
+        (job) => {
+          setProgress(job);
+          if (started) return;
+          started = true;
+          notify('Gerando o relatório. Pode sair desta tela: o download começa sozinho.');
+        }
       );
       notify(`Relatório gerado: ${fileName}`);
     } catch (err) {
       notifyError(err instanceof ApiError ? err.message : 'Não foi possível gerar o relatório.');
     } finally {
       setGenerating(false);
+      setProgress(null);
+      setRecentKey((current) => current + 1);
     }
   }
 
@@ -499,12 +521,14 @@ export function ReportsPage() {
         ) : null}
       </section>
 
+      <RecentJobs kinds={['Report']} title="Gerados recentemente" fallbackName="Relatório" refreshKey={recentKey} />
+
       {/* Preso embaixo da tela: o que vai sair e o botao, sem precisar voltar ao topo da lista. */}
       <div className="report-bar" role="region" aria-label="Gerar o PDF">
         <div className="report-bar__text">
           <strong>{marked.length === 0 ? 'Nenhum projeto marcado' : plural(marked.length, 'projeto', 'projetos')}</strong>
-          <span>
-            {format} · {periodText}
+          <span aria-live="polite">
+            {progress ? jobStatusText(progress) : `${format} · ${periodText}`}
           </span>
         </div>
         <Button

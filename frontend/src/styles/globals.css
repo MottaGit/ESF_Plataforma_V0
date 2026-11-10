@@ -374,6 +374,22 @@ button { font: inherit; }
 .panel__head .panel__actions { margin-left: auto; display: flex; gap: 8px; }
 .panel__body { padding: 18px; }
 .panel__body--tight { padding: 0; }
+.panel__hint { margin-left: auto; font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+
+/* Gerados recentemente (relatorios, planilhas feitos em segundo plano) */
+.job-recent { margin-top: 16px; }
+.job-list { list-style: none; margin: 0; padding: 0; }
+.job-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.job-list__item:first-child { border-top: 0; }
+.job-list__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.job-list__name { font-weight: 600; overflow-wrap: anywhere; }
+.job-list__meta { font-size: 12.5px; color: var(--text-muted); }
 
 .stat-strip {
   background: var(--surface);

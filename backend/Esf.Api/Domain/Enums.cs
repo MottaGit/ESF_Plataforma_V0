@@ -72,7 +72,29 @@ public enum NotificationType
     ActivityDueTomorrow = 6,
     ActivityDueToday = 7,
     CommentMention = 8,
-    ActivityCommented = 9
+    ActivityCommented = 9,
+
+    /// <summary>Relatorio pedido em segundo plano terminou (pronto ou com erro) quando a pessoa ja tinha saido da tela.</summary>
+    ReportFinished = 10,
+
+    /// <summary>Planilha (exportacao ou importacao) terminou quando a pessoa ja tinha saido da tela.</summary>
+    SpreadsheetFinished = 11
+}
+
+/// <summary>Tarefa longa feita em segundo plano (ver BackgroundJob).</summary>
+public enum BackgroundJobKind
+{
+    Report = 0,
+    SpreadsheetExport = 1,
+    SpreadsheetImport = 2
+}
+
+public enum BackgroundJobStatus
+{
+    Queued = 0,
+    Running = 1,
+    Done = 2,
+    Failed = 3
 }
 
 /// <summary>Documentos assinados guardados na plataforma.</summary>

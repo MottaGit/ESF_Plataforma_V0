@@ -39,7 +39,11 @@ builder.Services.AddDbContext<EsfDbContext>((services, options) =>
 
 // ---------- servicos de aplicacao ----------
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+// Quem esta logado; na fila em segundo plano, quem pediu a tarefa (CurrentUserOverride, preenchido pelo JobWorker).
+builder.Services.AddScoped<CurrentUserOverride>();
+builder.Services.AddScoped<ICurrentUser>(services =>
+    services.GetRequiredService<CurrentUserOverride>().User
+    ?? new CurrentUser(services.GetRequiredService<IHttpContextAccessor>()));
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<AuthService>();
@@ -69,6 +73,12 @@ builder.Services.AddScoped<NationalIndicatorService>();
 builder.Services.AddScoped<SpreadsheetService>();
 builder.Services.AddScoped<SpreadsheetImportService>();
 builder.Services.AddScoped<PublicProgramService>();
+
+// Fila de tarefas longas (relatorio, planilha), processada por tras dentro da propria API, uma de cada vez.
+builder.Services.AddSingleton<JobSignal>();
+builder.Services.AddScoped<JobQueue>();
+builder.Services.AddScoped<JobRunner>();
+builder.Services.AddHostedService<JobWorker>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

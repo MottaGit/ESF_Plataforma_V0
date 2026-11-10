@@ -102,7 +102,10 @@ online: sem aceite, sem a resposta sobre imagem, com nome diferente do cadastro 
 com o registro e o SHA-256 bate; assina uma vez só; a coordenação vê o termo assinado. E as horas por projeto: cada um lança as próprias (só estando
 na equipe), não lança nem corrige as dos outros, a coordenação lança e corrige qualquer uma, o registro de andamento leva
 as horas do dia e o relatório soma no período. E o certificado: o período completo e os projetos vêm sugeridos (período, horas, o que
-a pessoa fez), cada opção gera o PDF e o certificado por projeto exige que a pessoa participe dele.
+a pessoa fez), cada opção gera o PDF e o certificado por projeto exige que a pessoa participe dele. E a fila em segundo
+plano: o relatório sai pronto para quem pediu e mais ninguém (nem do mesmo núcleo) vê ou baixa, a tarefa roda no núcleo
+de quem pediu, o aviso vai para o sininho só se a pessoa saiu da tela, a tarefa interrompida volta para a fila uma vez
+e depois falha, as antigas são apagadas com os arquivos e o histórico de alterações fica em nome de quem pediu.
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
 ```bash
@@ -645,7 +648,12 @@ sair ("12 projetos · Resumo · Trimestre passado") com o **Gerar PDF**. Program
 URL (`?programa=`, `?periodo=` com o atalho — `mes-passado`, `trimestre-passado`, `ultimos-3-meses`, `este-ano`,
 `ano-passado` —, ou `?de=`/`?ate=`, `?formato=resumo|completo`, `?busca=`, `?status=`, `?arquivados=1`): como o
 período vai pelo nome do atalho, o mesmo link serve no trimestre seguinte. Os projetos marcados não vão para a URL. O
-**Relatório do programa** (Projetos › programa) abre esta tela com `?programa=`. O PDF é **consolidado**, em dois
+**Relatório do programa** (Projetos › programa) abre esta tela com `?programa=`. O PDF é montado **em segundo plano**:
+o **Gerar PDF** põe o pedido na fila e a faixa de baixo mostra a situação ("Na fila (1 na frente)", "Gerando…"); quando
+fica pronto, o download começa sozinho, mesmo que a pessoa tenha ido para outra tela da plataforma. Quem fechou a
+plataforma recebe o aviso no sininho ("Seu relatório ficou pronto", que leva a esta tela). **Gerados recentemente**,
+embaixo da lista, mostra os relatórios da própria pessoa dos últimos 7 dias, para baixar de novo; só quem pediu vê e
+baixa (ver **Tarefas em segundo plano**, em Arquitetura). O PDF é **consolidado**, em dois
 formatos (`format`): **Completo**, com um
 capítulo por projeto, e **Resumo**, só a abertura (Resultados e Resumo dos projetos, mesmo com um projeto só), sem
 capítulos, linha do tempo nem fotos, para quem quer os números de um programa inteiro. Os projetos saem sempre por
@@ -901,7 +909,8 @@ Entity Framework Core 8
 PostgreSQL 16
 ```
 
-Monólito simples, sem microserviços, filas, cache distribuído ou CQRS. As responsabilidades ficam separadas assim:
+Monólito simples, sem microserviços, cache distribuído ou CQRS. A única fila é a das tarefas longas, dentro da própria
+API (ver **Tarefas em segundo plano**, abaixo). As responsabilidades ficam separadas assim:
 
 | Camada | Pasta | Responsabilidade |
 | --- | --- | --- |
@@ -928,9 +937,23 @@ outro núcleo é recusado. Só quatro pontos olham todos os núcleos, de propós
 e-mail é único na plataforma inteira), o link de acesso (rota pública), a checagem de e-mail repetido e a página
 pública do programa (acha o programa pelo código do link e, dali em diante, fixa o núcleo dele em
 `OrganizationOverride`, então o resto da consulta passa pelo filtro normal). Rotinas
-internas (dados de demonstração) usam `AllOrganizations`. Sessões de antes dos núcleos (token sem `org`) pedem para
+internas (dados de demonstração, a fila em segundo plano ao pegar a próxima tarefa) usam `AllOrganizations`. Sessões de antes dos núcleos (token sem `org`) pedem para
 entrar de novo. Na atualização, a migração `AddNucleos` põe todos os dados existentes no núcleo já cadastrado (o
 mesmo registro usado nos termos e certificados); um banco com dados e sem esse registro ganha um.
+
+**Tarefas em segundo plano (fila)** — o que demora (o relatório em PDF) não roda durante a requisição. A rota grava o
+pedido na tabela `BackgroundJobs` (tipo, opções em JSON, quem pediu com nome e perfil, núcleo) e responde na hora (202)
+com a tarefa; a tela pergunta por ela (`GET /api/jobs/{id}`) e baixa o resultado quando fica pronta. Quem processa é o
+`JobWorker` (`Services/JobWorker.cs`), um `BackgroundService` dentro da própria API, sem servidor a mais: pega uma
+tarefa de cada vez (dois relatórios grandes não somam memória) e roda o mesmo serviço da rota (`JobRunner`) num escopo
+em que o usuário atual é quem pediu (`JobUser` em `CurrentUserOverride`): filtro por núcleo, perfil e histórico de
+alterações funcionam como numa requisição. O arquivo gerado fica em `StoredFiles`, privado. Enquanto processa, o
+`JobWorker` renova um prazo (`LeaseUntil`) a cada 30 s; se o servidor cair, o prazo de 2 min vence e a tarefa volta
+para a fila. Na segunda queda, ela falha com explicação. No desligamento normal (deploy), a tarefa volta para a fila
+sem contar tentativa. Dois servidores não pegam a mesma tarefa: a coluna `Stamp` é o controle de concorrência. Quando
+termina e a tela não pergunta há mais de 20 s (a pessoa saiu), vai um aviso para o sininho de quem pediu. Tarefas e
+arquivos com mais de 7 dias são apagados uma vez por hora. O histórico de alterações (`AuditInterceptor`) lê quem age
+pelo próprio contexto (`EsfDbContext.CurrentUserId`), que na fila é quem pediu.
 
 **Bibliotecas usadas:** Npgsql/EF Core (persistência), BCrypt.Net (hash de senha), JwtBearer (autenticação),
 QuestPDF (relatórios), ClosedXML (planilhas, licença MIT), Swashbuckle (Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
@@ -1069,7 +1092,10 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
 | GET | `/api/reports/period-counts` | o que cada projeto do núcleo tem no período `from`/`to` (opcional): registros de andamento, fotos que entram no PDF (até 4 por registro) e tarefas concluídas |
-| POST | `/api/reports/projects` | gera o PDF consolidado (projetos, formato `Completo`/`Resumo`, partes incluídas e período de referência `from`/`to`, opcional) |
+| POST | `/api/reports/projects` | pede o PDF consolidado (projetos, formato `Completo`/`Resumo`, partes incluídas e período de referência `from`/`to`, opcional): responde 202 com a tarefa em segundo plano; o PDF sai em `/api/jobs/{id}/download` |
+| GET | `/api/jobs?kind=` | tarefas em segundo plano de quem está logado nos últimos 7 dias, as mais novas primeiro (`kind` repetível: `Report`, `SpreadsheetExport`, `SpreadsheetImport`) |
+| GET | `/api/jobs/{id}` | situação da tarefa (`Queued`, `Running`, `Done`, `Failed`), quantas estão na frente, nome do arquivo, erro ou resposta; só de quem pediu |
+| GET | `/api/jobs/{id}/download` | arquivo gerado pela tarefa (só quem pediu) |
 | POST | `/api/spreadsheets/export` | planilha .xlsx com o que foi escolhido (`projects`, `volunteers`); entra no histórico (administrador) |
 | GET | `/api/spreadsheets/template` | modelo vazio de importação, com as listas do núcleo (administrador) |
 | POST | `/api/spreadsheets/import?confirm=` | planilha preenchida (multipart): sem `confirm`, só a conferência linha a linha; com `confirm=true`, cria o que é novo e sem erro (administrador) |

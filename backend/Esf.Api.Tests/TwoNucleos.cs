@@ -29,6 +29,9 @@ public sealed class TwoNucleos
         return fixture;
     }
 
+    /// <summary>Opcoes do banco do teste (para montar outros servicos, como a fila em segundo plano).</summary>
+    public DbContextOptions<EsfDbContext> Options => _options;
+
     /// <summary>Contexto como se a pessoa estivesse logada: o filtro usa o nucleo dela.</summary>
     public EsfDbContext Context(ICurrentUser user) => new(_options, user);
 
@@ -103,7 +106,12 @@ public sealed class TwoNucleos
                 ContactName = $"Contato {slug}", Email = $"contato.{slug}@parceiro.org"
             },
             new AuditEntry { OrganizationId = org.Id, UserName = admin.Name, EntityType = "Projeto", EntityLabel = project.Name },
-            new AccessLink { UserId = admin.Id, TokenHash = $"hash-{slug}", ExpiresAt = DateTime.UtcNow.AddDays(1) });
+            new AccessLink { UserId = admin.Id, TokenHash = $"hash-{slug}", ExpiresAt = DateTime.UtcNow.AddDays(1) },
+            new BackgroundJob
+            {
+                OrganizationId = org.Id, Kind = BackgroundJobKind.SpreadsheetExport, Status = BackgroundJobStatus.Done,
+                RequestedByUserId = admin.Id, RequestedByName = admin.Name, RequestedByRole = admin.Role
+            });
         await db.SaveChangesAsync();
 
         return new Nucleo(org.Id, admin.Id, admin.Email, volunteer.Id, withoutAccess.Id, program.Id, project.Id, activity.Id);

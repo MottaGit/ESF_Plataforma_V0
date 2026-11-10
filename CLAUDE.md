@@ -60,7 +60,8 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   também guardam `OrganizationId`, preenchido à mão (`User` fica sem núcleo na conta só nacional); as demais filtram
   pela navegação até o pai (`x.Project!.OrganizationId`…). Ao criar entidade nova:
   inclua o filtro e um caso em `Esf.Api.Tests` (`TwoNucleos` tem um registro de cada tabela em dois núcleos).
-  `AllOrganizations = true` só para rotinas internas (seed) e números agregados da gestão nacional;
+  `AllOrganizations = true` só para rotinas internas (seed, a fila ao pegar a próxima tarefa) e números agregados da
+  gestão nacional;
   `IgnoreQueryFilters` só no login, no link de acesso, na checagem de e-mail único (e-mail é único na plataforma) e
   na página pública do programa (`PublicProgramService`: acha o programa pelo código do link e fixa
   `OrganizationOverride`, para o resto passar pelo filtro).
@@ -80,6 +81,12 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 - **Histórico dos indicadores:** à parte do de alterações, o `SaveChanges` do `EsfDbContext` grava uma
   `IndicatorValueChange` sempre que o valor de um indicador muda (data = `ValueUpdatedAt`). O relatório em PDF lê dele o
   valor no fim do período e a mudança no período (`Services/IndicatorHistory.cs`); quem grava valor não precisa fazer nada.
+- **Tarefas em segundo plano:** o que demora (relatório em PDF) entra na fila `BackgroundJobs` pelo `JobQueue` e a
+  rota responde 202 com a tarefa; o `JobWorker` (`BackgroundService` na própria API) processa uma de cada vez,
+  chamando o serviço de sempre pelo `JobRunner` num escopo em que o `ICurrentUser` é quem pediu (`JobUser` via
+  `CurrentUserOverride`). O frontend usa `runFileJob`/`waitForJob` (`api/jobs.ts`). Tipo novo de tarefa: valor em
+  `BackgroundJobKind`, caso no `JobRunner` e no `NotifyAsync` do `JobWorker`, e o tipo em `types/api.ts`. O
+  histórico de alterações pega quem age por `EsfDbContext.CurrentUserId`, nunca pelo `HttpContext`.
 - **Endereço de quem acessa:** a API fica atrás de proxy; `app.UseForwardedHeaders()` (configurado em
   `Common/ClientAddress.cs`, chaves `ForwardedHeaders:*`) põe o endereço real em `Connection.RemoteIpAddress`. Use
   esse, nunca o `X-Forwarded-For` cru (o navegador pode inventar).

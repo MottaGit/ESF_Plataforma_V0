@@ -731,7 +731,9 @@ export type NotificationType =
   | 'ActivityDueTomorrow'
   | 'ActivityDueToday'
   | 'CommentMention'
-  | 'ActivityCommented';
+  | 'ActivityCommented'
+  | 'ReportFinished'
+  | 'SpreadsheetFinished';
 
 export interface AppNotification {
   id: string;
@@ -1081,4 +1083,24 @@ export interface SaveHourEntryPayload {
   date: string;
   hours: number;
   description: string | null;
+}
+
+/** Tarefa longa feita em segundo plano no servidor (relatório, planilha). */
+export type BackgroundJobKind = 'Report' | 'SpreadsheetExport' | 'SpreadsheetImport';
+
+export type BackgroundJobStatus = 'Queued' | 'Running' | 'Done' | 'Failed';
+
+export interface BackgroundJob {
+  id: string;
+  kind: BackgroundJobKind;
+  status: BackgroundJobStatus;
+  /** Na fila: quantas tarefas estão na frente (0 = é a próxima). */
+  ahead: number | null;
+  /** Nome do arquivo gerado, quando pronto. */
+  fileName: string | null;
+  error: string | null;
+  /** Resposta, quando não é arquivo (resultado da importação). */
+  result: unknown;
+  createdAt: string;
+  finishedAt: string | null;
 }

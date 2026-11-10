@@ -1,4 +1,4 @@
-using Esf.Api.Common;
+using Esf.Api.Domain;
 using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,12 +12,12 @@ namespace Esf.Api.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly ReportService _reports;
-    private readonly ICurrentUser _currentUser;
+    private readonly JobQueue _jobs;
 
-    public ReportsController(ReportService reports, ICurrentUser currentUser)
+    public ReportsController(ReportService reports, JobQueue jobs)
     {
         _reports = reports;
-        _currentUser = currentUser;
+        _jobs = jobs;
     }
 
     /// <summary>O que cada projeto tem no periodo (registros, fotos do PDF, tarefas concluidas), para escolher antes de gerar.</summary>
@@ -25,11 +25,15 @@ public class ReportsController : ControllerBase
     public async Task<ActionResult<List<ReportPeriodCountDto>>> PeriodCounts([FromQuery] DateOnly? from, [FromQuery] DateOnly? to) =>
         await _reports.PeriodCountsAsync(from, to);
 
-    /// <summary>Gera um relatorio consolidado em PDF para um ou mais projetos.</summary>
+    /// <summary>
+    /// Pede o relatorio em PDF de um ou mais projetos. Responde na hora com a tarefa (202); o PDF e montado em segundo
+    /// plano e baixado em /api/jobs/{id}/download quando a tarefa ficar pronta.
+    /// </summary>
     [HttpPost("projects")]
-    public async Task<IActionResult> Projects(ReportRequest request)
+    public async Task<ActionResult<BackgroundJobDto>> Projects(ReportRequest request)
     {
-        var (content, fileName) = await _reports.GenerateAsync(request, _currentUser.Name ?? "usuário da plataforma");
-        return File(content, "application/pdf", fileName);
+        await _reports.ValidateAsync(request);
+        var job = await _jobs.EnqueueAsync(BackgroundJobKind.Report, request);
+        return Accepted($"/api/jobs/{job.Id}", job);
     }
 }

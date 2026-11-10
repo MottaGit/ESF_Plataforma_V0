@@ -11,8 +11,13 @@ import { usePopover } from '../ui/usePopover';
 /** De quanto em quanto tempo o sininho confere se chegou aviso novo. */
 const POLL_MS = 60_000;
 
-/** Para onde o aviso leva: a propria tarefa (aberta na aba Tarefas do projeto), quando e de uma; senao, o projeto. */
+/**
+ * Para onde o aviso leva: a propria tarefa (aberta na aba Tarefas do projeto), quando e de uma; senao, o projeto. Os
+ * de relatorio e planilha prontos levam a tela com a lista "Gerados recentemente", de onde se baixa.
+ */
 function linkFor(notification: AppNotification) {
+  if (notification.type === 'ReportFinished') return '/relatorios';
+  if (notification.type === 'SpreadsheetFinished') return '/configuracoes?aba=planilhas';
   if (!notification.projectId) return null;
   if (!notification.activityId) return `/projetos/${notification.projectId}`;
   // Aviso de comentario ou mencao: a tarefa abre ja nos comentarios.

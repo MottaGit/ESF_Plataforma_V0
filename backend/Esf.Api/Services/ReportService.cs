@@ -23,13 +23,28 @@ public class ReportService
         _logger = logger;
     }
 
-    public async Task<(byte[] Content, string FileName)> GenerateAsync(ReportRequest request, string generatedBy)
+    /// <summary>Confere o pedido antes de entrar na fila (o erro aparece na hora, sem esperar a geracao).</summary>
+    public async Task ValidateAsync(ReportRequest request)
+    {
+        var ids = ValidIds(request);
+        var found = await _db.Projects.CountAsync(p => ids.Contains(p.Id));
+        if (found != ids.Count) throw AppException.NotFound("Projeto");
+    }
+
+    private static List<Guid> ValidIds(ReportRequest request)
     {
         var ids = request.ProjectIds.Distinct().ToList();
         if (ids.Count == 0)
             throw new AppException("Selecione ao menos um projeto para gerar o relatório.");
         if (request.From.HasValue && request.To.HasValue && request.To < request.From)
             throw new AppException("O fim do período não pode ser antes do início.");
+        return ids;
+    }
+
+    /// <summary>Monta o PDF. Roda na fila em segundo plano (JobRunner), como quem pediu.</summary>
+    public async Task<(byte[] Content, string FileName)> GenerateAsync(ReportRequest request, string generatedBy)
+    {
+        var ids = ValidIds(request);
 
         var projects = await _db.Projects
             .AsNoTracking()

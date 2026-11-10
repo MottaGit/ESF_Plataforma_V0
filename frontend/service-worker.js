@@ -29,8 +29,11 @@ const PAGE_TIMEOUT_MS = 4000;
 /** Dados: depois disso, se ha copia guardada, ela aparece (a resposta da rede, quando chegar, atualiza a copia). */
 const DATA_TIMEOUT_MS = 8000;
 
-/** Respostas que nao vale guardar: a busca (cada termo seria uma copia) e o que e de uso unico. */
-const NOT_KEPT = [/^\/api\/search/, /^\/api\/access\//];
+/**
+ * Respostas que nao vale guardar: a busca (cada termo seria uma copia), o que e de uso unico e a situacao das tarefas
+ * em segundo plano (uma copia velha deixaria a tela esperando um relatorio que ja ficou pronto).
+ */
+const NOT_KEPT = [/^\/api\/search/, /^\/api\/access\//, /^\/api\/jobs/];
 
 /** Marca, dentro de cada copia do app, quando ela foi instalada (para saber qual e a anterior). */
 const INSTALLED_AT = '/__esf-installed';
