@@ -77,6 +77,7 @@ public class ReportService
         var model = new ReportModel
         {
             Organization = organization,
+            Logo = await LogoAsync(organization),
             Projects = projects,
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             GeneratedBy = generatedBy,
@@ -138,11 +139,29 @@ public class ReportService
             content = ProjectReportBuilder.Build(model with { IncludePhotos = false, Photos = new() });
         }
 
-        var fileName = projects.Count == 1
-            ? $"relatorio-{Slug(projects[0].Name)}-{DateTime.UtcNow:yyyyMMdd}.pdf"
-            : $"relatorio-projetos-{DateTime.UtcNow:yyyyMMdd}.pdf";
+        return (content, FileName(model));
+    }
 
-        return (content, fileName);
+    /// <summary>
+    /// "relatorio-banheiro-direito-da-gente-2026-t3.pdf": o projeto ou o programa (varios programas: "projetos") e o
+    /// periodo (mes, trimestre, ano ou as datas; sem periodo, o dia).
+    /// </summary>
+    public static string FileName(ReportModel model)
+    {
+        var subject = model.Projects.Count == 1
+            ? model.Projects[0].Name
+            : model.SingleProgram?.Name ?? "projetos";
+        var slug = TextHelpers.Slug(subject);
+        if (slug.Length > 60) slug = slug[..60].Trim('-');
+        return $"relatorio-{slug}-{ReportPeriod.FileSuffix(model.From, model.To, TextHelpers.BrasiliaDay(model.GeneratedAt))}.pdf";
+    }
+
+    /// <summary>Logo do nucleo, quando ha e e uma imagem que o PDF desenha (senao o relatorio sai sem ele).</summary>
+    private async Task<byte[]?> LogoAsync(Organization organization)
+    {
+        if (string.IsNullOrWhiteSpace(organization.LogoUrl)) return null;
+        var bytes = await _storage.TryReadAsync(Path.GetFileName(organization.LogoUrl));
+        return bytes is { Length: > 0 } && ReportImageProcessor.CanDraw(bytes) ? bytes : null;
     }
 
     /// <summary>
@@ -262,17 +281,4 @@ public class ReportService
         contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
         && sizeBytes < 8 * 1024 * 1024
         && Path.GetExtension(storedName).ToLowerInvariant() is ".jpg" or ".jpeg" or ".png" or ".webp" or ".gif";
-
-    private static string Slug(string value)
-    {
-        var chars = value.ToLowerInvariant()
-            .Select(c => (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ? c : '-')
-            .ToArray();
-
-        var slug = new string(chars);
-        while (slug.Contains("--")) slug = slug.Replace("--", "-");
-
-        slug = slug.Trim('-');
-        return slug.Length > 50 ? slug[..50].Trim('-') : slug;
-    }
 }

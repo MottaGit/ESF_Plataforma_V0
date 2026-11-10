@@ -142,4 +142,46 @@ public class ReportTests
         Assert.Equal("0", TextHelpers.Number(0));
         Assert.Equal("12", TextHelpers.Number(12.00m));
     }
+
+    [Theory]
+    [InlineData("2026-07-01", "2026-09-30", "3º trimestre de 2026", "2026-t3")]
+    [InlineData("2026-10-01", "2026-10-31", "outubro de 2026", "2026-10")]
+    [InlineData("2025-01-01", "2025-12-31", "ano de 2025", "2025")]
+    [InlineData("2026-08-10", "2026-11-10", null, "20260810-20261110")]
+    [InlineData("2026-07-01", "2026-10-31", null, "20260701-20261031")]
+    public void ClosedPeriodsHaveANameInTheTitleAndTheFileName(string from, string to, string? name, string suffix)
+    {
+        DateOnly Day(string value) => DateOnly.ParseExact(value, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        Assert.Equal(name, Reports.ReportPeriod.Name(Day(from), Day(to)));
+        Assert.Equal(suffix, Reports.ReportPeriod.FileSuffix(Day(from), Day(to), new DateOnly(2026, 11, 10)));
+    }
+
+    [Fact]
+    public void TitleAndFileNameFollowTheSelection()
+    {
+        var banheiro = new ProjectProgram { Name = "Banheiro Direito da Gente" };
+        var horta = new ProjectProgram { Name = "Horta comunitária" };
+        Project Project(string name, ProjectProgram program) => new() { Name = name, ProgramId = program.Id, Program = program };
+        var generatedAt = new DateTime(2026, 11, 10, 15, 0, 0, DateTimeKind.Utc);
+
+        var one = new Reports.ReportModel { Projects = new() { Project("Sra. Júlia", banheiro) }, GeneratedAt = generatedAt };
+        Assert.Equal("Relatório do projeto", one.Kicker);
+        Assert.Equal("relatorio-sra-julia-20261110.pdf", ReportService.FileName(one));
+
+        var program = new Reports.ReportModel
+        {
+            Projects = new() { Project("A", banheiro), Project("B", banheiro) },
+            From = new DateOnly(2026, 7, 1),
+            To = new DateOnly(2026, 9, 30),
+            GeneratedAt = generatedAt
+        };
+        Assert.Equal("Relatório do programa", program.Kicker);
+        Assert.Equal("Banheiro Direito da Gente", program.Title);
+        Assert.Equal("relatorio-banheiro-direito-da-gente-2026-t3.pdf", ReportService.FileName(program));
+
+        var two = new Reports.ReportModel { Projects = new() { Project("A", banheiro), Project("C", horta) }, GeneratedAt = generatedAt };
+        Assert.Equal("Relatório dos programas", two.Kicker);
+        Assert.Equal("Banheiro Direito da Gente e Horta comunitária", two.Title);
+        Assert.Equal("relatorio-projetos-20261110.pdf", ReportService.FileName(two));
+    }
 }

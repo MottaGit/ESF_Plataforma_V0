@@ -27,6 +27,42 @@ public record ReportModel
 
     public bool HasPeriod => From.HasValue || To.HasValue;
 
+    /// <summary>Logo do nucleo (null sem logo, ou num formato que o PDF nao desenha).</summary>
+    public byte[]? Logo { get; init; }
+
+    /// <summary>Programas dos projetos do relatorio, na ordem do PDF.</summary>
+    public List<ProjectProgram> Programs => Projects.Select(p => p.Program!).DistinctBy(p => p.Id).ToList();
+
+    /// <summary>Um programa so: a ficha dele abre o relatorio e o titulo e o nome dele.</summary>
+    public ProjectProgram? SingleProgram => Programs is [var only] ? only : null;
+
+    /// <summary>"Relatório do projeto", "Relatório do programa" ou "Relatório dos programas", pelo recorte.</summary>
+    public string Kicker => Projects.Count == 1
+        ? "Relatório do projeto"
+        : SingleProgram != null ? "Relatório do programa" : "Relatório dos programas";
+
+    /// <summary>O projeto, o programa ou os programas (ate 3 pelo nome; mais, a contagem).</summary>
+    public string Title
+    {
+        get
+        {
+            if (Projects.Count == 1) return Projects[0].Name;
+            var names = Programs.Select(p => p.Name).ToList();
+            return names.Count switch
+            {
+                1 => names[0],
+                <= 3 => $"{string.Join(", ", names.Take(names.Count - 1))} e {names[^1]}",
+                _ => $"{names.Count} programas"
+            };
+        }
+    }
+
+    /// <summary>"3º trimestre de 2026" quando o periodo e um mes, trimestre ou ano fechado.</summary>
+    public string? PeriodName => ReportPeriod.Name(From, To);
+
+    /// <summary>"01/07/2026 a 30/09/2026" (ou "a partir de", "até").</summary>
+    public string PeriodDates => ReportPeriod.Dates(From, To);
+
     /// <summary>Data (no horario de Brasilia, o mesmo em que o PDF mostra as datas) dentro do periodo de referencia.</summary>
     public bool InPeriod(DateTime value) => InPeriod(TextHelpers.BrasiliaDay(value));
 

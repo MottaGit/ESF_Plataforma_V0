@@ -12,6 +12,20 @@ public static class ReportImageProcessor
     private const int MaxDimensionPx = 1200;
     private const int JpegQuality = 75;
 
+    /// <summary>Imagem que o PDF consegue desenhar (o logo enviado pode estar num formato que o Skia nao le).</summary>
+    public static bool CanDraw(byte[] data)
+    {
+        try
+        {
+            using var codec = SKCodec.Create(new SKMemoryStream(data));
+            return codec is not null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     /// <summary>Tenta comprimir; se a imagem nao puder ser decodificada por algum motivo,
     /// devolve os bytes originais em vez de falhar o relatorio inteiro por causa de 1 foto.</summary>
     public static byte[] Compress(byte[] original)

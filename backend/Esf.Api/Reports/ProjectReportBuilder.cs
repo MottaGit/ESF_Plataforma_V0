@@ -36,37 +36,85 @@ public static class ProjectReportBuilder
                 page.Margin(1.6f, Unit.Centimetre);
                 page.DefaultTextStyle(text => text.FontSize(9.5f).FontColor(Ink).LineHeight(1.3f));
 
-                page.Header().Element(c => ComposeHeader(c, model));
+                // Primeira pagina com a abertura (logo, titulo, periodo, quem emitiu); as demais, so uma linha.
+                page.Header().Column(header =>
+                {
+                    header.Item().ShowOnce().Element(c => ComposeCover(c, model));
+                    header.Item().SkipOnce().Element(c => ComposeRunningHeader(c, model));
+                });
                 page.Content().PaddingVertical(14).Element(c => ComposeContent(c, model));
                 page.Footer().Element(c => ComposeFooter(c, model));
             });
-        }).GeneratePdf();
+        })
+        .WithMetadata(new DocumentMetadata
+        {
+            Title = $"{model.Kicker} {model.Title} · {model.PeriodName ?? model.PeriodDates}",
+            Author = model.Organization.Name,
+            Subject = "Relatório de projetos e resultados"
+        })
+        .GeneratePdf();
     }
 
-    private static void ComposeHeader(IContainer container, ReportModel model)
+    /// <summary>"3º trimestre de 2026 · 01/07/2026 a 30/09/2026"; sem periodo, o dia da situacao.</summary>
+    private static string ReportPeriodLine(ReportModel model)
+    {
+        if (!model.HasPeriod)
+            return $"Situação em {TextHelpers.BrasiliaDay(model.GeneratedAt):dd/MM/yyyy}";
+        return model.PeriodName is { } name ? $"{Capitalize(name)} · {model.PeriodDates}" : Capitalize(model.PeriodDates);
+    }
+
+    private static string Capitalize(string text) => text.Length == 0 ? text : char.ToUpperInvariant(text[0]) + text[1..];
+
+    /// <summary>Abertura da primeira pagina: logo e nucleo, quem emitiu, e o titulo pelo recorte com o periodo.</summary>
+    private static void ComposeCover(IContainer container, ReportModel model)
+    {
+        container.Column(col =>
+        {
+            col.Item().BorderBottom(1).BorderColor(Line).PaddingBottom(8).Row(row =>
+            {
+                if (model.Logo is { } logo)
+                    row.ConstantItem(64).Height(40).AlignLeft().AlignMiddle().Image(logo).FitArea();
+
+                row.RelativeItem().AlignMiddle().PaddingLeft(model.Logo is null ? 0 : 8).Column(org =>
+                {
+                    org.Item().Text(model.Organization.Name).FontSize(12).SemiBold();
+                    if (!string.IsNullOrWhiteSpace(model.Organization.LegalName))
+                        org.Item().Text(model.Organization.LegalName!).FontSize(8).FontColor(Muted);
+                });
+
+                row.ConstantItem(170).AlignRight().AlignMiddle().Column(issued =>
+                {
+                    issued.Item().AlignRight()
+                        .Text($"Emitido em {TextHelpers.BrasiliaTime(model.GeneratedAt):dd/MM/yyyy HH:mm}")
+                        .FontSize(8).FontColor(Muted);
+                    issued.Item().AlignRight().Text($"por {model.GeneratedBy}").FontSize(8).FontColor(Muted);
+                });
+            });
+
+            col.Item().PaddingTop(12).Text(model.Kicker.ToUpperInvariant()).FontSize(8).SemiBold().FontColor(Muted)
+                .LetterSpacing(0.05f);
+            col.Item().Text(model.Title).FontSize(18).SemiBold();
+            col.Item().PaddingTop(2).Text(ReportPeriodLine(model)).FontSize(9.5f).SemiBold().FontColor(Accent);
+        });
+    }
+
+    /// <summary>Cabecalho das paginas seguintes: nucleo, titulo e periodo numa linha so.</summary>
+    private static void ComposeRunningHeader(IContainer container, ReportModel model)
     {
         container
             .BorderBottom(1)
             .BorderColor(Line)
-            .PaddingBottom(8)
+            .PaddingBottom(5)
             .Row(row =>
             {
-                row.RelativeItem().Column(col =>
+                row.RelativeItem().Text(text =>
                 {
-                    col.Item().Text(model.Organization.Name).FontSize(14).SemiBold();
-                    col.Item().Text("Relatório de projetos e resultados").FontSize(9).FontColor(Muted);
-                    if (model.HasPeriod)
-                        col.Item().PaddingTop(2).Text($"Período de referência: {PeriodText(model)}")
-                            .FontSize(9).SemiBold().FontColor(Accent);
+                    text.Span(model.Organization.Name).FontSize(8).SemiBold();
+                    text.Span($" · {model.Kicker} {model.Title}").FontSize(8).FontColor(Muted);
                 });
-
-                row.ConstantItem(180).AlignRight().Column(col =>
-                {
-                    col.Item().AlignRight().Text($"Emitido em {TextHelpers.BrasiliaTime(model.GeneratedAt):dd/MM/yyyy HH:mm}")
-                        .FontSize(8).FontColor(Muted);
-                    col.Item().AlignRight().Text($"Por {model.GeneratedBy}").FontSize(8).FontColor(Muted);
-                    col.Item().AlignRight().Text($"{model.Projects.Count} projeto(s)").FontSize(8).FontColor(Muted);
-                });
+                row.ConstantItem(170).AlignRight()
+                    .Text(model.HasPeriod ? Capitalize(model.PeriodName ?? model.PeriodDates) : "")
+                    .FontSize(8).FontColor(Muted);
             });
     }
 
@@ -107,6 +155,8 @@ public static class ProjectReportBuilder
         return string.Join(" · ", parts);
     }
 
+    private static string SectionOf(Project p) => $"projeto-{p.Id:N}";
+
     private static void ComposeContent(IContainer container, ReportModel model)
     {
         container.Column(col =>
@@ -123,15 +173,86 @@ public static class ProjectReportBuilder
             }
 
             // O resumo e so a abertura (mesmo com um projeto); o completo abre assim quando tem mais de um.
-            if (model.Summary || model.Projects.Count > 1)
+            var opening = model.Summary || model.Projects.Count > 1;
+            if (opening)
             {
+                if (model.SingleProgram is { } program && HasSheet(program))
+                    col.Item().Element(c => ComposeProgramSheet(c, program));
                 col.Item().Element(c => ComposeResults(c, model));
                 col.Item().Element(c => ComposeSummary(c, model));
             }
 
+            // Cada projeto comeca numa pagina (da para imprimir ou mandar so o dele); a secao leva o sumario ate ele.
             if (!model.Summary)
-                foreach (var project in model.Projects)
-                    col.Item().Element(c => ComposeProject(c, model, project));
+                foreach (var (project, index) in model.Projects.Select((p, i) => (p, i)))
+                {
+                    if (opening || index > 0)
+                        col.Item().PageBreak();
+                    col.Item().Section(SectionOf(project)).Element(c => ComposeProject(c, model, project));
+                }
+
+            col.Item().Element(c => ComposeAbout(c, model.Organization));
+        });
+    }
+
+    private static bool HasSheet(ProjectProgram program) =>
+        !string.IsNullOrWhiteSpace(program.Description)
+        || !string.IsNullOrWhiteSpace(program.Objective)
+        || !string.IsNullOrWhiteSpace(program.Audience);
+
+    /// <summary>Ficha do programa (a mesma da pagina publica) abrindo o relatorio de um programa so.</summary>
+    private static void ComposeProgramSheet(IContainer container, ProjectProgram program)
+    {
+        container.Column(col =>
+        {
+            col.Spacing(6);
+            col.Item().Text("Sobre o programa").FontSize(11).SemiBold();
+            foreach (var (label, text) in new[]
+                     {
+                         ("O que faz", program.Description),
+                         ("Objetivo", program.Objective),
+                         ("Para quem", program.Audience)
+                     })
+            {
+                if (string.IsNullOrWhiteSpace(text)) continue;
+                col.Item().Column(item =>
+                {
+                    item.Item().Text(label).FontSize(8).SemiBold().FontColor(Muted);
+                    item.Item().Text(text!.Trim());
+                });
+            }
+        });
+    }
+
+    /// <summary>Fecho do relatorio: quem e o nucleo (missao, apresentacao) e como falar com ele.</summary>
+    private static void ComposeAbout(IContainer container, Organization o)
+    {
+        var contacts = new[]
+            {
+                string.IsNullOrWhiteSpace(o.Cnpj) ? null : $"CNPJ {o.Cnpj}",
+                o.Email,
+                o.Phone,
+                o.Website,
+                string.Join("/", new[] { o.City, o.State }.Where(x => !string.IsNullOrWhiteSpace(x)))
+            }
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToList();
+
+        container.EnsureSpace(110).PaddingTop(8).BorderTop(1).BorderColor(Line).PaddingTop(10).Column(col =>
+        {
+            col.Spacing(5);
+            col.Item().Text("Quem somos").FontSize(11).SemiBold();
+            col.Item().Text(!string.IsNullOrWhiteSpace(o.LegalName) ? o.LegalName! : o.Name).SemiBold();
+            if (!string.IsNullOrWhiteSpace(o.Mission))
+                col.Item().Column(item =>
+                {
+                    item.Item().Text("Missão").FontSize(8).SemiBold().FontColor(Muted);
+                    item.Item().Text(o.Mission!.Trim());
+                });
+            if (!string.IsNullOrWhiteSpace(o.About))
+                col.Item().Text(o.About!.Trim());
+            if (contacts.Count > 0)
+                col.Item().Text(string.Join(" · ", contacts)).FontSize(8.5f).FontColor(Muted);
         });
     }
 
@@ -165,11 +286,15 @@ public static class ProjectReportBuilder
 
             if (model.HasPeriod)
             {
-                col.Item().Element(c => StatRow(c,
-                    (Number(projects.Count), projectsLabel, $"situação em {today}: {byStatus}"),
-                    (Number(volunteers), "voluntários nas equipes", null)));
+                col.Item().Row(row =>
+                {
+                    row.RelativeItem(2).PaddingRight(6).Element(c =>
+                        StatCard(c, Number(projects.Count), projectsLabel, $"situação em {today}: {byStatus}"));
+                    row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, Number(volunteers), "voluntários nas equipes", null));
+                    row.RelativeItem();
+                });
 
-                col.Item().Element(c => BandTitle(c, $"No período · {PeriodText(model)}"));
+                col.Item().Element(c => BandTitle(c, $"No período · {model.PeriodName ?? model.PeriodDates}"));
                 var period = new List<(string, string, string?)>
                 {
                     (Number(concluded), concluded == 1 ? "projeto concluído" : "projetos concluídos", null),
@@ -293,7 +418,8 @@ public static class ProjectReportBuilder
 
     /// <summary>
     /// Tabela dos projetos, na ordem do PDF (programa e nome): status, equipe, registros no periodo e uma coluna por
-    /// indicador nacional (os comuns a todo projeto). Indicador vazio e "nao informado", nunca zero.
+    /// indicador nacional (os comuns a todo projeto). Indicador vazio e "nao informado", nunca zero. No Completo ela e
+    /// tambem o sumario: o nome leva ao capitulo do projeto e a ultima coluna diz a pagina.
     /// </summary>
     private static void ComposeSummary(IContainer container, ReportModel model)
     {
@@ -307,6 +433,7 @@ public static class ProjectReportBuilder
         decimal? NationalValue(Project p, Guid id) =>
             p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id) is { } indicator ? model.Figure(indicator).Value : null;
         var anyMissing = model.Projects.Any(p => nationals.Any(n => NationalValue(p, n.Id) == null));
+        var withPages = !model.Summary;
 
         container.EnsureSpace(80).Column(col =>
         {
@@ -321,6 +448,8 @@ public static class ProjectReportBuilder
                     columns.ConstantColumn(56);
                     foreach (var _ in nationals)
                         columns.RelativeColumn(1.6f);
+                    if (withPages)
+                        columns.ConstantColumn(34);
                 });
 
                 table.Header(header =>
@@ -331,11 +460,16 @@ public static class ProjectReportBuilder
                     header.Cell().Element(HeadCell).AlignRight().Text(model.HasPeriod ? "Registros no período" : "Registros");
                     foreach (var national in nationals)
                         header.Cell().Element(HeadCell).AlignRight().Text(national.Name);
+                    if (withPages)
+                        header.Cell().Element(HeadCell).AlignRight().Text("Pág.");
                 });
 
                 foreach (var p in model.Projects)
                 {
-                    table.Cell().Element(BodyCell).Column(cell =>
+                    var nameCell = table.Cell().Element(BodyCell);
+                    if (withPages)
+                        nameCell = nameCell.SectionLink(SectionOf(p));
+                    nameCell.Column(cell =>
                     {
                         cell.Item().Text(p.Name);
                         var place = new[] { p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x));
@@ -353,15 +487,21 @@ public static class ProjectReportBuilder
                             .Text(value is { } informed ? Number(informed) : "–")
                             .FontColor(value is null ? Muted : Ink);
                     }
+                    if (withPages)
+                        table.Cell().Element(BodyCell).SectionLink(SectionOf(p)).AlignRight()
+                            .Text(text => text.BeginPageNumberOfSection(SectionOf(p)));
                 }
-            });
 
-            var asOf = model.AsOf.ToString("dd/MM/yyyy");
-            if (nationals.Count > 0)
-                col.Item().PaddingTop(4).Text(anyMissing
-                    ? $"Indicadores com os valores de {asOf}. – indicador não informado (diferente de zero)."
-                    : $"Indicadores com os valores de {asOf}.")
-                .FontSize(7.5f).FontColor(Muted);
+                // A nota vai no rodape da tabela: fora dela, podia sobrar sozinha numa pagina.
+                var asOf = model.AsOf.ToString("dd/MM/yyyy");
+                if (nationals.Count > 0)
+                    table.Footer(footer => footer.Cell().ColumnSpan((uint)(4 + nationals.Count + (withPages ? 1 : 0)))
+                        .PaddingTop(4)
+                        .Text(anyMissing
+                            ? $"Indicadores com os valores de {asOf}. – indicador não informado (diferente de zero)."
+                            : $"Indicadores com os valores de {asOf}.")
+                        .FontSize(7.5f).FontColor(Muted));
+            });
         });
     }
 
@@ -701,15 +841,6 @@ public static class ProjectReportBuilder
 
     /// <summary>Data curta sem depender de dados de cultura (o host roda com InvariantGlobalization).</summary>
     private static string ShortDate(DateOnly day) => $"{day.Day:00} {MonthAbbreviations[day.Month - 1]} {day.Year}";
-
-    /// <summary>Periodo de referencia por extenso: "01/07/2026 a 30/09/2026", "a partir de ..." ou "até ...".</summary>
-    private static string PeriodText(ReportModel model) => (model.From, model.To) switch
-    {
-        ({ } from, { } to) => $"{from:dd/MM/yyyy} a {to:dd/MM/yyyy}",
-        ({ } from, null) => $"a partir de {from:dd/MM/yyyy}",
-        (null, { } to) => $"até {to:dd/MM/yyyy}",
-        _ => "todo o histórico"
-    };
 
     /// <summary>Do inicio ao dia em que foi concluido ou cancelado; em aberto (ou sem esse dia), ate a previsao.</summary>
     private static string PeriodLine(Project p)

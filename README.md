@@ -618,7 +618,18 @@ período vai pelo nome do atalho, o mesmo link serve no trimestre seguinte. Os p
 formatos (`format`): **Completo**, com um
 capítulo por projeto, e **Resumo**, só a abertura (Resultados e Resumo dos projetos, mesmo com um projeto só), sem
 capítulos, linha do tempo nem fotos, para quem quer os números de um programa inteiro. Os projetos saem sempre por
-programa e depois por nome (sem diferenciar acento nem maiúscula), não na ordem em que foram marcados. O capítulo de
+programa e depois por nome (sem diferenciar acento nem maiúscula), não na ordem em que foram marcados. A primeira
+página abre com o logo do núcleo (quando há, num formato que o PDF desenha), o nome dele e quem emitiu, e o título pelo
+recorte: **Relatório do projeto** (o nome dele), **do programa** (o nome do programa) ou **dos programas** (os nomes,
+até três; mais, a contagem), com o período por extenso quando é um mês, trimestre ou ano fechado ("3º trimestre de
+2026 · 01/07/2026 a 30/09/2026"; `Reports/ReportPeriod.cs`; sem período, "Situação em 10/11/2026"). As demais páginas
+têm só uma linha com o núcleo, o título e o período. Relatório de um programa só abre com a ficha dele (**Sobre o
+programa**: O que faz, Objetivo, Para quem, as mesmas da página pública). No Completo, cada projeto começa numa página
+nova (dá para imprimir ou mandar só o dele), e a tabela **Resumo dos projetos** serve de sumário: o nome leva ao
+capítulo e a última coluna diz a página. O PDF termina com **Quem somos** (razão social, missão, apresentação e
+contatos do núcleo, de Configurações). O arquivo leva o recorte e o período
+(`relatorio-banheiro-direito-da-gente-2026-t3.pdf`, `relatorio-projetos-20261110.pdf`), e o título vai também nas
+propriedades do PDF. O capítulo de
 cada projeto traz
 identificação (no topo de cada projeto, embaixo do programa, a linha **Parceiros:** com os parceiros do programa —
 nome e papel, sem contato), descrição, objetivo, período, status, responsável, localização, voluntários (nome, função no
