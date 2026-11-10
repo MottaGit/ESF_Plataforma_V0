@@ -46,6 +46,9 @@ public class NucleoIsolationTests
             Assert.Equal(mine.ActivityId, Assert.Single(await db.Activities.ToListAsync()).Id);
 
             Assert.Equal(mine.ProjectId, Assert.Single(await db.Indicators.ToListAsync()).ProjectId);
+            // O historico do indicador (gravado sozinho, porque ele nasceu com valor).
+            var change = Assert.Single(await db.IndicatorValueChanges.Include(c => c.Indicator).ToListAsync());
+            Assert.Equal(mine.ProjectId, change.Indicator!.ProjectId);
             Assert.Equal(mine.ProjectId, Assert.Single(await db.ProjectUpdates.ToListAsync()).ProjectId);
             Assert.Equal(mine.ProjectId, Assert.Single(await db.ProjectFiles.ToListAsync()).ProjectId);
             Assert.Equal(mine.ProjectId, Assert.Single(await db.ProjectVolunteers.ToListAsync()).ProjectId);

@@ -104,7 +104,8 @@ export function ReportPeriodField({ from, to, onShortcut, onDates }: ReportPerio
         <span className="field__error">{periodError}</span>
       ) : (
         <span className="field__hint">
-          Filtra os registros (com as fotos) e as tarefas concluídas. Indicadores e equipe saem como estão hoje.
+          Filtra os registros (com as fotos), as tarefas concluídas e as horas. Os indicadores saem como estavam no fim
+          do período, com quanto mudaram nele; a equipe sai como está hoje.
         </span>
       )}
     </div>

@@ -27,4 +27,7 @@ public class Indicator
     /// antes deste campo existir.
     /// </summary>
     public DateTime? ValueUpdatedAt { get; set; }
+
+    /// <summary>Cada valor que o indicador ja teve, com a data (gravado no SaveChanges).</summary>
+    public ICollection<IndicatorValueChange> ValueChanges { get; set; } = new List<IndicatorValueChange>();
 }

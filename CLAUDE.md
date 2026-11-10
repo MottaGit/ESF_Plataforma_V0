@@ -76,6 +76,9 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   `SaveChanges`, só quando há pessoa logada. Só entram as entidades e campos listados em `AuditTrail.Fields`; dados
   pessoais ficam em `MaskedFields` (registra que mudou, sem o valor). Campo novo que deve aparecer no histórico precisa
   entrar nesse dicionário.
+- **Histórico dos indicadores:** à parte do de alterações, o `SaveChanges` do `EsfDbContext` grava uma
+  `IndicatorValueChange` sempre que o valor de um indicador muda (data = `ValueUpdatedAt`). O relatório em PDF lê dele o
+  valor no fim do período e a mudança no período (`Services/IndicatorHistory.cs`); quem grava valor não precisa fazer nada.
 - **Endereço de quem acessa:** a API fica atrás de proxy; `app.UseForwardedHeaders()` (configurado em
   `Common/ClientAddress.cs`, chaves `ForwardedHeaders:*`) põe o endereço real em `Connection.RemoteIpAddress`. Use
   esse, nunca o `X-Forwarded-For` cru (o navegador pode inventar).

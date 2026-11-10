@@ -627,19 +627,29 @@ referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês pass
 meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
 não serve para o relatório anual; `utils/periods.ts`, os mesmos do painel nacional) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
-andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico): cada cartão de
-indicador diz quando o número foi atualizado ("atualizado em 05/09/2026", de `ValueUpdatedAt`; o número informado em
-março não vale "até hoje") e, com período de referência, o título "Indicadores" diz "valores acumulados, não só do
-período do relatório" (quem lia "período jul–set · 120 pessoas" entendia que as 120 eram do trimestre). Projeto sem
-nenhum indicador informado mostra "Nenhum indicador informado ainda". As datas
+andamento no período". Os **indicadores** são acumulados (120 pessoas desde o início) e saem pelo **histórico dos
+valores** (`IndicatorValueChanges`, gravado no `SaveChanges` do `EsfDbContext` sempre que o número muda — tela,
+conclusão do projeto, planilha —, com a data do `ValueUpdatedAt`): com o período terminando antes de hoje (o trimestre
+passado), o valor é o que valia no último dia dele; indo até hoje, ou sem período, o de hoje. O título diz "Indicadores ·
+acumulados até 30/09/2026", e cada cartão diz quanto o número mudou no período ("+12 no período", comparando com a
+véspera do início; o que ainda não estava informado conta como zero, sem nada quando não mudou) e desde quando vale
+("atualizado em 05/09/2026"). A migração `AddIndicatorValueChanges` começa o histórico com o valor de hoje de cada
+indicador, valendo desde o `ValueUpdatedAt` (ou a criação do indicador, sem ele): em períodos anteriores a isso, esses
+indicadores saem como não informados. A equipe sai como está hoje. Projeto sem nenhum indicador informado mostra
+"Nenhum indicador informado ainda" ("até 30/09/2026" num período que já terminou). As datas
 seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF, e os números saem com ponto no milhar e
 vírgula nos decimais ("1.234", "10,57"; `TextHelpers.Number`, fixo, porque a API roda sem dados de cultura). Com mais de um projeto (ou no Resumo), o PDF
 abre com **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em
-mais de um), registros de andamento e tarefas concluídas no período e, para cada programa, a linha **Parceiros:** e os
+mais de um), registros de andamento, tarefas concluídas e horas lançadas e, para cada programa, a linha **Parceiros:** e os
 indicadores nacionais e os padrão do modelo somados nos projetos do relatório, pela regra de **Resultados somados** (o
-que nenhum projeto informou fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos"). Depois vem o
+que nenhum projeto informou fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos"). Com período,
+o que aconteceu nele fica separado do que é acumulado: primeiro os projetos ("situação em 10/11/2026: 2 em andamento ·
+1 concluído") e a equipe; depois a faixa **No período** (projetos concluídos no período, pelo dia do encerramento,
+tarefas concluídas, registros de andamento e horas lançadas, quando há); depois **Indicadores acumulados até 30/09/2026**,
+com os programas e, em cada cartão, a mudança no período (a mesma soma feita com os valores da véspera do início).
+Depois vem o
 **Resumo dos projetos**: uma linha por projeto (com programa e cidade), status, equipe, registros de andamento no período
-e uma coluna por indicador nacional ("–" é não informado, diferente de zero). Títulos
+e uma coluna por indicador nacional, com o valor do fim do período ("–" é não informado, diferente de zero). Títulos
 de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
@@ -675,7 +685,7 @@ cadastro de voluntário, pode ser ligado a um ali.
   vínculo com o nacional): "—" quando nenhum projeto informou, nunca zero, e "informado em 3 de 5 projetos" quando falta
   algum, no cartão e em cada núcleo. Horas, tarefas e registros contam no **período** escolhido (de início, o ano
   corrente, com os mesmos atalhos de período dos relatórios); projetos, voluntários e indicadores são a situação de
-  hoje (os indicadores não guardam histórico). A tabela por núcleo começa por quem está há mais tempo sem atividade
+  hoje (o histórico dos valores dos indicadores só é usado no relatório em PDF). A tabela por núcleo começa por quem está há mais tempo sem atividade
   (nenhuma primeiro), com a **última atividade** logo depois do nome, em tempo relativo ("ontem", "25/09"), e a marca
   **parado** a partir de 30 dias (ou quando nunca houve). Só
   números: nada de nomes de pessoas nem de projetos.
@@ -917,6 +927,7 @@ ESF_Plataforma_V0/
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
 | `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
 | `Indicators` | indicadores do projeto (nome, valor — vazio é "não informado" — e unidade; `NationalIndicatorId` quando é um indicador nacional) |
+| `IndicatorValueChanges` | histórico do valor de cada indicador (novo valor e desde quando vale), gravado sozinho no `SaveChanges` quando o número muda; o relatório em PDF lê dele o valor no fim do período |
 | `NationalIndicators` | indicadores nacionais da gestão nacional (nome, unidade, como contar, arquivado); sem núcleo |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |

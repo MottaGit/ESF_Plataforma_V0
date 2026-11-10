@@ -136,8 +136,10 @@ public static class ProjectReportBuilder
     }
 
     /// <summary>
-    /// Abertura do relatorio de varios projetos: numeros gerais (projetos por status, equipe, registros e tarefas
-    /// concluidas no periodo) e os indicadores padrao de cada programa somados nos projetos do relatorio.
+    /// Abertura do relatorio de varios projetos: numeros gerais (projetos por status, equipe, registros, tarefas
+    /// concluidas e horas) e os indicadores padrao de cada programa somados nos projetos do relatorio. Com periodo, o que
+    /// aconteceu nele fica separado do que e acumulado (quem lia "jul-set · 120 pessoas" entendia que as 120 eram do
+    /// trimestre), e os indicadores dizem quanto mudaram no periodo.
     /// </summary>
     private static void ComposeResults(IContainer container, ReportModel model)
     {
@@ -146,27 +148,50 @@ public static class ProjectReportBuilder
         var updates = projects.SelectMany(p => p.Updates).Count(u => model.InPeriod(u.Day));
         var doneTasks = projects.SelectMany(p => p.Activities)
             .Count(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value));
+        var hours = projects.Sum(p => model.HoursOf(p.Id));
+        var concluded = projects.Count(p => p.Status == ProjectStatus.Concluido && p.ClosedOn is { } day && model.InPeriod(day));
         var byStatus = string.Join(" · ", projects
             .GroupBy(p => p.Status)
             .OrderBy(g => g.Key)
             .Select(g => StatusCount(g.Key, g.Count())));
-        var inPeriod = model.HasPeriod ? " no período" : "";
+        var projectsLabel = projects.Count == 1 ? "projeto" : "projetos";
+        var today = TextHelpers.BrasiliaDay(model.GeneratedAt).ToString("dd/MM/yyyy");
+        var asOf = model.AsOf.ToString("dd/MM/yyyy");
 
         container.EnsureSpace(150).Column(col =>
         {
             col.Spacing(8);
             col.Item().Text("Resultados").FontSize(11).SemiBold();
 
-            col.Item().Row(row =>
+            if (model.HasPeriod)
             {
-                row.RelativeItem().PaddingRight(6).Element(c =>
-                    StatCard(c, projects.Count, projects.Count == 1 ? "projeto" : "projetos", byStatus));
-                var hours = projects.Sum(p => model.HoursOf(p.Id));
-                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, volunteers, "voluntários nas equipes",
-                    hours > 0 ? $"{TextHelpers.Hours(hours)} horas de voluntariado lançadas{inPeriod}" : null));
-                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, updates, $"registros de andamento{inPeriod}", null));
-                row.RelativeItem().Element(c => StatCard(c, doneTasks, $"tarefas concluídas{inPeriod}", null));
-            });
+                col.Item().Element(c => StatRow(c,
+                    (Number(projects.Count), projectsLabel, $"situação em {today}: {byStatus}"),
+                    (Number(volunteers), "voluntários nas equipes", null)));
+
+                col.Item().Element(c => BandTitle(c, $"No período · {PeriodText(model)}"));
+                var period = new List<(string, string, string?)>
+                {
+                    (Number(concluded), concluded == 1 ? "projeto concluído" : "projetos concluídos", null),
+                    (Number(doneTasks), "tarefas concluídas", null),
+                    (Number(updates), "registros de andamento", null)
+                };
+                if (hours > 0)
+                    period.Add((TextHelpers.Hours(hours), "horas de voluntariado lançadas", null));
+                col.Item().Element(c => StatRow(c, period.ToArray()));
+
+                if (model.ProgramResults.Any(r => r.Results.Count > 0))
+                    col.Item().Element(c => BandTitle(c, $"Indicadores acumulados até {asOf}"));
+            }
+            else
+            {
+                col.Item().Element(c => StatRow(c,
+                    (Number(projects.Count), projectsLabel, byStatus),
+                    (Number(volunteers), "voluntários nas equipes",
+                        hours > 0 ? $"{TextHelpers.Hours(hours)} horas de voluntariado lançadas" : null),
+                    (Number(updates), "registros de andamento", null),
+                    (Number(doneTasks), "tarefas concluídas", null)));
+            }
 
             foreach (var program in model.ProgramResults.Where(r => r.Results.Count > 0 || model.PartnersLine(r.ProgramId) != null))
             {
@@ -194,6 +219,7 @@ public static class ProjectReportBuilder
                             foreach (var result in chunk)
                                 row.RelativeItem().PaddingRight(6)
                                     .Element(c => ValueCard(c, result.Total, result.Unit, result.Name,
+                                        ChangeText(model, result.Change),
                                         ResultTotals.Coverage(result.Informed, result.Projects)));
 
                             for (var pad = chunk.Length; pad < 4; pad++)
@@ -204,12 +230,36 @@ public static class ProjectReportBuilder
             }
 
             if (model.ProgramResults.Any(r => r.Results.Count > 0))
-                col.Item().Text("Indicadores com os valores atuais, somados nos projetos deste relatório (só os valores informados).")
+                col.Item().Text(model.ShowsChange
+                        ? $"Indicadores somados nos projetos deste relatório (só os valores informados), com o valor de {asOf} e quanto mudou no período."
+                        : $"Indicadores somados nos projetos deste relatório (só os valores informados), com os valores de {asOf}.")
                     .FontSize(7.5f).FontColor(Muted);
         });
     }
 
-    private static void StatCard(IContainer container, int value, string label, string? detail)
+    /// <summary>Titulo de uma faixa do bloco Resultados ("No período · ...", "Indicadores acumulados até ...").</summary>
+    private static void BandTitle(IContainer container, string title) =>
+        container.PaddingTop(2).Text(title).FontSize(9).SemiBold().FontColor(Accent);
+
+    /// <summary>Linha de ate 4 cartoes de numero, sempre na mesma largura (sobra espaco a direita quando sao menos).</summary>
+    private static void StatRow(IContainer container, params (string Value, string Label, string? Detail)[] cards)
+    {
+        container.Row(row =>
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                var item = row.RelativeItem();
+                if (i < 3) item = item.PaddingRight(6);
+                if (i < cards.Length)
+                {
+                    var card = cards[i];
+                    item.Element(c => StatCard(c, card.Value, card.Label, card.Detail));
+                }
+            }
+        });
+    }
+
+    private static void StatCard(IContainer container, string value, string label, string? detail)
     {
         container
             .Border(1)
@@ -217,12 +267,18 @@ public static class ProjectReportBuilder
             .Padding(8)
             .Column(card =>
             {
-                card.Item().Text(Number(value)).FontSize(16).SemiBold().FontColor(Ink);
+                card.Item().Text(value).FontSize(16).SemiBold().FontColor(Ink);
                 card.Item().Text(label).FontSize(8).FontColor(Muted);
                 if (!string.IsNullOrWhiteSpace(detail))
                     card.Item().PaddingTop(2).Text(detail!).FontSize(7.5f).FontColor(Muted);
             });
     }
+
+    /// <summary>"+12 no período" / "−3 no período"; nada sem inicio de periodo ou quando o numero nao mudou.</summary>
+    private static string? ChangeText(ReportModel model, decimal change) =>
+        !model.ShowsChange || change == 0
+            ? null
+            : $"{(change > 0 ? "+" : "−")}{Number(Math.Abs(change))} no período";
 
     /// <summary>"Concluídos: 2" por extenso, no plural quando precisa ("2 concluídos · 1 em andamento").</summary>
     private static string StatusCount(ProjectStatus status, int count) => status switch
@@ -248,7 +304,8 @@ public static class ProjectReportBuilder
             .Select(g => (Id: g.Key, g.First().Name))
             .OrderBy(n => SearchText.Fold(n.Name))
             .ToList();
-        decimal? NationalValue(Project p, Guid id) => p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id)?.Value;
+        decimal? NationalValue(Project p, Guid id) =>
+            p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id) is { } indicator ? model.Figure(indicator).Value : null;
         var anyMissing = model.Projects.Any(p => nationals.Any(n => NationalValue(p, n.Id) == null));
 
         container.EnsureSpace(80).Column(col =>
@@ -299,9 +356,12 @@ public static class ProjectReportBuilder
                 }
             });
 
-            if (anyMissing)
-                col.Item().PaddingTop(4).Text("– indicador não informado (diferente de zero). Indicadores com os valores atuais.")
-                    .FontSize(7.5f).FontColor(Muted);
+            var asOf = model.AsOf.ToString("dd/MM/yyyy");
+            if (nationals.Count > 0)
+                col.Item().PaddingTop(4).Text(anyMissing
+                    ? $"Indicadores com os valores de {asOf}. – indicador não informado (diferente de zero)."
+                    : $"Indicadores com os valores de {asOf}.")
+                .FontSize(7.5f).FontColor(Muted);
         });
     }
 
@@ -369,7 +429,7 @@ public static class ProjectReportBuilder
             if (!string.IsNullOrWhiteSpace(p.Description))
                 col.Item().Element(c => Paragraph(c, "Descrição", p.Description!));
 
-            if (model.IncludeIndicators && p.Indicators.Any(i => i.Value.HasValue))
+            if (model.IncludeIndicators && p.Indicators.Count > 0)
                 col.Item().Element(c => ComposeIndicators(c, model, p));
 
             if (model.IncludeVolunteers && p.Volunteers.Count > 0)
@@ -392,32 +452,39 @@ public static class ProjectReportBuilder
     {
         container.ShowEntire().Column(col =>
         {
-            // Os indicadores nao guardam historico: sao os valores de hoje, acumulados. Com periodo de referencia, o
-            // leitor entenderia "120 pessoas" como so do trimestre; a nota diz que nao. Cada cartao diz quando o
-            // numero foi atualizado (o de marco nao vale "ate hoje").
+            // Indicadores sao acumulados (120 pessoas desde o inicio). Com periodo, os valores sao os do fim dele (pelo
+            // historico) e cada cartao diz quanto mudou no periodo; sempre, desde quando o numero vale (o informado em
+            // marco nao vale "ate hoje").
+            var asOf = model.AsOf.ToString("dd/MM/yyyy");
             col.Item().Text(text =>
             {
                 text.Span("Indicadores").FontSize(10).SemiBold();
                 if (model.HasPeriod)
-                    text.Span(" · valores acumulados, não só do período do relatório").FontSize(8.5f).FontColor(Muted);
+                    text.Span($" · acumulados até {asOf}").FontSize(8.5f).FontColor(Muted);
             });
 
             // So os informados: indicador em branco (ainda nao apurado) nao vira zero no relatorio.
             var indicators = p.Indicators
-                .Where(i => i.Value.HasValue)
-                .OrderBy(i => i.NationalIndicatorId == null)
-                .ThenBy(i => i.CreatedAt)
+                .Select(i => (Indicator: i, Figure: model.Figure(i)))
+                .Where(x => x.Figure.Value.HasValue)
+                .OrderBy(x => x.Indicator.NationalIndicatorId == null)
+                .ThenBy(x => x.Indicator.CreatedAt)
                 .ToList();
             if (indicators.Count == 0)
-                col.Item().PaddingTop(4).Text("Nenhum indicador informado ainda.").FontSize(9).FontColor(Muted);
+                col.Item().PaddingTop(4)
+                    .Text(model.AsOf < TextHelpers.BrasiliaDay(model.GeneratedAt)
+                        ? $"Nenhum indicador informado até {asOf}."
+                        : "Nenhum indicador informado ainda.")
+                    .FontSize(9).FontColor(Muted);
             foreach (var chunk in indicators.Chunk(4))
             {
                 col.Item().PaddingTop(6).Row(row =>
                 {
-                    foreach (var indicator in chunk)
+                    foreach (var (indicator, figure) in chunk)
                         row.RelativeItem().PaddingRight(6)
-                            .Element(c => ValueCard(c, indicator.Value!.Value, indicator.Unit, indicator.Name,
-                                indicator.ValueUpdatedAt is { } updated
+                            .Element(c => ValueCard(c, figure.Value!.Value, indicator.Unit, indicator.Name,
+                                ChangeText(model, figure.Change),
+                                figure.UpdatedAt is { } updated
                                     ? $"atualizado em {TextHelpers.BrasiliaDay(updated):dd/MM/yyyy}"
                                     : null));
 
@@ -428,8 +495,11 @@ public static class ProjectReportBuilder
         });
     }
 
-    /// <summary>Cartao de indicador: valor e unidade em destaque, nome embaixo (projeto e resultados do programa).</summary>
-    private static void ValueCard(IContainer container, decimal value, string? unit, string name, string? detail = null)
+    /// <summary>
+    /// Cartao de indicador: valor e unidade em destaque, nome embaixo e as linhas de detalhe que houver (mudanca no
+    /// periodo, data, cobertura). Usado no projeto e nos resultados do programa.
+    /// </summary>
+    private static void ValueCard(IContainer container, decimal value, string? unit, string name, params string?[] details)
     {
         container
             .Background(SoftBg)
@@ -445,8 +515,8 @@ public static class ProjectReportBuilder
                         text.Span($" {unit}").FontSize(9).FontColor(Muted);
                 });
                 card.Item().AlignCenter().Text(name).FontSize(7.5f).FontColor(Muted);
-                if (detail != null)
-                    card.Item().AlignCenter().Text(detail).FontSize(6.5f).FontColor(Muted);
+                foreach (var detail in details.Where(d => !string.IsNullOrWhiteSpace(d)))
+                    card.Item().AlignCenter().Text(detail!).FontSize(6.5f).FontColor(Muted);
             });
     }
 

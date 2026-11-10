@@ -65,6 +65,15 @@ public class ReportService
             .Select(x => new { x.ProgramId, x.Name, x.Role })
             .ToListAsync();
 
+        // Indicadores pelo historico: o valor no fim do periodo e o da vespera do inicio (quanto mudou nele).
+        var indicators = projects.SelectMany(p => p.Indicators).ToList();
+        var indicatorIds = indicators.Select(i => i.Id).ToList();
+        var history = await _db.IndicatorValueChanges
+            .AsNoTracking()
+            .Where(c => indicatorIds.Contains(c.IndicatorId))
+            .ToListAsync();
+        var figures = IndicatorHistory.Figures(indicators, history, request.From, request.To, Mapping.Today);
+
         var model = new ReportModel
         {
             Organization = organization,
@@ -80,7 +89,8 @@ public class ReportService
             Summary = summary,
             From = request.From,
             To = request.To,
-            ProgramResults = ProgramResults(projects, templates),
+            ProgramResults = ProgramResults(projects, templates, figures),
+            Figures = figures,
             Partners = partners
                 .GroupBy(x => x.ProgramId)
                 .ToDictionary(g => g.Key, g => g.Select(x => new ReportPartner(x.Name, x.Role)).ToList()),
@@ -137,25 +147,39 @@ public class ReportService
 
     /// <summary>
     /// Resultados por programa, na ordem dos projetos, pela regra unica (ResultTotals): os nacionais e os indicadores
-    /// padrao do modelo somados nos projetos do relatorio. Resultado que nenhum projeto informou fica de fora (vazio
-    /// nao e zero e nao vai para o PDF); programa sem nenhum continua na lista, pelos parceiros.
+    /// padrao do modelo somados nos projetos do relatorio, com os valores do fim do periodo (figures). Resultado que
+    /// nenhum projeto informou fica de fora (vazio nao e zero e nao vai para o PDF); programa sem nenhum continua na
+    /// lista, pelos parceiros. A mudanca no periodo e a mesma soma feita com os valores da vespera do inicio.
     /// </summary>
-    private static List<ReportProgramResults> ProgramResults(List<Project> projects, List<ProgramTemplateIndicator> templates) =>
+    public static List<ReportProgramResults> ProgramResults(
+        List<Project> projects,
+        List<ProgramTemplateIndicator> templates,
+        Dictionary<Guid, IndicatorFigure> figures) =>
         projects
             .GroupBy(p => p.ProgramId)
-            .Select(group => new ReportProgramResults(
-                group.Key,
-                group.First().Program!.Name,
-                group.Count(),
-                ResultTotals
-                    .Compute(
-                        group.SelectMany(p => p.Indicators)
-                            .Select(i => new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, i.Value, i.NationalIndicatorId)),
-                        templates.Where(t => t.ProgramId == group.Key)
-                            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId)))
-                    .Where(r => r.Value != null)
-                    .Select(r => new ReportResult(r.Name, r.Unit, r.Value!.Value, r.Informed, r.Projects))
-                    .ToList()))
+            .Select(group =>
+            {
+                var indicators = group.SelectMany(p => p.Indicators).ToList();
+                var programTemplates = templates
+                    .Where(t => t.ProgramId == group.Key)
+                    .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId))
+                    .ToList();
+                IndicatorFigure Figure(Indicator i) =>
+                    figures.TryGetValue(i.Id, out var figure) ? figure : new IndicatorFigure(i.Value, i.ValueUpdatedAt, null);
+                List<ResultTotals.Total> Sum(Func<IndicatorFigure, decimal?> value) => ResultTotals.Compute(
+                    indicators.Select(i => new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, value(Figure(i)), i.NationalIndicatorId)),
+                    programTemplates);
+
+                // As duas somas tem os mesmos resultados na mesma ordem (a ordem so depende dos nomes).
+                var results = Sum(f => f.Value)
+                    .Zip(Sum(f => f.Start), (end, start) => (End: end, Start: start))
+                    .Where(r => r.End.Value != null)
+                    .Select(r => new ReportResult(r.End.Name, r.End.Unit, r.End.Value!.Value, r.End.Informed,
+                        r.End.Projects, r.End.Value!.Value - (r.Start.Value ?? 0)))
+                    .ToList();
+
+                return new ReportProgramResults(group.Key, group.First().Program!.Name, group.Count(), results);
+            })
             .ToList();
 
     /// <summary>

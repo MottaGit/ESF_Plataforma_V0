@@ -271,6 +271,29 @@ namespace Esf.Api.Data.Migrations
                     b.ToTable("Indicators");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.IndicatorValueChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IndicatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IndicatorId", "ChangedAt");
+
+                    b.ToTable("IndicatorValueChanges");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.NationalIndicator", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1178,6 +1201,17 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Esf.Api.Domain.Entities.IndicatorValueChange", b =>
+                {
+                    b.HasOne("Esf.Api.Domain.Entities.Indicator", "Indicator")
+                        .WithMany("ValueChanges")
+                        .HasForeignKey("IndicatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Indicator");
+                });
+
             modelBuilder.Entity("Esf.Api.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("Esf.Api.Domain.Entities.Activity", "Activity")
@@ -1423,6 +1457,11 @@ namespace Esf.Api.Data.Migrations
                     b.Navigation("ChecklistItems");
 
                     b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("Esf.Api.Domain.Entities.Indicator", b =>
+                {
+                    b.Navigation("ValueChanges");
                 });
 
             modelBuilder.Entity("Esf.Api.Domain.Entities.Project", b =>

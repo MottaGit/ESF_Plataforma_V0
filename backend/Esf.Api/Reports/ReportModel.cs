@@ -1,5 +1,6 @@
 using Esf.Api.Common;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Services;
 
 namespace Esf.Api.Reports;
 
@@ -47,6 +48,27 @@ public record ReportModel
     /// <summary>Indicadores padrao de cada programa somados nos projetos do relatorio (bloco Resultados).</summary>
     public List<ReportProgramResults> ProgramResults { get; init; } = new();
 
+    /// <summary>Numero de cada indicador (Indicator.Id) no relatorio, lido do historico: no fim do periodo e no comeco.</summary>
+    public Dictionary<Guid, IndicatorFigure> Figures { get; init; } = new();
+
+    public IndicatorFigure Figure(Indicator indicator) =>
+        Figures.TryGetValue(indicator.Id, out var figure)
+            ? figure
+            : new IndicatorFigure(indicator.Value, indicator.ValueUpdatedAt, null);
+
+    /// <summary>Dia dos valores dos indicadores: o fim do periodo, ou hoje quando o periodo vai ate hoje (ou nao tem fim).</summary>
+    public DateOnly AsOf
+    {
+        get
+        {
+            var today = TextHelpers.BrasiliaDay(GeneratedAt);
+            return To is { } to && to < today ? to : today;
+        }
+    }
+
+    /// <summary>Com inicio de periodo, os indicadores dizem quanto mudaram dentro dele.</summary>
+    public bool ShowsChange => From.HasValue;
+
     /// <summary>Parceiros de cada programa (ProgramId), na ordem da lista: so nome e papel vao para o PDF.</summary>
     public Dictionary<Guid, List<ReportPartner>> Partners { get; init; } = new();
 
@@ -61,8 +83,11 @@ public record ReportPartner(string Name, string? Role);
 
 public record ReportProgramResults(Guid ProgramId, string Program, int Projects, List<ReportResult> Results);
 
-/// <summary>Resultado somado (so os valores informados); Informed de Projects projetos do relatorio informaram.</summary>
-public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects);
+/// <summary>
+/// Resultado somado (so os valores informados); Informed de Projects projetos do relatorio informaram. Change: quanto
+/// a soma mudou no periodo (zero sem inicio de periodo).
+/// </summary>
+public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects, decimal Change);
 
 /// <summary>Caption so vem preenchida quando o arquivo tem uma descricao de verdade cadastrada
 /// (nunca cai para o nome do arquivo) - o relatorio so exibe legenda quando ela existir.</summary>

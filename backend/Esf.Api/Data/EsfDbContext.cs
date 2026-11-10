@@ -35,6 +35,7 @@ public class EsfDbContext : DbContext
     public DbSet<ProjectProgram> Programs => Set<ProjectProgram>();
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<Indicator> Indicators => Set<Indicator>();
+    public DbSet<IndicatorValueChange> IndicatorValueChanges => Set<IndicatorValueChange>();
     public DbSet<ProjectVolunteer> ProjectVolunteers => Set<ProjectVolunteer>();
     public DbSet<ProjectHourEntry> ProjectHourEntries => Set<ProjectHourEntry>();
     public DbSet<ProjectFile> ProjectFiles => Set<ProjectFile>();
@@ -56,13 +57,43 @@ public class EsfDbContext : DbContext
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         StampOrganization();
+        RecordIndicatorHistory();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         StampOrganization();
+        RecordIndicatorHistory();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    /// <summary>
+    /// Indicador novo com valor, ou valor que mudou, vira uma linha do historico (o relatorio le o valor em cada data).
+    /// Mudar so o nome ou a unidade nao conta. A data e o ValueUpdatedAt de quem gravou (a demonstracao e a planilha
+    /// trazem a sua); sem ela, agora.
+    /// </summary>
+    private void RecordIndicatorHistory()
+    {
+        foreach (var entry in ChangeTracker.Entries<Indicator>().ToList())
+        {
+            var indicator = entry.Entity;
+            var value = entry.Property(x => x.Value);
+            var changed = entry.State switch
+            {
+                EntityState.Added => indicator.Value != null,
+                EntityState.Modified => value.IsModified && value.OriginalValue != indicator.Value,
+                _ => false
+            };
+            if (!changed) continue;
+
+            IndicatorValueChanges.Add(new IndicatorValueChange
+            {
+                IndicatorId = indicator.Id,
+                Value = indicator.Value,
+                ChangedAt = indicator.ValueUpdatedAt ?? DateTime.UtcNow
+            });
+        }
     }
 
     /// <summary>Registro novo de nucleo (voluntario, programa, projeto) entra no nucleo atual, se nao veio com um.</summary>
@@ -251,6 +282,14 @@ public class EsfDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        b.Entity<IndicatorValueChange>(e =>
+        {
+            e.Property(x => x.Value).HasPrecision(18, 2);
+            e.HasIndex(x => new { x.IndicatorId, x.ChangedAt });
+            e.HasOne(x => x.Indicator).WithMany(i => i.ValueChanges).HasForeignKey(x => x.IndicatorId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<ProjectHourEntry>(e =>
         {
             e.Property(x => x.Hours).HasPrecision(5, 2);
@@ -414,6 +453,8 @@ public class EsfDbContext : DbContext
 
         b.Entity<Activity>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<Indicator>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
+        b.Entity<IndicatorValueChange>()
+            .HasQueryFilter(x => AllOrganizations || x.Indicator!.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ProjectUpdate>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ProjectFile>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
         b.Entity<ProjectVolunteer>().HasQueryFilter(x => AllOrganizations || x.Project!.OrganizationId == CurrentOrganizationId);
