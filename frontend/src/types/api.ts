@@ -912,8 +912,12 @@ export interface CertificateOptions {
   }>;
 }
 
+/** Resumo: so os numeros somados e a tabela dos projetos. Completo: mais um capitulo por projeto. */
+export type ReportFormat = 'Completo' | 'Resumo';
+
 export interface ReportPayload {
   projectIds: string[];
+  format: ReportFormat;
   includeVolunteers: boolean;
   includeIndicators: boolean;
   includeUpdates: boolean;
@@ -923,6 +927,14 @@ export interface ReportPayload {
   from: string | null;
   to: string | null;
   note: string | null;
+}
+
+/** O que um projeto tem no periodo do relatorio: registros, fotos que entram no PDF e tarefas concluidas. */
+export interface ReportPeriodCount {
+  projectId: string;
+  updates: number;
+  photos: number;
+  tasks: number;
 }
 
 export interface ProjectFilters {

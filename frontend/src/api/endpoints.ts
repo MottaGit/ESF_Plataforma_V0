@@ -37,6 +37,7 @@ import type {
   ProjectUpdate,
   ProjectVolunteer,
   ReportPayload,
+  ReportPeriodCount,
   SaveActivityPayload,
   SaveCommentPayload,
   SaveIndicatorPayload,
@@ -269,7 +270,9 @@ export const projectUpdatesApi = {
 };
 
 export const reportsApi = {
-  generate: (payload: ReportPayload) => http.download('/api/reports/projects', payload, 'relatorio-projetos.pdf')
+  generate: (payload: ReportPayload) => http.download('/api/reports/projects', payload, 'relatorio-projetos.pdf'),
+  periodCounts: (from: string | null, to: string | null) =>
+    http.request<ReportPeriodCount[]>('/api/reports/period-counts', { query: { from, to } })
 };
 
 /** Planilha de programas, projetos e voluntarios (so administradores). */

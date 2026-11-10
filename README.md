@@ -398,7 +398,8 @@ período, comunidade ou família atendida, quem se beneficia, local e indicadore
 topo). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
 então links diretos e recarregar a página caem no lugar certo. No celular, quando as abas não cabem, aparece uma seta
 com degradê na borda onde há mais abas (tocar nela rola a barra), e a aba aberta é trazida para a parte visível. **Gerar relatório** abre as mesmas opções da tela Relatórios
-(componente `components/reports/ReportOptions.tsx`), já com o projeto escolhido.
+(componente `components/reports/ReportOptions.tsx`: período, tarefas concluídas, fotos e observação), já com o projeto
+escolhido e sempre no formato Completo.
 
 **Concluir ou cancelar o projeto** — escolher Concluído ou Cancelado no badge do topo abre uma confirmação: avisa
 quantas tarefas ainda estão em aberto (com atrasadas e bloqueadas, e o botão "Ver tarefas"), pede o **dia em que
@@ -597,10 +598,24 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
-**Relatórios** — seleção de um ou vários projetos (busca e filtros de programa e de status; vindo de Projetos ›
-programa › **Relatório do programa**, `?programa=`, os projetos dele já vêm marcados; no celular, com projetos marcados, o
-**Gerar PDF** fica preso embaixo da tela, com o atalho "Período e opções", porque as opções ficam depois da lista
-inteira), observação livre e geração de um **PDF consolidado** em dois formatos (`format`): **Completo**, com um
+**Relatórios** — uma tela em três passos. **1 Recorte**: programa (a mesma lista com ícone de Projetos; "Todos os
+programas" por padrão) e período de referência (atalhos e datas). **2 Formato**: **Resumo** ou **Completo** (no
+Completo, as caixinhas de tarefas concluídas e registro fotográfico) e a observação livre. **3 Projetos**: ao abrir e
+a cada troca de programa, vêm marcados os projetos do recorte, menos cancelados e arquivados; sem formato escolhido, o
+sugerido é o Resumo quando há mais de 10 marcados e o Completo até 10. Cada projeto mostra o que tem no período
+("3 registros · 4 fotos · 1 tarefa concluída", as fotos só quando entram no PDF, ou "Sem andamento no período", pela
+rota `period-counts`). **Marcar todos** soma os que estão na lista aos já marcados (dá para buscar um, marcar, buscar
+outro e marcar), **Limpar** desmarca tudo, **Só marcados** mostra os marcados e, quando há marcados sem andamento no
+período, uma linha oferece **Desmarcar os N**. Busca, status e **Incluir arquivados e cancelados** ficam no botão
+**Filtros** no celular. Autorização de imagem: com fotos no PDF, cada projeto marcado que tem foto no período e não
+tem autorização registrada ganha a marca "Sem autorização de imagem", e um aviso só com a contagem leva a eles (**Ver
+quais** ou o filtro **Sem autorização de imagem**); o PDF não muda. Embaixo da tela fica preso o resumo do que vai
+sair ("12 projetos · Resumo · Trimestre passado") com o **Gerar PDF**. Programa, período, formato e filtros ficam na
+URL (`?programa=`, `?periodo=` com o atalho — `mes-passado`, `trimestre-passado`, `ultimos-3-meses`, `este-ano`,
+`ano-passado` —, ou `?de=`/`?ate=`, `?formato=resumo|completo`, `?busca=`, `?status=`, `?arquivados=1`): como o
+período vai pelo nome do atalho, o mesmo link serve no trimestre seguinte. Os projetos marcados não vão para a URL. O
+**Relatório do programa** (Projetos › programa) abre esta tela com `?programa=`. O PDF é **consolidado**, em dois
+formatos (`format`): **Completo**, com um
 capítulo por projeto, e **Resumo**, só a abertura (Resultados e Resumo dos projetos, mesmo com um projeto só), sem
 capítulos, linha do tempo nem fotos, para quem quer os números de um programa inteiro. Os projetos saem sempre por
 programa e depois por nome (sem diferenciar acento nem maiúscula), não na ordem em que foram marcados. O capítulo de

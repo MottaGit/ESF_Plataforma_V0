@@ -61,7 +61,7 @@ export function ReportDialog({ project, onClose }: ReportDialogProps) {
       <ReportOptionsFields
         value={options}
         onChange={setOptions}
-        withoutImageAuthorization={project.imageAuthorizedOn ? [] : [project.name]}
+        withoutImageAuthorization={!project.imageAuthorizedOn}
       />
     </Modal>
   );

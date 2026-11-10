@@ -1167,9 +1167,48 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .report-period { display: flex; align-items: center; gap: 8px; }
 .report-period .input { flex: 1 1 0; min-width: 0; }
 .report-period__sep { font-size: 13px; color: var(--text-muted); }
-/* Espaco e padding menores: os quatro atalhos cabem numa linha na coluna de Relatorios. */
-.report-period__shortcuts { margin-top: 4px; flex-wrap: wrap; gap: 5px; }
+/* Espaco e padding menores: os atalhos cabem em poucas linhas, acima das datas. */
+.report-period__shortcuts { margin: 2px 0 8px; flex-wrap: wrap; gap: 5px; }
 .report-period__shortcuts .chip { flex: 0 0 auto; padding: 0 9px; white-space: nowrap; }
+
+/* Tela Relatorios em tres passos: recorte e formato lado a lado (um embaixo do outro no celular), depois os projetos. */
+.report-setup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-bottom: 16px;
+  padding: 18px;
+}
+.report-step { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.report-step__title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; }
+.report-step__number {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.report-step__count { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+.report-formats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.report-list__filters { display: grid; gap: 10px; padding-bottom: 12px; }
+.report-list__idle { margin: 0; font-size: 13px; color: var(--text-muted); }
+.report-list__counts { font-size: 13px; }
+.report-list__warn { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 12.5px; color: var(--warning); }
+@media (max-width: 900px) {
+  .report-setup { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+}
+/* Cartao no celular: caixinha e nome na primeira linha; status e andamento embaixo, alinhados ao nome. */
+@media (max-width: 760px) {
+  .table--cards.report-list td.cell--check + td.cell--main { flex: 1 1 calc(100% - 44px); }
+  .table--cards.report-list td.report-list__status { margin-left: 29px; }
+}
+@media (max-width: 640px) {
+  .report-formats { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* Janela de concluir ou cancelar o projeto. */
 .close-project { display: grid; gap: 14px; }
@@ -2926,27 +2965,27 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
    Barra fixa embaixo (celular) e "Registrar"
    --------------------------------------------------------- */
 
-/* Relatorios no celular: o "Gerar PDF" preso acima da barra de baixo enquanto ha projetos marcados. */
-.report-mobile-bar { display: none; }
-@media (max-width: 900px) {
-  .report-mobile-bar {
-    position: sticky;
-    bottom: 12px;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 16px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    box-shadow: 0 4px 16px rgba(16, 24, 40, 0.12);
-  }
+/* Relatorios: o que vai sair e o "Gerar PDF" presos embaixo da tela (no celular, acima da barra de baixo). */
+.report-bar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 10px 12px 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 4px 16px rgba(16, 24, 40, 0.12);
 }
+.report-bar__text { display: grid; gap: 1px; min-width: 0; }
+.report-bar__text strong { font-size: 14px; font-weight: 600; }
+.report-bar__text span { font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 760px) {
-  .report-mobile-bar { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .report-bar { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
 
 .bottom-bar { display: none; }

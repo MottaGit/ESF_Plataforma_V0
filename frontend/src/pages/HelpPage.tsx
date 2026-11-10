@@ -135,9 +135,11 @@ const SECTIONS: HelpSection[] = [
           <p>
             De um projeto: no topo dele, <strong>Gerar relatório</strong> (no celular, pode estar no{' '}
             <strong>⋯</strong>). De um programa inteiro: em Projetos, escolha o programa e toque em{' '}
-            <strong>Relatório do programa</strong>, embaixo dos números. De vários: na tela <strong>Relatórios</strong>,
-            marque os projetos. Dá
-            para escolher um período, como o trimestre passado.
+            <strong>Relatório do programa</strong>, embaixo dos números. Na tela <strong>Relatórios</strong>, escolha o
+            programa e o período (como o trimestre passado), o formato e os projetos: os do programa já vêm marcados. O{' '}
+            <strong>Resumo</strong> traz os números somados e uma tabela com os projetos, em poucas páginas; o{' '}
+            <strong>Completo</strong> acrescenta um capítulo por projeto, com a linha do tempo e as fotos. O link da tela
+            guarda o programa, o período e o formato: salve-o para repetir o relatório no próximo trimestre.
           </p>
         )
       },

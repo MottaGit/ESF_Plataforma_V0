@@ -4,6 +4,8 @@ export function inputDate(date: Date) {
 }
 
 export interface PeriodShortcut {
+  /** Nome do atalho na URL (?periodo=): o link guarda "trimestre passado", nao as datas de hoje. */
+  key: string;
   label: string;
   /** aaaa-mm-dd; vazio nas duas pontas: todo o historico. */
   from: string;
@@ -19,16 +21,32 @@ export function periodShortcuts(today = new Date(), withAll = true): PeriodShort
   const month = today.getMonth();
   const quarter = Math.floor(month / 3);
   const shortcuts: PeriodShortcut[] = [
-    { label: 'Mês passado', from: inputDate(new Date(year, month - 1, 1)), to: inputDate(new Date(year, month, 0)) },
+    {
+      key: 'mes-passado',
+      label: 'Mês passado',
+      from: inputDate(new Date(year, month - 1, 1)),
+      to: inputDate(new Date(year, month, 0))
+    },
     // O Date ajusta o mes negativo: no 1o trimestre, o anterior e outubro a dezembro do ano passado.
     {
+      key: 'trimestre-passado',
       label: 'Trimestre passado',
       from: inputDate(new Date(year, (quarter - 1) * 3, 1)),
       to: inputDate(new Date(year, quarter * 3, 0))
     },
-    { label: 'Últimos 3 meses', from: inputDate(new Date(year, month - 3, today.getDate())), to: inputDate(today) },
-    { label: 'Este ano', from: inputDate(new Date(year, 0, 1)), to: inputDate(today) },
-    { label: 'Ano passado', from: inputDate(new Date(year - 1, 0, 1)), to: inputDate(new Date(year - 1, 11, 31)) }
+    {
+      key: 'ultimos-3-meses',
+      label: 'Últimos 3 meses',
+      from: inputDate(new Date(year, month - 3, today.getDate())),
+      to: inputDate(today)
+    },
+    { key: 'este-ano', label: 'Este ano', from: inputDate(new Date(year, 0, 1)), to: inputDate(today) },
+    {
+      key: 'ano-passado',
+      label: 'Ano passado',
+      from: inputDate(new Date(year - 1, 0, 1)),
+      to: inputDate(new Date(year - 1, 11, 31))
+    }
   ];
-  return withAll ? [...shortcuts, { label: 'Tudo', from: '', to: '' }] : shortcuts;
+  return withAll ? [...shortcuts, { key: 'tudo', label: 'Tudo', from: '', to: '' }] : shortcuts;
 }
