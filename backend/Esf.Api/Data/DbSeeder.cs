@@ -98,15 +98,6 @@ public static class DbSeeder
                 CreatedAt = At(e.On)
             }));
 
-        // Metas da demonstracao: um banheiro (ou moradia) por projeto e o que cada horta planejou.
-        decimal? Target(Project project, string name) => name switch
-        {
-            "Banheiros construídos" or "Moradias reformadas" => 1,
-            "Canteiros" => project.Name.Contains("Farrapos") ? 10 : 12,
-            "Oficinas realizadas" => 6,
-            _ => null
-        };
-
         void Results(Project project, params (string Name, string Unit, decimal Value)[] indicators) =>
             db.Indicators.AddRange(indicators.Select(i => new Indicator
             {
@@ -114,7 +105,6 @@ public static class DbSeeder
                 Name = i.Name,
                 Unit = i.Unit,
                 Value = i.Value,
-                Target = Target(project, i.Name),
                 // Concluido: os numeros finais, do dia em que terminou; em aberto, de duas semanas atras.
                 ValueUpdatedAt = project.ClosedOn is { } closed
                     ? DateTime.SpecifyKind(closed.ToDateTime(new TimeOnly(18, 0)), DateTimeKind.Utc)
@@ -378,13 +368,14 @@ public static class DbSeeder
             new ProgramTemplateActivity { Program = pHorta, Position = 2, Title = "Plantio com a comunidade", Priority = ActivityPriority.Media },
             new ProgramTemplateActivity { Program = pHorta, Position = 3, Title = "Oficina de manejo e compostagem", Priority = ActivityPriority.Media });
 
-        // Os indicadores do modelo sao os que a pagina do programa soma; os projetos abaixo usam os mesmos nomes.
+        // Os indicadores do modelo sao os que a pagina do programa soma; os projetos abaixo usam os mesmos nomes. As
+        // metas sao do programa (todos os projetos juntos): 55 banheiros, 40 canteiros.
         db.ProgramTemplateIndicators.AddRange(
             new ProgramTemplateIndicator { Program = pBanheiro, Position = 0, Name = "Famílias atendidas", Unit = "famílias" },
             new ProgramTemplateIndicator { Program = pBanheiro, Position = 1, Name = "Pessoas beneficiadas", Unit = "pessoas" },
-            new ProgramTemplateIndicator { Program = pBanheiro, Position = 2, Name = "Banheiros construídos", Unit = "un.", Target = 1 },
+            new ProgramTemplateIndicator { Program = pBanheiro, Position = 2, Name = "Banheiros construídos", Unit = "un.", Target = 55 },
             new ProgramTemplateIndicator { Program = pHorta, Position = 0, Name = "Famílias envolvidas", Unit = "famílias" },
-            new ProgramTemplateIndicator { Program = pHorta, Position = 1, Name = "Canteiros", Unit = "un." },
+            new ProgramTemplateIndicator { Program = pHorta, Position = 1, Name = "Canteiros", Unit = "un.", Target = 40 },
             new ProgramTemplateIndicator { Program = pHorta, Position = 2, Name = "Oficinas realizadas", Unit = "oficinas" });
 
         const string cidade = "Porto Alegre";

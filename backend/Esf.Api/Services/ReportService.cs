@@ -90,7 +90,8 @@ public class ReportService
             Summary = summary,
             From = request.From,
             To = request.To,
-            ProgramResults = ProgramResults(projects, templates, figures),
+            ProgramResults = ProgramResults(projects, templates, figures,
+                await ProgramWideAsync(templates, request.To)),
             Figures = figures,
             Partners = partners
                 .GroupBy(x => x.ProgramId)
@@ -168,12 +169,14 @@ public class ReportService
     /// Resultados por programa, na ordem dos projetos, pela regra unica (ResultTotals): os nacionais e os indicadores
     /// padrao do modelo somados nos projetos do relatorio, com os valores do fim do periodo (figures). Resultado que
     /// nenhum projeto informou fica de fora (vazio nao e zero e nao vai para o PDF); programa sem nenhum continua na
-    /// lista, pelos parceiros. A mudanca no periodo e a mesma soma feita com os valores da vespera do inicio.
+    /// lista, pelos parceiros. A mudanca no periodo e a mesma soma feita com os valores da vespera do inicio. A meta e
+    /// a do programa (do modelo); com o relatorio tendo so parte dos projetos, vale a soma do programa todo (wide).
     /// </summary>
     public static List<ReportProgramResults> ProgramResults(
         List<Project> projects,
         List<ProgramTemplateIndicator> templates,
-        Dictionary<Guid, IndicatorFigure> figures) =>
+        Dictionary<Guid, IndicatorFigure> figures,
+        Dictionary<Guid, ReportProgramWide>? wide = null) =>
         projects
             .GroupBy(p => p.ProgramId)
             .Select(group =>
@@ -181,13 +184,15 @@ public class ReportService
                 var indicators = group.SelectMany(p => p.Indicators).ToList();
                 var programTemplates = templates
                     .Where(t => t.ProgramId == group.Key)
-                    .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId))
+                    .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId, t.Target))
                     .ToList();
+                var programWide = wide?.GetValueOrDefault(group.Key);
+                var whole = programWide == null || programWide.ProjectIds.All(id => group.Any(p => p.Id == id));
                 IndicatorFigure Figure(Indicator i) =>
                     figures.TryGetValue(i.Id, out var figure) ? figure : new IndicatorFigure(i.Value, i.ValueUpdatedAt, null);
                 List<ResultTotals.Total> Sum(Func<IndicatorFigure, decimal?> value) => ResultTotals.Compute(
                     indicators.Select(i =>
-                        new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, value(Figure(i)), i.NationalIndicatorId, i.Target)),
+                        new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, value(Figure(i)), i.NationalIndicatorId)),
                     programTemplates);
 
                 // As duas somas tem os mesmos resultados na mesma ordem (a ordem so depende dos nomes).
@@ -195,12 +200,53 @@ public class ReportService
                     .Zip(Sum(f => f.Start), (end, start) => (End: end, Start: start))
                     .Where(r => r.End.Value != null)
                     .Select(r => new ReportResult(r.End.Name, r.End.Unit, r.End.Value!.Value, r.End.Informed,
-                        r.End.Projects, r.End.Value!.Value - (r.Start.Value ?? 0), r.End.Target))
+                        r.End.Projects, r.End.Value!.Value - (r.Start.Value ?? 0), r.End.Target,
+                        programWide?.Totals.GetValueOrDefault(ResultTotals.Key(r.End))))
                     .ToList();
 
-                return new ReportProgramResults(group.Key, group.First().Program!.Name, group.Count(), results);
+                return new ReportProgramResults(group.Key, group.First().Program!.Name, group.Count(), results, whole);
             })
             .ToList();
+
+    /// <summary>
+    /// Para a meta do programa: a soma de cada resultado em todos os projetos do programa (sem os cancelados), com os
+    /// valores do fim do periodo. Assim um relatorio de 3 projetos nao diz que o programa esta em 2% da meta. So quando
+    /// algum indicador do modelo tem meta.
+    /// </summary>
+    private async Task<Dictionary<Guid, ReportProgramWide>> ProgramWideAsync(
+        List<ProgramTemplateIndicator> templates, DateOnly? to)
+    {
+        var withTarget = templates.Where(t => t.Target != null).Select(t => t.ProgramId).Distinct().ToList();
+        if (withTarget.Count == 0) return new();
+
+        var all = await _db.Projects
+            .AsNoTracking()
+            .Include(p => p.Indicators)
+            .Where(p => withTarget.Contains(p.ProgramId) && p.Status != ProjectStatus.Cancelado)
+            .ToListAsync();
+        var indicators = all.SelectMany(p => p.Indicators).ToList();
+        var indicatorIds = indicators.Select(i => i.Id).ToList();
+        var history = await _db.IndicatorValueChanges
+            .AsNoTracking()
+            .Where(c => indicatorIds.Contains(c.IndicatorId))
+            .ToListAsync();
+        var figures = IndicatorHistory.Figures(indicators, history, null, to, Mapping.Today);
+
+        return all
+            .GroupBy(p => p.ProgramId)
+            .ToDictionary(
+                g => g.Key,
+                g => new ReportProgramWide(
+                    g.Select(p => p.Id).ToHashSet(),
+                    ResultTotals
+                        .Compute(
+                            g.SelectMany(p => p.Indicators).Select(i =>
+                                new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, figures[i.Id].Value, i.NationalIndicatorId)),
+                            templates.Where(t => t.ProgramId == g.Key)
+                                .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId, t.Target)))
+                        .GroupBy(ResultTotals.Key)
+                        .ToDictionary(r => r.Key, r => r.First().Value)));
+    }
 
     /// <summary>
     /// Quanto cada projeto tem no periodo (todos os projetos do nucleo, inclusive arquivados): registros de andamento

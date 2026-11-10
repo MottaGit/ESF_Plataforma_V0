@@ -273,7 +273,6 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.Property(x => x.Unit).HasMaxLength(60);
             e.Property(x => x.Value).HasPrecision(18, 2);
-            e.Property(x => x.Target).HasPrecision(18, 2);
 
             e.HasOne(x => x.Project)
                 .WithMany(p => p.Indicators)

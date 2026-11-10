@@ -13,9 +13,7 @@ public record IndicatorDto(
     // Indicador nacional escolhido (null: especifico do projeto).
     Guid? NationalIndicatorId,
     // Quando o valor mudou pela ultima vez (null: nunca, ou antes de o campo existir).
-    DateTime? ValueUpdatedAt,
-    // Meta (null: sem meta).
-    decimal? Target);
+    DateTime? ValueUpdatedAt);
 
 public class SaveIndicatorRequest
 {
@@ -29,10 +27,6 @@ public class SaveIndicatorRequest
     /// <summary>Vazio: ainda nao informado (nao entra nas somas como zero).</summary>
     [Range(0, 999999999, ErrorMessage = "Valor inválido.")]
     public decimal? Value { get; set; }
-
-    /// <summary>Meta: quanto o projeto pretende alcancar (vazio: sem meta). Vale tambem para os nacionais.</summary>
-    [Range(0, 999999999, ErrorMessage = "Meta inválida.")]
-    public decimal? Target { get; set; }
 
     /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele (o que vier em Name e Unit e ignorado).</summary>
     public Guid? NationalIndicatorId { get; set; }

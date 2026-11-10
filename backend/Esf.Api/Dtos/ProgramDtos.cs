@@ -74,7 +74,9 @@ public class SaveProgramPartnerRequest
 }
 
 /// <summary>Resultado somado: Total null quando nenhum projeto informou; Informed de Projects projetos informaram.</summary>
-public record ProgramResultDto(string Name, string? Unit, decimal? Total, int Informed, int Projects, bool National);
+public record ProgramResultDto(string Name, string? Unit, decimal? Total, int Informed, int Projects, bool National,
+    // Meta do programa (do indicador padrao do modelo; null: sem meta).
+    decimal? Target);
 
 /// <summary>
 /// Pagina publica do programa, como a coordenacao configura (o codigo so aparece com ela ligada). Os textos do topo sao
@@ -119,7 +121,8 @@ public record PublicPartnerDto(string Name, string? Role);
 
 public record PublicProgramTotalsDto(int Concluded, int InProgress, int Planning, int Paused, int Volunteers, decimal Hours);
 
-public record PublicIndicatorDto(string Name, string? Unit, decimal Value, bool National);
+/// <summary>Indicador somado (programa) ou de um projeto; Target so nos do programa (meta do programa).</summary>
+public record PublicIndicatorDto(string Name, string? Unit, decimal Value, bool National, decimal? Target = null);
 
 public record PublicProjectDto(
     string Name,
@@ -186,7 +189,7 @@ public class SaveTemplateIndicatorRequest
     /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele.</summary>
     public Guid? NationalIndicatorId { get; set; }
 
-    /// <summary>Meta de cada projeto novo do programa (vazio: sem meta).</summary>
+    /// <summary>Meta do programa: soma de todos os projetos dele (vazio: sem meta).</summary>
     [Range(0, 999999999, ErrorMessage = "Meta inválida.")]
     public decimal? Target { get; set; }
 }

@@ -348,7 +348,7 @@ public static class ProjectReportBuilder
                             foreach (var result in chunk)
                                 row.RelativeItem().PaddingRight(6)
                                     .Element(c => ValueCard(c, result.Total, result.Unit, result.Name,
-                                        TargetText(result.Total, result.Target),
+                                        TargetText(program, result),
                                         ChangeText(model, result.Change),
                                         ResultTotals.Coverage(result.Informed, result.Projects)));
 
@@ -405,13 +405,19 @@ public static class ProjectReportBuilder
     }
 
     /// <summary>
-    /// Realizado x previsto: "80% da meta de 10" (acima de 100% tambem aparece: "120% da meta de 5"). Nada sem meta,
-    /// ou com meta zero.
+    /// Meta do programa (realizado x previsto): "22% da meta de 55" (acima de 100% tambem aparece). Com o relatorio tendo
+    /// so parte dos projetos do programa, compara a soma do programa todo e diz isso: "programa todo: 12 de 55 (22%)".
+    /// Nada sem meta, ou com meta zero.
     /// </summary>
-    private static string? TargetText(decimal value, decimal? target) =>
-        target is > 0 and var goal
-            ? $"{Number(Math.Round(value / goal * 100))}% da meta de {Number(goal)}"
-            : null;
+    private static string? TargetText(ReportProgramResults program, ReportResult result)
+    {
+        if (result.Target is not > 0 || result.Target is not { } goal) return null;
+        if (program.WholeProgram)
+            return $"{Number(Math.Round(result.Total / goal * 100))}% da meta de {Number(goal)}";
+
+        var reached = result.ProgramTotal ?? 0;
+        return $"programa todo: {Number(reached)} de {Number(goal)} ({Number(Math.Round(reached / goal * 100))}%)";
+    }
 
     /// <summary>"+12 no período" / "−3 no período"; nada sem inicio de periodo ou quando o numero nao mudou.</summary>
     private static string? ChangeText(ReportModel model, decimal change) =>
@@ -444,8 +450,8 @@ public static class ProjectReportBuilder
             .Select(g => (Id: g.Key, g.First().Name))
             .OrderBy(n => SearchText.Fold(n.Name))
             .ToList();
-        Indicator? National(Project p, Guid id) => p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id);
-        decimal? NationalValue(Project p, Guid id) => National(p, id) is { } indicator ? model.Figure(indicator).Value : null;
+        decimal? NationalValue(Project p, Guid id) =>
+            p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id) is { } indicator ? model.Figure(indicator).Value : null;
         var anyMissing = model.Projects.Any(p => nationals.Any(n => NationalValue(p, n.Id) == null));
         var withPages = !model.Summary;
         var columnCount = (uint)(4 + nationals.Count + (withPages ? 1 : 0));
@@ -513,14 +519,9 @@ public static class ProjectReportBuilder
                     foreach (var national in nationals)
                     {
                         var value = NationalValue(p, national.Id);
-                        // Com meta: "8 de 10" (realizado x previsto).
-                        var target = National(p, national.Id)?.Target;
-                        table.Cell().Element(BodyCell).AlignRight().Text(text =>
-                        {
-                            text.Span(value is { } informed ? Number(informed) : "–").FontColor(value is null ? Muted : Ink);
-                            if (target is { } goal)
-                                text.Span($" de {Number(goal)}").FontColor(Muted);
-                        });
+                        table.Cell().Element(BodyCell).AlignRight()
+                            .Text(value is { } informed ? Number(informed) : "–")
+                            .FontColor(value is null ? Muted : Ink);
                     }
                     if (withPages)
                         table.Cell().Element(BodyCell).SectionLink(SectionOf(p)).AlignRight()
@@ -713,7 +714,6 @@ public static class ProjectReportBuilder
                     foreach (var (indicator, figure) in chunk)
                         row.RelativeItem().PaddingRight(6)
                             .Element(c => ValueCard(c, figure.Value!.Value, indicator.Unit, indicator.Name,
-                                TargetText(figure.Value!.Value, indicator.Target),
                                 ChangeText(model, figure.Change),
                                 figure.UpdatedAt is { } updated
                                     ? $"atualizado em {TextHelpers.BrasiliaDay(updated):dd/MM/yyyy}"

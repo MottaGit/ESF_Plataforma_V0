@@ -236,7 +236,9 @@ const SECTIONS: HelpSection[] = [
             e para quem. Ela aparece na página pública, e a descrição e o objetivo de cada projeto novo já vêm
             preenchidos com ela. Em <strong>Parceiros</strong>, quem financia ou apoia: o nome e o papel saem na página
             pública e no PDF, e o contato fica só no núcleo. Em <strong>Modelo de projeto</strong>, as tarefas e os
-            indicadores que todo projeto novo já recebe, com a meta de cada um (ex.: 1 banheiro por projeto).
+            indicadores que todo projeto novo já recebe. Cada indicador do modelo pode ter a{' '}
+            <strong>meta do programa</strong> (ex.: 55 banheiros, somando todos os projetos): a visão do programa, a
+            página pública e o relatório mostram quanto já foi feito.
           </p>
         )
       },
@@ -257,8 +259,7 @@ const SECTIONS: HelpSection[] = [
           <p>
             É definido pela gestão nacional (ex.: Pessoas beneficiadas), vem em todo projeto e é somado entre os
             núcleos. Preencha quando tiver o número: em branco não conta como zero. Para algo só do seu projeto, use{' '}
-            <strong>Novo indicador</strong> na aba Sobre. Qualquer indicador pode ter uma <strong>meta</strong> (no
-            lápis, na aba Sobre): o projeto mostra "8 de 10" e o relatório, quanto da meta foi alcançado.
+            <strong>Novo indicador</strong> na aba Sobre.
           </p>
         )
       },

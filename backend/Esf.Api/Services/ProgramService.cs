@@ -74,7 +74,7 @@ public class ProgramService
         var templates = await _db.ProgramTemplateIndicators.AsNoTracking()
             .Where(t => ids.Contains(t.ProgramId))
             .OrderBy(t => t.Position)
-            .Select(t => new { t.ProgramId, t.Name, t.Unit, t.NationalIndicatorId })
+            .Select(t => new { t.ProgramId, t.Name, t.Unit, t.NationalIndicatorId, t.Target })
             .ToListAsync();
 
         // Mesmo criterio de ResultTotals.CountsForResults, aqui pela navegacao do indicador ate o projeto.
@@ -92,9 +92,9 @@ public class ProgramService
                         indicators.Where(i => i.ProgramId == p.Id)
                             .Select(i => new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, i.Value, i.NationalIndicatorId)),
                         templates.Where(t => t.ProgramId == p.Id)
-                            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId)))
+                            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId, t.Target)))
                     .Select(r => new ProgramResultDto(r.Name, r.Unit, r.Value, r.Informed, r.Projects,
-                        r.NationalIndicatorId != null))
+                        r.NationalIndicatorId != null, r.Target))
                     .ToList()
             })
             .ToList();

@@ -264,6 +264,8 @@ export interface PublicIndicator {
   unit: string | null;
   value: number;
   national: boolean;
+  /** Meta do programa (so nos resultados somados); null: sem meta. */
+  target?: number | null;
 }
 
 export interface PublicProject {
@@ -286,6 +288,8 @@ export interface ProgramResult extends SummedValue {
   name: string;
   unit: string | null;
   national: boolean;
+  /** Meta do programa (do modelo); null: sem meta. */
+  target: number | null;
 }
 
 export interface TemplateActivity {
@@ -303,7 +307,7 @@ export interface TemplateIndicator {
   unit: string | null;
   /** Indicador nacional escolhido no modelo (null: especifico do programa). */
   nationalIndicatorId: string | null;
-  /** Meta de cada projeto novo do programa (null: sem meta). */
+  /** Meta do programa: soma de todos os projetos dele, ex.: 55 banheiros (null: sem meta). */
   target: number | null;
 }
 
@@ -453,8 +457,6 @@ export interface Indicator {
   nationalIndicatorId: string | null;
   /** Quando o valor mudou pela ultima vez (null: nunca, ou antes de o campo existir). */
   valueUpdatedAt: string | null;
-  /** Meta: quanto o projeto pretende alcancar (null: sem meta). */
-  target: number | null;
 }
 
 export interface VolunteerProject {
@@ -856,8 +858,6 @@ export interface SaveIndicatorPayload {
   value: number | null;
   /** Indicador nacional: nome e unidade passam a vir dele. */
   nationalIndicatorId: string | null;
-  /** Meta (null: sem meta). Toda gravacao manda a atual, senao ela se apagaria. */
-  target: number | null;
 }
 
 /** Edicao de um acesso: nome e e-mail vem do cadastro do voluntario. */

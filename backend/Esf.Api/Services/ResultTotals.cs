@@ -19,17 +19,18 @@ public static class ResultTotals
     /// </summary>
     public static readonly Expression<Func<Project, bool>> CountsForResults = p => p.Status != ProjectStatus.Cancelado;
 
-    /// <summary>Um indicador de um projeto, com o que a soma precisa (a meta so no relatorio em PDF).</summary>
-    public record Item(Guid ProjectId, string Name, string? Unit, decimal? Value, Guid? NationalIndicatorId,
-        decimal? Target = null);
+    /// <summary>Um indicador de um projeto, com o que a soma precisa.</summary>
+    public record Item(Guid ProjectId, string Name, string? Unit, decimal? Value, Guid? NationalIndicatorId);
 
-    /// <summary>Indicador padrao do modelo do programa (os ligados a um nacional ja entram pelo nacional).</summary>
-    public record Template(string Name, string? Unit, Guid? NationalIndicatorId);
+    /// <summary>
+    /// Indicador padrao do modelo do programa (os ligados a um nacional ja entram pelo nacional), com a meta do
+    /// programa quando houver.
+    /// </summary>
+    public record Template(string Name, string? Unit, Guid? NationalIndicatorId, decimal? Target = null);
 
     /// <summary>
     /// Resultado somado. Value fica null quando nenhum projeto informou; Informed e Projects dizem em quantos projetos
-    /// foi informado e quantos tem o indicador. Target: soma das metas, so quando todos esses projetos tem meta (com
-    /// parte sem meta, a comparacao juntaria coisas diferentes).
+    /// foi informado e quantos tem o indicador. Target: a meta do programa (do modelo), quando houver.
     /// </summary>
     public record Total(string Name, string? Unit, decimal? Value, int Informed, int Projects, Guid? NationalIndicatorId,
         decimal? Target = null);
@@ -42,20 +43,30 @@ public static class ResultTotals
     {
         var all = indicators.ToList();
 
+        var templateList = templates.ToList();
+        // Meta de um nacional: a do indicador padrao do modelo ligado a ele.
+        var nationalTargets = templateList
+            .Where(t => t.NationalIndicatorId != null && t.Target != null)
+            .GroupBy(t => t.NationalIndicatorId!.Value)
+            .ToDictionary(g => g.Key, g => g.First().Target);
+
         var results = all
             .Where(i => i.NationalIndicatorId != null)
             .GroupBy(i => i.NationalIndicatorId)
-            .Select(g => Build(g.First().Name, g.First().Unit, g.ToList(), g.Key))
+            .Select(g => Build(g.First().Name, g.First().Unit, g.ToList(), g.Key) with
+            {
+                Target = nationalTargets.GetValueOrDefault(g.Key!.Value)
+            })
             .OrderBy(r => r.Name)
             .ToList();
 
-        foreach (var template in templates.Where(t => t.NationalIndicatorId == null))
+        foreach (var template in templateList.Where(t => t.NationalIndicatorId == null))
         {
             var key = SearchText.Fold(template.Name.Trim());
             var matching = all
                 .Where(i => i.NationalIndicatorId == null && SearchText.Fold(i.Name.Trim()) == key)
                 .ToList();
-            results.Add(Build(template.Name, template.Unit, matching, null));
+            results.Add(Build(template.Name, template.Unit, matching, null) with { Target = template.Target });
         }
 
         return results;
@@ -71,9 +82,12 @@ public static class ResultTotals
             informed.Count > 0 ? informed.Sum(i => i.Value!.Value) : null,
             informed.Select(i => i.ProjectId).Distinct().Count(),
             items.Select(i => i.ProjectId).Distinct().Count(),
-            nationalId,
-            items.Count > 0 && items.All(i => i.Target != null) ? items.Sum(i => i.Target!.Value) : null);
+            nationalId);
     }
+
+    /// <summary>Chave de um resultado para achar o mesmo em outra soma: o nacional pelo vinculo, o do modelo pelo nome.</summary>
+    public static string Key(Total total) =>
+        total.NationalIndicatorId is { } national ? $"n:{national}" : $"t:{SearchText.Fold(total.Name.Trim())}";
 
     /// <summary>"informado em 3 de 5 projetos" quando falta algum projeto informar; null quando todos informaram.</summary>
     public static string? Coverage(int informed, int projects) =>

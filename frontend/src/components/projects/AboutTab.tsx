@@ -112,13 +112,10 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                       </span>
                       <span className="indicator__values num">
                         {indicator.value == null ? (
-                          <span className="indicator__blank">
-                            não informado{indicator.target != null ? ` · meta ${formatNumber(indicator.target)}` : ''}
-                          </span>
+                          <span className="indicator__blank">não informado</span>
                         ) : (
                           <>
                             <strong>{formatNumber(indicator.value)}</strong>
-                            {indicator.target != null ? ` de ${formatNumber(indicator.target)}` : ''}
                             {indicator.unit ? ` ${indicator.unit}` : ''}
                             {indicator.valueUpdatedAt ? (
                               <span className="indicator__when"> · atualizado {timeAgoPhrase(indicator.valueUpdatedAt)}</span>

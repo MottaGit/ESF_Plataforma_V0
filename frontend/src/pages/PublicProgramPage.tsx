@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ApiError, assetUrl } from '../api/client';
 import { publicApi } from '../api/endpoints';
+import { GoalProgress } from '../components/programs/GoalProgress';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { Progress } from '../components/ui/Progress';
 import type { ProjectStatus, PublicIndicator, PublicProgram, PublicProject } from '../types/api';
@@ -229,6 +230,7 @@ export function PublicProgramPage() {
                   <IndicatorValue indicator={result} />
                 </span>
                 <span className="public-stat__label">{result.name}</span>
+                {result.target != null ? <GoalProgress value={result.value} target={result.target} /> : null}
               </div>
             ))}
             <div className="public-stat">

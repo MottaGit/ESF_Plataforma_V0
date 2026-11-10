@@ -117,14 +117,23 @@ public record ReportModel
 
 public record ReportPartner(string Name, string? Role);
 
-public record ReportProgramResults(Guid ProgramId, string Program, int Projects, List<ReportResult> Results);
+/// <summary>
+/// Resultados de um programa no relatorio. WholeProgram: o relatorio tem todos os projetos do programa que contam nos
+/// resultados (sem os cancelados); senao, a meta do programa e comparada com a soma do programa todo.
+/// </summary>
+public record ReportProgramResults(Guid ProgramId, string Program, int Projects, List<ReportResult> Results,
+    bool WholeProgram = true);
 
 /// <summary>
 /// Resultado somado (so os valores informados); Informed de Projects projetos do relatorio informaram. Change: quanto
-/// a soma mudou no periodo (zero sem inicio de periodo). Target: soma das metas, quando todos os projetos tem meta.
+/// a soma mudou no periodo (zero sem inicio de periodo). Target: a meta do programa (do modelo). ProgramTotal: a soma
+/// em todos os projetos do programa, para comparar com a meta quando o relatorio tem so parte deles.
 /// </summary>
 public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects, decimal Change,
-    decimal? Target = null);
+    decimal? Target = null, decimal? ProgramTotal = null);
+
+/// <summary>O programa todo (para a meta): os projetos que contam e a soma de cada resultado (ResultTotals.Key).</summary>
+public record ReportProgramWide(HashSet<Guid> ProjectIds, Dictionary<string, decimal?> Totals);
 
 /// <summary>Caption so vem preenchida quando o arquivo tem uma descricao de verdade cadastrada
 /// (nunca cai para o nome do arquivo) - o relatorio so exibe legenda quando ela existir.</summary>

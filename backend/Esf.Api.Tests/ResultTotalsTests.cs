@@ -77,7 +77,7 @@ public class ResultTotalsTests
 
         // Projeto a (1) + arquivado (2); o cancelado fica de fora. Informado em 2 dos 2 projetos que tem o indicador.
         var families = Assert.Single(program.Results, r => !r.National);
-        Assert.Equal(new ProgramResultDto("Familias atendidas", null, 3, 2, 2, false), families);
+        Assert.Equal(new ProgramResultDto("Familias atendidas", null, 3, 2, 2, false, null), families);
         // Nacional em branco nos dois projetos: sem valor, nunca zero.
         var people = Assert.Single(program.Results, r => r.National);
         Assert.Equal((null, 0, 2), (people.Total, people.Informed, people.Projects));

@@ -251,10 +251,6 @@ namespace Esf.Api.Data.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal?>("Target")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<string>("Unit")
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");

@@ -87,7 +87,7 @@ public class PublicProgramService
         var templates = await _db.ProgramTemplateIndicators.AsNoTracking()
             .Where(t => t.ProgramId == program.Id)
             .OrderBy(t => t.Position)
-            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId))
+            .Select(t => new ResultTotals.Template(t.Name, t.Unit, t.NationalIndicatorId, t.Target))
             .ToListAsync();
         var results = ResultTotals
             .Compute(
@@ -95,7 +95,7 @@ public class PublicProgramService
                     new ResultTotals.Item(p.Id, i.Name, i.Unit, i.Value, i.NationalIndicatorId))),
                 templates)
             .Where(r => r.Value != null)
-            .Select(r => new PublicIndicatorDto(r.Name, r.Unit, r.Value!.Value, r.NationalIndicatorId != null))
+            .Select(r => new PublicIndicatorDto(r.Name, r.Unit, r.Value!.Value, r.NationalIndicatorId != null, r.Target))
             .ToList();
 
         // "Desde 2019 · Porto Alegre e Canoas": dos mesmos projetos dos numeros (sem cancelados; arquivados entram).

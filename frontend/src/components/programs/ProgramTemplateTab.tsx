@@ -219,7 +219,7 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
                       </div>
                       {indicator.unit || indicator.target != null ? (
                         <div className="template-list__meta">
-                          {[indicator.unit, indicator.target != null ? `meta ${formatNumber(indicator.target)} por projeto` : null]
+                          {[indicator.unit, indicator.target != null ? `meta do programa: ${formatNumber(indicator.target)}` : null]
                             .filter(Boolean)
                             .join(' · ')}
                         </div>
@@ -456,7 +456,7 @@ function TemplateIndicatorModal({
     <Modal
       guardChanges
       title={indicator ? 'Editar indicador padrão' : 'Novo indicador padrão'}
-      subtitle="Entra em branco em cada projeto novo do programa, já com a meta (se houver)."
+      subtitle="Entra em branco em cada projeto novo do programa."
       size="narrow"
       onClose={onClose}
       footer={
@@ -505,9 +505,9 @@ function TemplateIndicatorModal({
           </>
         ) : null}
         <Field
-          label="Meta por projeto"
+          label="Meta do programa"
           htmlFor="template-indicator-target"
-          hint="Vem preenchida em cada projeto novo (ex.: 1 banheiro). O relatório mostra o realizado contra a meta. Em branco: sem meta."
+          hint="Quanto o programa todo pretende alcançar, somando todos os projetos (ex.: 55 banheiros). A visão do programa, a página pública e o relatório mostram quanto já foi feito. Em branco: sem meta."
         >
           <TextInput
             id="template-indicator-target"

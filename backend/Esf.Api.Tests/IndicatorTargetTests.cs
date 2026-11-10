@@ -1,74 +1,106 @@
-using Esf.Api.Common;
-using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
+using Esf.Api.Reports;
 using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esf.Api.Tests;
 
-/// <summary>Meta dos indicadores: vem do modelo do programa, fica no projeto e o relatorio compara com o realizado.</summary>
+/// <summary>
+/// Meta do programa: fica no indicador padrao do modelo (ex.: 55 banheiros) e e comparada com a soma dos projetos do
+/// programa. Os projetos nao tem meta propria.
+/// </summary>
 public class IndicatorTargetTests
 {
     [Fact]
-    public async Task NewProjectGetsTheTemplateTargetsIncludingTheNationalOne()
+    public async Task ProgramGoalShowsInTheProgramViewAndOnThePublicPage()
     {
         var f = await TwoNucleos.CreateAsync();
         var people = new NationalIndicator { Name = "Pessoas beneficiadas", Unit = "pessoas" };
         await using (var system = f.SystemContext())
         {
             system.NationalIndicators.Add(people);
-            (await system.ProgramTemplateIndicators.SingleAsync(t => t.ProgramId == f.A.ProgramId)).Target = 1;
+            system.Indicators.Add(new Indicator
+            {
+                ProjectId = f.A.ProjectId, Name = people.Name, Unit = people.Unit, NationalIndicatorId = people.Id, Value = 8
+            });
+            (await system.ProgramTemplateIndicators.SingleAsync(t => t.ProgramId == f.A.ProgramId)).Target = 55;
+            // O nacional ganha meta pelo indicador padrao ligado a ele.
             system.ProgramTemplateIndicators.Add(new ProgramTemplateIndicator
             {
                 ProgramId = f.A.ProgramId, Position = 1, Name = people.Name, Unit = people.Unit,
-                NationalIndicatorId = people.Id, Target = 5
+                NationalIndicatorId = people.Id, Target = 100
             });
             await system.SaveChangesAsync();
         }
 
-        await using var db = f.Context(f.A.Admin);
-        var created = await new ProjectService(db, new NotificationService(db, f.A.Admin)).CreateAsync(new SaveProjectRequest
+        string token;
+        await using (var db = f.Context(f.A.Admin))
         {
-            Name = "Projeto novo", ProgramId = f.A.ProgramId, StartDate = Mapping.Today,
-            Status = ProjectStatus.Planejamento, UseTemplate = true
-        });
+            var program = await new ProgramService(db).GetAsync(f.A.ProgramId);
+            Assert.Equal(55, program.Results.Single(r => r.Name == "Familias atendidas").Target);
+            Assert.Equal(100, program.Results.Single(r => r.National).Target);
+            token = (await new ProgramService(db).SavePublicPageAsync(f.A.ProgramId,
+                new SaveProgramPublicPageRequest { Enabled = true })).Token!;
+        }
 
-        // O nacional ja entra no projeto antes do modelo; a meta do modelo vai para ele mesmo assim.
-        Assert.Equal(5, created.Indicators.Single(i => i.NationalIndicatorId == people.Id).Target);
-        Assert.Equal(1, created.Indicators.Single(i => i.Name == "Familias atendidas").Target);
-        Assert.All(created.Indicators, i => Assert.Null(i.Value));
+        await using (var anonymous = f.Context(TestUser.Anonymous))
+        {
+            var page = await new PublicProgramService(anonymous).GetAsync(token);
+            Assert.Equal(55, page.Results.Single(r => r.Name == "Familias atendidas").Target);
+            // Os indicadores de cada projeto nao tem meta.
+            Assert.All(page.Projects.SelectMany(p => p.Indicators), i => Assert.Null(i.Target));
+        }
     }
 
     [Fact]
-    public async Task TheTargetIsSavedWithTheIndicatorAndGoesToTheHistory()
+    public void TheGoalComesFromTheTemplateIncludingTheNationalOnes()
     {
-        var f = await TwoNucleos.CreateAsync();
-        await using var db = f.Context(f.A.Admin);
-        var service = new IndicatorService(db);
+        var nationalId = Guid.NewGuid();
+        var project = Guid.NewGuid();
+        var totals = ResultTotals.Compute(
+            new[]
+            {
+                new ResultTotals.Item(project, "Banheiros construídos", "un.", 1, null),
+                new ResultTotals.Item(project, "Pessoas beneficiadas", "pessoas", 5, nationalId)
+            },
+            new[]
+            {
+                new ResultTotals.Template("Banheiros construídos", "un.", null, 55),
+                new ResultTotals.Template("Pessoas beneficiadas", "pessoas", nationalId, 200)
+            });
 
-        var created = await service.CreateAsync(f.A.ProjectId,
-            new SaveIndicatorRequest { Name = "Canteiros", Unit = "un.", Target = 12 });
-        var updated = await service.UpdateAsync(created.Id,
-            new SaveIndicatorRequest { Name = "Canteiros", Unit = "un.", Value = 5, Target = 12 });
-
-        Assert.Equal(12, updated.Target);
-        Assert.Equal(5, updated.Value);
+        Assert.Equal(55, totals.Single(t => t.NationalIndicatorId == null).Target);
+        Assert.Equal(200, totals.Single(t => t.NationalIndicatorId == nationalId).Target);
     }
 
     [Fact]
-    public void ProgramTargetOnlySumsWhenEveryProjectHasOne()
+    public void ReportWithPartOfTheProgramComparesTheGoalWithTheWholeProgram()
     {
-        ResultTotals.Item Item(decimal? value, decimal? target) =>
-            new(Guid.NewGuid(), "Banheiros construídos", "un.", value, null, target);
+        var program = new ProjectProgram { Name = "Banheiro Direito da Gente" };
+        Project Project(string name, decimal built)
+        {
+            var project = new Project { Name = name, ProgramId = program.Id, Program = program };
+            project.Indicators.Add(new Indicator { ProjectId = project.Id, Name = "Banheiros construídos", Unit = "un.", Value = built });
+            return project;
+        }
+        var a = Project("A", 1);
+        var b = Project("B", 1);
+        var template = new ProgramTemplateIndicator { ProgramId = program.Id, Name = "Banheiros construídos", Unit = "un.", Target = 55 };
+        var key = ResultTotals.Key(new ResultTotals.Total("Banheiros construídos", "un.", 12, 12, 12, null));
 
-        // Todos com meta: realizado 1 de 2 previstos (o que ainda nao foi informado continua fora do realizado).
-        var all = ResultTotals.Build("Banheiros construídos", "un.", new[] { Item(1, 1), Item(null, 1) }, null);
-        Assert.Equal(1, all.Value);
-        Assert.Equal(2, all.Target);
+        // O programa tem mais um projeto (C) fora do relatorio: 12 banheiros no programa todo.
+        var partial = Assert.Single(ReportService.ProgramResults(new List<Project> { a, b }, new() { template }, new(),
+            new() { [program.Id] = new ReportProgramWide(new HashSet<Guid> { a.Id, b.Id, Guid.NewGuid() }, new() { [key] = 12 }) }));
+        Assert.False(partial.WholeProgram);
+        var result = Assert.Single(partial.Results);
+        Assert.Equal(2, result.Total);
+        Assert.Equal(55, result.Target);
+        Assert.Equal(12, result.ProgramTotal);
 
-        // Um sem meta: a soma das metas compararia coisas diferentes, entao nao sai.
-        var partial = ResultTotals.Build("Banheiros construídos", "un.", new[] { Item(1, 1), Item(3, null) }, null);
-        Assert.Null(partial.Target);
+        // Com todos os projetos do programa no relatorio, a soma do relatorio ja e a do programa.
+        var whole = Assert.Single(ReportService.ProgramResults(new List<Project> { a, b }, new() { template }, new(),
+            new() { [program.Id] = new ReportProgramWide(new HashSet<Guid> { a.Id, b.Id }, new() { [key] = 2 }) }));
+        Assert.True(whole.WholeProgram);
     }
 }

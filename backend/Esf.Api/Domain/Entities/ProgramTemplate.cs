@@ -36,6 +36,9 @@ public class ProgramTemplateIndicator
     public string Name { get; set; } = string.Empty;
     public string? Unit { get; set; }
 
-    /// <summary>Meta padrao de cada projeto novo do programa (ex.: 1 banheiro por projeto); vazio: sem meta.</summary>
+    /// <summary>
+    /// Meta do programa: quanto todos os projetos dele juntos pretendem alcancar (ex.: 55 banheiros); vazio: sem meta. Os
+    /// projetos nao tem meta propria: cada um so soma o seu valor.
+    /// </summary>
     public decimal? Target { get; set; }
 }

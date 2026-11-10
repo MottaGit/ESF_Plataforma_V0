@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { programsApi, projectsApi, volunteersApi } from '../api/endpoints';
+import { GoalProgress } from '../components/programs/GoalProgress';
 import { ProgramFormModal } from '../components/programs/ProgramFormModal';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ProgramPicker } from '../components/programs/ProgramPicker';
@@ -608,14 +609,18 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
       value: String(program.activeProjectsCount),
       label: program.activeProjectsCount === 1 ? 'ativo' : 'ativos',
       title: 'Em planejamento, em andamento ou pausados' as string | undefined,
-      note: null as string | null
+      note: null as string | null,
+      total: null as number | null,
+      goal: null as number | null
     },
     {
       key: 'done',
       value: String(program.doneProjectsCount),
       label: program.doneProjectsCount === 1 ? 'concluído' : 'concluídos',
       title: undefined as string | undefined,
-      note: null as string | null
+      note: null as string | null,
+      total: null as number | null,
+      goal: null as number | null
     },
     // Resultados pela regra unica: "—" quando nenhum projeto informou (nao e zero).
     ...program.results.map((result) => ({
@@ -623,7 +628,10 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
       value: result.total == null ? '—' : formatNumber(result.total),
       label: result.name,
       title: result.name as string | undefined,
-      note: result.total == null ? 'não informado' : coverageLabel(result.informed, result.projects)
+      note: result.total == null ? 'não informado' : coverageLabel(result.informed, result.projects),
+      // Meta do programa (do modelo): "de 55 · 22%" com a barra.
+      total: result.total,
+      goal: result.target
     }))
   ];
 
@@ -669,6 +677,7 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
           <div key={item.key} className="program-overview__number" title={item.title}>
             <b className="num">{item.value}</b>
             <span>{item.label}</span>
+            {item.goal != null ? <GoalProgress value={item.total} target={item.goal} /> : null}
             {item.note ? <span className="program-overview__coverage">{item.note}</span> : null}
           </div>
         ))}
