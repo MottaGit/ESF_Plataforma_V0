@@ -208,4 +208,15 @@ public class ReportTests
         Assert.Equal(675, portrait.Height, 1);
         Assert.True(portrait.Top < 1200 - portrait.Bottom);
     }
+
+    [Theory]
+    [InlineData("famílias", "Famílias atendidas", null)]
+    [InlineData("pessoas", "Pessoas beneficiadas", null)]
+    [InlineData("un.", "Banheiros construídos", null)]
+    [InlineData("Unidades", "Canteiros", null)]
+    [InlineData(null, "Oficinas", null)]
+    [InlineData("m²", "Área construída", "m²")]
+    [InlineData("kg", "Alimentos colhidos", "kg")]
+    public void IndicatorUnitOnlyShowsWhenItAddsSomething(string? unit, string name, string? expected) =>
+        Assert.Equal(expected, Reports.ProjectReportBuilder.VisibleUnit(unit, name));
 }

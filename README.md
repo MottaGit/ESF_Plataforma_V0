@@ -655,23 +655,29 @@ indicadores saem como não informados. A equipe sai como está hoje. Projeto sem
 seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF, e os números saem com ponto no milhar e
 vírgula nos decimais ("1.234", "10,57"; `TextHelpers.Number`, fixo, porque a API roda sem dados de cultura). Com mais de um projeto (ou no Resumo), o PDF
 abre com **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em
-mais de um), registros de andamento, tarefas concluídas e horas lançadas e, para cada programa, a linha **Parceiros:** e os
+mais de um), horas lançadas e tarefas concluídas e, para cada programa, a linha **Parceiros:** e os
 indicadores nacionais e os padrão do modelo somados nos projetos do relatório, pela regra de **Resultados somados** (o
 que nenhum projeto informou fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos"). Com período,
 o que aconteceu nele fica separado do que é acumulado: primeiro os projetos ("situação em 10/11/2026: 2 em andamento ·
 1 concluído") e a equipe; depois a faixa **No período** (projetos concluídos no período, pelo dia do encerramento,
-tarefas concluídas, registros de andamento e horas lançadas, quando há); depois **Indicadores acumulados até 30/09/2026**,
+tarefas concluídas e horas lançadas, quando há); depois **Indicadores acumulados até 30/09/2026**,
 com os programas e, em cada cartão, a mudança no período (a mesma soma feita com os valores da véspera do início).
 Depois vem o
 **Resumo dos projetos**: uma linha por projeto (com a cidade embaixo; com mais de um programa, agrupadas sob uma
-linha com o nome de cada programa), status, equipe, registros de andamento no período
-e uma coluna por indicador nacional, com o valor do fim do período ("–" é não informado, diferente de zero). Títulos
+linha com o nome de cada programa), status, equipe, **última atualização** (o dia do último registro de andamento até
+o fim do período: mostra que o projeto está vivo; a contagem de registros saiu do PDF porque mede a documentação da
+equipe e não diz nada a quem é de fora) e uma coluna por indicador nacional, com o valor do fim do período ("–" é não
+informado, diferente de zero). A letra é de 10 pt no texto e de no mínimo 8 pt nos detalhes, num cinza escuro, para a
+leitura impressa. Nos cartões de indicador, a unidade some quando é genérica ("un.") ou quando o nome já diz ("3" e
+"Famílias atendidas", não "3 famílias · Famílias atendidas"); "10,57 m² · Área construída" continua. Títulos
 de seção não ficam sozinhos no pé da página, os cartões de indicadores não se dividem entre duas páginas e as
 linhas das tabelas também não. Na linha do tempo, cada registro leva até 4 fotos (as primeiras enviadas), com tamanho
 conforme a quantidade — uma foto larga (60% da linha), duas lado a lado, três numa linha, quatro em 2 × 2 —, todas no
 mesmo formato: o `ReportImageProcessor` endireita pela orientação da câmera (EXIF), corta em 4:3 (foto em pé guarda a
-parte de cima) e reduz para até 1200 px. A data, o texto e as fotos de um registro ficam juntos quando cabem numa
-página (antes, as fotos iam para a página seguinte e deixavam meia página em branco).
+parte de cima) e reduz para até 1200 px. Um registro só começa numa página se couberem nela a data, o texto e a
+primeira fileira de fotos (antes, as fotos iam para a página seguinte e deixavam meia página em branco); com 4 fotos, a
+segunda fileira pode ir para a página seguinte. O título "Linha do tempo" vai junto do primeiro registro, e num
+relatório de um projeto só o nome dele não se repete no topo do capítulo (já é o título da primeira página).
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
 Configurações › Acessos, **Novo acesso**, escolhendo o voluntário) pede o perfil e usa como login

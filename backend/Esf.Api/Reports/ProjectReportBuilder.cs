@@ -16,7 +16,7 @@ namespace Esf.Api.Reports;
 public static class ProjectReportBuilder
 {
     private const string Ink = "#1B2028";
-    private const string Muted = "#667085";
+    private const string Muted = "#525A66";
     private const string Line = "#DDE1E6";
     private const string SoftBg = "#F4F6F8";
     private const string Accent = "#10564A";
@@ -34,7 +34,7 @@ public static class ProjectReportBuilder
             {
                 page.Size(PageSizes.A4);
                 page.Margin(1.6f, Unit.Centimetre);
-                page.DefaultTextStyle(text => text.FontSize(9.5f).FontColor(Ink).LineHeight(1.3f));
+                page.DefaultTextStyle(text => text.FontSize(10).FontColor(Ink).LineHeight(1.3f));
 
                 // Primeira pagina com a abertura (logo, titulo, periodo, quem emitiu); as demais, so uma linha.
                 page.Header().Column(header =>
@@ -79,22 +79,22 @@ public static class ProjectReportBuilder
                 {
                     org.Item().Text(model.Organization.Name).FontSize(12).SemiBold();
                     if (!string.IsNullOrWhiteSpace(model.Organization.LegalName))
-                        org.Item().Text(model.Organization.LegalName!).FontSize(8).FontColor(Muted);
+                        org.Item().Text(model.Organization.LegalName!).FontSize(8.5f).FontColor(Muted);
                 });
 
                 row.ConstantItem(170).AlignRight().AlignMiddle().Column(issued =>
                 {
                     issued.Item().AlignRight()
                         .Text($"Emitido em {TextHelpers.BrasiliaTime(model.GeneratedAt):dd/MM/yyyy HH:mm}")
-                        .FontSize(8).FontColor(Muted);
-                    issued.Item().AlignRight().Text($"por {model.GeneratedBy}").FontSize(8).FontColor(Muted);
+                        .FontSize(8.5f).FontColor(Muted);
+                    issued.Item().AlignRight().Text($"por {model.GeneratedBy}").FontSize(8.5f).FontColor(Muted);
                 });
             });
 
-            col.Item().PaddingTop(12).Text(model.Kicker.ToUpperInvariant()).FontSize(8).SemiBold().FontColor(Muted)
+            col.Item().PaddingTop(12).Text(model.Kicker.ToUpperInvariant()).FontSize(8.5f).SemiBold().FontColor(Muted)
                 .LetterSpacing(0.05f);
             col.Item().Text(model.Title).FontSize(18).SemiBold();
-            col.Item().PaddingTop(2).Text(ReportPeriodLine(model)).FontSize(9.5f).SemiBold().FontColor(Accent);
+            col.Item().PaddingTop(2).Text(ReportPeriodLine(model)).FontSize(10).SemiBold().FontColor(Accent);
         });
     }
 
@@ -109,12 +109,13 @@ public static class ProjectReportBuilder
             {
                 row.RelativeItem().Text(text =>
                 {
-                    text.Span(model.Organization.Name).FontSize(8).SemiBold();
-                    text.Span($" · {model.Kicker} {model.Title}").FontSize(8).FontColor(Muted);
+                    text.Span(model.Organization.Name).FontSize(8.5f).SemiBold();
+                    text.Span($" · {model.Kicker} {model.Title}").FontSize(8.5f).FontColor(Muted);
                 });
-                row.ConstantItem(170).AlignRight()
-                    .Text(model.HasPeriod ? Capitalize(model.PeriodName ?? model.PeriodDates) : "")
-                    .FontSize(8).FontColor(Muted);
+                if (model.HasPeriod)
+                    row.AutoItem().PaddingLeft(12).AlignRight()
+                        .Text(Capitalize(model.PeriodName ?? model.PeriodDates))
+                        .FontSize(8.5f).FontColor(Muted);
             });
     }
 
@@ -126,14 +127,14 @@ public static class ProjectReportBuilder
             .PaddingTop(6)
             .Row(row =>
             {
-                row.RelativeItem().Text(FooterIdentity(model.Organization)).FontSize(7.5f).FontColor(Muted);
+                row.RelativeItem().Text(FooterIdentity(model.Organization)).FontSize(8).FontColor(Muted);
 
                 row.ConstantItem(70).AlignRight().Text(text =>
                 {
-                    text.Span("Página ").FontSize(7.5f).FontColor(Muted);
-                    text.CurrentPageNumber().FontSize(7.5f).FontColor(Muted);
-                    text.Span(" de ").FontSize(7.5f).FontColor(Muted);
-                    text.TotalPages().FontSize(7.5f).FontColor(Muted);
+                    text.Span("Página ").FontSize(8).FontColor(Muted);
+                    text.CurrentPageNumber().FontSize(8).FontColor(Muted);
+                    text.Span(" de ").FontSize(8).FontColor(Muted);
+                    text.TotalPages().FontSize(8).FontColor(Muted);
                 });
             });
     }
@@ -167,8 +168,8 @@ public static class ProjectReportBuilder
             {
                 col.Item().Background(SoftBg).Padding(10).Column(note =>
                 {
-                    note.Item().Text("Sobre este relatório").FontSize(9).SemiBold();
-                    note.Item().PaddingTop(2).Text(model.Note!).FontSize(9).FontColor(Muted);
+                    note.Item().Text("Sobre este relatório").FontSize(10).SemiBold();
+                    note.Item().PaddingTop(2).Text(model.Note!).FontSize(10).FontColor(Muted);
                 });
             }
 
@@ -206,7 +207,7 @@ public static class ProjectReportBuilder
         container.Column(col =>
         {
             col.Spacing(6);
-            col.Item().Text("Sobre o programa").FontSize(11).SemiBold();
+            col.Item().Text("Sobre o programa").FontSize(12).SemiBold();
             foreach (var (label, text) in new[]
                      {
                          ("O que faz", program.Description),
@@ -217,7 +218,7 @@ public static class ProjectReportBuilder
                 if (string.IsNullOrWhiteSpace(text)) continue;
                 col.Item().Column(item =>
                 {
-                    item.Item().Text(label).FontSize(8).SemiBold().FontColor(Muted);
+                    item.Item().Text(label).FontSize(8.5f).SemiBold().FontColor(Muted);
                     item.Item().Text(text!.Trim());
                 });
             }
@@ -241,24 +242,26 @@ public static class ProjectReportBuilder
         container.EnsureSpace(110).PaddingTop(8).BorderTop(1).BorderColor(Line).PaddingTop(10).Column(col =>
         {
             col.Spacing(5);
-            col.Item().Text("Quem somos").FontSize(11).SemiBold();
+            col.Item().Text("Quem somos").FontSize(12).SemiBold();
             col.Item().Text(!string.IsNullOrWhiteSpace(o.LegalName) ? o.LegalName! : o.Name).SemiBold();
             if (!string.IsNullOrWhiteSpace(o.Mission))
                 col.Item().Column(item =>
                 {
-                    item.Item().Text("Missão").FontSize(8).SemiBold().FontColor(Muted);
+                    item.Item().Text("Missão").FontSize(8.5f).SemiBold().FontColor(Muted);
                     item.Item().Text(o.Mission!.Trim());
                 });
             if (!string.IsNullOrWhiteSpace(o.About))
                 col.Item().Text(o.About!.Trim());
             if (contacts.Count > 0)
-                col.Item().Text(string.Join(" · ", contacts)).FontSize(8.5f).FontColor(Muted);
+                col.Item().Text(string.Join(" · ", contacts)).FontSize(9).FontColor(Muted);
         });
     }
 
     /// <summary>
-    /// Abertura do relatorio de varios projetos: numeros gerais (projetos por status, equipe, registros, tarefas
-    /// concluidas e horas) e os indicadores padrao de cada programa somados nos projetos do relatorio. Com periodo, o que
+    /// Abertura do relatorio de varios projetos: numeros gerais (projetos por status, equipe, horas e tarefas
+    /// concluidas) e os indicadores padrao de cada programa somados nos projetos do relatorio. Sem a contagem de
+    /// registros de andamento: ela mede a documentacao da equipe, nao resultado, e nao diz nada a quem e de fora (a
+    /// tabela mostra a ultima atualizacao de cada projeto). Com periodo, o que
     /// aconteceu nele fica separado do que e acumulado (quem lia "jul-set · 120 pessoas" entendia que as 120 eram do
     /// trimestre), e os indicadores dizem quanto mudaram no periodo.
     /// </summary>
@@ -266,7 +269,6 @@ public static class ProjectReportBuilder
     {
         var projects = model.Projects;
         var volunteers = projects.SelectMany(p => p.Volunteers).Select(v => v.VolunteerId).Distinct().Count();
-        var updates = projects.SelectMany(p => p.Updates).Count(u => model.InPeriod(u.Day));
         var doneTasks = projects.SelectMany(p => p.Activities)
             .Count(a => a.Status == ActivityStatus.Concluida && a.CompletedAt.HasValue && model.InPeriod(a.CompletedAt.Value));
         var hours = projects.Sum(p => model.HoursOf(p.Id));
@@ -282,7 +284,7 @@ public static class ProjectReportBuilder
         container.EnsureSpace(150).Column(col =>
         {
             col.Spacing(8);
-            col.Item().Text("Resultados").FontSize(11).SemiBold();
+            col.Item().Text("Resultados").FontSize(12).SemiBold();
 
             if (model.HasPeriod)
             {
@@ -298,8 +300,7 @@ public static class ProjectReportBuilder
                 var period = new List<(string, string, string?)>
                 {
                     (Number(concluded), concluded == 1 ? "projeto concluído" : "projetos concluídos", null),
-                    (Number(doneTasks), "tarefas concluídas", null),
-                    (Number(updates), "registros de andamento", null)
+                    (Number(doneTasks), "tarefas concluídas", null)
                 };
                 if (hours > 0)
                     period.Add((TextHelpers.Hours(hours), "horas de voluntariado lançadas", null));
@@ -310,12 +311,15 @@ public static class ProjectReportBuilder
             }
             else
             {
-                col.Item().Element(c => StatRow(c,
+                var overall = new List<(string, string, string?)>
+                {
                     (Number(projects.Count), projectsLabel, byStatus),
-                    (Number(volunteers), "voluntários nas equipes",
-                        hours > 0 ? $"{TextHelpers.Hours(hours)} horas de voluntariado lançadas" : null),
-                    (Number(updates), "registros de andamento", null),
-                    (Number(doneTasks), "tarefas concluídas", null)));
+                    (Number(volunteers), "voluntários nas equipes", null),
+                    (Number(doneTasks), "tarefas concluídas", null)
+                };
+                if (hours > 0)
+                    overall.Insert(2, (TextHelpers.Hours(hours), "horas de voluntariado lançadas", null));
+                col.Item().Element(c => StatRow(c, overall.ToArray()));
             }
 
             foreach (var program in model.ProgramResults.Where(r => r.Results.Count > 0 || model.PartnersLine(r.ProgramId) != null))
@@ -324,17 +328,17 @@ public static class ProjectReportBuilder
                 {
                     block.Item().Text(text =>
                     {
-                        text.Span(program.Program).FontSize(9.5f).SemiBold();
+                        text.Span(program.Program).FontSize(10).SemiBold();
                         text.Span($" · {program.Projects} {(program.Projects == 1 ? "projeto" : "projetos")}")
-                            .FontSize(8.5f).FontColor(Muted);
+                            .FontSize(9).FontColor(Muted);
                     });
                     // No resumo nao ha capitulo de projeto: os parceiros aparecem aqui, embaixo do programa.
                     var partners = model.PartnersLine(program.ProgramId);
                     if (partners != null)
                         block.Item().Text(text =>
                         {
-                            text.Span("Parceiros: ").FontSize(8.5f).SemiBold().FontColor(Ink);
-                            text.Span(partners).FontSize(8.5f).FontColor(Muted);
+                            text.Span("Parceiros: ").FontSize(9).SemiBold().FontColor(Ink);
+                            text.Span(partners).FontSize(9).FontColor(Muted);
                         });
 
                     foreach (var chunk in program.Results.Chunk(4))
@@ -358,13 +362,13 @@ public static class ProjectReportBuilder
                 col.Item().Text(model.ShowsChange
                         ? $"Indicadores somados nos projetos deste relatório (só os valores informados), com o valor de {asOf} e quanto mudou no período."
                         : $"Indicadores somados nos projetos deste relatório (só os valores informados), com os valores de {asOf}.")
-                    .FontSize(7.5f).FontColor(Muted);
+                    .FontSize(8).FontColor(Muted);
         });
     }
 
     /// <summary>Titulo de uma faixa do bloco Resultados ("No período · ...", "Indicadores acumulados até ...").</summary>
     private static void BandTitle(IContainer container, string title) =>
-        container.PaddingTop(2).Text(title).FontSize(9).SemiBold().FontColor(Accent);
+        container.PaddingTop(2).Text(title).FontSize(10).SemiBold().FontColor(Accent);
 
     /// <summary>Linha de ate 4 cartoes de numero, sempre na mesma largura (sobra espaco a direita quando sao menos).</summary>
     private static void StatRow(IContainer container, params (string Value, string Label, string? Detail)[] cards)
@@ -393,9 +397,9 @@ public static class ProjectReportBuilder
             .Column(card =>
             {
                 card.Item().Text(value).FontSize(16).SemiBold().FontColor(Ink);
-                card.Item().Text(label).FontSize(8).FontColor(Muted);
+                card.Item().Text(label).FontSize(8.5f).FontColor(Muted);
                 if (!string.IsNullOrWhiteSpace(detail))
-                    card.Item().PaddingTop(2).Text(detail!).FontSize(7.5f).FontColor(Muted);
+                    card.Item().PaddingTop(2).Text(detail!).FontSize(8).FontColor(Muted);
             });
     }
 
@@ -417,7 +421,7 @@ public static class ProjectReportBuilder
     };
 
     /// <summary>
-    /// Tabela dos projetos, na ordem do PDF (programa e nome): status, equipe, registros no periodo e uma coluna por
+    /// Tabela dos projetos, na ordem do PDF (programa e nome): status, equipe, ultima atualizacao e uma coluna por
     /// indicador nacional (os comuns a todo projeto). Indicador vazio e "nao informado", nunca zero. No Completo ela e
     /// tambem o sumario: o nome leva ao capitulo do projeto e a ultima coluna diz a pagina.
     /// </summary>
@@ -440,15 +444,15 @@ public static class ProjectReportBuilder
 
         container.EnsureSpace(80).Column(col =>
         {
-            col.Item().Text("Resumo dos projetos").FontSize(11).SemiBold();
+            col.Item().Text("Resumo dos projetos").FontSize(12).SemiBold();
             col.Item().PaddingTop(6).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
                 {
                     columns.RelativeColumn(5);
+                    columns.ConstantColumn(76);
+                    columns.ConstantColumn(44);
                     columns.ConstantColumn(66);
-                    columns.ConstantColumn(42);
-                    columns.ConstantColumn(56);
                     foreach (var _ in nationals)
                         columns.RelativeColumn(1.6f);
                     if (withPages)
@@ -460,7 +464,7 @@ public static class ProjectReportBuilder
                     header.Cell().Element(HeadCell).Text("Projeto");
                     header.Cell().Element(HeadCell).Text("Status");
                     header.Cell().Element(HeadCell).AlignRight().Text("Equipe");
-                    header.Cell().Element(HeadCell).AlignRight().Text(model.HasPeriod ? "Registros no período" : "Registros");
+                    header.Cell().Element(HeadCell).AlignRight().Text("Última atualização");
                     foreach (var national in nationals)
                         header.Cell().Element(HeadCell).AlignRight().Text(national.Name);
                     if (withPages)
@@ -475,7 +479,7 @@ public static class ProjectReportBuilder
                         currentProgram = p.ProgramId;
                         table.Cell().ColumnSpan(columnCount).BorderBottom(1).BorderColor(Line)
                             .PaddingTop(8).PaddingBottom(3).PaddingHorizontal(5)
-                            .Text(p.Program!.Name).FontSize(8.5f).SemiBold().FontColor(Accent);
+                            .Text(p.Program!.Name).FontSize(9).SemiBold().FontColor(Accent);
                     }
 
                     var nameCell = table.Cell().Element(BodyCell);
@@ -487,11 +491,15 @@ public static class ProjectReportBuilder
                         // O programa ja esta no titulo do grupo (ou do relatorio): embaixo, so a cidade.
                         var place = string.Join("/", new[] { p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x)));
                         if (place.Length > 0)
-                            cell.Item().Text(place).FontSize(7.5f).FontColor(Muted);
+                            cell.Item().Text(place).FontSize(8).FontColor(Muted);
                     });
                     table.Cell().Element(BodyCell).Text(StatusLabel(p.Status));
                     table.Cell().Element(BodyCell).AlignRight().Text(Number(p.Volunteers.Count));
-                    table.Cell().Element(BodyCell).AlignRight().Text(Number(p.Updates.Count(u => model.InPeriod(u.Day))));
+                    // Ultimo registro de andamento ate o fim do periodo: mostra que o projeto esta vivo.
+                    var lastUpdate = p.Updates.Where(u => u.Day <= model.AsOf).Select(u => (DateOnly?)u.Day).Max();
+                    table.Cell().Element(BodyCell).AlignRight()
+                        .Text(lastUpdate is { } last ? last.ToString("dd/MM/yyyy") : "–")
+                        .FontColor(lastUpdate is null ? Muted : Ink);
                     foreach (var national in nationals)
                     {
                         var value = NationalValue(p, national.Id);
@@ -512,7 +520,7 @@ public static class ProjectReportBuilder
                         .Text(anyMissing
                             ? $"Indicadores com os valores de {asOf}. – indicador não informado (diferente de zero)."
                             : $"Indicadores com os valores de {asOf}.")
-                        .FontSize(7.5f).FontColor(Muted));
+                        .FontSize(8).FontColor(Muted));
             });
         });
     }
@@ -554,21 +562,23 @@ public static class ProjectReportBuilder
             {
                 row.RelativeItem().Column(head =>
                 {
-                    head.Item().Text(p.Name).FontSize(12.5f).SemiBold();
-                    head.Item().Text(p.Program!.Name).FontSize(8.5f).FontColor(Muted);
+                    // Relatorio de um projeto so: o nome ja e o titulo da primeira pagina.
+                    if (model.Projects.Count > 1)
+                        head.Item().Text(p.Name).FontSize(13.5f).SemiBold();
+                    head.Item().Text(p.Program!.Name).FontSize(9).FontColor(Muted);
                     // Parceiros do programa logo abaixo do nome dele (so nome e papel).
                     var partners = model.PartnersLine(p.ProgramId);
                     if (partners != null)
                         head.Item().Text(text =>
                         {
-                            text.Span("Parceiros: ").FontSize(8.5f).SemiBold().FontColor(Muted);
-                            text.Span(partners).FontSize(8.5f).FontColor(Ink);
+                            text.Span("Parceiros: ").FontSize(9).SemiBold().FontColor(Muted);
+                            text.Span(partners).FontSize(9).FontColor(Ink);
                         });
                 });
 
                 row.ConstantItem(120).AlignRight().Column(head =>
                 {
-                    head.Item().AlignRight().Text(StatusLabel(p.Status)).FontSize(9).SemiBold().FontColor(Accent);
+                    head.Item().AlignRight().Text(StatusLabel(p.Status)).FontSize(10).SemiBold().FontColor(Accent);
                 });
             });
 
@@ -586,7 +596,7 @@ public static class ProjectReportBuilder
             if (model.IncludeUpdates && updates.Count > 0)
                 col.Item().Element(c => ComposeUpdates(c, model, updates));
             else if (model.IncludeUpdates && model.HasPeriod)
-                col.Item().Text("Nenhum registro de andamento no período.").FontSize(9).FontColor(Muted);
+                col.Item().Text("Nenhum registro de andamento no período.").FontSize(10).FontColor(Muted);
 
             if (model.IncludeTasks && doneTasks.Count > 0)
                 col.Item().Element(c => ComposeTasks(c, model, doneTasks));
@@ -634,7 +644,7 @@ public static class ProjectReportBuilder
     {
         container.EnsureSpace(60).Column(col =>
         {
-            col.Item().Text("Próximas etapas").FontSize(10).SemiBold();
+            col.Item().Text("Próximas etapas").FontSize(11).SemiBold();
             col.Item().PaddingTop(4).Column(list =>
             {
                 list.Spacing(3);
@@ -646,7 +656,7 @@ public static class ProjectReportBuilder
                         {
                             text.Span(task.Title);
                             if (task.DueDate is { } due)
-                                text.Span($" · até {due:dd/MM/yyyy}").FontSize(8.5f).FontColor(Muted);
+                                text.Span($" · até {due:dd/MM/yyyy}").FontSize(9).FontColor(Muted);
                         });
                     });
             });
@@ -663,9 +673,9 @@ public static class ProjectReportBuilder
             var asOf = model.AsOf.ToString("dd/MM/yyyy");
             col.Item().Text(text =>
             {
-                text.Span("Indicadores").FontSize(10).SemiBold();
+                text.Span("Indicadores").FontSize(11).SemiBold();
                 if (model.HasPeriod)
-                    text.Span($" · acumulados até {asOf}").FontSize(8.5f).FontColor(Muted);
+                    text.Span($" · acumulados até {asOf}").FontSize(9).FontColor(Muted);
             });
 
             // So os informados: indicador em branco (ainda nao apurado) nao vira zero no relatorio.
@@ -680,7 +690,7 @@ public static class ProjectReportBuilder
                     .Text(model.AsOf < TextHelpers.BrasiliaDay(model.GeneratedAt)
                         ? $"Nenhum indicador informado até {asOf}."
                         : "Nenhum indicador informado ainda.")
-                    .FontSize(9).FontColor(Muted);
+                    .FontSize(10).FontColor(Muted);
             foreach (var chunk in indicators.Chunk(4))
             {
                 col.Item().PaddingTop(6).Row(row =>
@@ -713,16 +723,31 @@ public static class ProjectReportBuilder
             .Padding(8)
             .Column(card =>
             {
+                var shownUnit = VisibleUnit(unit, name);
                 card.Item().AlignCenter().Text(text =>
                 {
                     text.Span(Number(value)).FontSize(16).SemiBold().FontColor(Accent);
-                    if (!string.IsNullOrWhiteSpace(unit))
-                        text.Span($" {unit}").FontSize(9).FontColor(Muted);
+                    if (shownUnit != null)
+                        text.Span($" {shownUnit}").FontSize(10).FontColor(Muted);
                 });
-                card.Item().AlignCenter().Text(name).FontSize(7.5f).FontColor(Muted);
+                card.Item().AlignCenter().Text(name).FontSize(9);
                 foreach (var detail in details.Where(d => !string.IsNullOrWhiteSpace(d)))
-                    card.Item().AlignCenter().Text(detail!).FontSize(6.5f).FontColor(Muted);
+                    card.Item().AlignCenter().Text(detail!).FontSize(8).FontColor(Muted);
             });
+    }
+
+    private static readonly HashSet<string> GenericUnits = new() { "un", "und", "unid", "unidade", "unidades" };
+
+    /// <summary>
+    /// Unidade que acrescenta algo ao numero: some quando e generica ("un.") ou quando o nome ja diz ("3 famílias" com
+    /// "Famílias atendidas" virava "3 famílias · Famílias atendidas"); "m²" de "Área construída" fica.
+    /// </summary>
+    public static string? VisibleUnit(string? unit, string name)
+    {
+        if (string.IsNullOrWhiteSpace(unit)) return null;
+        var folded = SearchText.Fold(unit.Trim()).TrimEnd('.');
+        if (folded.Length == 0 || GenericUnits.Contains(folded)) return null;
+        return SearchText.Fold(name).Contains(folded) ? null : unit.Trim();
     }
 
     /// <summary>Equipe do projeto; com horas lancadas (no periodo, quando ha), ganha a coluna Horas e o total.</summary>
@@ -734,10 +759,10 @@ public static class ProjectReportBuilder
         {
             col.Item().Text(text =>
             {
-                text.Span($"Voluntários envolvidos ({p.Volunteers.Count})").FontSize(10).SemiBold();
+                text.Span($"Voluntários envolvidos ({p.Volunteers.Count})").FontSize(11).SemiBold();
                 if (total > 0)
                     text.Span($" · {TextHelpers.Hours(total)} horas de voluntariado{(model.HasPeriod ? " no período" : "")}")
-                        .FontSize(9).FontColor(Muted);
+                        .FontSize(10).FontColor(Muted);
             });
             col.Item().PaddingTop(4).Table(table =>
             {
@@ -775,7 +800,7 @@ public static class ProjectReportBuilder
         container.EnsureSpace(70).Column(col =>
         {
             var title = model.HasPeriod ? "Tarefas concluídas no período" : "Tarefas concluídas";
-            col.Item().Text($"{title} ({tasks.Count})").FontSize(10).SemiBold();
+            col.Item().Text($"{title} ({tasks.Count})").FontSize(11).SemiBold();
             col.Item().PaddingTop(4).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
@@ -805,8 +830,11 @@ public static class ProjectReportBuilder
     /// <summary>Largura util de uma entrada da linha do tempo (A4 sem as margens, a borda e o recuo), em pontos.</summary>
     private const float TimelineWidth = 595.3f - 2 * 45.35f - 10;
 
-    /// <summary>Altura que a pagina tem para o conteudo (sem margens, cabecalho e rodape), com folga.</summary>
-    private const float PageContentHeight = 620;
+    /// <summary>
+    /// Teto do que se pede junto numa pagina (em pontos), abaixo da altura util dela: o EnsureSpace pedindo mais do que
+    /// cabe numa pagina vazia nunca seria atendido.
+    /// </summary>
+    private const float MaxKeepTogether = 500;
 
     /// <summary>Espaco entre as fotos da grade.</summary>
     private const float PhotoGap = 6;
@@ -814,35 +842,40 @@ public static class ProjectReportBuilder
     /// <summary>
     /// Historico cronologico do projeto: cada registro com seu texto e as fotos anexadas a ele. A data, o texto e as
     /// fotos ficam juntos quando cabem numa pagina (antes, as fotos iam para a pagina seguinte e o texto ficava, com
-    /// meia pagina em branco no meio; ou a data ficava sozinha no pe da pagina).
+    /// meia pagina em branco no meio; ou a data ficava sozinha no pe da pagina). O titulo vai junto do primeiro
+    /// registro. Sem EnsureSpace em volta de tudo: ele mede so o pedaco que cabe e, com o registro seguinte indo para a
+    /// outra pagina, empurrava a linha do tempo inteira.
     /// </summary>
     private static void ComposeUpdates(IContainer container, ReportModel model, List<ProjectUpdate> updates)
     {
-        container.EnsureSpace(70).Column(col =>
+        container.Column(col =>
         {
-            col.Item().Text(model.HasPeriod ? "Linha do tempo no período" : "Linha do tempo").FontSize(10).SemiBold();
+            col.Spacing(12);
 
-            col.Item().PaddingTop(6).Column(inner =>
+            foreach (var (update, index) in updates.Select((u, i) => (u, i)))
             {
-                inner.Spacing(12);
+                var photos = model.IncludePhotos && model.Photos.TryGetValue(update.Id, out var list) ? list : new List<ReportPhoto>();
+                var first = index == 0;
+                var keepTogether = Math.Min(KeepTogetherHeight(update.Text, photos) + (first ? 20 : 0), MaxKeepTogether);
 
-                foreach (var update in updates)
+                col.Item().EnsureSpace((int)keepTogether).Column(block =>
                 {
-                    var photos = model.IncludePhotos && model.Photos.TryGetValue(update.Id, out var list) ? list : new List<ReportPhoto>();
-                    var keepTogether = Math.Min(EstimatedHeight(update.Text, photos), PageContentHeight);
+                    if (first)
+                        block.Item().PaddingBottom(6)
+                            .Text(model.HasPeriod ? "Linha do tempo no período" : "Linha do tempo").FontSize(11).SemiBold();
 
-                    inner.Item().EnsureSpace((int)keepTogether).BorderLeft(2).BorderColor(Accent).PaddingLeft(8).Column(entry =>
+                    block.Item().BorderLeft(2).BorderColor(Accent).PaddingLeft(8).Column(entry =>
                     {
                         entry.Spacing(3);
 
-                        entry.Item().Text(ShortDate(update.Day)).FontSize(8.5f).SemiBold().FontColor(Accent);
-                        entry.Item().Element(c => RichTextPdf.Compose(c, update.Text, 9));
+                        entry.Item().Text(ShortDate(update.Day)).FontSize(9).SemiBold().FontColor(Accent);
+                        entry.Item().Element(c => RichTextPdf.Compose(c, update.Text, 10));
 
                         if (photos.Count > 0)
                             entry.Item().PaddingTop(3).Element(c => ComposePhotos(c, photos));
                     });
-                }
-            });
+                });
+            }
         });
     }
 
@@ -866,7 +899,7 @@ public static class ProjectReportBuilder
                         {
                             cell.Item().AspectRatio(4f / 3f).Image(photo.Data).FitArea();
                             if (!string.IsNullOrWhiteSpace(photo.Caption))
-                                cell.Item().PaddingTop(1).Text(photo.Caption!).FontSize(7.5f).FontColor(Muted);
+                                cell.Item().PaddingTop(1).Text(photo.Caption!).FontSize(8).FontColor(Muted);
                         });
 
                     // Uma foto so ocupa 60% da linha; a ultima linha incompleta mantem o tamanho das de cima.
@@ -880,25 +913,29 @@ public static class ProjectReportBuilder
     }
 
     /// <summary>
-    /// Altura aproximada de um registro (data, texto e fotos), em pontos, para manter os tres juntos: o texto conta
-    /// ~100 caracteres por linha e uma linha a mais por paragrafo; as fotos, a altura exata da grade.
+    /// Quanto de um registro precisa caber na pagina para ele comecar nela (o EnsureSpace compara com o pedaco que cabe):
+    /// a data, o texto e a primeira fileira de fotos; sem fotos, a data e duas linhas. Assim as fotos nao se separam do
+    /// texto, e um registro com 4 fotos (2 x 2) pode deixar a segunda fileira para a pagina seguinte em vez de levar
+    /// tudo e deixar meia pagina em branco. O texto conta ~100 caracteres por linha, com uma linha e meia de folga para
+    /// menos: errar para mais faria o registro mudar de pagina mesmo cabendo.
     /// </summary>
-    private static float EstimatedHeight(string html, List<ReportPhoto> photos)
+    private static float KeepTogetherHeight(string html, List<ReportPhoto> photos)
     {
-        const float lineHeight = 12.5f;
+        const float lineHeight = 13.5f;
+        const float dateHeight = 16;
+        if (photos.Count == 0) return dateHeight + 2 * lineHeight - 4;
+
         var paragraphs = Math.Max(1, System.Text.RegularExpressions.Regex.Matches(html, "<(p|li)[ >]").Count);
-        var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
-        var lines = paragraphs + (int)Math.Ceiling(text.Trim().Length / 100f);
-        var height = 16 + lines * lineHeight;
-        if (photos.Count == 0) return Math.Min(height, 16 + 3 * lineHeight);
+        var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ").Trim();
+        var lines = Math.Max(paragraphs, (int)Math.Ceiling(text.Length / 100f));
+        var textHeight = Math.Max(lineHeight, (lines - 1.5f) * lineHeight);
 
         var perRow = photos.Count switch { 1 => 1, 3 => 3, _ => 2 };
         var width = photos.Count == 1
             ? TimelineWidth * 0.6f
             : (TimelineWidth - (perRow - 1) * PhotoGap) / perRow;
-        var rows = (int)Math.Ceiling(photos.Count / (float)perRow);
-        var caption = photos.Any(p => !string.IsNullOrWhiteSpace(p.Caption)) ? 12 : 0;
-        return height + 6 + rows * (width * 3 / 4 + caption) + (rows - 1) * PhotoGap;
+        var caption = photos.Take(perRow).Any(p => !string.IsNullOrWhiteSpace(p.Caption)) ? 10 : 0;
+        return dateHeight + textHeight + 6 + width * 3 / 4 + caption;
     }
 
     // ---------- helpers de layout ----------
@@ -908,8 +945,8 @@ public static class ProjectReportBuilder
     {
         container.Column(field =>
         {
-            field.Item().Text(label).FontSize(7.5f).FontColor(Muted);
-            field.Item().Text(value).FontSize(9);
+            field.Item().Text(label).FontSize(8).FontColor(Muted);
+            field.Item().Text(value).FontSize(10);
         });
     }
 
@@ -917,21 +954,21 @@ public static class ProjectReportBuilder
     {
         container.EnsureSpace(50).Column(col =>
         {
-            col.Item().Text(label).FontSize(10).SemiBold();
-            col.Item().PaddingTop(2).Text(value).FontSize(9);
+            col.Item().Text(label).FontSize(11).SemiBold();
+            col.Item().PaddingTop(2).Text(value).FontSize(10);
         });
     }
 
     private static IContainer HeadCell(IContainer container) =>
         container.Background(SoftBg).BorderBottom(1).BorderColor(Line)
             .PaddingVertical(4).PaddingHorizontal(5)
-            .DefaultTextStyle(style => style.FontSize(8).SemiBold());
+            .DefaultTextStyle(style => style.FontSize(8.5f).SemiBold());
 
     /// <summary>Celula de tabela; ShowEntire: a linha nao se divide entre duas paginas (nome numa, cidade na outra).</summary>
     private static IContainer BodyCell(IContainer container) =>
         container.ShowEntire().BorderBottom(1).BorderColor(Line)
             .PaddingVertical(4).PaddingHorizontal(5)
-            .DefaultTextStyle(style => style.FontSize(8.5f));
+            .DefaultTextStyle(style => style.FontSize(9));
 
     // ---------- helpers de texto ----------
 
