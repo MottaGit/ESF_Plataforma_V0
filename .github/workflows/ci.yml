@@ -1,0 +1,119 @@
+# Conferencia automatica a cada push (aba Actions do GitHub; o commit ganha um check verde ou vermelho).
+# Backend: testes no banco em memoria e de novo num PostgreSQL 16 de verdade (migracoes do zero, restricoes,
+# SQL), depois a API sobe como no deploy e o smoke-api.sh chama as rotas principais. Frontend: typecheck e build.
+# Para rodar a mao: Actions > CI > Run workflow.
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - "**/*.md"
+      - ".vscode/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: esf
+          POSTGRES_PASSWORD: esf-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U esf"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Compilar
+        working-directory: backend
+        run: dotnet build -c Release
+
+      - name: Testes no banco em memória
+        working-directory: backend
+        run: dotnet test -c Release --no-build --logger GitHubActions
+
+      - name: Testes no PostgreSQL (mesmos testes, banco criado pelas migrações)
+        working-directory: backend
+        env:
+          ESF_TEST_POSTGRES: Host=localhost;Port=5432;Username=esf;Password=esf-ci
+        run: dotnet test -c Release --no-build --logger GitHubActions
+
+      - name: Subir a API como no deploy (migrações e demonstração num banco vazio)
+        working-directory: backend/Esf.Api
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+          ASPNETCORE_URLS: http://localhost:5080
+          ConnectionStrings__Default: Host=localhost;Port=5432;Database=esf_ci_api;Username=esf;Password=esf-ci
+          Jwt__Key: chave-usada-so-no-ci-com-mais-de-32-caracteres
+          Seed__Enabled: "true"
+          Seed__DemoPassword: Esf@2026
+        run: |
+          nohup dotnet bin/Release/net8.0/Esf.Api.dll > "$RUNNER_TEMP/api.log" 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -fsS http://localhost:5080/api/health > /dev/null 2>&1; then
+              echo "API no ar em ${i} s."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error title=A API não subiu::Sem resposta em /api/health depois de 90 s (log da API abaixo)."
+          exit 1
+
+      - name: Chamar as rotas principais na API no ar
+        env:
+          API: http://localhost:5080
+          SEED_DEMO_PASSWORD: Esf@2026
+        run: bash .github/scripts/smoke-api.sh
+
+      - name: Log da API
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log" || true
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npx vite build

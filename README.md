@@ -91,7 +91,7 @@ dotnet ef migrations add NomeDaMigration      # criar a próxima
 
 ### Testes
 
-`backend/Esf.Api.Tests` (xUnit, banco em memória, sem PostgreSQL) verifica a **separação entre núcleos**: com dois
+`backend/Esf.Api.Tests` (xUnit; banco em memória na máquina, PostgreSQL no CI) verifica a **separação entre núcleos**: com dois
 núcleos que têm um registro em cada tabela, quem é de um núcleo não lê (lista, busca por id, inclusão pelo
 relacionamento), não cria e não referencia dados do outro (tarefa, responsável, programa, equipe, ficha de
 voluntário, acesso, relatório); o login acha qualquer núcleo e o token leva o núcleo; o e-mail é único na plataforma.
@@ -110,8 +110,34 @@ cd backend
 dotnet test
 ```
 
-O banco em memória não roda as funções do PostgreSQL (busca sem acento, `ILIKE`), então as telas que dependem delas
-ficam de fora desses testes.
+Sem configuração, os testes usam o banco em memória, que não roda migrações nem as funções do PostgreSQL (busca sem
+acento, `ILIKE`) e não confere chave estrangeira, campo único nem tamanho. Com a variável `ESF_TEST_POSTGRES` (conexão
+com um servidor PostgreSQL, sem o nome do banco), os mesmos testes rodam no PostgreSQL: um banco modelo é criado uma
+vez com todas as migrações e cada teste recebe uma cópia dele (`Esf.Api.Tests/TestDatabase.cs`). Os testes marcados
+com `[PostgresFact]` (migrações do zero, busca sem acento) só rodam assim. O `LastMigrationMatchesTheModel` roda
+sempre e falha quando uma entidade muda sem `dotnet ef migrations add`.
+
+```bash
+ESF_TEST_POSTGRES="Host=localhost;Port=5432;Username=esf;Password=esf" dotnet test
+```
+
+### CI (GitHub Actions)
+
+A cada push, em qualquer branch (commits que mexem só em `.md` não disparam), o GitHub roda
+`.github/workflows/ci.yml`, e o commit ganha um check verde ou vermelho. Os detalhes ficam na aba **Actions** e cada
+falha vira anotação no commit. Para rodar à mão: **Actions › CI › Run workflow**.
+
+- **Backend:** compila; roda os testes no banco em memória; roda de novo num PostgreSQL 16 de verdade (serviço do
+  próprio GitHub, descartado no fim); sobe a API como no deploy (`Production`, banco vazio: migrações e demonstração
+  aplicadas ao iniciar) e roda `.github/scripts/smoke-api.sh`. O script entra com as contas de demonstração
+  (administrador, perfil Usuário, gestão nacional, outro núcleo) e chama as rotas principais de cada tela. Faz também
+  algumas gravações (tarefa, horas, registro, página pública), gera os PDFs e a planilha e confere as recusas por perfil
+  e por núcleo. Se algo falha, o log da API aparece no fim.
+- **Frontend:** `npm ci`, typecheck e build.
+
+Tudo roda nos servidores do GitHub (sem custo, o repositório é público), sem segredo e sem tocar no Render. As
+migrações são testadas a partir de um banco vazio. Conversão de dados antigos de produção (migração que preenche ou
+move dados existentes) só se testa com uma cópia do banco de produção, que não pode ir para o repositório.
 
 ---
 
@@ -915,10 +941,13 @@ QuestPDF (relatórios), ClosedXML (planilhas, licença MIT), Swashbuckle (Swagge
 
 ```
 ESF_Plataforma_V0/
+├─ .github/
+│  ├─ workflows/ci.yml    CI: testes (memória e PostgreSQL), API no ar e build do frontend
+│  └─ scripts/smoke-api.sh  rotas principais chamadas na API no ar
 ├─ backend/
 │  ├─ Dockerfile
 │  ├─ Esf.Api.sln
-│  ├─ Esf.Api.Tests/      testes (xUnit, banco em memória): separação entre núcleos
+│  ├─ Esf.Api.Tests/      testes (xUnit; memória ou PostgreSQL): separação entre núcleos e regras
 │  └─ Esf.Api/
 │     ├─ Common/          AppException, middleware de erros, JWT, opções, políticas
 │     ├─ Controllers/     auth, dashboard, projects, activities, volunteers,

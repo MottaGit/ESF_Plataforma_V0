@@ -22,6 +22,7 @@ cd backend && dotnet build
 cd backend && dotnet test                                              # todos os testes
 cd backend && dotnet test --filter "FullyQualifiedName~NucleoIsolationTests"   # uma classe
 cd backend && dotnet test --filter "FullyQualifiedName~ProjectHoursTests.MemberLogsOwnHoursAndCoordinationSeesThem"
+cd backend && ESF_TEST_POSTGRES="Host=...;Username=...;Password=..." dotnet test   # os mesmos testes num Postgres (o CI faz)
 cd backend/Esf.Api && dotnet run                                       # API em :5080 (precisa de PostgreSQL)
 cd backend/Esf.Api && dotnet ef migrations add NomeDaMigration         # nova migração (dotnet-ef global)
 ```
@@ -138,11 +139,19 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 
 ## Testes e validação
 
-- `backend/Esf.Api.Tests` (xUnit, EF InMemory): os serviços são instanciados direto com o contexto e um `TestUser`
+- `backend/Esf.Api.Tests` (xUnit): os serviços são instanciados direto com o contexto e um `TestUser`
   (`ICurrentUser` com id, perfil e núcleo). Cobrem a separação entre núcleos, gestão nacional, acesso por link,
-  planilhas, termo online, horas e certificado. Rode antes de mexer em consultas ou no `EsfDbContext`.
-- O banco em memória não roda migrações nem funções do Postgres (`esf_fold`, `ILIKE`): migração e busca só se validam
-  num Postgres real. Diga quando uma migração não foi testada assim.
+  planilhas, termo online, horas e certificado. Rode antes de mexer em consultas ou no `EsfDbContext`. Banco novo de
+  teste sempre por `TestDatabase.CreateAsync()` (ou `TwoNucleos`), nunca `UseInMemoryDatabase` direto, senão o teste
+  não roda no Postgres do CI.
+- Na máquina, os testes usam EF InMemory, que não roda migrações nem funções do Postgres (`esf_fold`, `ILIKE`) e não
+  confere FK, único nem tamanho. Com `ESF_TEST_POSTGRES` (o CI define) rodam num Postgres real: banco modelo migrado
+  uma vez e uma cópia por teste. `[PostgresFact]` só roda assim. `LastMigrationMatchesTheModel` roda sempre e pega
+  entidade mudada sem migração.
+- CI (`.github/workflows/ci.yml`, a cada push): testes em memória e no Postgres 16, API subida como no deploy (banco
+  vazio, migrações + demonstração) com `.github/scripts/smoke-api.sh` chamando as rotas principais por perfil, e
+  typecheck + build do frontend. Rota ou tela nova importante: acrescente no script. Migração só conta como testada em
+  Postgres depois do CI verde no commit; antes disso, diga que não foi.
 - Frontend: typecheck, build e conferência no navegador em largura de computador e de celular.
 
 ## Convenções
