@@ -32,7 +32,7 @@ call() {
   local auth=()
   if [[ $token != - ]]; then auth=(-H "Authorization: Bearer $token"); fi
   local status
-  status=$(curl -sS -o "$BODY" -w '%{http_code}' -X "$method" "$API$path" "${auth[@]}" "$@")
+  status=$(curl -sS -o "$BODY" -w '%{http_code}' -X "$method" "$API$path" "${auth[@]}" "$@") || status="curl-erro-$?"
   if [[ $status == 2* ]]; then
     printf 'ok   %s %-6s %s\n' "$status" "$method" "$path"
   else
@@ -44,7 +44,7 @@ call() {
 # deny TOKEN METODO ROTA [STATUS]: confere que a rota recusa o perfil (403, ou o STATUS informado).
 deny() {
   local expected=${4:-403} status
-  status=$(curl -sS -o "$BODY" -w '%{http_code}' -X "$2" "$API$3" -H "Authorization: Bearer $1")
+  status=$(curl -sS -o "$BODY" -w '%{http_code}' -X "$2" "$API$3" -H "Authorization: Bearer $1") || status="curl-erro-$?"
   if [[ $status == "$expected" ]]; then
     printf 'ok   %s %-6s %s (recusada, como deve)\n' "$status" "$2" "$3"
   else
@@ -123,7 +123,8 @@ if [[ -n $member ]]; then
   call "$admin" POST "/api/projects/$project/hours" "${JSON[@]}" \
     -d "{\"volunteerId\":\"$member\",\"date\":\"$today\",\"hours\":2,\"description\":\"Visita do CI\"}"
 fi
-call "$admin" POST "/api/projects/$project/updates" -F 'text=<p>Registro de <strong>andamento</strong> do CI</p>'
+# --form-string: no -F, valor comecando com "<" e lido de um arquivo.
+call "$admin" POST "/api/projects/$project/updates" --form-string 'text=<p>Registro de <strong>andamento</strong> do CI</p>'
 call "$admin" GET /api/audit
 expect '[.. | strings | select(test("pelo CI"))] | length > 0' \
   'O histórico de alterações não registrou a tarefa criada pelo CI.'

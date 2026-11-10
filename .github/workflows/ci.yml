@@ -89,7 +89,11 @@ jobs:
 
       - name: Log da API
         if: failure()
-        run: cat "$RUNNER_TEMP/api.log" || true
+        run: |
+          cat "$RUNNER_TEMP/api.log" || true
+          # Os erros do log tambem viram anotacao no commit (o log do job so abre com login no GitHub).
+          errors=$(grep -E -A8 "^(fail|crit):" "$RUNNER_TEMP/api.log" | head -80 | sed -e 's/%/%25/g' -e 's/\r//g' | sed ':a;N;$!ba;s/\n/%0A/g' || true)
+          if [ -n "$errors" ]; then echo "::error title=Erros no log da API::$errors"; fi
 
   frontend:
     name: Frontend
