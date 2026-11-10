@@ -363,6 +363,9 @@ public static class ProjectReportBuilder
                 });
             });
 
+            if (!string.IsNullOrWhiteSpace(p.Objective))
+                col.Item().Element(c => Paragraph(c, "Objetivo", p.Objective!));
+
             if (!string.IsNullOrWhiteSpace(p.Description))
                 col.Item().Element(c => Paragraph(c, "Descrição", p.Description!));
 
@@ -390,15 +393,13 @@ public static class ProjectReportBuilder
         container.ShowEntire().Column(col =>
         {
             // Os indicadores nao guardam historico: sao os valores de hoje, acumulados. Com periodo de referencia, o
-            // leitor entenderia "120 pessoas" como so do trimestre; a nota diz que nao.
-            var asOf = TextHelpers.BrasiliaDay(model.GeneratedAt).ToString("dd/MM/yyyy");
+            // leitor entenderia "120 pessoas" como so do trimestre; a nota diz que nao. Cada cartao diz quando o
+            // numero foi atualizado (o de marco nao vale "ate hoje").
             col.Item().Text(text =>
             {
                 text.Span("Indicadores").FontSize(10).SemiBold();
-                text.Span(model.HasPeriod
-                        ? $" · valores acumulados até {asOf}, não só do período do relatório"
-                        : $" · valores até {asOf}")
-                    .FontSize(8.5f).FontColor(Muted);
+                if (model.HasPeriod)
+                    text.Span(" · valores acumulados, não só do período do relatório").FontSize(8.5f).FontColor(Muted);
             });
 
             // So os informados: indicador em branco (ainda nao apurado) nao vira zero no relatorio.
@@ -415,7 +416,10 @@ public static class ProjectReportBuilder
                 {
                     foreach (var indicator in chunk)
                         row.RelativeItem().PaddingRight(6)
-                            .Element(c => ValueCard(c, indicator.Value!.Value, indicator.Unit, indicator.Name));
+                            .Element(c => ValueCard(c, indicator.Value!.Value, indicator.Unit, indicator.Name,
+                                indicator.ValueUpdatedAt is { } updated
+                                    ? $"atualizado em {TextHelpers.BrasiliaDay(updated):dd/MM/yyyy}"
+                                    : null));
 
                     for (var pad = chunk.Length; pad < 4; pad++)
                         row.RelativeItem();
@@ -623,8 +627,7 @@ public static class ProjectReportBuilder
         _ => status.ToString()
     };
 
-    private static string Number(decimal value) =>
-        value == Math.Truncate(value) ? ((long)value).ToString("N0") : value.ToString("N2");
+    private static string Number(decimal value) => TextHelpers.Number(value);
 
     /// <summary>Data curta sem depender de dados de cultura (o host roda com InvariantGlobalization).</summary>
     private static string ShortDate(DateOnly day) => $"{day.Day:00} {MonthAbbreviations[day.Month - 1]} {day.Year}";

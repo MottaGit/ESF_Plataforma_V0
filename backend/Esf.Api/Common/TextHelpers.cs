@@ -42,4 +42,16 @@ public static class TextHelpers
     /// <summary>12 -> "12"; 1.5 -> "1,5"; 2.25 -> "2,25" (horas lancadas).</summary>
     public static string Hours(decimal hours) =>
         Math.Round(hours, 2).ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ',');
+
+    // Ponto no milhar e virgula nos decimais fixos aqui: a API roda sem dados de cultura (InvariantGlobalization), e
+    // "N0" sairia "1,234" (que no Brasil se le um virgula dois).
+    private static readonly NumberFormatInfo BrazilianNumbers = new()
+    {
+        NumberDecimalSeparator = ",",
+        NumberGroupSeparator = ".",
+        NumberGroupSizes = new[] { 3 }
+    };
+
+    /// <summary>1234 -> "1.234"; 10.5 -> "10,5"; 10.57 -> "10,57" (numeros nos PDFs).</summary>
+    public static string Number(decimal value) => Math.Round(value, 2).ToString("#,0.##", BrazilianNumbers);
 }

@@ -627,11 +627,13 @@ referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês pass
 meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
 não serve para o relatório anual; `utils/periods.ts`, os mesmos do painel nacional) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
-andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico): por isso o título "Indicadores"
-de cada projeto diz "valores até 09/11/2026" e, com período de referência, "valores acumulados até 09/11/2026, não só
-do período do relatório" (quem lia "período jul–set · 120 pessoas" entendia que as 120 eram do trimestre). Projeto sem
+andamento no período". Indicadores e equipe saem como estão hoje (os indicadores não guardam histórico): cada cartão de
+indicador diz quando o número foi atualizado ("atualizado em 05/09/2026", de `ValueUpdatedAt`; o número informado em
+março não vale "até hoje") e, com período de referência, o título "Indicadores" diz "valores acumulados, não só do
+período do relatório" (quem lia "período jul–set · 120 pessoas" entendia que as 120 eram do trimestre). Projeto sem
 nenhum indicador informado mostra "Nenhum indicador informado ainda". As datas
-seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto (ou no Resumo), o PDF
+seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF, e os números saem com ponto no milhar e
+vírgula nos decimais ("1.234", "10,57"; `TextHelpers.Number`, fixo, porque a API roda sem dados de cultura). Com mais de um projeto (ou no Resumo), o PDF
 abre com **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em
 mais de um), registros de andamento e tarefas concluídas no período e, para cada programa, a linha **Parceiros:** e os
 indicadores nacionais e os padrão do modelo somados nos projetos do relatório, pela regra de **Resultados somados** (o

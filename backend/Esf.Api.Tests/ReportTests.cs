@@ -132,4 +132,14 @@ public class ReportTests
         Assert.True(full.Content.Length > 0);
         Assert.NotEqual(summary.Content.Length, full.Content.Length);
     }
+
+    [Fact]
+    public void NumbersUseBrazilianSeparatorsWhateverTheServerCulture()
+    {
+        Assert.Equal("1.234", TextHelpers.Number(1234));
+        Assert.Equal("1.234.567,8", TextHelpers.Number(1234567.8m));
+        Assert.Equal("10,57", TextHelpers.Number(10.57m));
+        Assert.Equal("0", TextHelpers.Number(0));
+        Assert.Equal("12", TextHelpers.Number(12.00m));
+    }
 }
