@@ -2,6 +2,7 @@ using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esf.Api.Services;
@@ -269,6 +270,9 @@ public class JobWorker : BackgroundService
     /// <summary>Aviso no sininho de quem pediu (se o acesso tem voluntario), para quem ja saiu da tela.</summary>
     private static async Task NotifyAsync(EsfDbContext db, BackgroundJob job)
     {
+        // A conferencia da planilha (sem gravar) so vale com a janela aberta: sem aviso.
+        if (job.Kind == BackgroundJobKind.SpreadsheetImport && !JobQueue.ReadPayload<SpreadsheetImportJob>(job).Confirm) return;
+
         var volunteerId = await db.Users.Where(u => u.Id == job.RequestedByUserId).Select(u => u.VolunteerId).FirstOrDefaultAsync();
         if (volunteerId is not { } recipient) return;
 

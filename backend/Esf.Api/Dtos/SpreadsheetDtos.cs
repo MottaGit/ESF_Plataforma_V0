@@ -1,6 +1,9 @@
 namespace Esf.Api.Dtos;
 
 /// <summary>O que entra na planilha exportada (ao menos um).</summary>
+/// <summary>Pedido de importacao guardado na fila (o arquivo vai junto, privado).</summary>
+public record SpreadsheetImportJob(bool Confirm, string FileName);
+
 public class ExportSpreadsheetRequest
 {
     /// <summary>Aba Projetos, com o resumo dos programas.</summary>

@@ -104,7 +104,7 @@ na equipe), não lança nem corrige as dos outros, a coordenação lança e corr
 as horas do dia e o relatório soma no período. E o certificado: o período completo e os projetos vêm sugeridos (período, horas, o que
 a pessoa fez), cada opção gera o PDF e o certificado por projeto exige que a pessoa participe dele. E a fila em segundo
 plano: o relatório sai pronto para quem pediu e mais ninguém (nem do mesmo núcleo) vê ou baixa, a tarefa roda no núcleo
-de quem pediu, o aviso vai para o sininho só se a pessoa saiu da tela, a tarefa interrompida volta para a fila uma vez
+de quem pediu (a exportação entra no histórico em nome dela; a importação cria no núcleo dela e apaga o arquivo enviado), o aviso vai para o sininho só se a pessoa saiu da tela, a tarefa interrompida volta para a fila uma vez
 e depois falha, as antigas são apagadas com os arquivos e o histórico de alterações fica em nome de quem pediu.
 Rode antes de mexer em consultas ou no `EsfDbContext`:
 
@@ -839,7 +839,10 @@ arquivado quando todos os projetos dele estão concluídos ou cancelados; projet
 não informado), não recebe as tarefas do modelo do programa e não gera avisos. Voluntário novo ganha o histórico de
 status a partir das datas (Ativo desde Entrou em; Ex-membro a partir do dia seguinte a Saiu em), que dá as horas. Linha
 com erro fica de fora e as outras entram; ao confirmar, o arquivo é enviado e conferido de novo (nada fica guardado
-entre a conferência e a confirmação). O arquivo é reconhecido pela aba oculta **Listas** (tipo e versão do modelo) e
+entre a conferência e a confirmação). Exportação, conferência e importação rodam **em segundo plano** (fila; ver
+Arquitetura): o arquivo enviado fica guardado, privado, só enquanto a tarefa roda; a exportação baixa sozinha quando
+fica pronta e aparece em **Exportadas recentemente** por 7 dias; fechar a janela no meio da importação não a
+interrompe, e o resumo ("Entraram 2 projetos…") vem num aviso, ou no sininho para quem saiu da plataforma. O arquivo é reconhecido pela aba oculta **Listas** (tipo e versão do modelo) e
 pelos títulos das colunas; outro arquivo é recusado com a explicação, e uma planilha de outro núcleo gera um aviso. O
 formato fica num lugar só (`Spreadsheets/SpreadsheetLayout.cs`), usado para gerar e para ler.
 
@@ -941,7 +944,7 @@ internas (dados de demonstração, a fila em segundo plano ao pegar a próxima t
 entrar de novo. Na atualização, a migração `AddNucleos` põe todos os dados existentes no núcleo já cadastrado (o
 mesmo registro usado nos termos e certificados); um banco com dados e sem esse registro ganha um.
 
-**Tarefas em segundo plano (fila)** — o que demora (o relatório em PDF) não roda durante a requisição. A rota grava o
+**Tarefas em segundo plano (fila)** — o que demora (o relatório em PDF, a exportação e a importação de planilha) não roda durante a requisição. A rota grava o
 pedido na tabela `BackgroundJobs` (tipo, opções em JSON, quem pediu com nome e perfil, núcleo) e responde na hora (202)
 com a tarefa; a tela pergunta por ela (`GET /api/jobs/{id}`) e baixa o resultado quando fica pronta. Quem processa é o
 `JobWorker` (`Services/JobWorker.cs`), um `BackgroundService` dentro da própria API, sem servidor a mais: pega uma
@@ -1096,9 +1099,9 @@ A documentação interativa fica em `/swagger`.
 | GET | `/api/jobs?kind=` | tarefas em segundo plano de quem está logado nos últimos 7 dias, as mais novas primeiro (`kind` repetível: `Report`, `SpreadsheetExport`, `SpreadsheetImport`) |
 | GET | `/api/jobs/{id}` | situação da tarefa (`Queued`, `Running`, `Done`, `Failed`), quantas estão na frente, nome do arquivo, erro ou resposta; só de quem pediu |
 | GET | `/api/jobs/{id}/download` | arquivo gerado pela tarefa (só quem pediu) |
-| POST | `/api/spreadsheets/export` | planilha .xlsx com o que foi escolhido (`projects`, `volunteers`); entra no histórico (administrador) |
+| POST | `/api/spreadsheets/export` | pede a planilha .xlsx com o que foi escolhido (`projects`, `volunteers`): responde 202 com a tarefa em segundo plano, e o arquivo sai em `/api/jobs/{id}/download`; entra no histórico (administrador) |
 | GET | `/api/spreadsheets/template` | modelo vazio de importação, com as listas do núcleo (administrador) |
-| POST | `/api/spreadsheets/import?confirm=` | planilha preenchida (multipart): sem `confirm`, só a conferência linha a linha; com `confirm=true`, cria o que é novo e sem erro (administrador) |
+| POST | `/api/spreadsheets/import?confirm=` | planilha preenchida (multipart, .xlsx até 10 MB): sem `confirm`, só a conferência linha a linha; com `confirm=true`, cria o que é novo e sem erro. Responde 202 com a tarefa em segundo plano; o resultado de cada linha vem em `result` (administrador) |
 | GET/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários (acesso novo só pelo voluntário, abaixo) |
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |

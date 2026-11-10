@@ -1,4 +1,5 @@
 using Esf.Api.Common;
+using Esf.Api.Domain;
 using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -16,12 +17,16 @@ public class SpreadsheetsController : ControllerBase
 
     public SpreadsheetsController(SpreadsheetService spreadsheets) => _spreadsheets = spreadsheets;
 
-    /// <summary>Exporta o que foi escolhido (projetos, voluntarios ou os dois). Fica no historico de alteracoes.</summary>
+    /// <summary>
+    /// Pede a exportacao do que foi escolhido (projetos, voluntarios ou os dois): responde 202 com a tarefa em segundo
+    /// plano; o arquivo sai em /api/jobs/{id}/download. Fica no historico de alteracoes.
+    /// </summary>
     [HttpPost("export")]
-    public async Task<IActionResult> Export(ExportSpreadsheetRequest request)
+    public async Task<ActionResult<BackgroundJobDto>> Export(ExportSpreadsheetRequest request, [FromServices] JobQueue jobs)
     {
-        var (content, fileName) = await _spreadsheets.ExportAsync(request);
-        return File(content, SpreadsheetService.ContentType, fileName);
+        SpreadsheetService.CheckExport(request);
+        var job = await jobs.EnqueueAsync(BackgroundJobKind.SpreadsheetExport, request);
+        return Accepted($"/api/jobs/{job.Id}", job);
     }
 
     /// <summary>Modelo vazio de importacao, com as listas do nucleo e as instrucoes de preenchimento.</summary>
@@ -34,11 +39,16 @@ public class SpreadsheetsController : ControllerBase
 
     /// <summary>
     /// Confere a planilha preenchida (confirm = false: nada e gravado) ou importa (confirm = true: cria o que e novo e
-    /// sem erro). Devolve o resultado de cada linha.
+    /// sem erro), em segundo plano: responde 202 com a tarefa, e o resultado de cada linha vem em result.
     /// </summary>
     [HttpPost("import")]
     [RequestSizeLimit(SpreadsheetImportService.MaxFileBytes + 1024 * 1024)]
-    public async Task<ActionResult<ImportResultDto>> Import([FromForm] IFormFile? file, [FromQuery] bool confirm,
-        [FromServices] SpreadsheetImportService import)
-        => Ok(await import.ImportAsync(file, confirm));
+    public async Task<ActionResult<BackgroundJobDto>> Import([FromForm] IFormFile? file, [FromQuery] bool confirm,
+        [FromServices] JobQueue jobs)
+    {
+        SpreadsheetImportService.CheckFile(file);
+        var job = await jobs.EnqueueAsync(BackgroundJobKind.SpreadsheetImport,
+            new SpreadsheetImportJob(confirm, Path.GetFileName(file!.FileName)), file);
+        return Accepted($"/api/jobs/{job.Id}", job);
+    }
 }

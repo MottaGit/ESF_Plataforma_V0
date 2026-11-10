@@ -3206,6 +3206,8 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 
 /* Configuracoes › Planilhas: exportar (escolhendo o que entra) e importar com conferencia antes de gravar. */
 .spreadsheets { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 16px; align-items: start; }
+.spreadsheets__stack { display: grid; gap: 16px; min-width: 0; }
+.spreadsheets__stack .job-recent { margin-top: 0; }
 .spreadsheets__text { margin: 0 0 14px; font-size: 13.5px; line-height: 1.55; color: var(--text-muted); }
 .import-steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 16px; }
 .import-steps li {

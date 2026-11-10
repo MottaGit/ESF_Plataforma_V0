@@ -81,7 +81,7 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 - **Histórico dos indicadores:** à parte do de alterações, o `SaveChanges` do `EsfDbContext` grava uma
   `IndicatorValueChange` sempre que o valor de um indicador muda (data = `ValueUpdatedAt`). O relatório em PDF lê dele o
   valor no fim do período e a mudança no período (`Services/IndicatorHistory.cs`); quem grava valor não precisa fazer nada.
-- **Tarefas em segundo plano:** o que demora (relatório em PDF) entra na fila `BackgroundJobs` pelo `JobQueue` e a
+- **Tarefas em segundo plano:** o que demora (relatório em PDF, exportar e importar planilha) entra na fila `BackgroundJobs` pelo `JobQueue` e a
   rota responde 202 com a tarefa; o `JobWorker` (`BackgroundService` na própria API) processa uma de cada vez,
   chamando o serviço de sempre pelo `JobRunner` num escopo em que o `ICurrentUser` é quem pediu (`JobUser` via
   `CurrentUserOverride`). O frontend usa `runFileJob`/`waitForJob` (`api/jobs.ts`). Tipo novo de tarefa: valor em

@@ -38,7 +38,7 @@ public class SpreadsheetTests
     }
 
     /// <summary>Escreve linhas numa aba pelo titulo das colunas (como alguem preenchendo o modelo).</summary>
-    private static byte[] Fill(byte[] file, string sheetName, params Dictionary<string, XLCellValue>[] rows)
+    internal static byte[] Fill(byte[] file, string sheetName, params Dictionary<string, XLCellValue>[] rows)
     {
         using var workbook = new XLWorkbook(new MemoryStream(file));
         var sheet = workbook.Worksheet(sheetName);

@@ -30,20 +30,44 @@ public class SpreadsheetImportService
 
     public SpreadsheetImportService(EsfDbContext db) => _db = db;
 
-    public async Task<ImportResultDto> ImportAsync(IFormFile? file, bool confirm)
+    private const string NotXlsx = "Não foi possível ler o arquivo. Envie a planilha em .xlsx (Excel), baixada da plataforma.";
+
+    /// <summary>Confere o arquivo antes de entrar na fila: vazio, grande demais ou que nao e .xlsx.</summary>
+    public static void CheckFile(IFormFile? file)
     {
         if (file is null || file.Length == 0) throw new AppException("Escolha o arquivo da planilha (.xlsx).");
         if (file.Length > MaxFileBytes) throw new AppException("O arquivo passa de 10 MB.");
+        if (!string.Equals(Path.GetExtension(file.FileName), ".xlsx", StringComparison.OrdinalIgnoreCase))
+            throw new AppException(NotXlsx);
+    }
+
+    public async Task<ImportResultDto> ImportAsync(IFormFile? file, bool confirm)
+    {
+        CheckFile(file);
+        await using var stream = file!.OpenReadStream();
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+        return await ImportAsync(buffer.ToArray(), confirm);
+    }
+
+    /// <summary>
+    /// Confere a planilha (confirm = false: nada e gravado) ou importa (confirm = true). Roda na fila em segundo plano,
+    /// como quem enviou, com o arquivo guardado no pedido.
+    /// </summary>
+    public async Task<ImportResultDto> ImportAsync(byte[] content, bool confirm)
+    {
+        if (content.Length == 0) throw new AppException("Escolha o arquivo da planilha (.xlsx).");
+        if (content.Length > MaxFileBytes) throw new AppException("O arquivo passa de 10 MB.");
 
         XLWorkbook workbook;
         try
         {
-            await using var stream = file.OpenReadStream();
+            using var stream = new MemoryStream(content);
             workbook = new XLWorkbook(stream);
         }
         catch (Exception)
         {
-            throw new AppException("Não foi possível ler o arquivo. Envie a planilha em .xlsx (Excel), baixada da plataforma.");
+            throw new AppException(NotXlsx);
         }
 
         using (workbook)

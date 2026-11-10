@@ -303,7 +303,8 @@ const SECTIONS: HelpSection[] = [
           <p>
             Em <strong>Configurações › Planilhas</strong> (administradores), baixe o <strong>modelo vazio</strong> (a
             aba Instruções explica cada coluna), preencha e envie. Antes de gravar aparece a conferência. A importação só
-            cria registros novos: o que já existe não muda.
+            cria registros novos: o que já existe não muda. Se você fechar a janela no meio da importação, ela termina
+            do mesmo jeito, e o resumo aparece num aviso.
           </p>
         )
       }

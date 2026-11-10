@@ -3,6 +3,7 @@ import { ApiError } from '../../api/client';
 import { spreadsheetsApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { ImportResult } from '../../types/api';
+import { RecentJobs } from '../jobs/RecentJobs';
 import { ExportSpreadsheetDialog } from '../spreadsheets/ExportSpreadsheetDialog';
 import { ImportReviewDialog } from '../spreadsheets/ImportReviewDialog';
 import { Button } from '../ui/Button';
@@ -21,6 +22,7 @@ export function SpreadsheetsSection() {
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<{ file: File; preview: ImportResult } | null>(null);
+  const [recentKey, setRecentKey] = useState(0);
 
   async function downloadTemplate() {
     setDownloading(true);
@@ -50,20 +52,24 @@ export function SpreadsheetsSection() {
 
   return (
     <div className="spreadsheets">
-      <section className="panel">
-        <div className="panel__head">
-          <h2>Exportar planilha</h2>
-        </div>
-        <div className="panel__body">
-          <p className="spreadsheets__text">
-            Projetos e voluntários do núcleo num arquivo do Excel, para guardar, conferir ou completar e importar de volta.
-            Você escolhe o que entra.
-          </p>
-          <Button icon={<IconDownload size={15} />} onClick={() => setExporting(true)}>
-            Exportar planilha
-          </Button>
-        </div>
-      </section>
+      <div className="spreadsheets__stack">
+        <section className="panel">
+          <div className="panel__head">
+            <h2>Exportar planilha</h2>
+          </div>
+          <div className="panel__body">
+            <p className="spreadsheets__text">
+              Projetos e voluntários do núcleo num arquivo do Excel, para guardar, conferir ou completar e importar de volta.
+              Você escolhe o que entra.
+            </p>
+            <Button icon={<IconDownload size={15} />} onClick={() => setExporting(true)}>
+              Exportar planilha
+            </Button>
+          </div>
+        </section>
+
+        <RecentJobs kinds={['SpreadsheetExport']} title="Exportadas recentemente" fallbackName="Planilha" refreshKey={recentKey} />
+      </div>
 
       <section className="panel">
         <div className="panel__head">
@@ -117,7 +123,14 @@ export function SpreadsheetsSection() {
         </div>
       </section>
 
-      {exporting ? <ExportSpreadsheetDialog onClose={() => setExporting(false)} /> : null}
+      {exporting ? (
+        <ExportSpreadsheetDialog
+          onClose={() => {
+            setExporting(false);
+            setRecentKey((current) => current + 1);
+          }}
+        />
+      ) : null}
       {review ? <ImportReviewDialog file={review.file} preview={review.preview} onClose={() => setReview(null)} /> : null}
     </div>
   );

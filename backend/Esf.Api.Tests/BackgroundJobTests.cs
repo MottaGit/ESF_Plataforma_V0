@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
@@ -229,6 +230,78 @@ public class BackgroundJobTests
         Assert.False(await check.BackgroundJobs.AnyAsync(j => j.Id == old.Id));
         Assert.True(await check.BackgroundJobs.AnyAsync(j => j.Id == recent.Id));
         Assert.Equal(new[] { "recente.pdf" }, await check.StoredFiles.Select(s => s.StoredName).ToListAsync());
+    }
+
+    [Fact]
+    public async Task SpreadsheetsGoThroughTheQueueInTheNucleoOfWhoAsked()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        await using var services = JobServices.Create(f.Options);
+        var worker = services.GetRequiredService<JobWorker>();
+
+        // Exportacao: arquivo para baixar e registro no historico em nome de quem pediu, no nucleo dela.
+        Guid export;
+        using (var scope = services.As(f.B.Admin))
+            export = (await scope.Queue().EnqueueAsync(BackgroundJobKind.SpreadsheetExport,
+                new ExportSpreadsheetRequest { Projects = true, Volunteers = true })).Id;
+        Assert.True(await worker.ProcessNextAsync());
+        using (var scope = services.As(f.B.Admin))
+        {
+            var (content, _, fileName) = await scope.Queue().DownloadAsync(export);
+            Assert.EndsWith(".xlsx", fileName);
+            Assert.Equal("PK", Encoding.ASCII.GetString(content, 0, 2));
+        }
+        await using (var system = f.SystemContext())
+        {
+            var entry = await system.AuditEntries.SingleAsync(e => e.Action == AuditAction.Exported);
+            Assert.Equal((f.B.OrganizationId, f.B.AdminUserId), (entry.OrganizationId, entry.UserId));
+        }
+
+        // Importacao: conferencia e gravacao, com o arquivo guardado no pedido e apagado no fim.
+        byte[] template;
+        await using (var db = f.Context(f.B.Admin))
+            template = (await new SpreadsheetService(db, f.B.Admin).TemplateAsync()).Content;
+        var file = SpreadsheetTests.Fill(template, Esf.Api.Spreadsheets.SpreadsheetLayout.ProjectsSheet,
+            new Dictionary<string, ClosedXML.Excel.XLCellValue>
+            {
+                ["Programa*"] = "Horta da Lomba", ["Situação*"] = "Em andamento", ["Data de início*"] = "01/02/2024"
+            });
+
+        async Task<ImportResultDto> ImportAsync(bool confirm)
+        {
+            Guid id;
+            using (var scope = services.As(f.B.Admin))
+            {
+                var stream = new MemoryStream(file);
+                id = (await scope.Queue().EnqueueAsync(BackgroundJobKind.SpreadsheetImport,
+                    new SpreadsheetImportJob(confirm, "planilha.xlsx"),
+                    new Microsoft.AspNetCore.Http.FormFile(stream, 0, stream.Length, "file", "planilha.xlsx")
+                    {
+                        Headers = new Microsoft.AspNetCore.Http.HeaderDictionary(),
+                        ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    })).Id;
+            }
+            Assert.True(await worker.ProcessNextAsync());
+            using (var scope = services.As(f.B.Admin))
+            {
+                var done = await scope.Queue().GetAsync(id);
+                Assert.Equal(BackgroundJobStatus.Done, done.Status);
+                return done.Result!.Value.Deserialize<ImportResultDto>(JobQueue.Json)!;
+            }
+        }
+
+        var preview = await ImportAsync(confirm: false);
+        Assert.Equal(1, preview.Projects!.New);
+        Assert.False(preview.Applied);
+        Assert.True((await ImportAsync(confirm: true)).Applied);
+
+        await using var check = f.SystemContext();
+        var created = await check.Projects.SingleAsync(p => p.Name == "Horta da Lomba");
+        Assert.Equal(f.B.OrganizationId, created.OrganizationId);
+        Assert.All(await check.BackgroundJobs.Where(j => j.Kind == BackgroundJobKind.SpreadsheetImport).ToListAsync(),
+            j => Assert.Null(j.InputStoredName));
+        Assert.DoesNotContain(await check.StoredFiles.ToListAsync(), s => s.StoredName.EndsWith(".xlsx") && s.IsPrivate
+            && s.SizeBytes == file.Length);
     }
 
     [Fact]

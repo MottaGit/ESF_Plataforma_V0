@@ -1,6 +1,6 @@
 import { shrinkImage } from '../utils/images';
 import { http } from './client';
-import { runFileJob } from './jobs';
+import { runFileJob, waitForJob } from './jobs';
 import type {
   AccessLink,
   AccessLinkInfo,
@@ -281,14 +281,16 @@ export const reportsApi = {
 
 /** Planilha de programas, projetos e voluntarios (so administradores). */
 export const spreadsheetsApi = {
+  /** Montada em segundo plano: pede, espera ficar pronta e baixa. Devolve o nome do arquivo. */
   export: (payload: ExportSpreadsheetPayload) =>
-    http.download('/api/spreadsheets/export', payload, 'exportacao.xlsx'),
+    runFileJob(() => http.request<BackgroundJob>('/api/spreadsheets/export', { method: 'POST', body: payload })),
   template: () => http.download('/api/spreadsheets/template', undefined, 'modelo-importacao.xlsx'),
-  /** confirm = false: so a conferencia; true: importa o que e novo e sem erro. */
-  import: (file: File, confirm: boolean) => {
+  /** confirm = false: so a conferencia; true: importa o que e novo e sem erro. Roda em segundo plano. */
+  import: async (file: File, confirm: boolean) => {
     const formData = new FormData();
     formData.append('file', file);
-    return http.request<ImportResult>('/api/spreadsheets/import', { method: 'POST', formData, query: { confirm } });
+    const job = await http.request<BackgroundJob>('/api/spreadsheets/import', { method: 'POST', formData, query: { confirm } });
+    return (await waitForJob(job)).result as ImportResult;
   }
 };
 

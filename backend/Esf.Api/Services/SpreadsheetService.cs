@@ -26,10 +26,17 @@ public partial class SpreadsheetService
         _currentUser = currentUser;
     }
 
-    public async Task<(byte[] Content, string FileName)> ExportAsync(ExportSpreadsheetRequest request)
+    /// <summary>Confere o pedido antes de entrar na fila.</summary>
+    public static void CheckExport(ExportSpreadsheetRequest request)
     {
         if (!request.Projects && !request.Volunteers)
             throw new AppException("Escolha o que exportar: projetos, voluntários ou os dois.");
+    }
+
+    /// <summary>Monta a planilha. Roda na fila em segundo plano (JobRunner), como quem pediu.</summary>
+    public async Task<(byte[] Content, string FileName)> ExportAsync(ExportSpreadsheetRequest request)
+    {
+        CheckExport(request);
 
         var nucleo = await NucleoNameAsync();
         var nationals = await NationalColumnsAsync(_db);

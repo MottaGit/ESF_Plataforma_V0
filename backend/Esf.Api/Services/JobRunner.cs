@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
@@ -24,6 +26,19 @@ public class JobRunner
                 var (content, fileName) = await _services.GetRequiredService<ReportService>()
                     .GenerateAsync(request, job.RequestedByName);
                 return new JobOutcome(content, fileName);
+            }
+            case BackgroundJobKind.SpreadsheetExport:
+            {
+                var request = JobQueue.ReadPayload<ExportSpreadsheetRequest>(job);
+                var (content, fileName) = await _services.GetRequiredService<SpreadsheetService>().ExportAsync(request);
+                return new JobOutcome(content, fileName);
+            }
+            case BackgroundJobKind.SpreadsheetImport:
+            {
+                var request = JobQueue.ReadPayload<SpreadsheetImportJob>(job);
+                if (input is null) throw new AppException("O arquivo enviado não foi encontrado. Envie de novo.");
+                var result = await _services.GetRequiredService<SpreadsheetImportService>().ImportAsync(input, request.Confirm);
+                return new JobOutcome(ResultJson: JsonSerializer.Serialize(result, JobQueue.Json));
             }
             default:
                 throw new InvalidOperationException($"Tipo de tarefa sem execucao: {job.Kind}.");

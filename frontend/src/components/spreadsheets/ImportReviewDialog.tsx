@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { spreadsheetsApi } from '../../api/endpoints';
+import { useToast } from '../../context/ToastContext';
 import type { ImportResult, ImportRow, ImportSheet } from '../../types/api';
 import { Button } from '../ui/Button';
 import { Alert, EmptyState } from '../ui/Feedback';
@@ -16,6 +17,22 @@ const RESULT_BADGE: Record<ImportRow['result'], { label: string; className: stri
 };
 
 const hasProblem = (row: ImportRow) => row.errors.length > 0 || row.warnings.length > 0;
+
+/** "Entraram 2 projetos e 1 voluntário. 1 linha com erro ficou de fora." */
+function importSummary(result: ImportResult) {
+  const newProjects = result.projects?.new ?? 0;
+  const newVolunteers = result.volunteers?.new ?? 0;
+  const errors = (result.projects?.errors ?? 0) + (result.volunteers?.errors ?? 0);
+  const created = [
+    newProjects > 0 ? plural(newProjects, 'projeto', 'projetos') : null,
+    result.newPrograms.length > 0 ? plural(result.newPrograms.length, 'programa novo', 'programas novos') : null,
+    newVolunteers > 0 ? plural(newVolunteers, 'voluntário', 'voluntários') : null
+  ].filter(Boolean);
+  return (
+    (created.length > 0 ? `Entraram ${created.join(', ').replace(/, ([^,]*)$/, ' e $1')}.` : 'Nada novo entrou.') +
+    (errors > 0 ? ` ${plural(errors, 'linha com erro ficou', 'linhas com erro ficaram')} de fora.` : '')
+  );
+}
 
 /** "3 novos · 1 já existe · 2 com erro" (so o que tem). */
 function sheetSummary(sheet: ImportSheet) {
@@ -88,7 +105,16 @@ interface ImportReviewDialogProps {
  * arquivo vai de novo para a API (que confere outra vez e cria o que e novo e sem erro).
  */
 export function ImportReviewDialog({ file, preview, onClose }: ImportReviewDialogProps) {
+  const { notify, notifyError } = useToast();
   const [result, setResult] = useState(preview);
+  const open = useRef(true);
+
+  useEffect(
+    () => () => {
+      open.current = false;
+    },
+    []
+  );
   const [onlyProblems, setOnlyProblems] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,25 +130,24 @@ export function ImportReviewDialog({ file, preview, onClose }: ImportReviewDialo
     setImporting(true);
     setError(null);
     try {
-      setResult(await spreadsheetsApi.import(file, true));
+      // Em segundo plano: se a janela for fechada no meio, a importação termina do mesmo jeito e o resumo vem no aviso.
+      const applied = await spreadsheetsApi.import(file, true);
+      if (open.current) setResult(applied);
+      else notify(`Importação concluída: ${importSummary(applied)}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível importar a planilha.');
+      const message = err instanceof ApiError ? err.message : 'Não foi possível importar a planilha.';
+      if (open.current) setError(message);
+      else notifyError(message);
     } finally {
-      setImporting(false);
+      if (open.current) setImporting(false);
     }
   }
 
   if (result.applied) {
-    const created = [
-      newProjects > 0 ? plural(newProjects, 'projeto', 'projetos') : null,
-      result.newPrograms.length > 0 ? plural(result.newPrograms.length, 'programa novo', 'programas novos') : null,
-      newVolunteers > 0 ? plural(newVolunteers, 'voluntário', 'voluntários') : null
-    ].filter(Boolean);
     return (
       <Modal title="Importação concluída" subtitle={file.name} size="narrow" onClose={onClose} footer={<Button onClick={onClose}>Fechar</Button>}>
         <p className="import-done">
-          {created.length > 0 ? `Entraram ${created.join(', ').replace(/, ([^,]*)$/, ' e $1')}.` : 'Nada novo entrou.'}
-          {errors > 0 ? ` ${plural(errors, 'linha com erro ficou', 'linhas com erro ficaram')} de fora.` : ''}
+          {importSummary(result)}
         </p>
         <div className="import-done__links">
           {newProjects > 0 ? (

@@ -168,8 +168,14 @@ job "$admin" /api/reports/projects "${JSON[@]}" -d "{\"projectIds\":$projects,\"
 expect_pdf "O relatório resumido"
 call "$admin" GET "/api/jobs?kind=Report"
 expect 'length == 2' 'A lista "Gerados recentemente" não trouxe os dois relatórios.'
-call "$admin" POST /api/spreadsheets/export "${JSON[@]}" -d '{"projects":true,"volunteers":true}'
+job "$admin" /api/spreadsheets/export "${JSON[@]}" -d '{"projects":true,"volunteers":true}'
+if [[ $(head -c 2 "$BODY") != "PK" ]]; then fail "Planilha não gerada" "A exportação não devolveu um .xlsx."; fi
 call "$admin" GET /api/spreadsheets/template
+sheet=$(mktemp --suffix=.xlsx)
+cp "$BODY" "$sheet"
+# Conferencia (sem gravar) do modelo vazio, tambem em segundo plano: a resposta vem em result.
+job "$admin" /api/spreadsheets/import -F "file=@$sheet;filename=modelo.xlsx"
+expect '.result.applied == false' 'A conferência da planilha não trouxe o resultado.'
 
 echo "== Perfil Usuário"
 user=$(login fausto.silva@esf.org.br)
@@ -178,6 +184,7 @@ for path in /api/auth/me /api/dashboard /api/projects /api/me/term "/api/activit
 done
 deny "$user" GET /api/audit
 deny "$user" GET /api/spreadsheets/template
+deny "$user" POST /api/spreadsheets/export
 deny "$user" GET /api/national/panel
 # Relatorio de outra pessoa do mesmo nucleo: so quem pediu ve e baixa.
 deny "$user" GET "/api/jobs/$report_job/download" 404
