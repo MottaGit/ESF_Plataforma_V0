@@ -15,8 +15,8 @@ import { ActivityCounters } from './ActivityCounters';
 import { ActivityFormModal } from './ActivityFormModal';
 import { BlockActivityDialog } from './BlockActivityDialog';
 
-/** Valor do filtro de responsavel para atividades sem ninguem atribuido. */
-const UNASSIGNED = '__none__';
+/** Valor do filtro de responsavel (na URL, ?responsavel=sem) para atividades sem ninguem atribuido. */
+const UNASSIGNED = 'sem';
 
 /** Secoes da lista: em aberto (nao iniciadas e em andamento juntas) e concluidas, sempre visiveis. */
 type Section = 'open' | 'done';
@@ -39,13 +39,21 @@ function compareActivities(a: Activity, b: Activity) {
 interface ActivitiesTabProps {
   project: ProjectDetail;
   volunteers: Volunteer[];
-  /** Filtro "so atrasadas" fica na URL para poder chegar aqui ja filtrado. */
+  /** Filtros "so atrasadas" e de responsavel ficam na URL para poder chegar aqui ja filtrado (ex.: aba Equipe). */
   onlyLate: boolean;
-  onOnlyLateChange: (value: boolean) => void;
+  assignee: string;
+  onUrlFiltersChange: (filters: { onlyLate: boolean; assignee: string }) => void;
   onChanged: () => void;
 }
 
-export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange, onChanged }: ActivitiesTabProps) {
+export function ActivitiesTab({
+  project,
+  volunteers,
+  onlyLate,
+  assignee: assigneeFilter,
+  onUrlFiltersChange,
+  onChanged
+}: ActivitiesTabProps) {
   const { notify, notifyError } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
@@ -88,7 +96,6 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
   }, [linkedActivityId, project.activities, setSearchParams]);
 
   const [statusFilter, setStatusFilter] = useState<ActivityStatus | ''>('');
-  const [assigneeFilter, setAssigneeFilter] = useState('');
 
   // Status de cada atividade quando ela apareceu nesta visita a aba. Concluir (ou reabrir) nao tira a
   // atividade da secao em que estava: ela fica riscada no lugar e so muda de secao quando a aba e
@@ -138,8 +145,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
 
   function clearFilters() {
     setStatusFilter('');
-    setAssigneeFilter('');
-    onOnlyLateChange(false);
+    onUrlFiltersChange({ onlyLate: false, assignee: '' });
   }
 
   function forgetUndo(id: string) {
@@ -222,7 +228,7 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
             <Select
               value={assigneeFilter}
               aria-label="Filtrar por responsável"
-              onChange={(event) => setAssigneeFilter(event.target.value)}
+              onChange={(event) => onUrlFiltersChange({ onlyLate, assignee: event.target.value })}
             >
               <option value="">Todos os responsáveis</option>
               {assignees.map(([id, name]) => (
@@ -234,7 +240,11 @@ export function ActivitiesTab({ project, volunteers, onlyLate, onOnlyLateChange,
             </Select>
 
             <label className="checkbox">
-              <input type="checkbox" checked={onlyLate} onChange={(event) => onOnlyLateChange(event.target.checked)} />
+              <input
+                type="checkbox"
+                checked={onlyLate}
+                onChange={(event) => onUrlFiltersChange({ onlyLate: event.target.checked, assignee: assigneeFilter })}
+              />
               Só atrasadas
             </label>
           </>

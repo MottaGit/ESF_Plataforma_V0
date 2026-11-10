@@ -71,11 +71,14 @@ export function ProjectDetailPage() {
   // "Registrar" (Inicio, barra do celular): abre no Andamento com o cursor no campo de registro.
   const [registering] = useState(() => searchParams.get('registrar') === '1');
   const onlyLateActivities = searchParams.get('filtro') === 'atrasadas';
+  const activityAssignee = searchParams.get('responsavel') ?? '';
 
-  function openTab(key: TabKey, filter?: 'atrasadas') {
+  /** Troca de aba; na aba Tarefas, os filtros "so atrasadas" e de responsavel vao junto na URL. */
+  function openTab(key: TabKey, filter?: 'atrasadas', assignee?: string) {
     const next = new URLSearchParams();
     if (key !== 'updates') next.set('aba', TAB_PARAMS[key]);
     if (filter) next.set('filtro', filter);
+    if (assignee) next.set('responsavel', assignee);
     setSearchParams(next, { replace: true });
   }
 
@@ -269,11 +272,20 @@ export function ProjectDetailPage() {
           project={project}
           volunteers={volunteers}
           onlyLate={onlyLateActivities}
-          onOnlyLateChange={(value) => openTab('activities', value ? 'atrasadas' : undefined)}
+          assignee={activityAssignee}
+          onUrlFiltersChange={(filters) =>
+            openTab('activities', filters.onlyLate ? 'atrasadas' : undefined, filters.assignee)
+          }
           onChanged={() => void load()}
         />
       ) : null}
-      {tab === 'team' ? <TeamTab project={project} onChanged={() => void load()} /> : null}
+      {tab === 'team' ? (
+        <TeamTab
+          project={project}
+          onOpenTasks={(volunteerId) => openTab('activities', undefined, volunteerId)}
+          onChanged={() => void load()}
+        />
+      ) : null}
       {tab === 'files' ? <FilesTab project={project} onChanged={() => void load()} /> : null}
       {tab === 'about' ? <AboutTab project={project} canManage={canManage} onChanged={() => void load()} /> : null}
 

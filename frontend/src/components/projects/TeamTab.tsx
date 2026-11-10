@@ -3,25 +3,33 @@ import { Link } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { projectHoursApi, volunteersApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { ProjectDetail, ProjectHours, ProjectVolunteer, Volunteer } from '../../types/api';
-import { formatDate, formatHours, sectorLabel } from '../../utils/format';
+import type { ProjectDetail, ProjectHours, ProjectVolunteer, Volunteer, VolunteerLoad } from '../../types/api';
+import { formatHours, sectorLabel } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
-import { LateBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Field, Select, TextInput } from '../ui/Field';
+import { Field, TextInput } from '../ui/Field';
 import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
-import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
+import { IconCheck, IconEdit, IconPlus, IconSearch, IconTrash } from '../ui/Icons';
+import { Menu } from '../ui/Menu';
 import { Modal } from '../ui/Modal';
-import { EmailLink, PhoneLink } from '../volunteers/ContactLinks';
 import { ProjectHoursPanel } from './ProjectHoursPanel';
 
 interface TeamTabProps {
   project: ProjectDetail;
+  /** Abre a aba Tarefas filtrada pela pessoa. */
+  onOpenTasks: (volunteerId: string) => void;
   onChanged: () => void;
 }
 
-/** Equipe do projeto: quem participa, o papel de cada um, quanto trabalho tem em aberto e as horas lancadas. */
-export function TeamTab({ project, onChanged }: TeamTabProps) {
+const fold = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+/**
+ * Equipe do projeto: quem participa (setor ao lado do nome), o papel de cada um, as tarefas em aberto e as horas
+ * lancadas. O contato fica na pagina do voluntario (o nome leva ate ela); mudar o papel e desvincular ficam no "...".
+ */
+export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
   const { notify, notifyError } = useToast();
   const [allVolunteers, setAllVolunteers] = useState<Volunteer[]>([]);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -87,6 +95,11 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
     return { open: open.length, late: open.filter((activity) => activity.isLate).length };
   }
 
+  function startEditingRole(member: ProjectVolunteer) {
+    setRoleText(member.roleInProject ?? '');
+    setEditingRole(member.volunteerId);
+  }
+
   async function handleRemove() {
     if (!removing) return;
     setBusy(true);
@@ -110,9 +123,6 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
           aqui automaticamente.
         </p>
         <div className="toolbar__right">
-          <Link className="btn btn--sm" to="/voluntarios">
-            Gerenciar voluntários
-          </Link>
           <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => setLinkOpen(true)}>
             Vincular voluntário
           </Button>
@@ -131,133 +141,102 @@ export function TeamTab({ project, onChanged }: TeamTabProps) {
             }
           />
         ) : (
-          <div className="table-wrap">
-            <table className="table table--cards">
-              <thead>
-                <tr>
-                  <th>Voluntário</th>
-                  <th>Papel no projeto</th>
-                  <th>Tarefas</th>
-                  <th className="right">Horas</th>
-                  <th>Contato</th>
-                  <th className="tight">Desde</th>
-                  <th className="right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((volunteer) => {
-                  const load = workload(volunteer.volunteerId);
-                  return (
-                    <tr key={volunteer.volunteerId}>
-                      <td className="cell--main">
-                        <div className="person-cell">
-                          <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={30} />
-                          <div>
-                            <div className="table__primary">{volunteer.name}</div>
-                            <div className="table__secondary">{sectorLabel(volunteer.sector)}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        {volunteer.volunteerId === project.ownerVolunteerId ? (
-                          <div style={{ marginBottom: 4 }}>
-                            <span className="badge badge--run">Responsável</span>
-                          </div>
-                        ) : null}
-                        {editingRole === volunteer.volunteerId ? (
-                          <form
-                            className="team-role__form"
-                            onSubmit={(event) => {
+          <ul className="team-list">
+            {members.map((member) => {
+              const load = workload(member.volunteerId);
+              const memberHours = hoursOf(member.volunteerId);
+              const isOwner = member.volunteerId === project.ownerVolunteerId;
+              const roleLine = [isOwner ? 'Responsável' : null, member.roleInProject].filter(Boolean).join(' · ');
+              return (
+                <li key={member.volunteerId} className="team-list__item">
+                  <Avatar name={member.name} photoUrl={member.photoUrl} size={32} />
+                  <div className="team-list__main">
+                    <div className="team-list__name">
+                      <Link to={`/voluntarios/${member.volunteerId}`}>{member.name}</Link>
+                      <span className="team-list__sector">{sectorLabel(member.sector)}</span>
+                    </div>
+                    {editingRole === member.volunteerId ? (
+                      <form
+                        className="team-role__form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          void saveRole(member);
+                        }}
+                      >
+                        <TextInput
+                          autoFocus
+                          value={roleText}
+                          maxLength={120}
+                          placeholder="Papel no projeto. Ex.: compras, projeto elétrico"
+                          aria-label={`Papel de ${member.name} no projeto`}
+                          onChange={(event) => setRoleText(event.target.value)}
+                          onBlur={() => void saveRole(member)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Escape') {
                               event.preventDefault();
-                              void saveRole(volunteer);
-                            }}
-                          >
-                            <TextInput
-                              autoFocus
-                              value={roleText}
-                              maxLength={120}
-                              placeholder="Ex.: compras, projeto elétrico"
-                              aria-label={`Papel de ${volunteer.name} no projeto`}
-                              onChange={(event) => setRoleText(event.target.value)}
-                              onBlur={() => void saveRole(volunteer)}
-                              onKeyDown={(event) => {
-                                if (event.key === 'Escape') {
-                                  event.preventDefault();
-                                  setEditingRole(null);
-                                }
-                              }}
-                            />
-                          </form>
-                        ) : (
-                          <span className="team-role">
-                            {volunteer.roleInProject ??
-                              (volunteer.volunteerId === project.ownerVolunteerId ? null : (
-                                <span className="table__secondary">sem papel</span>
-                              ))}
-                            <button
-                              type="button"
-                              className="icon-button team-role__edit"
-                              title="Mudar o papel no projeto"
-                              aria-label={`Mudar o papel de ${volunteer.name} no projeto`}
-                              onClick={() => {
-                                setRoleText(volunteer.roleInProject ?? '');
-                                setEditingRole(volunteer.volunteerId);
-                              }}
-                            >
-                              <IconEdit size={14} />
-                            </button>
-                          </span>
-                        )}
-                      </td>
-                      <td className="tight">
-                        {load.open === 0 ? (
-                          <span className="table__secondary">nenhuma em aberto</span>
-                        ) : (
-                          <>
-                            <span className="num">{load.open}</span> em aberto
-                            {load.late > 0 ? (
-                              <div style={{ marginTop: 4 }}>
-                                <LateBadge label={load.late === 1 ? '1 atrasada' : `${load.late} atrasadas`} />
-                              </div>
-                            ) : null}
-                          </>
-                        )}
-                      </td>
-                      <td className="tight num right" data-label="Horas">
-                        {hoursOf(volunteer.volunteerId) > 0 ? formatHours(hoursOf(volunteer.volunteerId)) : '—'}
-                      </td>
-                      <td className="cell--wide">
-                        <EmailLink email={volunteer.email} />
-                        {volunteer.phone ? (
-                          <div className="table__secondary">
-                            <PhoneLink phone={volunteer.phone} />
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="tight cell--desktop">{formatDate(volunteer.joinedAt)}</td>
-                      <td className="cell--actions">
-                        <div className="row-actions">
-                          <Button
-                            small
-                            variant="ghost"
-                            icon={<IconTrash size={15} />}
-                            title={
-                              volunteer.volunteerId === project.ownerVolunteerId
-                                ? 'Responsável pelo projeto: troque o responsável antes de desvincular'
-                                : 'Desvincular'
+                              setEditingRole(null);
                             }
-                            aria-label="Desvincular voluntário"
-                            disabled={volunteer.volunteerId === project.ownerVolunteerId}
-                            onClick={() => setRemoving(volunteer)}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          }}
+                        />
+                      </form>
+                    ) : roleLine ? (
+                      <div className="team-list__role">{roleLine}</div>
+                    ) : null}
+                  </div>
+                  <div className={`team-list__meta${load.open === 0 && memberHours === 0 ? ' team-list__meta--empty' : ''}`}>
+                    <span className={`team-list__tasks${load.open === 0 ? ' is-empty' : ''}`}>
+                      {load.open === 0 ? (
+                        <span className="team-list__none" title="Nenhuma tarefa em aberto">
+                          —
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="team-list__tasks-link"
+                            title={`Ver as tarefas de ${member.name}`}
+                            onClick={() => onOpenTasks(member.volunteerId)}
+                          >
+                            {plural(load.open, 'tarefa', 'tarefas')}
+                          </button>
+                          {load.late > 0 ? (
+                            <span className="team-list__late"> · {plural(load.late, 'atrasada', 'atrasadas')}</span>
+                          ) : null}
+                        </>
+                      )}
+                    </span>
+                    <span
+                      className={`team-list__hours num${memberHours === 0 ? ' is-empty' : ''}`}
+                      title="Horas lançadas no projeto"
+                    >
+                      {memberHours > 0 ? formatHours(memberHours) : <span className="team-list__none">—</span>}
+                    </span>
+                  </div>
+                  <Menu
+                    label={`Ações para ${member.name}`}
+                    items={[
+                      {
+                        label: member.roleInProject ? 'Mudar papel' : 'Definir papel',
+                        icon: <IconEdit size={14} />,
+                        onSelect: () => startEditingRole(member)
+                      },
+                      {
+                        label: 'Desvincular',
+                        icon: <IconTrash size={14} />,
+                        danger: true,
+                        onSelect: () =>
+                          isOwner
+                            ? notifyError(
+                                `${member.name} é responsável pelo projeto: escolha outro responsável em Editar projeto antes de desvincular.`
+                              )
+                            : setRemoving(member)
+                      }
+                    ]}
+                  />
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
@@ -298,15 +277,37 @@ interface LinkVolunteerModalProps {
   onSaved: () => void;
 }
 
+/** A partir de quantas pessoas disponiveis a janela mostra a busca. */
+const SEARCH_FROM = 7;
+
+/**
+ * Escolha de quem entra na equipe: lista com foto, nome e, embaixo, setor e tarefas em aberto (em todos os projetos),
+ * para ver quem esta livre. Busca pelo nome ou pelo setor, sem diferenciar acentos.
+ */
 function LinkVolunteerModal({ projectId, available, onClose, onSaved }: LinkVolunteerModalProps) {
-  const [volunteerId, setVolunteerId] = useState(available[0]?.id ?? '');
+  const [volunteerId, setVolunteerId] = useState('');
+  const [query, setQuery] = useState('');
   const [roleInProject, setRoleInProject] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [load, setLoad] = useState<Map<string, VolunteerLoad>>(new Map());
+
+  useEffect(() => {
+    volunteersApi
+      .load()
+      .then((list) => setLoad(new Map(list.map((item) => [item.volunteerId, item]))))
+      .catch(() => undefined);
+  }, []);
+
+  const term = fold(query.trim());
+  const shown = term
+    ? available.filter((volunteer) => fold(`${volunteer.name} ${sectorLabel(volunteer.sector)}`).includes(term))
+    : available;
+  const chosen = available.find((volunteer) => volunteer.id === volunteerId);
 
   async function handleSave() {
     if (!volunteerId) {
-      setFormError('Selecione um voluntário.');
+      setFormError('Escolha quem vai entrar na equipe.');
       return;
     }
 
@@ -332,7 +333,7 @@ function LinkVolunteerModal({ projectId, available, onClose, onSaved }: LinkVolu
         <>
           <Button onClick={onClose}>Cancelar</Button>
           <Button variant="primary" loading={saving} disabled={available.length === 0} onClick={() => void handleSave()}>
-            Vincular
+            {chosen ? `Vincular ${chosen.name.split(' ')[0]}` : 'Vincular'}
           </Button>
         </>
       }
@@ -350,20 +351,56 @@ function LinkVolunteerModal({ projectId, available, onClose, onSaved }: LinkVolu
         </Alert>
       ) : (
         <div className="form-grid form-grid--single">
-          <Field label="Voluntário" htmlFor="link-volunteer" required>
-            <Select id="link-volunteer" value={volunteerId} onChange={(event) => setVolunteerId(event.target.value)}>
-              {available.map((volunteer) => (
-                <option key={volunteer.id} value={volunteer.id}>
-                  {volunteer.name} — {sectorLabel(volunteer.sector)}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          {available.length >= SEARCH_FROM ? (
+            <span className="search volunteer-pick__search">
+              <IconSearch className="search__icon" />
+              <TextInput
+                type="search"
+                value={query}
+                placeholder="Buscar pelo nome ou setor"
+                aria-label="Buscar voluntário"
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </span>
+          ) : null}
+
+          <div className="volunteer-pick" role="radiogroup" aria-label="Voluntário">
+            {shown.length === 0 ? <p className="field__hint">Ninguém encontrado com essa busca.</p> : null}
+            {shown.map((volunteer) => {
+              const open = load.get(volunteer.id)?.openActivities ?? 0;
+              const selected = volunteer.id === volunteerId;
+              return (
+                <label key={volunteer.id} className={`volunteer-pick__item${selected ? ' is-selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="link-volunteer"
+                    className="sr-only"
+                    value={volunteer.id}
+                    checked={selected}
+                    onChange={() => {
+                      setVolunteerId(volunteer.id);
+                      setFormError(null);
+                    }}
+                  />
+                  <Avatar name={volunteer.name} photoUrl={volunteer.photoUrl} size={32} />
+                  <span className="volunteer-pick__text">
+                    <span className="volunteer-pick__name">{volunteer.name}</span>
+                    <span className="volunteer-pick__meta">
+                      {sectorLabel(volunteer.sector)}
+                      {open > 0 ? ` · ${plural(open, 'tarefa', 'tarefas')} em aberto` : ''}
+                    </span>
+                  </span>
+                  {selected ? <IconCheck size={16} className="volunteer-pick__check" /> : null}
+                </label>
+              );
+            })}
+          </div>
 
           <Field label="Papel no projeto" htmlFor="link-role" hint="Ex.: responsável técnico, oficinas, mobilização.">
             <TextInput
               id="link-role"
               value={roleInProject}
+              maxLength={120}
               onChange={(event) => setRoleInProject(event.target.value)}
             />
           </Field>

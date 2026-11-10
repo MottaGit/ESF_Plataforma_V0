@@ -285,7 +285,7 @@ de ser visível para ele).
 botão do topo, para Voluntários, Relatórios e Configurações). **Registrar** pergunta o projeto (os da pessoa primeiro,
 com busca) e abre o projeto já no registro de andamento, com o cursor no campo; o botão "Registrar" de Meus projetos,
 no Início, faz o mesmo (`/projetos/{id}?registrar=1`). Os avisos de confirmação aparecem acima da barra. As listas em
-tabela (Projetos, Voluntários, Equipe do projeto, Relatórios, Acessos e as da área Nacional) viram cartões, um por
+tabela (Projetos, Voluntários, Relatórios, Acessos e as da área Nacional) viram cartões, um por
 linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no iPhone, letra menor faz a tela ampliar
 sozinha a cada toque num campo). Dá para pôr a plataforma na tela de início do celular ("Adicionar à Tela de Início"
 no Safari, "Instalar app" no Chrome): vira o ícone **CtrlESF** (o globo do logo da ESF) e abre em tela cheia
@@ -429,7 +429,21 @@ equipe do projeto; ao atribuir alguém de fora, a pessoa entra na equipe automat
 também faz parte dela e só pode ser desvinculado depois de trocado). Na lista de responsáveis, cada nome mostra a
 carga da pessoa ("Fausto da Silva · 2 em aberto", "Edu Grehs · afastado"), contada como no Início (tarefas em aberto
 de projetos em planejamento ou em andamento, não arquivados), e embaixo do campo aparece o resumo de quem foi
-escolhido ("2 tarefas em aberto, 1 atrasada.").
+escolhido ("2 tarefas em aberto, 1 atrasada."). O filtro de responsável fica na URL
+(`?aba=tarefas&responsavel={voluntário}`; `responsavel=sem` para as sem responsável), junto com o "Só atrasadas"
+(`filtro=atrasadas`).
+
+**Equipe** — uma linha por pessoa, o responsável pelo projeto primeiro: foto, nome (leva à página do voluntário, onde
+fica o contato) com o setor ao lado, em cinza, e embaixo o papel no projeto ("Responsável · projeto elétrico"); à
+direita, as tarefas em aberto no projeto ("3 tarefas · 1 atrasada", só o "atrasada" em vermelho; tocar abre a aba
+Tarefas filtrada pela pessoa) e as horas lançadas. O "⋯" de cada linha tem **Definir papel**/**Mudar papel** (o campo
+abre na própria linha: Enter ou sair do campo salva; Esc desiste; `PUT /api/projects/{id}/volunteers/{voluntario}`,
+sem desvincular e vincular de novo, o que perdia a data de entrada) e **Desvincular** (o responsável pelo projeto só
+depois de trocado em Editar projeto). No celular, tarefas e horas descem para uma linha só, embaixo do papel, e o que
+está vazio some. **Vincular voluntário** abre uma lista dos voluntários ativos que ainda não estão na equipe, com
+foto, nome e, embaixo, o setor e as tarefas em aberto em todos os projetos (para ver quem está livre); a partir de 7
+pessoas aparece a busca pelo nome ou pelo setor, sem diferenciar acentos. Abaixo da equipe, o painel de horas (ver
+Horas por projeto).
 
 **Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um registro com
 formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
@@ -466,12 +480,11 @@ mantém a lista como estava. Sem resultado, a lista diz "Nenhum voluntário com 
 ainda não assinou ("2 sem o termo: 1 sem acesso à plataforma, 1 aguardando o primeiro acesso"), sem repetir nada por
 linha. No celular, busca e filtros ficam no botão "Filtros", como em Tarefas e Projetos. **Contato em um toque**: na lista, a coluna Contato tem ícones de e-mail (abre o programa de
 e-mail) e WhatsApp (só quando o telefone é celular do Brasil: DDD + 9 + 8 dígitos; sem o 55, ele é incluído);
-na página do voluntário e na aba Equipe do projeto, o e-mail e o telefone por extenso viram links (o telefone liga ao
-toque), com "WhatsApp" ao lado do celular. A lista não tem coluna de ações: editar e anonimizar ficam na página da
+na página do voluntário, o e-mail e o telefone por extenso viram links (o telefone liga ao toque), com "WhatsApp" ao
+lado do celular (a aba Equipe do projeto não mostra contato: o nome leva à página da pessoa). A lista não tem coluna de ações: editar e anonimizar ficam na página da
 pessoa. A **página do voluntário** traz primeiro o contato e o perfil (e-mail, telefone, aniversário, competências) e
-os projetos atuais e anteriores; ao lado (embaixo, no celular), a parte administrativa: acesso, horas e termo. O papel de quem já está na equipe muda ali mesmo,
-no lápis ao lado dele na aba Equipe do projeto (Enter ou sair do campo salva; Esc desiste; `PUT
-/api/projects/{id}/volunteers/{voluntario}`), sem desvincular e vincular de novo, o que perdia o "Desde". O vínculo com projetos (e o papel exercido em cada um) pode ser feito
+os projetos atuais e anteriores; ao lado (embaixo, no celular), a parte administrativa: acesso, horas e termo. O papel de quem já está na equipe muda no "⋯" da
+pessoa na aba Equipe do projeto (ver Equipe, acima). O vínculo com projetos (e o papel exercido em cada um) pode ser feito
 tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o voluntário, sempre entre projeto e
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
 hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
