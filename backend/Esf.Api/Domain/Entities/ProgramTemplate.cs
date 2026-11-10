@@ -35,4 +35,7 @@ public class ProgramTemplateIndicator
 
     public string Name { get; set; } = string.Empty;
     public string? Unit { get; set; }
+
+    /// <summary>Meta padrao de cada projeto novo do programa (ex.: 1 banheiro por projeto); vazio: sem meta.</summary>
+    public decimal? Target { get; set; }
 }

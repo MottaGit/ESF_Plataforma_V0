@@ -19,17 +19,20 @@ public static class ResultTotals
     /// </summary>
     public static readonly Expression<Func<Project, bool>> CountsForResults = p => p.Status != ProjectStatus.Cancelado;
 
-    /// <summary>Um indicador de um projeto, com o que a soma precisa.</summary>
-    public record Item(Guid ProjectId, string Name, string? Unit, decimal? Value, Guid? NationalIndicatorId);
+    /// <summary>Um indicador de um projeto, com o que a soma precisa (a meta so no relatorio em PDF).</summary>
+    public record Item(Guid ProjectId, string Name, string? Unit, decimal? Value, Guid? NationalIndicatorId,
+        decimal? Target = null);
 
     /// <summary>Indicador padrao do modelo do programa (os ligados a um nacional ja entram pelo nacional).</summary>
     public record Template(string Name, string? Unit, Guid? NationalIndicatorId);
 
     /// <summary>
     /// Resultado somado. Value fica null quando nenhum projeto informou; Informed e Projects dizem em quantos projetos
-    /// foi informado e quantos tem o indicador.
+    /// foi informado e quantos tem o indicador. Target: soma das metas, so quando todos esses projetos tem meta (com
+    /// parte sem meta, a comparacao juntaria coisas diferentes).
     /// </summary>
-    public record Total(string Name, string? Unit, decimal? Value, int Informed, int Projects, Guid? NationalIndicatorId);
+    public record Total(string Name, string? Unit, decimal? Value, int Informed, int Projects, Guid? NationalIndicatorId,
+        decimal? Target = null);
 
     /// <summary>
     /// Nacionais primeiro (em ordem de nome), depois os do modelo na ordem do modelo. Indicador do modelo que nenhum
@@ -68,7 +71,8 @@ public static class ResultTotals
             informed.Count > 0 ? informed.Sum(i => i.Value!.Value) : null,
             informed.Select(i => i.ProjectId).Distinct().Count(),
             items.Select(i => i.ProjectId).Distinct().Count(),
-            nationalId);
+            nationalId,
+            items.Count > 0 && items.All(i => i.Target != null) ? items.Sum(i => i.Target!.Value) : null);
     }
 
     /// <summary>"informado em 3 de 5 projetos" quando falta algum projeto informar; null quando todos informaram.</summary>

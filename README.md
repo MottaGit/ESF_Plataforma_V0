@@ -270,12 +270,14 @@ iguais em qualquer aparelho (os emojis de antes mudavam de cara em cada sistema)
 
 **Modelo de projeto** — em Projetos › programa › Editar programa › "Modelo de projeto" (`/programas/{id}/editar?aba=modelo`;
 o endereço antigo `/programas/{id}/modelo` leva para lá): **tarefas padrão** (título, "Urgente", descrição e
-prazo opcional em dias após o início do projeto; sem prazo por padrão) e **indicadores padrão** (nome e unidade). Os
+prazo opcional em dias após o início do projeto; sem prazo por padrão) e **indicadores padrão** (nome, unidade e
+**meta por projeto** opcional, ex.: 1 banheiro; a lista mostra "un. · meta 1 por projeto"). Os
 textos do projeto novo não ficam aqui: vêm da ficha do programa (aba Sobre). A coordenação inclui, edita, reordena e
 remove; cada mudança grava na hora e não altera projetos que já existem. Ao criar um projeto de um programa com
 modelo, o formulário mostra "Usar o modelo do programa" (já marcado, com o resumo do que será criado, "Cria 5 tarefas e
 2 indicadores."): as tarefas entram sem responsável, com o prazo contado da data de início, e os indicadores entram em
-branco (não informado; os nacionais, que o projeto já recebe, não se repetem).
+branco (não informado; os nacionais, que o projeto já recebe, não se repetem), já com a meta do modelo (inclusive nos
+nacionais que o modelo lista).
 
 **Menu** — Início · Projetos · Tarefas · Voluntários · Relatórios · Configurações. Configurações aparece só para a
 coordenação; o voluntário comum chega na própria conta pelo menu do avatar (e a lista de acessos, com e-mails, deixou
@@ -389,10 +391,15 @@ comparação usa a função `esf_fold` (criada pela migração, sem depender de 
 **Detalhes do projeto** — cabeçalho com o status (alterado no próprio badge) e o prazo em texto ("faltam 45 dias",
 "atrasado há 5 dias"), uma **faixa de situação** visível em todas as abas (progresso, tarefas atrasadas,
 bloqueadas e equipe, cada uma levando à aba correspondente; embaixo, na largura toda, os **indicadores** do projeto,
-nome e valor com a unidade, e "atualizado há 3 dias" quando o valor tem
+nome e valor com a unidade — com meta, "8 de 10 pessoas" —, e "atualizado há 3 dias" quando o valor tem
 data (`Indicators.ValueUpdatedAt`, gravado só quando o número muda, inclusive na importação; os de antes desse campo
-ficam sem data; migração `AddIndicatorValueUpdatedAt`); tocar num deles abre a janela para atualizar o valor ali mesmo — nome, unidade e exclusão
-ficam na aba Sobre; sem indicadores, a coordenação vê o convite, que abre o cadastro do primeiro, e os demais não veem a
+ficam sem data; migração `AddIndicatorValueUpdatedAt`); tocar num deles abre a janela para atualizar o valor ali mesmo
+(com a meta lembrada embaixo) — nome, unidade, **meta** e exclusão ficam na aba Sobre, onde a lista mostra "8 de 10
+pessoas" ou "não informado · meta 1". A **meta** (`Indicators.Target`, migração `AddIndicatorTargets`; vale também
+para os nacionais, por projeto) é quanto o projeto pretende alcançar; em branco, sem meta. Toda gravação de indicador
+manda a meta atual (a janela do valor, a de concluir o projeto), senão ela se apagaria; a conclusão mostra "meta 10" ao
+lado de cada número. Meta não entra na planilha, na página pública, na visão do programa nem no painel nacional: só no
+projeto e no relatório em PDF; sem indicadores, a coordenação vê o convite, que abre o cadastro do primeiro, e os demais não veem a
 linha) e cinco abas: **Andamento** (a inicial), **Tarefas**, **Equipe**, **Arquivos** e **Sobre** (descrição, objetivo,
 período, comunidade ou família atendida, quem se beneficia, local e indicadores; programa e responsável já estão no
 topo). A aba aberta fica na URL (`?aba=tarefas`, `?aba=equipe`…),
@@ -669,7 +676,10 @@ o fim do período: mostra que o projeto está vivo; a contagem de registros saiu
 equipe e não diz nada a quem é de fora) e uma coluna por indicador nacional, com o valor do fim do período ("–" é não
 informado, diferente de zero). A letra é de 10 pt no texto e de no mínimo 8 pt nos detalhes, num cinza escuro, para a
 leitura impressa. Nos cartões de indicador, a unidade some quando é genérica ("un.") ou quando o nome já diz ("3" e
-"Famílias atendidas", não "3 famílias · Famílias atendidas"); "10,57 m² · Área construída" continua. Títulos
+"Famílias atendidas", não "3 famílias · Famílias atendidas"); "10,57 m² · Área construída" continua. **Realizado ×
+previsto**: indicador com meta ganha no cartão "80% da meta de 10" (acima de 100% também); no programa, a soma das metas
+só sai quando todos os projetos da soma têm meta (com parte sem meta, a comparação juntaria coisas diferentes), e a
+tabela de resumo mostra "8 de 10" nas colunas dos nacionais. Títulos
 de seção não ficam sozinhos no pé da página, os cartões de indicadores não se dividem entre duas páginas e as
 linhas das tabelas também não. Na linha do tempo, cada registro leva até 4 fotos (as primeiras enviadas), com tamanho
 conforme a quantidade — uma foto larga (60% da linha), duas lado a lado, três numa linha, quatro em 2 × 2 —, todas no
@@ -948,12 +958,12 @@ ESF_Plataforma_V0/
 | `AccessLinks` | links de acesso (hash do código, validade, uso), para criar a senha no primeiro acesso ou depois de esquecê-la |
 | `Projects` | dados do projeto, localização, datas, status, arquivamento (o progresso é calculado, não armazenado) |
 | `Programs` | programas (nome, situação, ícone, cor, a ficha — `Description` "o que faz", `Objective`, `Audience` "para quem" — e o código do link da página pública, vazio com ela desligada) |
-| `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa |
+| `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa (o indicador com a meta de cada projeto novo) |
 | `ProgramPartners` | parceiros de cada programa (ordem, nome, papel, pessoa de contato, e-mail, telefone, observações) |
 | `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
 | `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
-| `Indicators` | indicadores do projeto (nome, valor — vazio é "não informado" — e unidade; `NationalIndicatorId` quando é um indicador nacional) |
+| `Indicators` | indicadores do projeto (nome, valor — vazio é "não informado" —, unidade e meta opcional; `NationalIndicatorId` quando é um indicador nacional) |
 | `IndicatorValueChanges` | histórico do valor de cada indicador (novo valor e desde quando vale), gravado sozinho no `SaveChanges` quando o número muda; o relatório em PDF lê dele o valor no fim do período |
 | `NationalIndicators` | indicadores nacionais da gestão nacional (nome, unidade, como contar, arquivado); sem núcleo |
 | `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |

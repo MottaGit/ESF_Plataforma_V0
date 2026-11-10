@@ -303,6 +303,8 @@ export interface TemplateIndicator {
   unit: string | null;
   /** Indicador nacional escolhido no modelo (null: especifico do programa). */
   nationalIndicatorId: string | null;
+  /** Meta de cada projeto novo do programa (null: sem meta). */
+  target: number | null;
 }
 
 /** Indicador nacional: definido pela gestao nacional; os nucleos escolhem nos projetos e nos modelos. */
@@ -451,6 +453,8 @@ export interface Indicator {
   nationalIndicatorId: string | null;
   /** Quando o valor mudou pela ultima vez (null: nunca, ou antes de o campo existir). */
   valueUpdatedAt: string | null;
+  /** Meta: quanto o projeto pretende alcancar (null: sem meta). */
+  target: number | null;
 }
 
 export interface VolunteerProject {
@@ -852,6 +856,8 @@ export interface SaveIndicatorPayload {
   value: number | null;
   /** Indicador nacional: nome e unidade passam a vir dele. */
   nationalIndicatorId: string | null;
+  /** Meta (null: sem meta). Toda gravacao manda a atual, senao ela se apagaria. */
+  target: number | null;
 }
 
 /** Edicao de um acesso: nome e e-mail vem do cadastro do voluntario. */

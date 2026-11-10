@@ -121,9 +121,10 @@ public record ReportProgramResults(Guid ProgramId, string Program, int Projects,
 
 /// <summary>
 /// Resultado somado (so os valores informados); Informed de Projects projetos do relatorio informaram. Change: quanto
-/// a soma mudou no periodo (zero sem inicio de periodo).
+/// a soma mudou no periodo (zero sem inicio de periodo). Target: soma das metas, quando todos os projetos tem meta.
 /// </summary>
-public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects, decimal Change);
+public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects, decimal Change,
+    decimal? Target = null);
 
 /// <summary>Caption so vem preenchida quando o arquivo tem uma descricao de verdade cadastrada
 /// (nunca cai para o nome do arquivo) - o relatorio so exibe legenda quando ela existir.</summary>

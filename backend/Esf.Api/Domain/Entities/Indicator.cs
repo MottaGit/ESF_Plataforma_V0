@@ -20,6 +20,9 @@ public class Indicator
     /// <summary>Vazio: ainda nao informado (diferente de zero). As somas ignoram os vazios.</summary>
     public decimal? Value { get; set; }
 
+    /// <summary>Meta: quanto o projeto pretende alcancar (vazio: sem meta). O relatorio mostra realizado x previsto.</summary>
+    public decimal? Target { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>

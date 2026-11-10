@@ -9,7 +9,8 @@ import type {
   TemplateActivity,
   TemplateIndicator
 } from '../../types/api';
-import { emptyToNull } from '../../utils/format';
+import { emptyToNull, formatNumber } from '../../utils/format';
+import { parseIndicatorValue } from '../projects/IndicatorModals';
 import { NationalIndicatorField, useNationalIndicators } from '../indicators/NationalIndicatorField';
 import { UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -216,7 +217,13 @@ export function ProgramTemplateTab({ programId, canEdit, onChanged }: ProgramTem
                           </span>
                         ) : null}
                       </div>
-                      {indicator.unit ? <div className="template-list__meta">{indicator.unit}</div> : null}
+                      {indicator.unit || indicator.target != null ? (
+                        <div className="template-list__meta">
+                          {[indicator.unit, indicator.target != null ? `meta ${formatNumber(indicator.target)} por projeto` : null]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </div>
+                      ) : null}
                     </div>
                     {canEdit ? (
                       <div className="row-actions">
@@ -423,29 +430,33 @@ function TemplateIndicatorModal({
   const [nationalId, setNationalId] = useState(indicator?.nationalIndicatorId ?? '');
   const [name, setName] = useState(indicator?.nationalIndicatorId ? '' : indicator?.name ?? '');
   const [unit, setUnit] = useState(indicator?.nationalIndicatorId ? '' : indicator?.unit ?? '');
+  const [target, setTarget] = useState(indicator?.target == null ? '' : String(indicator.target));
   const { error, setError, saving, run } = useModalSave(onSave);
 
   function submit(event?: FormEvent) {
     event?.preventDefault();
+    const parsedTarget = parseIndicatorValue(target);
+    if (parsedTarget === undefined) return setError('A meta deve ser um número (0 ou mais) ou ficar em branco.');
     if (nationalId) {
       // Nacional: nome e unidade vem dele (a API confere e grava os dele).
       const national = nationals.find((item) => item.id === nationalId);
       void run({
         name: national?.name ?? indicator?.name ?? 'Indicador nacional',
         unit: national?.unit ?? indicator?.unit ?? null,
-        nationalIndicatorId: nationalId
+        nationalIndicatorId: nationalId,
+        target: parsedTarget
       });
       return;
     }
     if (name.trim().length < 2) return setError('Informe o nome do indicador.');
-    void run({ name: name.trim(), unit: emptyToNull(unit), nationalIndicatorId: null });
+    void run({ name: name.trim(), unit: emptyToNull(unit), nationalIndicatorId: null, target: parsedTarget });
   }
 
   return (
     <Modal
       guardChanges
       title={indicator ? 'Editar indicador padrão' : 'Novo indicador padrão'}
-      subtitle="Entra zerado em cada projeto novo do programa."
+      subtitle="Entra em branco em cada projeto novo do programa, já com a meta (se houver)."
       size="narrow"
       onClose={onClose}
       footer={
@@ -493,6 +504,21 @@ function TemplateIndicatorModal({
             </Field>
           </>
         ) : null}
+        <Field
+          label="Meta por projeto"
+          htmlFor="template-indicator-target"
+          hint="Vem preenchida em cada projeto novo (ex.: 1 banheiro). O relatório mostra o realizado contra a meta. Em branco: sem meta."
+        >
+          <TextInput
+            id="template-indicator-target"
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={target}
+            onChange={(event) => setTarget(event.target.value)}
+          />
+        </Field>
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
       </form>
     </Modal>

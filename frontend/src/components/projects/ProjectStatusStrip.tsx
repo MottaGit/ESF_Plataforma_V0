@@ -110,6 +110,7 @@ export function ProjectStatusStrip({ project, canManage, onOpenTab, onChanged }:
                   ) : (
                     <>
                       {formatNumber(indicator.value)}
+                      {indicator.target != null ? <small> de {formatNumber(indicator.target)}</small> : null}
                       {indicator.unit ? <small> {indicator.unit}</small> : null}
                     </>
                   )}

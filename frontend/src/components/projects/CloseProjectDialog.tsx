@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ApiError } from '../../api/client';
 import { indicatorsApi, projectUpdatesApi, projectsApi } from '../../api/endpoints';
 import type { Indicator, ProjectDetail } from '../../types/api';
-import { todayInputValue } from '../../utils/format';
+import { formatNumber, todayInputValue } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Field, TextArea, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
@@ -79,7 +79,8 @@ export function CloseProjectDialog({ project, status, onCancel, onClosed, onOpen
           name: indicator.name,
           unit: indicator.unit,
           value: parseIndicatorValue(text) ?? null,
-          nationalIndicatorId: indicator.nationalIndicatorId
+          nationalIndicatorId: indicator.nationalIndicatorId,
+          target: indicator.target
         });
       } catch (err) {
         setError(
@@ -187,6 +188,9 @@ export function CloseProjectDialog({ project, status, onCancel, onClosed, onOpen
                   {indicator.name}
                   {indicator.nationalIndicatorId ? <span className="national-mark">nacional</span> : null}
                   {indicator.unit ? <span className="close-project__result-unit">{indicator.unit}</span> : null}
+                  {indicator.target != null ? (
+                    <span className="close-project__result-unit">meta {formatNumber(indicator.target)}</span>
+                  ) : null}
                 </label>
                 <TextInput
                   id={`close-result-${indicator.id}`}

@@ -267,7 +267,14 @@ public class ProjectService
 
         foreach (var item in program.TemplateIndicators.OrderBy(x => x.Position))
         {
-            if (item.NationalIndicatorId is { } nationalId && nationalsAlreadyIn.Contains(nationalId)) continue;
+            // Nacional que o projeto ja recebeu: so a meta do modelo vai para ele.
+            if (item.NationalIndicatorId is { } nationalId && nationalsAlreadyIn.Contains(nationalId))
+            {
+                var linked = _db.Indicators.Local
+                    .FirstOrDefault(i => i.ProjectId == project.Id && i.NationalIndicatorId == nationalId);
+                if (linked != null) linked.Target = item.Target;
+                continue;
+            }
             _db.Indicators.Add(new Indicator
             {
                 ProjectId = project.Id,
@@ -275,6 +282,7 @@ public class ProjectService
                 Name = item.Name,
                 Unit = item.Unit,
                 Value = null,
+                Target = item.Target,
                 // Mesma ordem do modelo (a lista de indicadores segue a data de criacao).
                 CreatedAt = now.AddTicks(item.Position)
             });

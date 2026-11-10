@@ -210,6 +210,7 @@ public class ProgramService
                 ? found
                 : _db.ProgramTemplateIndicators.Add(new ProgramTemplateIndicator { ProgramId = id }).Entity;
             indicator.Position = i;
+            indicator.Target = item.Target;
 
             // Indicador nacional: nome e unidade vem dele (e os projetos novos nascem ligados).
             if (item.NationalIndicatorId.HasValue)
@@ -282,7 +283,7 @@ public class ProgramService
         p.TemplateActivities.OrderBy(a => a.Position)
             .Select(a => new TemplateActivityDto(a.Id, a.Title, a.Description, a.Priority, a.DueDays)).ToList(),
         p.TemplateIndicators.OrderBy(x => x.Position)
-            .Select(x => new TemplateIndicatorDto(x.Id, x.Name, x.Unit, x.NationalIndicatorId)).ToList());
+            .Select(x => new TemplateIndicatorDto(x.Id, x.Name, x.Unit, x.NationalIndicatorId, x.Target)).ToList());
 
     /// <summary>So exclui programa sem projetos (criado por engano, por exemplo); com projetos, arquive.</summary>
     public async Task DeleteAsync(Guid id)

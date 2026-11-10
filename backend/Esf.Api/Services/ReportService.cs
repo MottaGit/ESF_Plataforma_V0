@@ -186,7 +186,8 @@ public class ReportService
                 IndicatorFigure Figure(Indicator i) =>
                     figures.TryGetValue(i.Id, out var figure) ? figure : new IndicatorFigure(i.Value, i.ValueUpdatedAt, null);
                 List<ResultTotals.Total> Sum(Func<IndicatorFigure, decimal?> value) => ResultTotals.Compute(
-                    indicators.Select(i => new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, value(Figure(i)), i.NationalIndicatorId)),
+                    indicators.Select(i =>
+                        new ResultTotals.Item(i.ProjectId, i.Name, i.Unit, value(Figure(i)), i.NationalIndicatorId, i.Target)),
                     programTemplates);
 
                 // As duas somas tem os mesmos resultados na mesma ordem (a ordem so depende dos nomes).
@@ -194,7 +195,7 @@ public class ReportService
                     .Zip(Sum(f => f.Start), (end, start) => (End: end, Start: start))
                     .Where(r => r.End.Value != null)
                     .Select(r => new ReportResult(r.End.Name, r.End.Unit, r.End.Value!.Value, r.End.Informed,
-                        r.End.Projects, r.End.Value!.Value - (r.Start.Value ?? 0)))
+                        r.End.Projects, r.End.Value!.Value - (r.Start.Value ?? 0), r.End.Target))
                     .ToList();
 
                 return new ReportProgramResults(group.Key, group.First().Program!.Name, group.Count(), results);

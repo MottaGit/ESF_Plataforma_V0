@@ -72,7 +72,7 @@ public static class AuditTrail
             ["Name"] = "Nome", ["Email"] = "E-mail", ["Role"] = "Perfil", ["IsActive"] = "Ativo",
             ["VolunteerId"] = "Voluntário vinculado", ["PasswordHash"] = "Senha", ["TermsVersion"] = "Política aceita (versão)"
         },
-        [typeof(Indicator)] = new() { ["Name"] = "Nome", ["Value"] = "Valor", ["Unit"] = "Unidade" },
+        [typeof(Indicator)] = new() { ["Name"] = "Nome", ["Value"] = "Valor", ["Unit"] = "Unidade", ["Target"] = "Meta" },
         [typeof(ProjectFile)] = new() { ["Description"] = "Legenda" },
         [typeof(ProjectUpdate)] = new() { ["Text"] = "Texto" },
         [typeof(ProjectProgram)] = new()
@@ -86,7 +86,7 @@ public static class AuditTrail
             ["Title"] = "Título", ["Description"] = "Descrição", ["Priority"] = "Prioridade",
             ["DueDays"] = "Prazo (dias após o início)"
         },
-        [typeof(ProgramTemplateIndicator)] = new() { ["Name"] = "Nome", ["Unit"] = "Unidade" },
+        [typeof(ProgramTemplateIndicator)] = new() { ["Name"] = "Nome", ["Unit"] = "Unidade", ["Target"] = "Meta" },
         [typeof(ProgramPartner)] = new()
         {
             ["Name"] = "Nome", ["Role"] = "Papel", ["ContactName"] = "Pessoa de contato", ["Email"] = "E-mail",

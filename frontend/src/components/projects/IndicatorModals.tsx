@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { indicatorsApi } from '../../api/endpoints';
 import type { Indicator, SaveIndicatorPayload } from '../../types/api';
-import { emptyToNull } from '../../utils/format';
+import { emptyToNull, formatNumber } from '../../utils/format';
 import { useNationalIndicators } from '../indicators/NationalIndicatorField';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
@@ -10,6 +10,7 @@ import { Alert } from '../ui/Feedback';
 import { Modal } from '../ui/Modal';
 
 const BLANK_HINT = 'Em branco: ainda não informado (não conta como zero).';
+const TARGET_HINT = 'Quanto o projeto pretende alcançar. O relatório mostra o realizado contra a meta. Em branco: sem meta.';
 
 /** Valor digitado: vazio vira "nao informado" (null); undefined quando nao e um numero valido. */
 export function parseIndicatorValue(text: string): number | null | undefined {
@@ -44,6 +45,7 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
   const [name, setName] = useState(indicator?.name ?? '');
   const [unit, setUnit] = useState(indicator?.unit ?? '');
   const [value, setValue] = useState(indicator?.value == null ? '' : String(indicator.value));
+  const [target, setTarget] = useState(indicator?.target == null ? '' : String(indicator.target));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -53,16 +55,24 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
     setFormError(null);
 
     const parsed = parseIndicatorValue(value);
+    const parsedTarget = parseIndicatorValue(target);
     const found: Record<string, string> = {};
     if (!isNational && name.trim().length < 2) found.name = 'Informe o nome do indicador.';
     if (parsed === undefined) found.value = 'Informe um número (0 ou mais) ou deixe em branco.';
+    if (parsedTarget === undefined) found.target = 'Informe um número (0 ou mais) ou deixe em branco.';
 
     setErrors(found);
-    if (Object.keys(found).length > 0 || parsed === undefined) return;
+    if (Object.keys(found).length > 0 || parsed === undefined || parsedTarget === undefined) return;
 
     const payload: SaveIndicatorPayload = isNational
-      ? { name: indicator!.name, unit: indicator!.unit, value: parsed, nationalIndicatorId: indicator!.nationalIndicatorId }
-      : { name: name.trim(), unit: emptyToNull(unit), value: parsed, nationalIndicatorId: null };
+      ? {
+          name: indicator!.name,
+          unit: indicator!.unit,
+          value: parsed,
+          nationalIndicatorId: indicator!.nationalIndicatorId,
+          target: parsedTarget
+        }
+      : { name: name.trim(), unit: emptyToNull(unit), value: parsed, nationalIndicatorId: null, target: parsedTarget };
 
     setSaving(true);
     try {
@@ -141,6 +151,19 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
               <TextInput id="indicator-unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
             </Field>
           ) : null}
+
+          <Field label="Meta" htmlFor="indicator-target" error={errors.target} hint={TARGET_HINT} span>
+            <TextInput
+              id="indicator-target"
+              type="number"
+              min={0}
+              step="0.01"
+              inputMode="decimal"
+              value={target}
+              invalid={Boolean(errors.target)}
+              onChange={(event) => setTarget(event.target.value)}
+            />
+          </Field>
         </div>
 
         <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
@@ -176,7 +199,8 @@ export function IndicatorValueModal({ indicator, onClose, onSaved }: IndicatorVa
         name: indicator.name,
         unit: indicator.unit,
         value: parsed,
-        nationalIndicatorId: indicator.nationalIndicatorId
+        nationalIndicatorId: indicator.nationalIndicatorId,
+        target: indicator.target
       });
       onSaved();
     } catch (err) {
@@ -211,7 +235,13 @@ export function IndicatorValueModal({ indicator, onClose, onSaved }: IndicatorVa
           label={indicator.unit ? `Valor (${indicator.unit})` : 'Valor'}
           htmlFor="indicator-quick-value"
           error={error ?? undefined}
-          hint={howToCount ? `${howToCount} ${BLANK_HINT}` : BLANK_HINT}
+          hint={[
+            indicator.target != null ? `Meta: ${formatNumber(indicator.target)}.` : null,
+            howToCount,
+            BLANK_HINT
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
           <TextInput
             id="indicator-quick-value"

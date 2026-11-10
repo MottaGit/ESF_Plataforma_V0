@@ -80,6 +80,7 @@ public class IndicatorService
         // So muda a data quando o numero muda (corrigir o nome nao "atualiza" o resultado).
         if (indicator.Value != r.Value) indicator.ValueUpdatedAt = DateTime.UtcNow;
         indicator.Value = r.Value;
+        indicator.Target = r.Target;
 
         if (r.NationalIndicatorId.HasValue)
         {

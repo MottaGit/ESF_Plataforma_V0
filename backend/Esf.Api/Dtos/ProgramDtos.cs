@@ -138,7 +138,7 @@ public record PublicProjectDto(
 
 public record TemplateActivityDto(Guid Id, string Title, string? Description, ActivityPriority Priority, int? DueDays);
 
-public record TemplateIndicatorDto(Guid Id, string Name, string? Unit, Guid? NationalIndicatorId);
+public record TemplateIndicatorDto(Guid Id, string Name, string? Unit, Guid? NationalIndicatorId, decimal? Target);
 
 /// <summary>Modelo de projeto: as tarefas e os indicadores que um projeto novo do programa ja recebe.</summary>
 public record ProgramTemplateDto(
@@ -185,6 +185,10 @@ public class SaveTemplateIndicatorRequest
 
     /// <summary>Indicador nacional escolhido: nome e unidade passam a vir dele.</summary>
     public Guid? NationalIndicatorId { get; set; }
+
+    /// <summary>Meta de cada projeto novo do programa (vazio: sem meta).</summary>
+    [Range(0, 999999999, ErrorMessage = "Meta inválida.")]
+    public decimal? Target { get; set; }
 }
 
 public class SaveProgramRequest
