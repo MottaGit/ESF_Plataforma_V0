@@ -41,6 +41,7 @@ public class JobWorker : BackgroundService
     private static readonly TimeSpan Heartbeat = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan IdleWait = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan PreviewIdleWait = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan PreviewPause = TimeSpan.FromMilliseconds(250);
 
     /// <summary>Sem pergunta da tela ha mais que isso, a pessoa saiu: o aviso vai para o sininho.</summary>
     private static readonly TimeSpan Watching = TimeSpan.FromSeconds(20);
@@ -76,8 +77,9 @@ public class JobWorker : BackgroundService
             // Fotos: uma de cada vez, sem esperar atras de um relatorio grande.
             LoopAsync("fotos", async () =>
             {
-                if (!await ProcessNextPreviewAsync(stoppingToken))
-                    await Task.Delay(PreviewIdleWait, stoppingToken);
+                // Entre uma foto e outra, uma pausa curta: depois do deploy as fotos antigas passam todas por aqui, e as
+                // requisicoes nao podem ficar esperando o processador.
+                await Task.Delay(await ProcessNextPreviewAsync(stoppingToken) ? PreviewPause : PreviewIdleWait, stoppingToken);
             }, stoppingToken));
 
     private async Task LoopAsync(string name, Func<Task> step, CancellationToken stoppingToken)
@@ -154,7 +156,8 @@ public class JobWorker : BackgroundService
             var retryDb = retry.ServiceProvider.GetRequiredService<EsfDbContext>();
             retryDb.AllOrganizations = true;
             var again = await retryDb.ProjectFiles.FirstOrDefaultAsync(f => f.Id == file.Id, stoppingToken);
-            if (again is not null)
+            // Outro servidor pode ter terminado a mesma foto: so marca falha se ainda estiver esperando.
+            if (again is { PreviewState: PreviewState.Pending })
             {
                 again.PreviewState = PreviewState.Failed;
                 await retryDb.SaveChangesAsync(stoppingToken);
@@ -346,7 +349,12 @@ public class JobWorker : BackgroundService
             job.InputStoredName = null;
         }
 
-        if (job.LastSeenAt is null || now - job.LastSeenAt > Watching)
+        // A tela segue perguntando enquanto a tarefa roda: vale o que esta no banco agora, nao o da hora em que pegou.
+        var lastSeen = await db.BackgroundJobs.AsNoTracking()
+            .Where(j => j.Id == job.Id)
+            .Select(j => j.LastSeenAt)
+            .FirstOrDefaultAsync();
+        if (lastSeen is null || now - lastSeen > Watching)
             await NotifyAsync(db, job);
 
         try
