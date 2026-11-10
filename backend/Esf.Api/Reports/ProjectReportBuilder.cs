@@ -122,14 +122,16 @@ public static class ProjectReportBuilder
                 });
             }
 
-            if (model.Projects.Count > 1)
+            // O resumo e so a abertura (mesmo com um projeto); o completo abre assim quando tem mais de um.
+            if (model.Summary || model.Projects.Count > 1)
             {
                 col.Item().Element(c => ComposeResults(c, model));
                 col.Item().Element(c => ComposeSummary(c, model));
             }
 
-            foreach (var project in model.Projects)
-                col.Item().Element(c => ComposeProject(c, model, project));
+            if (!model.Summary)
+                foreach (var project in model.Projects)
+                    col.Item().Element(c => ComposeProject(c, model, project));
         });
     }
 
@@ -157,7 +159,8 @@ public static class ProjectReportBuilder
 
             col.Item().Row(row =>
             {
-                row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, projects.Count, "projetos", byStatus));
+                row.RelativeItem().PaddingRight(6).Element(c =>
+                    StatCard(c, projects.Count, projects.Count == 1 ? "projeto" : "projetos", byStatus));
                 var hours = projects.Sum(p => model.HoursOf(p.Id));
                 row.RelativeItem().PaddingRight(6).Element(c => StatCard(c, volunteers, "voluntários nas equipes",
                     hours > 0 ? $"{TextHelpers.Hours(hours)} horas de voluntariado lançadas{inPeriod}" : null));
@@ -165,7 +168,7 @@ public static class ProjectReportBuilder
                 row.RelativeItem().Element(c => StatCard(c, doneTasks, $"tarefas concluídas{inPeriod}", null));
             });
 
-            foreach (var program in model.ProgramResults)
+            foreach (var program in model.ProgramResults.Where(r => r.Results.Count > 0 || model.PartnersLine(r.ProgramId) != null))
             {
                 col.Item().PaddingTop(4).ShowEntire().Column(block =>
                 {
@@ -175,6 +178,14 @@ public static class ProjectReportBuilder
                         text.Span($" · {program.Projects} {(program.Projects == 1 ? "projeto" : "projetos")}")
                             .FontSize(8.5f).FontColor(Muted);
                     });
+                    // No resumo nao ha capitulo de projeto: os parceiros aparecem aqui, embaixo do programa.
+                    var partners = model.PartnersLine(program.ProgramId);
+                    if (partners != null)
+                        block.Item().Text(text =>
+                        {
+                            text.Span("Parceiros: ").FontSize(8.5f).SemiBold().FontColor(Ink);
+                            text.Span(partners).FontSize(8.5f).FontColor(Muted);
+                        });
 
                     foreach (var chunk in program.Results.Chunk(4))
                     {
@@ -192,7 +203,7 @@ public static class ProjectReportBuilder
                 });
             }
 
-            if (model.ProgramResults.Count > 0)
+            if (model.ProgramResults.Any(r => r.Results.Count > 0))
                 col.Item().Text("Indicadores com os valores atuais, somados nos projetos deste relatório (só os valores informados).")
                     .FontSize(7.5f).FontColor(Muted);
         });
@@ -224,8 +235,22 @@ public static class ProjectReportBuilder
         _ => $"{count} {status}"
     };
 
+    /// <summary>
+    /// Tabela dos projetos, na ordem do PDF (programa e nome): status, equipe, registros no periodo e uma coluna por
+    /// indicador nacional (os comuns a todo projeto). Indicador vazio e "nao informado", nunca zero.
+    /// </summary>
     private static void ComposeSummary(IContainer container, ReportModel model)
     {
+        var nationals = model.Projects
+            .SelectMany(p => p.Indicators)
+            .Where(i => i.NationalIndicatorId != null)
+            .GroupBy(i => i.NationalIndicatorId!.Value)
+            .Select(g => (Id: g.Key, g.First().Name))
+            .OrderBy(n => SearchText.Fold(n.Name))
+            .ToList();
+        decimal? NationalValue(Project p, Guid id) => p.Indicators.FirstOrDefault(i => i.NationalIndicatorId == id)?.Value;
+        var anyMissing = model.Projects.Any(p => nationals.Any(n => NationalValue(p, n.Id) == null));
+
         container.EnsureSpace(80).Column(col =>
         {
             col.Item().Text("Resumo dos projetos").FontSize(11).SemiBold();
@@ -233,25 +258,50 @@ public static class ProjectReportBuilder
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.RelativeColumn(4);
-                    columns.RelativeColumn(2);
-                    columns.ConstantColumn(72);
+                    columns.RelativeColumn(5);
+                    columns.ConstantColumn(66);
+                    columns.ConstantColumn(42);
+                    columns.ConstantColumn(56);
+                    foreach (var _ in nationals)
+                        columns.RelativeColumn(1.6f);
                 });
 
                 table.Header(header =>
                 {
                     header.Cell().Element(HeadCell).Text("Projeto");
-                    header.Cell().Element(HeadCell).Text("Programa");
                     header.Cell().Element(HeadCell).Text("Status");
+                    header.Cell().Element(HeadCell).AlignRight().Text("Equipe");
+                    header.Cell().Element(HeadCell).AlignRight().Text(model.HasPeriod ? "Registros no período" : "Registros");
+                    foreach (var national in nationals)
+                        header.Cell().Element(HeadCell).AlignRight().Text(national.Name);
                 });
 
                 foreach (var p in model.Projects)
                 {
-                    table.Cell().Element(BodyCell).Text(p.Name);
-                    table.Cell().Element(BodyCell).Text(p.Program!.Name);
+                    table.Cell().Element(BodyCell).Column(cell =>
+                    {
+                        cell.Item().Text(p.Name);
+                        var place = new[] { p.City, p.State }.Where(x => !string.IsNullOrWhiteSpace(x));
+                        var detail = string.Join(" · ", new[] { p.Program!.Name, string.Join("/", place) }
+                            .Where(x => !string.IsNullOrWhiteSpace(x)));
+                        cell.Item().Text(detail).FontSize(7.5f).FontColor(Muted);
+                    });
                     table.Cell().Element(BodyCell).Text(StatusLabel(p.Status));
+                    table.Cell().Element(BodyCell).AlignRight().Text(Number(p.Volunteers.Count));
+                    table.Cell().Element(BodyCell).AlignRight().Text(Number(p.Updates.Count(u => model.InPeriod(u.Day))));
+                    foreach (var national in nationals)
+                    {
+                        var value = NationalValue(p, national.Id);
+                        table.Cell().Element(BodyCell).AlignRight()
+                            .Text(value is { } informed ? Number(informed) : "–")
+                            .FontColor(value is null ? Muted : Ink);
+                    }
                 }
             });
+
+            if (anyMissing)
+                col.Item().PaddingTop(4).Text("– indicador não informado (diferente de zero). Indicadores com os valores atuais.")
+                    .FontSize(7.5f).FontColor(Muted);
         });
     }
 

@@ -1,5 +1,6 @@
 using Esf.Api.Common;
 using Esf.Api.Data;
+using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Dtos;
 using Esf.Api.Reports;
@@ -45,7 +46,8 @@ public class ReportService
         if (projects.Count == 0)
             throw AppException.NotFound("Projeto");
 
-        projects = projects.OrderBy(p => ids.IndexOf(p.Id)).ToList();
+        projects = InReportOrder(projects);
+        var summary = request.Format == ReportFormat.Resumo;
 
         var organization = await _db.Organizations.AsNoTracking().FirstOrDefaultAsync()
                            ?? new Organization { Name = "Engenheiros Sem Fronteiras" };
@@ -75,6 +77,7 @@ public class ReportService
             IncludeUpdates = request.IncludeUpdates,
             IncludePhotos = request.IncludePhotos,
             IncludeTasks = request.IncludeTasks,
+            Summary = summary,
             From = request.From,
             To = request.To,
             ProgramResults = ProgramResults(projects, templates),
@@ -86,15 +89,14 @@ public class ReportService
 
         // Fotos ficam atreladas a atualizacao (ProjectUpdate) que as recebeu, nao ao projeto todo -
         // assim cada entrada da linha do tempo mostra exatamente as fotos daquele evento.
+        // No resumo nao ha linha do tempo, entao as fotos nem sao lidas.
         var photos = model.Photos;
-        if (request.IncludePhotos)
+        if (request.IncludePhotos && !summary)
         {
             foreach (var update in projects.SelectMany(p => p.Updates).Where(u => model.InPeriod(u.Day)))
             {
                 var images = update.Attachments
-                    .Where(f => f.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-                    .Where(f => f.SizeBytes < 8 * 1024 * 1024)
-                    .Where(f => IsSupportedImage(f.StoredName))
+                    .Where(f => IsReportPhoto(f.ContentType, f.SizeBytes, f.StoredName))
                     .OrderBy(f => f.UploadedAt)
                     .Take(MaxPhotosPerUpdate)
                     .ToList();
@@ -136,12 +138,13 @@ public class ReportService
     /// <summary>
     /// Resultados por programa, na ordem dos projetos, pela regra unica (ResultTotals): os nacionais e os indicadores
     /// padrao do modelo somados nos projetos do relatorio. Resultado que nenhum projeto informou fica de fora (vazio
-    /// nao e zero e nao vai para o PDF).
+    /// nao e zero e nao vai para o PDF); programa sem nenhum continua na lista, pelos parceiros.
     /// </summary>
     private static List<ReportProgramResults> ProgramResults(List<Project> projects, List<ProgramTemplateIndicator> templates) =>
         projects
             .GroupBy(p => p.ProgramId)
             .Select(group => new ReportProgramResults(
+                group.Key,
                 group.First().Program!.Name,
                 group.Count(),
                 ResultTotals
@@ -153,14 +156,88 @@ public class ReportService
                     .Where(r => r.Value != null)
                     .Select(r => new ReportResult(r.Name, r.Unit, r.Value!.Value, r.Informed, r.Projects))
                     .ToList()))
-            .Where(result => result.Results.Count > 0)
             .ToList();
 
-    private static bool IsSupportedImage(string storedName)
+    /// <summary>
+    /// Quanto cada projeto tem no periodo (todos os projetos do nucleo, inclusive arquivados): registros de andamento
+    /// pelo dia em que aconteceram, fotos pelas mesmas regras do PDF (ate 4 por registro) e tarefas concluidas.
+    /// </summary>
+    public async Task<List<ReportPeriodCountDto>> PeriodCountsAsync(DateOnly? from, DateOnly? to)
     {
-        var extension = Path.GetExtension(storedName).ToLowerInvariant();
-        return extension is ".jpg" or ".jpeg" or ".png" or ".webp" or ".gif";
+        if (from.HasValue && to.HasValue && to < from)
+            throw new AppException("O fim do período não pode ser antes do início.");
+
+        // O periodo ja filtra no banco (dia do registro = HappenedOn ou o dia de Brasilia da publicacao); a conta final
+        // usa a mesma regra do PDF.
+        var updateQuery = _db.ProjectUpdates.AsNoTracking();
+        var taskQuery = _db.Activities.AsNoTracking()
+            .Where(a => a.Status == ActivityStatus.Concluida && a.CompletedAt != null);
+        if (from is { } start)
+        {
+            var startUtc = TextHelpers.BrasiliaDayStartUtc(start);
+            updateQuery = updateQuery.Where(u => u.HappenedOn >= start || (u.HappenedOn == null && u.CreatedAt >= startUtc));
+            taskQuery = taskQuery.Where(a => a.CompletedAt >= startUtc);
+        }
+        if (to is { } end)
+        {
+            var endUtc = TextHelpers.BrasiliaDayStartUtc(end.AddDays(1));
+            updateQuery = updateQuery.Where(u => u.HappenedOn <= end || (u.HappenedOn == null && u.CreatedAt < endUtc));
+            taskQuery = taskQuery.Where(a => a.CompletedAt < endUtc);
+        }
+
+        var updates = await updateQuery
+            .Select(u => new
+            {
+                u.ProjectId,
+                u.HappenedOn,
+                u.CreatedAt,
+                Files = u.Attachments.Select(f => new { f.ContentType, f.SizeBytes, f.StoredName }).ToList()
+            })
+            .ToListAsync();
+
+        var tasks = await taskQuery
+            .Select(a => new { a.ProjectId, a.CompletedAt })
+            .ToListAsync();
+
+        var projectIds = await _db.Projects.AsNoTracking().Select(p => p.Id).ToListAsync();
+
+        var updatesInPeriod = updates
+            .Where(u => ReportModel.InPeriod(u.HappenedOn ?? TextHelpers.BrasiliaDay(u.CreatedAt), from, to))
+            .GroupBy(u => u.ProjectId)
+            .ToDictionary(
+                g => g.Key,
+                g => (Count: g.Count(),
+                    Photos: g.Sum(u => Math.Min(MaxPhotosPerUpdate,
+                        u.Files.Count(f => IsReportPhoto(f.ContentType, f.SizeBytes, f.StoredName))))));
+        var tasksInPeriod = tasks
+            .Where(a => ReportModel.InPeriod(TextHelpers.BrasiliaDay(a.CompletedAt!.Value), from, to))
+            .GroupBy(a => a.ProjectId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return projectIds
+            .Select(id =>
+            {
+                var (count, photos) = updatesInPeriod.GetValueOrDefault(id);
+                return new ReportPeriodCountDto(id, count, photos, tasksInPeriod.GetValueOrDefault(id));
+            })
+            .ToList();
     }
+
+    /// <summary>
+    /// Ordem fixa dos projetos no PDF, a mesma dos Resultados (por programa): programa e depois nome, sem diferenciar
+    /// acento nem maiuscula. Nao depende da ordem em que a pessoa marcou.
+    /// </summary>
+    public static List<Project> InReportOrder(IEnumerable<Project> projects) =>
+        projects
+            .OrderBy(p => SearchText.Fold(p.Program!.Name), StringComparer.Ordinal)
+            .ThenBy(p => SearchText.Fold(p.Name), StringComparer.Ordinal)
+            .ToList();
+
+    /// <summary>Foto que entra no PDF: imagem de ate 8 MB num formato que o QuestPDF desenha.</summary>
+    private static bool IsReportPhoto(string contentType, long sizeBytes, string storedName) =>
+        contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
+        && sizeBytes < 8 * 1024 * 1024
+        && Path.GetExtension(storedName).ToLowerInvariant() is ".jpg" or ".jpeg" or ".png" or ".webp" or ".gif";
 
     private static string Slug(string value)
     {

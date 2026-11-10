@@ -17,6 +17,9 @@ public record ReportModel
     public bool IncludePhotos { get; init; } = true;
     public bool IncludeTasks { get; init; } = true;
 
+    /// <summary>Resumo: so os Resultados e a tabela dos projetos, sem o capitulo de cada projeto.</summary>
+    public bool Summary { get; init; }
+
     /// <summary>Periodo de referencia; vazio nas duas pontas, o relatorio cobre todo o historico.</summary>
     public DateOnly? From { get; init; }
     public DateOnly? To { get; init; }
@@ -27,7 +30,11 @@ public record ReportModel
     public bool InPeriod(DateTime value) => InPeriod(TextHelpers.BrasiliaDay(value));
 
     /// <summary>Dia dentro do periodo de referencia (registros de andamento contam pelo dia em que aconteceram).</summary>
-    public bool InPeriod(DateOnly day) => (From is null || day >= From) && (To is null || day <= To);
+    public bool InPeriod(DateOnly day) => InPeriod(day, From, To);
+
+    /// <summary>A mesma regra do PDF, para quem conta antes de gerar (tela Relatorios).</summary>
+    public static bool InPeriod(DateOnly day, DateOnly? from, DateOnly? to) =>
+        (from is null || day >= from) && (to is null || day <= to);
 
     /// <summary>Fotos ja lidas do disco, por atualizacao (ProjectUpdate.Id) - limitadas pelo servico.</summary>
     public Dictionary<Guid, List<ReportPhoto>> Photos { get; init; } = new();
@@ -52,7 +59,7 @@ public record ReportModel
 
 public record ReportPartner(string Name, string? Role);
 
-public record ReportProgramResults(string Program, int Projects, List<ReportResult> Results);
+public record ReportProgramResults(Guid ProgramId, string Program, int Projects, List<ReportResult> Results);
 
 /// <summary>Resultado somado (so os valores informados); Informed de Projects projetos do relatorio informaram.</summary>
 public record ReportResult(string Name, string? Unit, decimal Total, int Informed, int Projects);

@@ -600,7 +600,11 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 **Relatórios** — seleção de um ou vários projetos (busca e filtros de programa e de status; vindo de Projetos ›
 programa › **Relatório do programa**, `?programa=`, os projetos dele já vêm marcados; no celular, com projetos marcados, o
 **Gerar PDF** fica preso embaixo da tela, com o atalho "Período e opções", porque as opções ficam depois da lista
-inteira), observação livre e geração de um **PDF consolidado** com
+inteira), observação livre e geração de um **PDF consolidado** em dois formatos (`format`): **Completo**, com um
+capítulo por projeto, e **Resumo**, só a abertura (Resultados e Resumo dos projetos, mesmo com um projeto só), sem
+capítulos, linha do tempo nem fotos, para quem quer os números de um programa inteiro. Os projetos saem sempre por
+programa e depois por nome (sem diferenciar acento nem maiúscula), não na ordem em que foram marcados. O capítulo de
+cada projeto traz
 identificação (no topo de cada projeto, embaixo do programa, a linha **Parceiros:** com os parceiros do programa —
 nome e papel, sem contato), descrição, objetivo, período, status, responsável, localização, voluntários (nome, função no
 projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e indicadores (sempre incluídos), tarefas concluídas e fotos (opcionais, marcados por padrão). O **período de
@@ -612,11 +616,13 @@ andamento no período". Indicadores e equipe saem como estão hoje (os indicador
 de cada projeto diz "valores até 09/11/2026" e, com período de referência, "valores acumulados até 09/11/2026, não só
 do período do relatório" (quem lia "período jul–set · 120 pessoas" entendia que as 120 eram do trimestre). Projeto sem
 nenhum indicador informado mostra "Nenhum indicador informado ainda". As datas
-seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto, o PDF abre com
-**Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em mais
-de um), registros de andamento e tarefas concluídas no período e, para cada programa, os indicadores nacionais e os
-padrão do modelo somados nos projetos do relatório, pela regra de **Resultados somados** (o que nenhum projeto informou
-fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos"). Títulos
+seguem o horário de Brasília, o mesmo usado para imprimir as datas no PDF. Com mais de um projeto (ou no Resumo), o PDF
+abre com **Resultados**: quantos projetos (e quantos em cada status), voluntários nas equipes (sem repetir quem está em
+mais de um), registros de andamento e tarefas concluídas no período e, para cada programa, a linha **Parceiros:** e os
+indicadores nacionais e os padrão do modelo somados nos projetos do relatório, pela regra de **Resultados somados** (o
+que nenhum projeto informou fica de fora; quando falta algum, o cartão diz "informado em 3 de 5 projetos"). Depois vem o
+**Resumo dos projetos**: uma linha por projeto (com programa e cidade), status, equipe, registros de andamento no período
+e uma coluna por indicador nacional ("–" é não informado, diferente de zero). Títulos
 de seção não ficam sozinhos no pé da página, e os cartões de indicadores não se dividem entre duas páginas.
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
@@ -968,7 +974,8 @@ A documentação interativa fica em `/swagger`.
 | PUT/DELETE | `/api/hours/{id}` | corrige ou apaga um lançamento de horas (a própria pessoa ou a coordenação) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |
 | POST/DELETE | `/api/updates/{id}/attachments[/{fileId}]` | anexar ou remover uma foto do registro |
-| POST | `/api/reports/projects` | gera o PDF consolidado (projetos, partes incluídas e período de referência `from`/`to`, opcional) |
+| GET | `/api/reports/period-counts` | o que cada projeto do núcleo tem no período `from`/`to` (opcional): registros de andamento, fotos que entram no PDF (até 4 por registro) e tarefas concluídas |
+| POST | `/api/reports/projects` | gera o PDF consolidado (projetos, formato `Completo`/`Resumo`, partes incluídas e período de referência `from`/`to`, opcional) |
 | POST | `/api/spreadsheets/export` | planilha .xlsx com o que foi escolhido (`projects`, `volunteers`); entra no histórico (administrador) |
 | GET | `/api/spreadsheets/template` | modelo vazio de importação, com as listas do núcleo (administrador) |
 | POST | `/api/spreadsheets/import?confirm=` | planilha preenchida (multipart): sem `confirm`, só a conferência linha a linha; com `confirm=true`, cria o que é novo e sem erro (administrador) |
