@@ -184,4 +184,28 @@ public class ReportTests
         Assert.Equal("Banheiro Direito da Gente e Horta comunitária", two.Title);
         Assert.Equal("relatorio-projetos-20261110.pdf", ReportService.FileName(two));
     }
+
+    [Fact]
+    public void ReportPhotosAreCroppedToTheSameFormat()
+    {
+        static byte[] Png(int width, int height)
+        {
+            using var bitmap = new SkiaSharp.SKBitmap(width, height);
+            using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+            return image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).ToArray();
+        }
+
+        // Deitada, em pe e quadrada: todas saem 4:3, com no maximo 1200 px de largura.
+        foreach (var (width, height) in new[] { (1600, 1000), (900, 1200), (3000, 3000), (400, 300) })
+        {
+            using var result = SkiaSharp.SKBitmap.Decode(Reports.ReportImageProcessor.Compress(Png(width, height)));
+            Assert.InRange(result.Width, 1, 1200);
+            Assert.InRange(result.Height, result.Width * 3 / 4 - 1, result.Width * 3 / 4 + 1);
+        }
+
+        // Foto em pe: corta a sobra mais embaixo do que em cima (rostos ficam na parte de cima).
+        var portrait = Reports.ReportImageProcessor.CropRect(900, 1200);
+        Assert.Equal(675, portrait.Height, 1);
+        Assert.True(portrait.Top < 1200 - portrait.Bottom);
+    }
 }

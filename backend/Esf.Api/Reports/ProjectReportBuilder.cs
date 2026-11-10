@@ -802,7 +802,20 @@ public static class ProjectReportBuilder
         });
     }
 
-    /// <summary>Historico cronologico do projeto: cada atualizacao com seu texto e as fotos anexadas a ela.</summary>
+    /// <summary>Largura util de uma entrada da linha do tempo (A4 sem as margens, a borda e o recuo), em pontos.</summary>
+    private const float TimelineWidth = 595.3f - 2 * 45.35f - 10;
+
+    /// <summary>Altura que a pagina tem para o conteudo (sem margens, cabecalho e rodape), com folga.</summary>
+    private const float PageContentHeight = 620;
+
+    /// <summary>Espaco entre as fotos da grade.</summary>
+    private const float PhotoGap = 6;
+
+    /// <summary>
+    /// Historico cronologico do projeto: cada registro com seu texto e as fotos anexadas a ele. A data, o texto e as
+    /// fotos ficam juntos quando cabem numa pagina (antes, as fotos iam para a pagina seguinte e o texto ficava, com
+    /// meia pagina em branco no meio; ou a data ficava sozinha no pe da pagina).
+    /// </summary>
     private static void ComposeUpdates(IContainer container, ReportModel model, List<ProjectUpdate> updates)
     {
         container.EnsureSpace(70).Column(col =>
@@ -815,49 +828,77 @@ public static class ProjectReportBuilder
 
                 foreach (var update in updates)
                 {
-                    inner.Item().BorderLeft(2).BorderColor(Accent).PaddingLeft(8).Column(entry =>
+                    var photos = model.IncludePhotos && model.Photos.TryGetValue(update.Id, out var list) ? list : new List<ReportPhoto>();
+                    var keepTogether = Math.Min(EstimatedHeight(update.Text, photos), PageContentHeight);
+
+                    inner.Item().EnsureSpace((int)keepTogether).BorderLeft(2).BorderColor(Accent).PaddingLeft(8).Column(entry =>
                     {
                         entry.Spacing(3);
 
                         entry.Item().Text(ShortDate(update.Day)).FontSize(8.5f).SemiBold().FontColor(Accent);
                         entry.Item().Element(c => RichTextPdf.Compose(c, update.Text, 9));
 
-                        if (model.IncludePhotos
-                            && model.Photos.TryGetValue(update.Id, out var photos)
-                            && photos.Count > 0)
-                        {
-                            // Grade de ate 3 por linha, celula sempre do mesmo tamanho (mesmo quando sobra
-                            // so 1 foto na linha) - evita tanto foto perdida num espaco enorme quanto
-                            // fotos espremidas quando ha muitas.
-                            entry.Item().PaddingTop(2).Column(photoCol =>
-                            {
-                                photoCol.Spacing(4);
-
-                                foreach (var chunk in photos.Chunk(3))
-                                {
-                                    photoCol.Item().Row(row =>
-                                    {
-                                        foreach (var photo in chunk)
-                                        {
-                                            row.RelativeItem().PaddingRight(6).Column(cell =>
-                                            {
-                                                cell.Item().Height(3f, Unit.Centimetre).Image(photo.Data).FitArea();
-
-                                                if (!string.IsNullOrWhiteSpace(photo.Caption))
-                                                    cell.Item().PaddingTop(1).Text(photo.Caption!).FontSize(7).FontColor(Muted);
-                                            });
-                                        }
-
-                                        for (var pad = chunk.Length; pad < 3; pad++)
-                                            row.RelativeItem();
-                                    });
-                                }
-                            });
-                        }
+                        if (photos.Count > 0)
+                            entry.Item().PaddingTop(3).Element(c => ComposePhotos(c, photos));
                     });
                 }
             });
         });
+    }
+
+    /// <summary>
+    /// Grade das fotos de um registro, pelo tamanho conforme a quantidade: uma foto larga (60% da linha), duas lado a
+    /// lado, tres numa linha, quatro em 2 x 2. Todas no mesmo formato (4:3, cortadas no ReportImageProcessor).
+    /// </summary>
+    private static void ComposePhotos(IContainer container, List<ReportPhoto> photos)
+    {
+        var perRow = photos.Count switch { 1 => 1, 3 => 3, _ => 2 };
+        container.Column(grid =>
+        {
+            grid.Spacing(PhotoGap);
+            foreach (var chunk in photos.Chunk(perRow))
+            {
+                grid.Item().Row(row =>
+                {
+                    row.Spacing(PhotoGap);
+                    foreach (var photo in chunk)
+                        row.RelativeItem(photos.Count == 1 ? 3 : 1).Column(cell =>
+                        {
+                            cell.Item().AspectRatio(4f / 3f).Image(photo.Data).FitArea();
+                            if (!string.IsNullOrWhiteSpace(photo.Caption))
+                                cell.Item().PaddingTop(1).Text(photo.Caption!).FontSize(7.5f).FontColor(Muted);
+                        });
+
+                    // Uma foto so ocupa 60% da linha; a ultima linha incompleta mantem o tamanho das de cima.
+                    if (photos.Count == 1)
+                        row.RelativeItem(2);
+                    for (var pad = chunk.Length; pad < perRow; pad++)
+                        row.RelativeItem();
+                });
+            }
+        });
+    }
+
+    /// <summary>
+    /// Altura aproximada de um registro (data, texto e fotos), em pontos, para manter os tres juntos: o texto conta
+    /// ~100 caracteres por linha e uma linha a mais por paragrafo; as fotos, a altura exata da grade.
+    /// </summary>
+    private static float EstimatedHeight(string html, List<ReportPhoto> photos)
+    {
+        const float lineHeight = 12.5f;
+        var paragraphs = Math.Max(1, System.Text.RegularExpressions.Regex.Matches(html, "<(p|li)[ >]").Count);
+        var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
+        var lines = paragraphs + (int)Math.Ceiling(text.Trim().Length / 100f);
+        var height = 16 + lines * lineHeight;
+        if (photos.Count == 0) return Math.Min(height, 16 + 3 * lineHeight);
+
+        var perRow = photos.Count switch { 1 => 1, 3 => 3, _ => 2 };
+        var width = photos.Count == 1
+            ? TimelineWidth * 0.6f
+            : (TimelineWidth - (perRow - 1) * PhotoGap) / perRow;
+        var rows = (int)Math.Ceiling(photos.Count / (float)perRow);
+        var caption = photos.Any(p => !string.IsNullOrWhiteSpace(p.Caption)) ? 12 : 0;
+        return height + 6 + rows * (width * 3 / 4 + caption) + (rows - 1) * PhotoGap;
     }
 
     // ---------- helpers de layout ----------

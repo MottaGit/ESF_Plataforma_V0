@@ -667,7 +667,11 @@ Depois vem o
 linha com o nome de cada programa), status, equipe, registros de andamento no período
 e uma coluna por indicador nacional, com o valor do fim do período ("–" é não informado, diferente de zero). Títulos
 de seção não ficam sozinhos no pé da página, os cartões de indicadores não se dividem entre duas páginas e as
-linhas das tabelas também não.
+linhas das tabelas também não. Na linha do tempo, cada registro leva até 4 fotos (as primeiras enviadas), com tamanho
+conforme a quantidade — uma foto larga (60% da linha), duas lado a lado, três numa linha, quatro em 2 × 2 —, todas no
+mesmo formato: o `ReportImageProcessor` endireita pela orientação da câmera (EXIF), corta em 4:3 (foto em pé guarda a
+parte de cima) e reduz para até 1200 px. A data, o texto e as fotos de um registro ficam juntos quando cabem numa
+página (antes, as fotos iam para a página seguinte e deixavam meia página em branco).
 
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
 Configurações › Acessos, **Novo acesso**, escolhendo o voluntário) pede o perfil e usa como login
