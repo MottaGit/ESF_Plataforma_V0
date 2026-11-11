@@ -157,7 +157,8 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 - Na máquina, os testes usam EF InMemory, que não roda migrações nem funções do Postgres (`esf_fold`, `ILIKE`) e não
   confere FK, único nem tamanho. Com `ESF_TEST_POSTGRES` (o CI define) rodam num Postgres real: banco modelo migrado
   uma vez e uma cópia por teste. `[PostgresFact]` só roda assim. `LastMigrationMatchesTheModel` roda sempre e pega
-  entidade mudada sem migração.
+  entidade mudada sem migração. No Postgres, consulta com duas coleções ou mais (`Include` ou projeção) sem
+  `AsSplitQuery()` reprova o teste (`MultipleCollectionIncludeWarning`): numa só, vira produto cartesiano.
 - CI (`.github/workflows/ci.yml`, a cada push): testes em memória e no Postgres 16, API subida como no deploy (banco
   vazio, migrações + demonstração) com `.github/scripts/smoke-api.sh` chamando as rotas principais por perfil, e
   typecheck + build do frontend. Rota ou tela nova importante: acrescente no script. Migração só conta como testada em

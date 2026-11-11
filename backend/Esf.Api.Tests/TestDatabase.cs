@@ -1,5 +1,6 @@
 using Esf.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
 
 namespace Esf.Api.Tests;
@@ -61,8 +62,13 @@ public static class TestDatabase
         await db.Database.MigrateAsync();
     }
 
+    // Consulta que carrega duas colecoes ou mais num SQL so (produto cartesiano: uma linha por combinacao) falha o
+    // teste: use AsSplitQuery. O banco em memoria nao avisa, por isso a regra so vale aqui.
     private static DbContextOptions<EsfDbContext> Options(string server, string database) =>
-        new DbContextOptionsBuilder<EsfDbContext>().UseNpgsql(Connection(server, database)).Options;
+        new DbContextOptionsBuilder<EsfDbContext>()
+            .UseNpgsql(Connection(server, database))
+            .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.MultipleCollectionIncludeWarning))
+            .Options;
 
     // Sem pool: cada teste tem o proprio banco, e conexoes paradas de centenas de bancos esgotariam o servidor
     // (e uma conexao aberta no modelo impediria as copias).

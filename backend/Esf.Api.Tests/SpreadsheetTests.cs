@@ -155,6 +155,7 @@ public class SpreadsheetTests
 
             var project = await db.Projects
                 .Include(p => p.Indicators).Include(p => p.Volunteers).ThenInclude(v => v.Volunteer)
+                .AsSplitQuery()
                 .SingleAsync(p => p.ProgramId == program.Id);
             Assert.Equal("Cisterna da Escola Estadual Vila Nova", project.Name);
             Assert.Equal((new DateOnly(2021, 3, 1), new DateOnly(2021, 8, 31)), (project.StartDate, project.EndDateForecast));

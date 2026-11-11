@@ -121,10 +121,15 @@ public class ProjectService
     }
 
     /// <summary>Carrega o projeto com todas as colecoes (usado no detalhe e no relatorio).</summary>
+    /// <remarks>
+    /// Uma consulta por colecao (AsSplitQuery): numa so, o banco devolveria uma linha para cada combinacao de tarefa,
+    /// pessoa, indicador, arquivo e registro (milhoes num projeto com um ano de uso).
+    /// </remarks>
     public async Task<Project?> LoadFullAsync(Guid id)
     {
         return await _db.Projects
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Program)
             .Include(p => p.OwnerVolunteer)
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
@@ -225,6 +230,7 @@ public class ProjectService
         var project = await _db.Projects
             .Include(p => p.Files)
             .Include(p => p.Updates).ThenInclude(u => u.Attachments)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound("Projeto");
 
         var storedNames = project.Files.Select(f => f.StoredName)

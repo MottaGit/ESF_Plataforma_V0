@@ -120,7 +120,9 @@ acento, `ILIKE`) e não confere chave estrangeira, campo único nem tamanho. Com
 com um servidor PostgreSQL, sem o nome do banco), os mesmos testes rodam no PostgreSQL: um banco modelo é criado uma
 vez com todas as migrações e cada teste recebe uma cópia dele (`Esf.Api.Tests/TestDatabase.cs`). Os testes marcados
 com `[PostgresFact]` (migrações do zero, busca sem acento) só rodam assim. O `LastMigrationMatchesTheModel` roda
-sempre e falha quando uma entidade muda sem `dotnet ef migrations add`.
+sempre e falha quando uma entidade muda sem `dotnet ef migrations add`. No PostgreSQL, uma consulta que traz duas
+coleções ou mais num SQL só (`Include` de tarefas e de arquivos, por exemplo) reprova o teste: o banco devolveria uma
+linha para cada combinação. Use `AsSplitQuery()` nela.
 
 ```bash
 ESF_TEST_POSTGRES="Host=localhost;Port=5432;Username=esf;Password=esf" dotnet test
