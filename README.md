@@ -330,7 +330,7 @@ no Safari, "Instalar app" no Chrome): vira o ícone **CtrlESF** (o globo do logo
 
 **Sem internet (consulta)** — o que foi aberto com internet fica guardado no aparelho e continua abrindo sem conexão,
 com a faixa "Sem internet" no topo; os projetos de "Meus projetos" ficam guardados sozinhos quando o Início abre, mesmo
-os que a pessoa não abriu. Tela nunca aberta mostra "Sem internet, e esta informação ainda não foi aberta neste
+os que a pessoa não abriu (o projeto, os 20 registros mais recentes e os arquivos). Tela nunca aberta mostra "Sem internet, e esta informação ainda não foi aberta neste
 aparelho com internet". Salvar (registro, tarefa, horas) ainda precisa de internet: sem ela, o aviso de erro diz "Sem
 internet. Conecte-se e tente de novo.". Tela que não carrega (sem internet e sem cópia guardada, ou o servidor fora
 do ar) mostra o erro com **Tentar de novo** no lugar do conteúdo, e nunca uma lista vazia que parece "nada aqui"
@@ -486,7 +486,10 @@ Horas por projeto).
 **Andamento** — a tela inicial de cada projeto. No topo, o campo "Registrar andamento" para publicar um registro com
 formatação básica (negrito, itálico, sublinhado, listas e links) e uma ou mais fotos anexadas; o HTML é limpo no
 servidor, só essas formatações são aceitas, e elas também aparecem no relatório PDF. Abaixo,
-o feed com data e autor, do mais recente para o mais antigo. **Quando aconteceu**: abaixo do texto, o dia do que o
+o feed com data e autor, do mais recente para o mais antigo, 20 registros por vez: no fim, **Ver registros
+anteriores (N)** traz os próximos (`GET /api/projects/{id}/updates?skip=&take=`). A página do projeto não traz os
+registros nem os arquivos, só quantos são (o número das abas): cada aba busca os seus ao abrir, e de novo depois de
+cada mudança, mantendo abertos os registros que já estavam na tela. **Quando aconteceu**: abaixo do texto, o dia do que o
 registro conta (hoje por padrão, com os atalhos "ontem" e "hoje"; não pode ser depois de hoje, e também se muda ao
 editar). O mutirão de sábado registrado na segunda fica no sábado: o feed e a linha do tempo do PDF seguem esse dia, o
 período do relatório filtra por ele, e as horas do registro ("Suas horas nesse dia") são lançadas nele. Quando o dia é
@@ -622,7 +625,8 @@ escolhidos.
 
 **Arquivos** — um lugar só para todos os arquivos do projeto, em dois grupos: **Documentos** primeiro (plantas,
 orçamentos, listas de presença: são poucos e é o que mais se procura) e **Fotos** depois, com o filtro **Tudo |
-Documentos | Fotos** (cada um com a quantidade) acima, para a planta não sumir no meio de 200 fotos de obra. Todos os arquivos, inclusive as fotos publicadas no Andamento (marcadas com
+Documentos | Fotos** (cada um com a quantidade) acima, para a planta não sumir no meio de 200 fotos de obra. As fotos
+aparecem 48 por vez (**Mostrar mais fotos (N)** abre as próximas), para não pesar no celular. Todos os arquivos, inclusive as fotos publicadas no Andamento (marcadas com
 a data do registro). Envio de um ou vários arquivos por seleção ou arrastar e soltar, legenda editável em qualquer
 arquivo (é ela que aparece embaixo da foto no relatório), visualizador de fotos em tela cheia, download e exclusão.
 Os arquivos ficam guardados no próprio banco (tabela `StoredFiles`), então não se perdem quando o servidor é recriado
@@ -1082,7 +1086,7 @@ que o limite da rota recebe 413.
 | GET | `/api/me/term` | termo de adesão do voluntário logado: texto, se falta assinar e quando assinou |
 | POST | `/api/me/term/sign` | assina online (nome completo, CPF, resposta sobre imagem, aceite); gera e guarda o PDF |
 | GET | `/api/me/term/download` | baixa a via assinada do próprio termo |
-| POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos (na criação, `useTemplate` aplica o modelo do programa) |
+| POST/GET/PUT/DELETE | `/api/projects[/{id}]` | CRUD de projetos (na criação, `useTemplate` aplica o modelo do programa). O detalhe traz tarefas, equipe e indicadores; registros e arquivos só a contagem (`updatesCount`, `filesCount`) |
 | PATCH | `/api/projects/{id}/status` | mudança de status |
 | POST | `/api/projects/{id}/archive` · `/unarchive` | arquivar e reativar |
 | GET/POST | `/api/projects/{id}/activities` | tarefas do projeto |
@@ -1107,7 +1111,7 @@ que o limite da rota recebe 413.
 | PUT/DELETE | `/api/indicators/{id}` | edição e exclusão |
 | GET/POST | `/api/projects/{id}/files` | arquivos do projeto (upload multipart; com `activityId`, anexo de uma tarefa) |
 | GET/PUT/DELETE | `/api/files/{id}[/download]` | download, edição da legenda e exclusão |
-| GET/POST | `/api/projects/{id}/updates` | registros de andamento (texto + fotos e, opcional, as horas do dia; multipart) |
+| GET/POST | `/api/projects/{id}/updates` | registros de andamento: GET em páginas (`skip`, `take` até 100; devolve `{ items, total }`); POST com texto + fotos e, opcional, as horas do dia (multipart) |
 | GET/POST | `/api/projects/{id}/hours` | horas lançadas no projeto (total, por pessoa e lançamentos) e novo lançamento |
 | PUT/DELETE | `/api/hours/{id}` | corrige ou apaga um lançamento de horas (a própria pessoa ou a coordenação) |
 | PUT/DELETE | `/api/updates/{id}` | edição e exclusão do registro |

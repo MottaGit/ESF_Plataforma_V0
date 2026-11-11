@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { projectUpdatesApi } from '../../api/endpoints';
+import { UPDATES_PAGE_SIZE, projectUpdatesApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import type { ProjectDetail, ProjectFile, ProjectUpdate } from '../../types/api';
+import type { ProjectDetail, ProjectFile, ProjectUpdate, ProjectUpdatePage } from '../../types/api';
 import { clearDraft, loadDraft, progressDraftKey, saveDraft } from '../../utils/drafts';
 import {
   SENSITIVE_DATA_HINT,
@@ -16,7 +16,7 @@ import {
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
-import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
+import { Alert, ConfirmDialog, EmptyState, Loading } from '../ui/Feedback';
 import { IconEdit, IconTrash, IconUpload } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
 import { RichTextField, RichTextView, htmlToPlainText } from '../ui/RichText';
@@ -73,7 +73,56 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
   const [busy, setBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const updates = project.updates;
+  // Os registros vem pela rota propria, uma pagina por vez (o projeto so traz quantos sao).
+  const [page, setPage] = useState<ProjectUpdatePage | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  // Quantos a tela mostra: ao recarregar, continuam abertos os que a pessoa ja tinha visto.
+  const shownRef = useRef(UPDATES_PAGE_SIZE);
+
+  // Recarrega a cada versao nova do projeto: ele e recarregado depois de toda mudanca (publicar, editar, excluir,
+  // anexar, encerrar o projeto com registro).
+  useEffect(() => {
+    let active = true;
+    projectUpdatesApi
+      .listByProject(project.id, 0, Math.min(100, Math.max(UPDATES_PAGE_SIZE, shownRef.current)))
+      .then((result) => {
+        if (!active) return;
+        setPage(result);
+        setListError(null);
+      })
+      .catch((err) => {
+        if (active) setListError(err instanceof ApiError ? err.message : 'Não foi possível carregar os registros.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [project, attempt]);
+
+  useEffect(() => {
+    if (page) shownRef.current = page.items.length;
+  }, [page]);
+
+  async function loadMore() {
+    if (!page) return;
+    setLoadingMore(true);
+    try {
+      const next = await projectUpdatesApi.listByProject(project.id, page.items.length);
+      setPage((current) => {
+        if (!current) return next;
+        const known = new Set(current.items.map((item) => item.id));
+        return { items: [...current.items, ...next.items.filter((item) => !known.has(item.id))], total: next.total };
+      });
+    } catch (err) {
+      notifyError(err instanceof ApiError ? err.message : 'Não foi possível carregar os registros anteriores.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  const updates = page?.items ?? [];
+  const olderCount = page ? Math.max(0, page.total - page.items.length) : 0;
 
   // Grava a cada mudanca (sem esperar: quem sai da tela logo depois de digitar nao perde a ultima frase).
   useEffect(() => {
@@ -247,7 +296,16 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
         </div>
       </div>
 
-      {updates.length === 0 ? (
+      {listError && !page ? (
+        <Alert kind="error">
+          {listError}{' '}
+          <button type="button" className="btn btn--sm" style={{ marginLeft: 10 }} onClick={() => setAttempt((n) => n + 1)}>
+            Tentar de novo
+          </button>
+        </Alert>
+      ) : !page ? (
+        <Loading label="Carregando registros…" />
+      ) : updates.length === 0 ? (
         <div className="panel">
           <EmptyState
             title="Nenhum registro ainda"
@@ -259,6 +317,13 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
           {updates.map((update) => (
             <UpdateCard key={update.id} update={update} onChanged={onChanged} onRemove={() => setRemoving(update)} />
           ))}
+          {olderCount > 0 ? (
+            <div className="feed-more">
+              <Button loading={loadingMore} onClick={() => void loadMore()}>
+                Ver registros anteriores ({olderCount})
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
 

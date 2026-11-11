@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
-import { activitiesApi, dashboardApi, projectsApi, volunteersApi } from '../api/endpoints';
+import {
+  activitiesApi,
+  dashboardApi,
+  filesApi,
+  projectUpdatesApi,
+  projectsApi,
+  volunteersApi
+} from '../api/endpoints';
 import { TermCallout } from '../components/documents/MyTermPanel';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
@@ -76,9 +83,18 @@ export function HomePage() {
       .catch(() => setVolunteers([]));
   }, [load]);
 
-  // Os projetos da pessoa ficam guardados no aparelho para consultar em campo, mesmo os que ela nao abriu.
+  // Os projetos da pessoa ficam guardados no aparelho para consultar em campo, mesmo os que ela nao abriu: o projeto,
+  // a primeira pagina do Andamento e os arquivos (as mesmas chamadas que as abas fazem).
   useEffect(() => {
-    data?.myProjects.forEach((project) => keepForOffline(`project:${project.id}`, () => projectsApi.get(project.id)));
+    data?.myProjects.forEach((project) =>
+      keepForOffline(`project:${project.id}`, () =>
+        Promise.all([
+          projectsApi.get(project.id),
+          projectUpdatesApi.listByProject(project.id),
+          filesApi.listByProject(project.id)
+        ])
+      )
+    );
   }, [data]);
 
   if (loading) return <Loading label="Carregando…" />;

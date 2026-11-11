@@ -117,13 +117,18 @@ public class ProjectService
             .Where(d => d.ProjectId == id && d.Kind == SignedDocumentKind.BeneficiaryImageAuthorization)
             .MaxAsync(d => (DateOnly?)d.SignedOn);
         var counts = await ActivityCounts.ForAsync(_db, project.Activities.Select(a => a.Id).ToList());
-        return Mapping.ToDetailDto(project, imageAuthorizedOn, counts);
+        var updatesCount = await _db.ProjectUpdates.CountAsync(u => u.ProjectId == id);
+        var filesCount = await _db.ProjectFiles.CountAsync(f => f.ProjectId == id);
+        return Mapping.ToDetailDto(project, updatesCount, filesCount, imageAuthorizedOn, counts);
     }
 
-    /// <summary>Carrega o projeto com todas as colecoes (usado no detalhe e no relatorio).</summary>
+    /// <summary>
+    /// O projeto com tarefas, equipe e indicadores (o que a tela usa em todas as abas). Registros e arquivos, que so
+    /// crescem, ficam nas rotas proprias das abas Andamento e Arquivos.
+    /// </summary>
     /// <remarks>
     /// Uma consulta por colecao (AsSplitQuery): numa so, o banco devolveria uma linha para cada combinacao de tarefa,
-    /// pessoa, indicador, arquivo e registro (milhoes num projeto com um ano de uso).
+    /// pessoa e indicador.
     /// </remarks>
     public async Task<Project?> LoadFullAsync(Guid id)
     {
@@ -135,11 +140,6 @@ public class ProjectService
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
-            .Include(p => p.Files).ThenInclude(f => f.UploadedByUser).ThenInclude(u => u!.Volunteer)
-            .Include(p => p.Files).ThenInclude(f => f.ProjectUpdate)
-            .Include(p => p.Files).ThenInclude(f => f.Activity)
-            .Include(p => p.Updates).ThenInclude(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
-            .Include(p => p.Updates).ThenInclude(u => u.Attachments)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 

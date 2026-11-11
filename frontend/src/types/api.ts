@@ -558,6 +558,12 @@ export interface ProjectUpdate {
   happenedOn: string;
 }
 
+/** Uma pagina dos registros de um projeto (do mais recente para o mais antigo) e quantos ele tem ao todo. */
+export interface ProjectUpdatePage {
+  items: ProjectUpdate[];
+  total: number;
+}
+
 export interface ProjectFile {
   id: string;
   projectId: string;
@@ -609,8 +615,9 @@ export interface ProjectDetail {
   activities: Activity[];
   volunteers: ProjectVolunteer[];
   indicators: Indicator[];
-  files: ProjectFile[];
-  updates: ProjectUpdate[];
+  /** Registros e arquivos vem pelas rotas proprias (abas Andamento e Arquivos); aqui so quantos sao. */
+  updatesCount: number;
+  filesCount: number;
   /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
   imageAuthorizedOn: string | null;
   programIcon: string;

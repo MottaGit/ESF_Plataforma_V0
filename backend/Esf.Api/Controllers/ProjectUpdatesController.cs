@@ -20,9 +20,11 @@ public class ProjectUpdatesController : ControllerBase
         _currentUser = currentUser;
     }
 
+    /// <summary>Registros do mais recente para o mais antigo, uma pagina por vez (take: ate 100).</summary>
     [HttpGet("projects/{projectId:guid}/updates")]
-    public async Task<ActionResult<List<ProjectUpdateDto>>> ListByProject(Guid projectId)
-        => Ok(await _updates.ListByProjectAsync(projectId));
+    public async Task<ActionResult<ProjectUpdatePageDto>> ListByProject(Guid projectId,
+        [FromQuery] int skip = 0, [FromQuery] int take = ProjectUpdateService.DefaultPageSize)
+        => Ok(await _updates.ListByProjectAsync(projectId, skip, take));
 
     [HttpPost("projects/{projectId:guid}/updates")]
     [RequestSizeLimit(64 * 1024 * 1024)]

@@ -179,7 +179,7 @@ public class ProjectHoursTests
         await updates.UpdateAsync(moved.Id, new SaveProjectUpdateRequest { Text = "<p>Compra</p>", HappenedOn = Today.AddDays(-3) });
         var list = await updates.ListByProjectAsync(f.A.ProjectId);
         Assert.Equal(new[] { "<p>Hoje</p>", "<p>Mutirão da alvenaria</p>", "<p>Compra</p>" },
-            list.Where(u => u.AuthorUserId == member.Id).Select(u => u.Text));
+            list.Items.Where(u => u.AuthorUserId == member.Id).Select(u => u.Text));
 
         // Depois de hoje, nao.
         await Assert.ThrowsAsync<AppException>(() => updates.CreateAsync(f.A.ProjectId,

@@ -37,6 +37,7 @@ import type {
   ProjectFilters,
   ProjectListItem,
   ProjectUpdate,
+  ProjectUpdatePage,
   ProjectVolunteer,
   ReportPayload,
   ReportPeriodCount,
@@ -245,8 +246,13 @@ export const filesApi = {
   remove: (id: string) => http.request<void>(`/api/files/${id}`, { method: 'DELETE' })
 };
 
+/** Registros por vez na aba Andamento (o mesmo padrao da API). */
+export const UPDATES_PAGE_SIZE = 20;
+
 export const projectUpdatesApi = {
-  listByProject: (projectId: string) => http.request<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
+  /** Do mais recente para o mais antigo; take ate 100. */
+  listByProject: (projectId: string, skip = 0, take = UPDATES_PAGE_SIZE) =>
+    http.request<ProjectUpdatePage>(`/api/projects/${projectId}/updates`, { query: { skip, take } }),
   /**
    * hours: as horas que quem registra dedicou nesse dia (opcional, vira um lancamento de horas); happenedOn: o dia em
    * que aconteceu (vazio: hoje).

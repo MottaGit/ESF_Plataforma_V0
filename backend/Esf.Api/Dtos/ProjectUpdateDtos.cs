@@ -17,6 +17,9 @@ public record ProjectUpdateDto(
     // Dia em que aconteceu (nos registros antigos, o da publicacao).
     DateOnly HappenedOn);
 
+/// <summary>Uma pagina dos registros de um projeto e quantos ele tem ao todo.</summary>
+public record ProjectUpdatePageDto(List<ProjectUpdateDto> Items, int Total);
+
 public class SaveProjectUpdateRequest
 {
     [Required(ErrorMessage = "Escreva o registro de andamento.")]

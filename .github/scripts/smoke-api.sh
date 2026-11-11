@@ -176,7 +176,7 @@ update=$(field '.id')
 thumb=""
 for _ in $(seq 1 30); do
   curl -sS -o "$BODY" "$API/api/projects/$project/updates" -H "Authorization: Bearer $admin" || true
-  thumb=$(field "map(select(.id == \"$update\")) | .[0].attachments[0].thumbnailUrl")
+  thumb=$(field ".items | map(select(.id == \"$update\")) | .[0].attachments[0].thumbnailUrl")
   if [[ -n $thumb ]]; then break; fi
   sleep 1
 done

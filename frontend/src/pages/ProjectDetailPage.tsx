@@ -162,10 +162,10 @@ export function ProjectDetailPage() {
   }
 
   const tabs: Array<{ key: TabKey; label: string; count?: number }> = [
-    { key: 'updates', label: 'Andamento', count: project.updates.length },
+    { key: 'updates', label: 'Andamento', count: project.updatesCount },
     { key: 'activities', label: 'Tarefas', count: project.activities.length },
     { key: 'team', label: 'Equipe', count: project.volunteers.length },
-    { key: 'files', label: 'Arquivos', count: project.files.length },
+    { key: 'files', label: 'Arquivos', count: project.filesCount },
     { key: 'about', label: 'Sobre' }
   ];
 

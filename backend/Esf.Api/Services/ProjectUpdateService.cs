@@ -22,19 +22,44 @@ public class ProjectUpdateService
         _currentUser = currentUser;
     }
 
-    public async Task<List<ProjectUpdateDto>> ListByProjectAsync(Guid projectId)
+    /// <summary>Registros por vez na aba Andamento ("Ver registros anteriores" traz os proximos).</summary>
+    public const int DefaultPageSize = 20;
+
+    public const int MaxPageSize = 100;
+
+    /// <summary>
+    /// Uma pagina dos registros, pelo dia em que aconteceu (o mais recente primeiro; no mesmo dia, o publicado por
+    /// ultimo). O dia dos registros antigos e o da publicacao no horario de Brasilia, calculado aqui: por isso a ordem
+    /// sai so das datas de todos (leve) e o texto e os anexos vem so para os da pagina.
+    /// </summary>
+    public async Task<ProjectUpdatePageDto> ListByProjectAsync(Guid projectId, int skip = 0, int take = DefaultPageSize)
     {
         if (!await _db.Projects.AnyAsync(p => p.Id == projectId))
             throw AppException.NotFound("Projeto");
+
+        skip = Math.Max(0, skip);
+        take = Math.Clamp(take, 1, MaxPageSize);
+
+        var all = await _db.ProjectUpdates
+            .AsNoTracking()
+            .Where(u => u.ProjectId == projectId)
+            .Select(u => new ProjectUpdate { Id = u.Id, HappenedOn = u.HappenedOn, CreatedAt = u.CreatedAt })
+            .ToListAsync();
+        var pageIds = all
+            .OrderByDescending(u => u.Day).ThenByDescending(u => u.CreatedAt)
+            .Skip(skip).Take(take)
+            .Select(u => u.Id)
+            .ToList();
 
         var updates = await _db.ProjectUpdates
             .AsNoTracking()
             .Include(u => u.AuthorUser).ThenInclude(a => a!.Volunteer)
             .Include(u => u.Attachments)
-            .Where(u => u.ProjectId == projectId)
+            .Where(u => pageIds.Contains(u.Id))
             .ToListAsync();
 
-        return updates.OrderByDescending(u => u.Day).ThenByDescending(u => u.CreatedAt).Select(Mapping.ToDto).ToList();
+        var items = updates.OrderByDescending(u => u.Day).ThenByDescending(u => u.CreatedAt).Select(Mapping.ToDto).ToList();
+        return new ProjectUpdatePageDto(items, all.Count);
     }
 
     /// <summary>O dia do que aconteceu nao pode ser depois de hoje (no horario de Brasilia).</summary>

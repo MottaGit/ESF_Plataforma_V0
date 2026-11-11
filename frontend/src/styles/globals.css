@@ -1244,6 +1244,8 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 /* Andamento: o feed com largura confortavel de leitura, alinhado as abas, e a lateral com tarefas e equipe. */
 .feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
 .feed { max-width: 760px; min-width: 0; }
+/* "Ver registros anteriores" / "Mostrar mais fotos": a proxima pagina, no fim da lista. */
+.feed-more { display: flex; justify-content: center; padding: 4px 0 8px; }
 .feed-side { display: grid; gap: 16px; }
 .feed-side .panel__head { padding: 14px 16px 10px; }
 .feed-side__empty { margin: 0; padding: 14px 16px; font-size: 13px; color: var(--text-muted); }

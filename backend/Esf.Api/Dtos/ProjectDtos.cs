@@ -65,8 +65,9 @@ public record ProjectDetailDto(
     IReadOnlyList<ActivityDto> Activities,
     IReadOnlyList<ProjectVolunteerDto> Volunteers,
     IReadOnlyList<IndicatorDto> Indicators,
-    IReadOnlyList<ProjectFileDto> Files,
-    IReadOnlyList<ProjectUpdateDto> Updates,
+    // Registros e arquivos vem pelas rotas proprias (abas Andamento e Arquivos); aqui so quantos sao.
+    int UpdatesCount,
+    int FilesCount,
     // Data da autorizacao de uso de imagem dos beneficiarios mais recente (null: nao registrada).
     DateOnly? ImageAuthorizedOn,
     string ProgramIcon,

@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ApiError, assetUrl } from '../../api/client';
 import { filesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
@@ -7,9 +7,12 @@ import { emptyToNull, fileExtension, formatDate, formatDateTime, formatFileSize 
 import { NeutralBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
-import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
+import { Alert, ConfirmDialog, EmptyState, Loading } from '../ui/Feedback';
 import { IconDownload, IconEdit, IconTrash, IconUpload } from '../ui/Icons';
 import { Lightbox } from '../ui/Lightbox';
+
+/** Fotos mostradas de cada vez ("Mostrar mais fotos" abre as proximas): no celular, 300 fotos de uma vez pesam. */
+const PHOTOS_STEP = 48;
 
 interface FilesTabProps {
   project: ProjectDetail;
@@ -25,9 +28,33 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
   const [removing, setRemoving] = useState<ProjectFile | null>(null);
   const [busy, setBusy] = useState(false);
   const [viewing, setViewing] = useState<number | null>(null);
+  const [photosShown, setPhotosShown] = useState(PHOTOS_STEP);
 
-  const images = project.files.filter((file) => file.isImage);
-  const documents = project.files.filter((file) => !file.isImage);
+  // Os arquivos vem pela rota propria (o projeto so traz quantos sao). Recarrega a cada versao nova do projeto, que
+  // e recarregado depois de toda mudanca (enviar, excluir, legenda, anexo de registro ou de tarefa).
+  const [files, setFiles] = useState<ProjectFile[] | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    filesApi
+      .listByProject(project.id)
+      .then((result) => {
+        if (!active) return;
+        setFiles(result);
+        setListError(null);
+      })
+      .catch((err) => {
+        if (active) setListError(err instanceof ApiError ? err.message : 'Não foi possível carregar os arquivos.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [project, attempt]);
+
+  const all = files ?? [];
+  const images = all.filter((file) => file.isImage);
+  const documents = all.filter((file) => !file.isImage);
   // Fotos e documentos separados: num projeto com 200 fotos, a planta e a lista de presenca nao somem no meio delas.
   // Documentos vem primeiro (sao poucos e e o que mais se procura); o filtro mostra so um dos dois.
   const [kind, setKind] = useState<'tudo' | 'fotos' | 'documentos'>('tudo');
@@ -95,7 +122,7 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
 
   return (
     <>
-      {!project.imageAuthorizedOn && project.files.some((file) => file.isImage) ? (
+      {!project.imageAuthorizedOn && images.length > 0 ? (
         <div style={{ marginBottom: 16 }}>
           <Alert kind="warning">
             Sem autorização de uso de imagem dos beneficiários registrada. Antes de usar estas fotos em relatórios ou
@@ -132,11 +159,11 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
         <input ref={inputRef} type="file" multiple hidden onChange={handleSelect} />
       </div>
 
-      {project.files.length > 0 ? (
+      {all.length > 0 ? (
         <div className="segmented files-kind" role="group" aria-label="Mostrar">
           {(
             [
-              ['tudo', 'Tudo', project.files.length],
+              ['tudo', 'Tudo', all.length],
               ['documentos', 'Documentos', documents.length],
               ['fotos', 'Fotos', images.length]
             ] as const
@@ -155,7 +182,18 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
       ) : null}
 
       <div className="panel">
-        {project.files.length === 0 ? (
+        {listError && !files ? (
+          <div className="panel__body">
+            <Alert kind="error">
+              {listError}{' '}
+              <button type="button" className="btn btn--sm" style={{ marginLeft: 10 }} onClick={() => setAttempt((n) => n + 1)}>
+                Tentar de novo
+              </button>
+            </Alert>
+          </div>
+        ) : !files ? (
+          <Loading label="Carregando arquivos…" />
+        ) : all.length === 0 ? (
           <EmptyState
             title="Nenhum arquivo no projeto"
             description="Fotos do antes e depois, plantas, autorizações e listas de presença ficam guardadas aqui."
@@ -182,7 +220,16 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
                 {images.length === 0 ? (
                   <p className="field__hint">Nenhuma foto ainda. As fotos publicadas no Andamento também aparecem aqui.</p>
                 ) : (
-                  <div className="file-grid">{images.map(card)}</div>
+                  <>
+                    <div className="file-grid">{images.slice(0, photosShown).map(card)}</div>
+                    {images.length > photosShown ? (
+                      <div className="feed-more" style={{ marginTop: 12 }}>
+                        <Button onClick={() => setPhotosShown((shown) => shown + PHOTOS_STEP)}>
+                          Mostrar mais fotos ({images.length - photosShown})
+                        </Button>
+                      </div>
+                    ) : null}
+                  </>
                 )}
               </section>
             ) : null}

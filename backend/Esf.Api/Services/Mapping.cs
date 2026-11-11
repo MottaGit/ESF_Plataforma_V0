@@ -135,9 +135,9 @@ public static class Mapping
         new(o.Id, o.Name, o.LegalName, o.Cnpj, o.Mission, o.About, o.Email, o.Phone, o.Website, o.City, o.State, o.LogoUrl,
             o.UpdatedAt, o.SignatoryName, o.SignatoryRole, o.SignatoryNote, o.SignatureStoredName != null);
 
-    /// <summary>Detalhe completo do projeto, com as colecoes ja carregadas.</summary>
-    public static ProjectDetailDto ToDetailDto(Project p, DateOnly? imageAuthorizedOn = null,
-        IReadOnlyDictionary<Guid, ActivityCounts>? counts = null) =>
+    /// <summary>Detalhe do projeto, com tarefas, equipe e indicadores ja carregados.</summary>
+    public static ProjectDetailDto ToDetailDto(Project p, int updatesCount, int filesCount,
+        DateOnly? imageAuthorizedOn = null, IReadOnlyDictionary<Guid, ActivityCounts>? counts = null) =>
         new(p.Id,
             p.Name,
             p.Description,
@@ -171,10 +171,9 @@ public static class Mapping
             // Nacionais primeiro (iguais em todo projeto), depois os especificos na ordem em que foram criados.
             p.Indicators.OrderBy(i => i.NationalIndicatorId == null).ThenBy(i => i.CreatedAt).ThenBy(i => i.Name)
                 .Select(ToDto).ToList(),
-            // Todos os arquivos do projeto, inclusive as fotos publicadas nas atualizacoes.
-            p.Files.OrderByDescending(f => f.UploadedAt).Select(ToDto).ToList(),
-            // Pelo dia em que aconteceu (o mais recente primeiro); no mesmo dia, o publicado por ultimo.
-            p.Updates.OrderByDescending(u => u.Day).ThenByDescending(u => u.CreatedAt).Select(ToDto).ToList(),
+            updatesCount,
+            // Todos os arquivos do projeto, inclusive as fotos publicadas nos registros.
+            filesCount,
             imageAuthorizedOn,
             p.Program.Icon,
             p.Program.Color,
