@@ -27,13 +27,13 @@ public class OrganizationController : ControllerBase
 
     [HttpPost("logo")]
     [Authorize(Policy = Policies.AdminOnly)]
-    public async Task<ActionResult<OrganizationDto>> UploadLogo([FromForm] IFormFile file)
+    public async Task<ActionResult<OrganizationDto>> UploadLogo(IFormFile file)
         => Ok(await _organization.UpdateLogoAsync(file));
 
     /// <summary>Imagem da assinatura de quem assina pela organizacao, usada nos certificados (privada).</summary>
     [HttpPost("signature")]
     [Authorize(Policy = Policies.AdminOnly)]
-    public async Task<ActionResult<OrganizationDto>> UploadSignature([FromForm] IFormFile file)
+    public async Task<ActionResult<OrganizationDto>> UploadSignature(IFormFile file)
         => Ok(await _organization.UpdateSignatureAsync(file));
 
     [HttpDelete("signature")]

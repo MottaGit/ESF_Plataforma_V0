@@ -44,7 +44,7 @@ public class ProjectUpdatesController : ControllerBase
 
     [HttpPost("updates/{id:guid}/attachments")]
     [RequestSizeLimit(64 * 1024 * 1024)]
-    public async Task<ActionResult<ProjectFileDto>> AddAttachment(Guid id, [FromForm] IFormFile file)
+    public async Task<ActionResult<ProjectFileDto>> AddAttachment(Guid id, IFormFile file)
         => Ok(await _updates.AddAttachmentAsync(id, file, _currentUser.Id));
 
     [HttpDelete("updates/{id:guid}/attachments/{fileId:guid}")]

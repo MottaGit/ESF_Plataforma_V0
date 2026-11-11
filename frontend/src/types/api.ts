@@ -1,68 +1,35 @@
-/* Tipos espelhando os DTOs da API (Esf.Api/Dtos). */
+/*
+ * Tipos da API com os nomes usados nas telas. O que a API devolve vem do contrato gerado (openapi.ts, a partir dos
+ * DTOs do backend: os campos e o que cada um quer dizer estao em backend/Esf.Api/Dtos); escritos a mao aqui ficam so o
+ * que a tela envia (Save...Payload), os filtros e o que a API devolve fora do contrato (resultado da importacao de
+ * planilha, que vem em JSON dentro da tarefa).
+ */
+import type * as G from './openapi';
 
-export type UserRole = 'Administrador' | 'Coordenador' | 'Usuario';
+export type UserRole = G.UserRole;
 
-export type ProjectStatus = 'Planejamento' | 'EmAndamento' | 'Pausado' | 'Concluido' | 'Cancelado';
+export type ProjectStatus = G.ProjectStatus;
 
-export type ActivityStatus = 'AFazer' | 'EmAndamento' | 'Bloqueada' | 'Concluida';
+export type ActivityStatus = G.ActivityStatus;
 
 /** Na tela, Alta e "Urgente" e o resto e normal (Baixa nao e mais usada). */
-export type ActivityPriority = 'Baixa' | 'Media' | 'Alta';
+export type ActivityPriority = G.ActivityPriority;
 
-export type VolunteerSector = 'Projetos' | 'Juridico' | 'Pessoas' | 'Comunicacao' | 'Qualidade' | 'Financeiro';
+export type VolunteerSector = G.VolunteerSector;
 
-export type VolunteerStatus = 'Ativo' | 'Inativo' | 'ExMembro' | 'Afastado';
+export type VolunteerStatus = G.VolunteerStatus;
 
-export type ProgramStatus = 'Ativo' | 'Arquivado';
+export type ProgramStatus = G.ProgramStatus;
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  isActive: boolean;
-  createdAt: string;
-  /** Voluntario que este acesso representa. */
-  volunteerId: string | null;
-  volunteerName: string | null;
-  /** Foto do voluntario vinculado (avatar no topo da tela). */
-  volunteerPhotoUrl: string | null;
-  /** Ainda nao aceitou a versao vigente da politica de privacidade e dos termos de uso. */
-  termsPending: boolean;
-  /** Criado por link e ainda sem senha (aguardando o primeiro acesso). */
-  passwordPending: boolean;
-  /** Nucleo do acesso (null: conta so da gestao nacional). */
-  organizationId: string | null;
-  /** Faz parte da gestao nacional. */
-  isNational: boolean;
-  /** Validade do link de acesso ainda nao usado mais recente (so na lista de acessos; null: nenhum). */
-  linkExpiresAt?: string | null;
-}
+export type User = G.UserDto;
 
 /** Um nucleo na gestao nacional: dados basicos, numeros gerais e quem administra. */
-export interface Nucleo {
-  id: string;
-  name: string;
-  city: string | null;
-  state: string | null;
-  activeVolunteers: number;
-  activeProjects: number;
-  admins: NucleoAdmin[];
-}
+export type Nucleo = G.NucleoDto;
 
-export interface NucleoAdmin {
-  userId: string;
-  name: string;
-  email: string;
-  pending: boolean;
-  isActive: boolean;
-}
+export type NucleoAdmin = G.NucleoAdminDto;
 
 /** Nucleo criado ou administrador incluido: o link de primeiro acesso (null quando a pessoa ja tinha acesso). */
-export interface NucleoAdminResult {
-  nucleo: Nucleo;
-  link: AccessLink | null;
-}
+export type NucleoAdminResult = G.NucleoAdminResultDto;
 
 export interface SaveNucleoPayload {
   name: string;
@@ -87,116 +54,27 @@ export interface SummedValue {
  * projetos, voluntarios ativos e indicadores sao a situacao de hoje. Projetos ativos: em planejamento, em andamento ou
  * pausados; concluidos e indicadores contam tambem os arquivados. volunteerHours e a estimativa (6 h/semana).
  */
-export interface NationalPanel {
-  from: string | null;
-  to: string | null;
-  totals: {
-    nucleos: number;
-    activeProjects: number;
-    concludedProjects: number;
-    activeVolunteers: number;
-    volunteerHours: number;
-    tasksCompleted: number;
-    records: number;
-  };
-  indicators: Array<{ id: string; name: string; unit: string | null } & SummedValue>;
-  nucleos: NationalPanelRow[];
-}
+export type NationalPanel = G.NationalPanelDto;
 
-export interface NationalPanelRow {
-  id: string;
-  name: string;
-  city: string | null;
-  state: string | null;
-  activeProjects: number;
-  concludedProjects: number;
-  activeVolunteers: number;
-  volunteerHours: number;
-  tasksCompleted: number;
-  records: number;
-  /** Ultimo registro de andamento ou tarefa concluida. */
-  lastActivityAt: string | null;
-  /** Valor de cada indicador nacional neste nucleo (id do indicador -> soma dos informados). */
-  indicators: Record<string, SummedValue>;
-}
+export type NationalPanelRow = G.NationalNucleoRowDto;
 
 /** Quem faz parte da gestao nacional (conta so nacional ou acesso de alguem de um nucleo). */
-export interface NationalPerson {
-  userId: string;
-  name: string;
-  email: string;
-  nucleoName: string | null;
-  pending: boolean;
-  isActive: boolean;
-  isMe: boolean;
-}
+export type NationalPerson = G.NationalPersonDto;
 
-export interface NationalPersonResult {
-  person: NationalPerson;
-  link: AccessLink | null;
-}
+export type NationalPersonResult = G.NationalPersonResultDto;
 
-export interface LoginResponse {
-  token: string;
-  expiresAt: string;
-  user: User;
-}
+export type LoginResponse = G.LoginResponse;
 
 /** Link de acesso recem-gerado: o codigo so volta nesta resposta. */
-export interface AccessLink {
-  userId: string;
-  token: string;
-  expiresAt: string;
-}
+export type AccessLink = G.AccessLinkDto;
 
 /** O que a pagina publica do link mostra antes de a pessoa criar a senha. */
-export interface AccessLinkInfo {
-  name: string;
-  email: string;
-  firstAccess: boolean;
-}
+export type AccessLinkInfo = G.AccessLinkInfoDto;
 
-export interface Program {
-  id: string;
-  name: string;
-  status: ProgramStatus;
-  createdAt: string;
-  /** Quantos projetos (inclusive arquivados) pertencem ao programa. */
-  projectsCount: number;
-  /** Ativos: em planejamento, em andamento ou pausados (sem os arquivados). Concluidos contam os arquivados. */
-  activeProjectsCount: number;
-  doneProjectsCount: number;
-  /** Chaves de icone e cor (ver utils/programs.ts). */
-  icon: string;
-  color: string;
-  /**
-   * Ficha do programa (Editar programa › Sobre): o que faz, objetivo e para quem. Aparece na pagina publica; o que
-   * faz e o objetivo sao o ponto de partida de cada projeto novo.
-   */
-  description: string | null;
-  objective: string | null;
-  audience: string | null;
-  /** Resumo do modelo de projeto. */
-  templateActivitiesCount: number;
-  templateIndicatorsCount: number;
-  /** A pagina publica do programa esta ligada. */
-  publicPage: boolean;
-  /** Nomes dos parceiros, na ordem da lista (o contato vem em programsApi.partners). */
-  partners: string[];
-  /** Nacionais e indicadores padrao do modelo, somados nos projetos do programa (regra unica, ResultTotals). */
-  results: ProgramResult[];
-}
+export type Program = G.ProgramDto;
 
 /** Parceiro do programa. Nome e papel aparecem na pagina publica e no PDF; contato e observacoes, so no nucleo. */
-export interface ProgramPartner {
-  id: string;
-  name: string;
-  role: string | null;
-  contactName: string | null;
-  email: string | null;
-  phone: string | null;
-  notes: string | null;
-}
+export type ProgramPartner = G.ProgramPartnerDto;
 
 /** A lista inteira; itens com id null sao novos e os que faltarem sao apagados. */
 export interface SaveProgramPartnersPayload {
@@ -204,122 +82,32 @@ export interface SaveProgramPartnersPayload {
 }
 
 /** Pagina publica do programa, como a coordenacao configura (o codigo so vem com ela ligada). */
-export interface ProgramPublicPage {
-  enabled: boolean;
-  token: string | null;
-}
+export type ProgramPublicPage = G.ProgramPublicPageDto;
 
 /**
  * Pagina publica do programa (sem login): so os dados liberados. Nada de endereco, pessoas, tarefas, registros, fotos
  * ou arquivos.
  */
-export interface PublicProgram {
-  name: string;
-  icon: string;
-  color: string;
-  /** Ficha do programa: "O que fazemos", "Objetivo" e "Para quem". */
-  description: string | null;
-  objective: string | null;
-  audience: string | null;
-  /** Parceiros do programa: so nome e papel. */
-  partners: PublicPartner[];
-  /** Ano do primeiro projeto que ja comecou (null: nenhum), para o "Desde 2019". */
-  sinceYear: number | null;
-  /** Cidades onde o programa atua, da que tem mais projetos para a que tem menos. */
-  cities: string[];
-  nucleo: PublicNucleo;
-  totals: PublicProgramTotals;
-  /** Indicadores somados nos projetos mostrados (nacionais e do modelo do programa), so os que tem valor. */
-  results: PublicIndicator[];
-  projects: PublicProject[];
-  /** Ultimo registro de andamento entre os projetos mostrados. */
-  updatedAt: string | null;
-}
+export type PublicProgram = G.PublicProgramDto;
 
-export interface PublicNucleo {
-  name: string;
-  logoUrl: string | null;
-  cnpj: string | null;
-  email: string | null;
-  city: string | null;
-  state: string | null;
-}
+export type PublicNucleo = G.PublicNucleoDto;
 
-export interface PublicPartner {
-  name: string;
-  role: string | null;
-}
+export type PublicPartner = G.PublicPartnerDto;
 
-export interface PublicProgramTotals {
-  concluded: number;
-  inProgress: number;
-  planning: number;
-  paused: number;
-  volunteers: number;
-  hours: number;
-}
+export type PublicProgramTotals = G.PublicProgramTotalsDto;
 
-export interface PublicIndicator {
-  name: string;
-  unit: string | null;
-  value: number;
-  national: boolean;
-  /** Meta do programa (so nos resultados somados); null: sem meta. */
-  target?: number | null;
-}
+export type PublicIndicator = G.PublicIndicatorDto;
 
-export interface PublicProject {
-  name: string;
-  status: ProjectStatus;
-  district: string | null;
-  city: string | null;
-  state: string | null;
-  startDate: string;
-  endDateForecast: string | null;
-  /** null: projeto em aberto sem nenhuma tarefa (sem barra, em vez de 0%). */
-  progress: number | null;
-  indicators: PublicIndicator[];
-  lastUpdateAt: string | null;
-  /** Concluido: o dia em que terminou (null nos encerrados antes de o campo existir). */
-  closedOn: string | null;
-}
+export type PublicProject = G.PublicProjectDto;
 
-export interface ProgramResult extends SummedValue {
-  name: string;
-  unit: string | null;
-  national: boolean;
-  /** Meta do programa (do modelo); null: sem meta. */
-  target: number | null;
-}
+export type ProgramResult = G.ProgramResultDto;
 
-export interface TemplateActivity {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: ActivityPriority;
-  /** Prazo em dias depois do inicio do projeto; null: sem prazo. */
-  dueDays: number | null;
-}
+export type TemplateActivity = G.TemplateActivityDto;
 
-export interface TemplateIndicator {
-  id: string;
-  name: string;
-  unit: string | null;
-  /** Indicador nacional escolhido no modelo (null: especifico do programa). */
-  nationalIndicatorId: string | null;
-  /** Meta do programa: soma de todos os projetos dele, ex.: 55 banheiros (null: sem meta). */
-  target: number | null;
-}
+export type TemplateIndicator = G.TemplateIndicatorDto;
 
 /** Indicador nacional: definido pela gestao nacional; os nucleos escolhem nos projetos e nos modelos. */
-export interface NationalIndicator {
-  id: string;
-  name: string;
-  unit: string | null;
-  /** Como contar (comum a todos os nucleos, para a soma valer). */
-  description: string | null;
-  isArchived: boolean;
-}
+export type NationalIndicator = G.NationalIndicatorDto;
 
 export interface SaveNationalIndicatorPayload {
   name: string;
@@ -328,10 +116,7 @@ export interface SaveNationalIndicatorPayload {
 }
 
 /** Modelo de projeto: as tarefas e os indicadores que um projeto novo do programa ja recebe. */
-export interface ProgramTemplate {
-  activities: TemplateActivity[];
-  indicators: TemplateIndicator[];
-}
+export type ProgramTemplate = G.ProgramTemplateDto;
 
 /** O modelo inteiro; itens com id null sao novos e os que faltarem sao apagados. */
 export interface SaveProgramTemplatePayload {
@@ -339,183 +124,41 @@ export interface SaveProgramTemplatePayload {
   indicators: Array<Omit<TemplateIndicator, 'id'> & { id: string | null }>;
 }
 
-export interface ProjectListItem {
-  id: string;
-  name: string;
-  programId: string;
-  programName: string;
-  status: ProjectStatus;
-  /** Calculado pela API: % de atividades concluidas (100 quando o projeto esta concluido). */
-  progress: number;
-  ownerVolunteerId: string | null;
-  ownerName: string | null;
-  district: string | null;
-  city: string | null;
-  startDate: string;
-  endDateForecast: string | null;
-  isLate: boolean;
-  isArchived: boolean;
-  activitiesTotal: number;
-  activitiesDone: number;
-  volunteersCount: number;
-  updatedAt: string;
-  /** Data da atualizacao de andamento mais recente (null se nunca houve). */
-  lastUpdateAt: string | null;
-  /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
-  imageAuthorizedOn: string | null;
-  programIcon: string;
-  programColor: string;
-  /** Ponto no mapa; null quando o projeto ainda nao foi marcado. */
-  latitude: number | null;
-  longitude: number | null;
-}
+export type ProjectListItem = G.ProjectListItemDto;
 
-export interface Activity {
-  id: string;
-  projectId: string;
-  projectName: string | null;
-  title: string;
-  description: string | null;
-  assignedVolunteerId: string | null;
-  assignedVolunteerName: string | null;
-  status: ActivityStatus;
-  priority: ActivityPriority;
-  dueDate: string | null;
-  isLate: boolean;
-  createdAt: string;
-  completedAt: string | null;
-  assignedVolunteerPhotoUrl: string | null;
-  /** O que esta travando a atividade (so quando bloqueada). */
-  blockedReason: string | null;
-  programId: string | null;
-  programName: string | null;
-  /** Resumo do que fica dentro da atividade (cards e lista). */
-  checklistTotal: number;
-  checklistDone: number;
-  attachmentsCount: number;
-  commentsCount: number;
-  /** Icone e cor do programa do projeto. */
-  programIcon: string | null;
-  programColor: string | null;
-}
+export type Activity = G.ActivityDto;
 
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  done: boolean;
-  doneAt: string | null;
-}
+export type ChecklistItem = G.ChecklistItemDto;
 
 /** O que fica dentro da atividade: checklist, anexos e comentarios. */
-export interface ActivityDetails {
-  checklist: ChecklistItem[];
-  attachments: ProjectFile[];
-  comments: ActivityComment[];
-}
+export type ActivityDetails = G.ActivityDetailsDto;
 
-export interface Mention {
-  volunteerId: string;
-  name: string;
-}
+export type Mention = G.MentionDto;
 
-export interface ActivityComment {
-  id: string;
-  authorUserId: string | null;
-  authorName: string;
-  authorPhotoUrl: string | null;
-  text: string;
-  mentions: Mention[];
-  createdAt: string;
-  editedAt: string | null;
-  /** Editar: so quem escreveu. Apagar: quem escreveu e a coordenacao. */
-  canEdit: boolean;
-  canDelete: boolean;
-}
+export type ActivityComment = G.CommentDto;
 
 /** Quem pode ser mencionado com @ (tem acesso); inTeam: esta na equipe do projeto. */
-export interface Mentionable {
-  volunteerId: string;
-  name: string;
-  photoUrl: string | null;
-  inTeam: boolean;
-}
+export type Mentionable = G.MentionableDto;
 
 export interface SaveCommentPayload {
   text: string;
   mentionedVolunteerIds: string[];
 }
 
-export interface Indicator {
-  id: string;
-  projectId: string;
-  name: string;
-  unit: string | null;
-  /** null: ainda nao informado (diferente de zero). */
-  value: number | null;
-  createdAt: string;
-  /** Indicador nacional (obrigatorio em todo projeto); null: especifico do projeto. */
-  nationalIndicatorId: string | null;
-  /** Quando o valor mudou pela ultima vez (null: nunca, ou antes de o campo existir). */
-  valueUpdatedAt: string | null;
-}
+export type Indicator = G.IndicatorDto;
 
-export interface VolunteerProject {
-  projectId: string;
-  projectName: string;
-  projectStatus: ProjectStatus;
-  programName: string;
-  roleInProject: string | null;
-}
+export type VolunteerProject = G.VolunteerProjectDto;
 
-export interface Volunteer {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  sector: VolunteerSector;
-  skills: string | null;
-  notes: string | null;
-  status: VolunteerStatus;
-  projects: VolunteerProject[];
-  createdAt: string;
-  /** Aniversario: so dia e mes (sem ano). */
-  birthDay: number | null;
-  birthMonth: number | null;
-  /** Foto (quadrada, exibida em circulo); null quando nao ha. */
-  photoUrl: string | null;
-  /** Data do termo de adesao assinado mais recente; null quando esta pendente. */
-  termSignedOn: string | null;
-  /** Dados pessoais anonimizados (nome generico, sem contatos nem foto); so o historico continua. */
-  anonymized: boolean;
-  /** Acesso a plataforma ligado a este voluntario (null: sem acesso). */
-  access: VolunteerAccess | null;
-}
+export type Volunteer = G.VolunteerDto;
 
 /** Acesso de um voluntario: perfil, se esta ativo e se ainda espera o primeiro acesso (sem senha). */
-export interface VolunteerAccess {
-  userId: string;
-  role: UserRole;
-  isActive: boolean;
-  pending: boolean;
-  /** Validade do link de acesso ainda nao usado mais recente (null: nenhum). */
-  linkExpiresAt: string | null;
-}
+export type VolunteerAccess = G.VolunteerAccessDto;
 
 /** Um periodo do historico de status (endsOn null: o status atual). */
-export interface VolunteerStatusPeriod {
-  id: string;
-  status: VolunteerStatus;
-  startsOn: string;
-  endsOn: string | null;
-}
+export type VolunteerStatusPeriod = G.VolunteerStatusPeriodDto;
 
 /** Horas de voluntariado; o historico so vem para a coordenacao e para o proprio voluntario. */
-export interface VolunteerHours {
-  hours: number;
-  weeklyHours: number;
-  /** Do mais recente ao mais antigo; null quando a pessoa logada nao pode ver. */
-  history: VolunteerStatusPeriod[] | null;
-}
+export type VolunteerHours = G.VolunteerHoursDto;
 
 export interface SaveStatusPeriodPayload {
   status: VolunteerStatus;
@@ -525,202 +168,47 @@ export interface SaveStatusPeriodPayload {
 }
 
 /** Situacao e tarefas em aberto (projetos em planejamento ou andamento), para escolher o responsavel. */
-export interface VolunteerLoad {
-  volunteerId: string;
-  status: VolunteerStatus;
-  openActivities: number;
-  lateActivities: number;
-}
+export type VolunteerLoad = G.VolunteerLoadDto;
 
-export interface ProjectVolunteer {
-  volunteerId: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  sector: VolunteerSector;
-  roleInProject: string | null;
-  joinedAt: string;
-  photoUrl: string | null;
-}
+export type ProjectVolunteer = G.ProjectVolunteerDto;
 
-export interface ProjectUpdate {
-  id: string;
-  projectId: string;
-  text: string;
-  authorUserId: string | null;
-  /** Nome do voluntario vinculado ao autor (ou do usuario, sem vinculo). */
-  authorName: string | null;
-  createdAt: string;
-  editedAt: string | null;
-  attachments: ProjectFile[];
-  authorPhotoUrl: string | null;
-  /** Dia em que aconteceu (aaaa-mm-dd); nos registros antigos, o da publicacao. */
-  happenedOn: string;
-}
+export type ProjectUpdate = G.ProjectUpdateDto;
 
 /** Uma pagina dos registros de um projeto (do mais recente para o mais antigo) e quantos ele tem ao todo. */
-export interface ProjectUpdatePage {
-  items: ProjectUpdate[];
-  total: number;
-}
+export type ProjectUpdatePage = G.ProjectUpdatePageDto;
 
-export interface ProjectFile {
-  id: string;
-  projectId: string;
-  fileName: string;
-  contentType: string;
-  sizeBytes: number;
-  description: string | null;
-  url: string;
-  isImage: boolean;
-  uploadedByName: string | null;
-  uploadedAt: string;
-  /** Preenchidos quando o arquivo foi anexado a uma atualizacao de andamento. */
-  projectUpdateId: string | null;
-  updateCreatedAt: string | null;
-  /** Preenchidos quando o arquivo foi anexado numa atividade. */
-  activityId: string | null;
-  activityTitle: string | null;
-  /** Miniatura da foto (listas e galeria); null enquanto não foi gerada ou quando não é foto: use a url. */
-  thumbnailUrl: string | null;
-}
+export type ProjectFile = G.ProjectFileDto;
 
-export interface ProjectDetail {
-  id: string;
-  name: string;
-  description: string | null;
-  programId: string;
-  programName: string;
-  status: ProjectStatus;
-  /** Calculado pela API: % de atividades concluidas (100 quando o projeto esta concluido). */
-  progress: number;
-  ownerVolunteerId: string | null;
-  ownerName: string | null;
-  objective: string | null;
-  beneficiaries: string | null;
-  targetAudience: string | null;
-  notes: string | null;
-  address: string | null;
-  district: string | null;
-  city: string | null;
-  state: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  startDate: string;
-  endDateForecast: string | null;
-  isLate: boolean;
-  isArchived: boolean;
-  createdAt: string;
-  updatedAt: string;
-  activities: Activity[];
-  volunteers: ProjectVolunteer[];
-  indicators: Indicator[];
-  /** Registros e arquivos vem pelas rotas proprias (abas Andamento e Arquivos); aqui so quantos sao. */
-  updatesCount: number;
-  filesCount: number;
-  /** Autorizacao de uso de imagem dos beneficiarios mais recente; null quando nao foi registrada. */
-  imageAuthorizedOn: string | null;
-  programIcon: string;
-  programColor: string;
-  /** Dia em que foi concluido ou cancelado (null: em aberto, ou encerrado antes de o campo existir). */
-  closedOn: string | null;
-}
+export type ProjectDetail = G.ProjectDetailDto;
 
 /** Voluntario ativo sem nenhuma tarefa em aberto (Inicio da coordenacao). */
-export interface IdleVolunteer {
-  volunteerId: string;
-  name: string;
-  photoUrl: string | null;
-  /** Projetos em planejamento ou em andamento em que a pessoa e responsavel ou esta na equipe. */
-  projects: number;
-}
+export type IdleVolunteer = G.IdleVolunteerDto;
 
 /** Numeros do usuario logado (so quando o acesso esta vinculado a um voluntario). */
-export interface MyActivities {
-  open: number;
-  late: number;
-  blocked: number;
-}
+export type MyActivities = G.MyActivitiesDto;
 
 /** Um projeto da pessoa logada no Inicio. */
-export interface HomeProject {
-  id: string;
-  name: string;
-  programIcon: string;
-  programColor: string;
-  status: ProjectStatus;
-  progress: number;
-  /** Ultimo relato de andamento (null: nunca houve). */
-  lastUpdateAt: string | null;
-  /** Quantas tarefas o projeto tem (sem nenhuma: "sem tarefas" no lugar da barra). */
-  tasks: number;
-}
+export type HomeProject = G.HomeProjectDto;
 
 /** Resumo da organizacao (mostrado para a coordenacao). */
-export interface OrgSummary {
-  lateTasks: number;
-  blockedTasks: number;
-  /** Projetos em andamento sem relato ha mais de 30 dias. */
-  staleProjects: number;
-}
+export type OrgSummary = G.OrgSummaryDto;
 
 /** Tela Inicio. */
-export interface Dashboard {
-  mine: MyActivities | null;
-  /** Tarefas em aberto da pessoa logada (vazio sem voluntario vinculado). */
-  myTasks: Activity[];
-  myProjects: HomeProject[];
-  org: OrgSummary;
-  /** Voluntarios ativos sem tarefa em aberto: primeiro quem nao esta em nenhum projeto. */
-  idle: IdleVolunteer[];
-  /** Primeiros passos de um nucleo que esta comecando (null quando ja tem projeto). */
-  setup: SetupStatus | null;
-}
+export type Dashboard = G.DashboardDto;
 
 /** Primeiros passos do nucleo novo; o ultimo (o primeiro projeto) fecha o quadro. */
-export interface SetupStatus {
-  organizationDone: boolean;
-  programDone: boolean;
-  teamDone: boolean;
-}
+export type SetupStatus = G.SetupDto;
 
-export type SignedDocumentKind = 'VolunteerTerm' | 'BeneficiaryImageAuthorization';
+export type SignedDocumentKind = G.SignedDocumentKind;
 
 /** Termo de adesao ou autorizacao de uso de imagem assinado (so a coordenacao ve). */
-export interface SignedDocument {
-  id: string;
-  kind: SignedDocumentKind;
-  fileName: string;
-  sizeBytes: number;
-  signedOn: string;
-  uploadedAt: string;
-  uploadedByName: string | null;
-  /** Assinado online pelo proprio voluntario (sem arquivo enviado). */
-  signedOnline: boolean;
-  /** Momento da assinatura online. */
-  signedAt: string | null;
-  /** Resposta sobre uso de imagem na assinatura online. */
-  imageAuthorized: boolean | null;
-}
+export type SignedDocument = G.SignedDocumentDto;
 
 /** Texto do termo de adesao (o mesmo do PDF). */
-export interface VolunteerTermText {
-  title: string;
-  opening: string;
-  commitment: string;
-  clauses: Array<{ title: string; text: string }>;
-}
+export type VolunteerTermText = G.VolunteerTermText;
 
 /** Termo de adesao do voluntario logado. */
-export interface MyTerm {
-  volunteerName: string;
-  email: string | null;
-  phone: string | null;
-  /** Precisa assinar: ativo ou afastado e sem termo. */
-  pending: boolean;
-  signed: { signedOn: string; signedAt: string | null; signedOnline: boolean; imageAuthorized: boolean | null } | null;
-  text: VolunteerTermText;
-}
+export type MyTerm = G.MyTermDto;
 
 export interface SignTermPayload {
   fullName: string;
@@ -730,66 +218,16 @@ export interface SignTermPayload {
 }
 
 /** O que gerou o aviso do sininho. */
-export type NotificationType =
-  | 'ActivityAssigned'
-  | 'ActivityBlocked'
-  | 'ActivityCompleted'
-  | 'ActivityReopened'
-  | 'AddedToTeam'
-  | 'ProjectOwner'
-  | 'ActivityDueTomorrow'
-  | 'ActivityDueToday'
-  | 'CommentMention'
-  | 'ActivityCommented'
-  | 'ReportFinished'
-  | 'SpreadsheetFinished';
+export type NotificationType = G.NotificationType;
 
-export interface AppNotification {
-  id: string;
-  type: NotificationType;
-  message: string;
-  /** Linha de apoio, normalmente o nome do projeto. */
-  context: string | null;
-  projectId: string | null;
-  activityId: string | null;
-  createdAt: string;
-  read: boolean;
-}
+export type AppNotification = G.NotificationDto;
 
 /** linked=false: o acesso nao esta vinculado a um voluntario (sem avisos). */
-export interface NotificationList {
-  linked: boolean;
-  unreadCount: number;
-  items: AppNotification[];
-}
+export type NotificationList = G.NotificationsDto;
 
-export interface UnreadNotifications {
-  linked: boolean;
-  count: number;
-}
+export type UnreadNotifications = G.UnreadNotificationsDto;
 
-export interface Organization {
-  id: string;
-  name: string;
-  legalName: string | null;
-  cnpj: string | null;
-  mission: string | null;
-  about: string | null;
-  email: string | null;
-  phone: string | null;
-  website: string | null;
-  city: string | null;
-  state: string | null;
-  logoUrl: string | null;
-  updatedAt: string;
-  /** Quem assina pela organizacao nos termos e certificados. */
-  signatoryName: string | null;
-  signatoryRole: string | null;
-  /** Linha abaixo do cargo no certificado (ex.: Gestao 2025). */
-  signatoryNote: string | null;
-  /** Ha imagem de assinatura para os certificados (o arquivo e privado). */
-  hasSignature: boolean;
-}
+export type Organization = G.OrganizationDto;
 
 /* ---------- payloads de escrita ---------- */
 
@@ -897,7 +335,7 @@ export interface SaveOrganizationPayload {
 
 /** Certificado de voluntariado: periodo e carga semanal; o CPF so vai para o PDF. */
 /** Periodo completo (do historico), periodo especifico ou por projeto. */
-export type CertificateKind = 'Full' | 'Period' | 'Project';
+export type CertificateKind = G.CertificateKind;
 
 export interface CertificatePayload {
   kind: CertificateKind;
@@ -914,23 +352,10 @@ export interface CertificatePayload {
 }
 
 /** O que a janela do certificado ja mostra preenchido. */
-export interface CertificateOptions {
-  full: { start: string; end: string; hours: number; weeklyHours: number } | null;
-  projects: Array<{
-    projectId: string;
-    name: string;
-    programName: string;
-    status: ProjectStatus;
-    start: string;
-    end: string;
-    hours: number;
-    summary: string | null;
-    activities: string | null;
-  }>;
-}
+export type CertificateOptions = G.CertificateOptionsDto;
 
 /** Resumo: so os numeros somados e a tabela dos projetos. Completo: mais um capitulo por projeto. */
-export type ReportFormat = 'Completo' | 'Resumo';
+export type ReportFormat = G.ReportFormat;
 
 export interface ReportPayload {
   projectIds: string[];
@@ -947,12 +372,7 @@ export interface ReportPayload {
 }
 
 /** O que um projeto tem no periodo do relatorio: registros, fotos que entram no PDF e tarefas concluidas. */
-export interface ReportPeriodCount {
-  projectId: string;
-  updates: number;
-  photos: number;
-  tasks: number;
-}
+export type ReportPeriodCount = G.ReportPeriodCountDto;
 
 export interface ProjectFilters {
   search?: string;
@@ -971,33 +391,13 @@ export interface ProjectFilters {
 /* ---------- historico de alteracoes ---------- */
 
 /** Exported: alguem exportou a planilha (fica no historico porque leva dados pessoais). */
-export type AuditAction = 'Created' | 'Updated' | 'Deleted' | 'Exported';
+export type AuditAction = G.AuditAction;
 
-export interface AuditChange {
-  field: string;
-  before: string;
-  after: string;
-}
+export type AuditChange = G.AuditChange;
 
-export interface AuditEntry {
-  id: string;
-  at: string;
-  userId: string | null;
-  userName: string;
-  action: AuditAction;
-  /** Tipo do registro, em portugues (Projeto, Atividade, Voluntario...). */
-  entityType: string;
-  entityId: string;
-  entityLabel: string;
-  projectId: string | null;
-  projectName: string | null;
-  changes: AuditChange[];
-}
+export type AuditEntry = G.AuditEntryDto;
 
-export interface AuditPage {
-  items: AuditEntry[];
-  hasMore: boolean;
-}
+export type AuditPage = G.AuditPageDto;
 
 export interface AuditFilters {
   projectId?: string;
@@ -1009,22 +409,7 @@ export interface AuditFilters {
 }
 
 /** Busca geral do topo: poucos resultados de cada tipo. */
-export interface SearchResults {
-  projects: Array<{
-    id: string;
-    name: string;
-    programName: string;
-    programIcon: string;
-    programColor: string;
-    status: ProjectStatus;
-    isArchived: boolean;
-  }>;
-  programs: Array<{ id: string; name: string; icon: string; color: string; isArchived: boolean }>;
-  activities: Array<{ id: string; title: string; projectId: string; projectName: string; status: ActivityStatus }>;
-  volunteers: Array<{ id: string; name: string; sector: VolunteerSector; photoUrl: string | null }>;
-  /** Relatos: trecho do texto em volta do termo. */
-  updates: Array<{ id: string; projectId: string; projectName: string; createdAt: string; snippet: string }>;
-}
+export type SearchResults = G.SearchResultsDto;
 
 // ---------- planilha (exportar e importar) ----------
 
@@ -1067,24 +452,10 @@ export interface ImportResult {
 }
 
 /** Um lancamento de horas num projeto. */
-export interface ProjectHourEntry {
-  id: string;
-  volunteerId: string;
-  volunteerName: string;
-  photoUrl: string | null;
-  date: string;
-  hours: number;
-  description: string | null;
-  /** Quem esta logado pode corrigir ou apagar. */
-  canEdit: boolean;
-}
+export type ProjectHourEntry = G.ProjectHourEntryDto;
 
 /** Horas lancadas num projeto: total, por pessoa e os lancamentos (mais novos primeiro). */
-export interface ProjectHours {
-  total: number;
-  people: Array<{ volunteerId: string; name: string; hours: number }>;
-  entries: ProjectHourEntry[];
-}
+export type ProjectHours = G.ProjectHoursDto;
 
 export interface SaveHourEntryPayload {
   /** Vazio: as horas sao de quem esta logado. */
@@ -1095,21 +466,8 @@ export interface SaveHourEntryPayload {
 }
 
 /** Tarefa longa feita em segundo plano no servidor (relatório, planilha). */
-export type BackgroundJobKind = 'Report' | 'SpreadsheetExport' | 'SpreadsheetImport';
+export type BackgroundJobKind = G.BackgroundJobKind;
 
-export type BackgroundJobStatus = 'Queued' | 'Running' | 'Done' | 'Failed';
+export type BackgroundJobStatus = G.BackgroundJobStatus;
 
-export interface BackgroundJob {
-  id: string;
-  kind: BackgroundJobKind;
-  status: BackgroundJobStatus;
-  /** Na fila: quantas tarefas estão na frente (0 = é a próxima). */
-  ahead: number | null;
-  /** Nome do arquivo gerado, quando pronto. */
-  fileName: string | null;
-  error: string | null;
-  /** Resposta, quando não é arquivo (resultado da importação). */
-  result: unknown;
-  createdAt: string;
-  finishedAt: string | null;
-}
+export type BackgroundJob = G.BackgroundJobDto;

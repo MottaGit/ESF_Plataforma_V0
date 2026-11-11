@@ -43,7 +43,7 @@ public class SpreadsheetsController : ControllerBase
     /// </summary>
     [HttpPost("import")]
     [RequestSizeLimit(SpreadsheetImportService.MaxFileBytes + 1024 * 1024)]
-    public async Task<ActionResult<BackgroundJobDto>> Import([FromForm] IFormFile? file, [FromQuery] bool confirm,
+    public async Task<ActionResult<BackgroundJobDto>> Import(IFormFile? file, [FromQuery] bool confirm,
         [FromServices] JobQueue jobs)
     {
         SpreadsheetImportService.CheckFile(file);

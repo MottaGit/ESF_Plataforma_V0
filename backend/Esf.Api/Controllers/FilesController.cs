@@ -28,7 +28,7 @@ public class FilesController : ControllerBase
     [RequestSizeLimit(64 * 1024 * 1024)]
     public async Task<ActionResult<ProjectFileDto>> Upload(
         Guid projectId,
-        [FromForm] IFormFile file,
+        IFormFile file,
         [FromForm] string? description,
         [FromForm] Guid? activityId)
         => Ok(await _files.UploadAsync(projectId, file, description, _currentUser.Id, activityId));

@@ -128,6 +128,17 @@ linha para cada combinação. Use `AsSplitQuery()` nela.
 ESF_TEST_POSTGRES="Host=localhost;Port=5432;Username=esf;Password=esf" dotnet test
 ```
 
+**Contrato da API para o frontend** — os tipos do que a API devolve não são escritos à mão no frontend: saem do
+documento OpenAPI (o mesmo do `/swagger`), guardado em `frontend/openapi.json`, que `npm run types` transforma em
+`frontend/src/types/openapi.ts` (script sem dependências, `frontend/scripts/openapi-types.mjs`). O teste
+`OpenApiContractTests` monta o documento com as definições do `Program.cs` (sem banco) e falha se ele mudou sem o
+arquivo. Depois de mudar um DTO, uma rota ou um enum:
+
+```bash
+cd backend && ESF_UPDATE_OPENAPI=1 dotnet test --filter OpenApiContractTests
+cd frontend && npm run types
+```
+
 ### CI (GitHub Actions)
 
 A cada push, em qualquer branch (commits que mexem só em `.md` não disparam), o GitHub roda
@@ -140,7 +151,8 @@ falha vira anotação no commit. Para rodar à mão: **Actions › CI › Run wo
   (administrador, perfil Usuário, gestão nacional, outro núcleo) e chama as rotas principais de cada tela. Faz também
   algumas gravações (tarefa, horas, registro, página pública), gera os PDFs e a planilha e confere as recusas por perfil
   e por núcleo. Se algo falha, o log da API aparece no fim.
-- **Frontend:** `npm ci`, typecheck e build.
+- **Frontend:** `npm ci`, tipos gerados do contrato em dia (`npm run types` não pode mudar `src/types/openapi.ts`),
+  typecheck e build.
 
 Tudo roda nos servidores do GitHub (sem custo, o repositório é público), sem segredo e sem tocar no Render. As
 migrações são testadas a partir de um banco vazio. Conversão de dados antigos de produção (migração que preenche ou
@@ -1021,7 +1033,7 @@ ESF_Plataforma_V0/
 │     ├─ pages/           login, dashboard, projetos, detalhe, voluntários,
 │     │                   relatórios, configurações
 │     ├─ styles/          sistema visual em CSS
-│     ├─ types/           tipos espelhando os DTOs
+│     ├─ types/           openapi.ts (gerado do contrato da API) e api.ts (nomes das telas e o que a tela envia)
 │     └─ utils/           formatação de datas, números e rótulos
 └─ docker-compose.yml
 ```

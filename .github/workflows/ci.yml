@@ -116,6 +116,15 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      # O backend confere o openapi.json (teste OpenApiContractTests); aqui, os tipos gerados dele.
+      - name: Tipos gerados do contrato da API em dia
+        run: |
+          npm run types
+          if ! git diff --exit-code -- src/types/openapi.ts; then
+            echo "::error title=Tipos do frontend desatualizados::O openapi.json mudou e src/types/openapi.ts não. Rode 'npm run types' em frontend e faça o commit."
+            exit 1
+          fi
+
       - name: Typecheck
         run: npm run typecheck
 

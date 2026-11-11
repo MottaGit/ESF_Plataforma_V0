@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Esf.Api.Common;
 using Esf.Api.Data;
@@ -11,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -148,13 +146,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // ---------- API ----------
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
-    });
+// Formato do JSON e documento OpenAPI: os mesmos do teste que gera os tipos do frontend (Common/ApiContract.cs).
+builder.Services.AddEsfControllers();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -195,36 +188,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ESF - Plataforma de gestao de projetos",
-        Version = "v0",
-        Description = "API da V0 da plataforma de gestao de projetos sociais."
-    });
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Informe o token retornado por POST /api/auth/login."
-    });
-
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
+builder.Services.AddEsfSwagger();
 
 var app = builder.Build();
 

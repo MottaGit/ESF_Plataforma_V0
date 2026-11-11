@@ -23,6 +23,7 @@ cd backend && dotnet test                                              # todos o
 cd backend && dotnet test --filter "FullyQualifiedName~NucleoIsolationTests"   # uma classe
 cd backend && dotnet test --filter "FullyQualifiedName~ProjectHoursTests.MemberLogsOwnHoursAndCoordinationSeesThem"
 cd backend && ESF_TEST_POSTGRES="Host=...;Username=...;Password=..." dotnet test   # os mesmos testes num Postgres (o CI faz)
+cd backend && ESF_UPDATE_OPENAPI=1 dotnet test --filter OpenApiContractTests  # atualiza frontend/openapi.json (DTO mudou)
 cd backend/Esf.Api && dotnet run                                       # API em :5080 (precisa de PostgreSQL)
 cd backend/Esf.Api && dotnet ef migrations add NomeDaMigration         # nova migração (dotnet-ef global)
 ```
@@ -33,6 +34,7 @@ Frontend (não há ESLint, Prettier nem testes de frontend; a validação é typ
 cd frontend && npm run typecheck   # tsc --noEmit (strict, noUnusedLocals/Parameters)
 cd frontend && npm run build       # tsc + vite build (gera também o /sw.js)
 cd frontend && npm run dev         # :5173, proxy de /api e /uploads para :5080
+cd frontend && npm run types       # src/types/openapi.ts a partir de openapi.json (depois do teste do contrato)
 ```
 
 Tudo junto: `docker compose up --build` (front :5173, API :5080/swagger, Postgres :5432, usuário `esf`). O compose
@@ -109,8 +111,12 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   estado global só em `context/` (`AuthContext`, `ToastContext`).
 - Toda chamada à API passa por `api/endpoints.ts` → `api/client.ts` (`http.request`/`http.download`): token em
   `localStorage` (`esf.token`), 401 dispara logout, erro vira `ApiError` com a mensagem do backend.
-- `types/api.ts` espelha os DTOs à mão (enums como uniões de string): mudou um DTO, mude os dois lados. Rótulos dos
-  enums e formatação de datas ficam em `utils/format.ts`.
+- Tipos da API: `types/openapi.ts` é gerado do contrato (`frontend/openapi.json`, o OpenAPI dos DTOs) por
+  `npm run types`; `types/api.ts` dá os nomes das telas (`export type Volunteer = G.VolunteerDto`) e só escreve à mão
+  o que a tela envia (`Save...Payload`), filtros e o que vem fora do contrato. Mudou um DTO, uma rota ou um enum: rode
+  `ESF_UPDATE_OPENAPI=1 dotnet test --filter OpenApiContractTests` em `backend` e `npm run types` em `frontend` (o CI
+  reprova se um dos dois ficou para trás). DTO novo de resposta ganha um apelido em `api.ts`. Rótulos dos enums e
+  formatação de datas ficam em `utils/format.ts`.
 - Permissões na tela: `useAuth()` → `canManage`, `isAdmin`, `isNational`.
 - Tela que busca de novo quando um filtro ou o id muda usa `useLatestRequest` (`utils/useLatestRequest.ts`): só a
   resposta do pedido mais recente vale (senão uma resposta lenta do filtro anterior sobrescreve a nova).
