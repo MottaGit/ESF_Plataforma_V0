@@ -1,0 +1,750 @@
+/* ---------------------------------------------------------
+   Badges e indicadores
+   --------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.badge--plan { background: var(--st-plan-bg); color: var(--st-plan-fg); }
+.badge--run { background: var(--st-run-bg); color: var(--st-run-fg); }
+.badge--pause { background: var(--st-pause-bg); color: var(--st-pause-fg); }
+.badge--done { background: var(--st-done-bg); color: var(--st-done-fg); }
+.badge--cancel { background: var(--st-cancel-bg); color: var(--st-cancel-fg); box-shadow: inset 0 0 0 1px var(--border-strong); }
+/* Tarefa urgente: laranja (vermelho e so para atraso). */
+.badge--urgent { background: var(--st-pause-bg); color: var(--st-pause-fg); }
+.badge--blocked { background: var(--st-blocked-bg); color: var(--st-blocked-fg); }
+.badge--late { background: var(--danger-bg); color: var(--danger); }
+/* Cinza com contorno leve: aparece tambem direto no fundo da pagina (ex.: Afastado, Arquivado no cabecalho). */
+.badge--neutral { background: var(--st-plan-bg); color: var(--st-plan-fg); box-shadow: inset 0 0 0 1px var(--border); }
+.badge--birthday { background: #fdf2fa; color: #a3216d; }
+
+/* Aniversariante do dia: linha da lista e aviso no topo da pagina de voluntarios. */
+.table tbody tr.table__row--birthday { background: #fef8fc; }
+.table tbody tr.table__row--birthday:hover { background: #fcf0f8; }
+.birthday-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid #f6d5ea;
+  border-radius: var(--radius);
+  background: #fdf2fa;
+  color: #7d1a54;
+  font-size: 13.5px;
+}
+.birthday-notice__icon { font-size: 18px; line-height: 1; }
+
+/* Visao geral: numeros clicaveis (a setinha no canto indica) e quem esta sem tarefa. */
+.stat--link {
+  position: relative;
+  display: block;
+  border-top: 0;
+  border-left: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.stat--link:hover { background: var(--surface-soft); text-decoration: none; }
+.stat__go {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  display: flex;
+  color: var(--text-soft);
+  transition: color 0.15s, transform 0.15s;
+}
+.stat--link:hover .stat__go { color: var(--accent-text); transform: translateX(2px); }
+.stat__value--alert { color: var(--danger); }
+.summary-line__late { color: var(--danger); font-weight: 500; }
+.late-text { color: var(--danger); }
+.attention__filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 4px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.chip:hover { color: var(--text); }
+.chip--active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+.chip__count { font-size: 12px; opacity: 0.8; }
+.attention__list { list-style: none; margin: 0; padding: 4px 0; }
+.attention__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.attention__item:last-child { border-bottom: 0; }
+.attention__main { flex: 1; min-width: 0; }
+.attention__title { font-size: 13.5px; }
+.attention__meta { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+.attention__blocked { margin: 4px 0 0; font-size: 12px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
+.attention__blocked::before { content: "Bloqueada: "; font-weight: 500; }
+.attention__reasons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; flex: 0 0 auto; }
+/* Prazo como data curta; vencido, so o texto fica vermelho. */
+.due-text { font-size: 12px; color: var(--text-soft); white-space: nowrap; }
+.due-text--late { color: var(--danger); }
+.attention__more { padding: 4px 16px 14px; }
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.link-button:hover { text-decoration: underline; }
+.idle-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.idle-list__item { display: flex; align-items: center; gap: 10px; }
+.idle-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.idle-list__projects { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+.idle-list__more { margin-top: 12px; font-size: 13px; }
+
+/* Aniversariantes do mes (Dashboard). */
+.birthday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.birthday-list__item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); }
+.birthday-list__item--today { background: #fdf2fa; }
+.birthday-list__item--passed { opacity: 0.6; }
+.birthday-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.birthday-list__day { font-size: 12.5px; color: var(--text-muted); }
+
+/* Pessoa com a bolinha da foto ao lado do nome (listas e cabecalhos). */
+.person-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.person-head { display: flex; align-items: center; gap: 14px; }
+
+/* Contato em um toque: e-mail, ligacao e WhatsApp (lista de voluntarios, perfil e equipe do projeto). */
+.contact-icons { display: inline-flex; gap: 2px; }
+.contact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+.contact-icon:hover { background: var(--surface-soft); color: var(--accent-text); text-decoration: none; }
+.contact-icon:focus-visible { outline: none; box-shadow: var(--focus); }
+.contact-icon--whatsapp:hover { color: #128c4b; }
+.contact-phone { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; }
+
+/* Acesso a plataforma: marca na lista de voluntarios e o link gerado para mandar a pessoa. */
+.access-mark { display: inline-flex; margin-left: 6px; vertical-align: -2px; color: var(--accent-text); }
+.access-mark--pending { color: var(--text-soft); }
+.access-link { display: grid; gap: 12px; }
+.public-page-dialog { display: grid; gap: 14px; }
+.public-page-dialog > .field__hint { margin: 0; }
+.public-page-dialog__disable { margin-right: auto; color: var(--danger); }
+.public-page-dialog__disable:hover { color: var(--danger); background: var(--danger-bg); }
+.public-page-dialog__about { display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-soft); }
+.public-page-dialog__about p { margin: 0; }
+.public-page-dialog__about-text { font-size: 13.5px; white-space: pre-line; overflow-wrap: anywhere; }
+.public-page-dialog__about-link { font-size: 13px; font-weight: 500; justify-self: start; }
+
+/* Indicador ligado a um indicador nacional (entra na soma de todos os nucleos). */
+.national-mark {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 18px;
+  vertical-align: 1px;
+}
+
+/* Painel nacional: numeros gerais e indicadores, em cartoes que se ajustam a largura. */
+.national-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.national-stat {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+.national-stat__value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.national-stat__value small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+.national-stat__label { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.national-stat__hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+.last-activity { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.stale-mark {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--warning-bg, #fff4e5);
+  color: var(--warning);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.national-stat--result { background: var(--accent-soft); border-color: #cfe2dd; }
+.national-stat--result .national-stat__value { color: var(--accent-text); }
+
+/* Gestao nacional: administradores de cada nucleo, um por linha, com o botao do link ao lado. */
+.admin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.admin-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.admin-list .badge { margin-left: 6px; }
+.access-link__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.contact-phone__whatsapp { display: inline-flex; align-items: center; gap: 4px; color: #128c4b; }
+
+/* Foto do voluntario: area no topo do formulario e o enquadramento circular. */
+.photo-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.photo-field__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.cropper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cropper__viewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #1b2028;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.cropper__viewport:active { cursor: grabbing; }
+.cropper__viewport:focus-visible { box-shadow: var(--focus); outline: none; }
+.cropper__viewport img { position: absolute; max-width: none; pointer-events: none; }
+.cropper__mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 200px rgba(16, 24, 40, 0.6);
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+.cropper__loading { position: absolute; inset: 0; display: grid; place-items: center; color: #c3cad4; font-size: 13px; }
+.cropper__zoom { display: flex; align-items: center; gap: 10px; width: 260px; font-size: 12.5px; color: var(--text-muted); }
+.cropper__zoom input { flex: 1; accent-color: var(--accent); }
+
+/* Badge de status clicavel: o select ocupa o badge e herda a cor do status. */
+.badge--select { position: relative; cursor: pointer; padding-right: 6px; }
+.badge--select:hover { filter: brightness(0.97); }
+.badge--select:focus-within { box-shadow: var(--focus); }
+.badge--select select {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+}
+.badge--select select option { color: var(--text); }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 110px;
+}
+.progress__track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: #e8ebef;
+  overflow: hidden;
+}
+.progress__fill { height: 100%; background: var(--accent); border-radius: 3px; }
+.progress__fill--full { background: var(--st-done-fg); }
+.progress__value { font-size: 12px; color: var(--text-muted); width: 34px; text-align: right; }
+
+.indicator {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.indicator:last-child { border-bottom: 0; }
+.indicator__top { display: flex; align-items: baseline; gap: 10px; }
+.indicator__name { font-weight: 500; font-size: 13.5px; }
+.indicator__values { margin-left: auto; font-size: 13px; color: var(--text-muted); }
+.indicator__values strong { color: var(--text); font-weight: 600; }
+.indicator__blank { font-size: 12.5px; color: var(--text-soft); }
+/* Lugar dos dois botoes (editar e excluir) em toda linha: o nacional, sem excluir, fica com o valor alinhado aos demais. */
+.indicator .row-actions { min-width: 78px; justify-content: flex-start; }
+
+/* Faixa de situacao do projeto (abaixo do cabecalho, em todas as abas). */
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.status-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.status-tile:nth-child(4) { border-right: 0; }
+.status-tile:hover { background: var(--surface-soft); }
+.status-tile__label { font-size: 12px; color: var(--text-muted); }
+.status-tile__value { font-size: 20px; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; }
+.status-tile__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status-tile--alert .status-tile__value,
+.status-tile--alert .status-tile__label { color: var(--danger); }
+
+/* Indicadores do projeto (resultados) na faixa de situacao, ocupando a largura toda; levam a aba Sobre. */
+.status-results {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 8px;
+  padding: 8px;
+  border-top: 1px solid var(--border-soft);
+}
+/* Cada indicador e um botao: tocar atualiza o valor. */
+.status-result {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.status-result:hover { background: var(--surface-soft); }
+.status-result__value { font-size: 17px; font-weight: 600; line-height: 1.2; color: var(--accent-text); }
+.status-result__when { font-size: 11px; color: var(--text-muted); }
+.indicator__when { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.status-result__value small { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.status-result__blank { font-size: 13px; font-weight: 500; color: var(--text-soft); }
+.status-results__empty {
+  grid-column: 1 / -1;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+}
+.status-results__empty:hover { color: var(--accent-text); text-decoration: underline; }
+
+/* Todas as tarefas concluidas com o projeto ainda aberto: sugestao de concluir. */
+.closing-notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid #cfe2dd;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 13.5px;
+}
+.closing-notice__text { flex: 1 1 260px; }
+.closing-notice__actions { display: flex; gap: 6px; margin-left: auto; }
+
+/* Opcoes do relatorio em PDF (tela Relatorios e "Gerar relatorio" do projeto). */
+.report-options { display: grid; gap: 14px; }
+.report-options__checks { display: grid; gap: 8px; }
+.report-period { display: flex; align-items: center; gap: 8px; }
+.report-period .input { flex: 1 1 0; min-width: 0; }
+.report-period__sep { font-size: 13px; color: var(--text-muted); }
+/* Espaco e padding menores: os atalhos cabem em poucas linhas, acima das datas. */
+.report-period__shortcuts { margin: 2px 0 8px; flex-wrap: wrap; gap: 5px; }
+.report-period__shortcuts .chip { flex: 0 0 auto; padding: 0 9px; white-space: nowrap; }
+
+/* Tela Relatorios em tres passos: recorte e formato lado a lado (um embaixo do outro no celular), depois os projetos. */
+.report-setup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-bottom: 16px;
+  padding: 18px;
+}
+.report-step { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.report-step__title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; }
+.report-step__number {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.report-step__count { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+.report-formats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.report-list__filters { display: grid; gap: 10px; padding-bottom: 12px; }
+.report-list__idle { margin: 0; font-size: 13px; color: var(--text-muted); }
+.report-list__counts { font-size: 13px; }
+.report-list__warn { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 12.5px; color: var(--warning); }
+@media (max-width: 900px) {
+  .report-setup { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+}
+/* Cartao no celular: caixinha e nome na primeira linha; status e andamento embaixo, alinhados ao nome. */
+@media (max-width: 760px) {
+  .table--cards.report-list td.cell--check + td.cell--main { flex: 1 1 calc(100% - 44px); }
+  .table--cards.report-list td.report-list__status { margin-left: 29px; }
+}
+@media (max-width: 640px) {
+  .report-formats { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Janela de concluir ou cancelar o projeto. */
+.close-project { display: grid; gap: 14px; }
+.close-project__intro { font-size: 13.5px; color: var(--text-muted); }
+.close-project__open { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.close-project__open span { flex: 1 1 240px; }
+/* Concluir: os numeros finais dos indicadores, um por linha (nome a esquerda, valor a direita). */
+.close-project__results { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.close-project__results legend { padding: 0; margin-bottom: 4px; }
+.close-project__results .field__hint { margin: 0; }
+.close-project__blank { color: var(--text); font-weight: 600; }
+.close-project__result { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-items: center; gap: 4px 12px; }
+.close-project__result-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; }
+.close-project__result-unit { font-size: 12.5px; color: var(--text-muted); }
+.close-project__result-error { grid-column: 1 / -1; }
+
+/* Andamento: o feed com largura confortavel de leitura, alinhado as abas, e a lateral com tarefas e equipe. */
+.feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.feed { max-width: 760px; min-width: 0; }
+/* "Ver registros anteriores" / "Mostrar mais fotos": a proxima pagina, no fim da lista. */
+.feed-more { display: flex; justify-content: center; padding: 4px 0 8px; }
+.feed-side { display: grid; gap: 16px; }
+.feed-side .panel__head { padding: 14px 16px 10px; }
+.feed-side__empty { margin: 0; padding: 14px 16px; font-size: 13px; color: var(--text-muted); }
+.feed-side__more {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.feed-side__more:hover { background: var(--surface-soft); }
+.side-list { list-style: none; margin: 0; padding: 4px 0; }
+.side-list__item {
+  display: grid;
+  gap: 2px;
+  padding: 8px 16px;
+  color: var(--text);
+}
+.side-list__item:hover { background: var(--surface-soft); text-decoration: none; }
+.side-list__item--person { display: flex; align-items: center; gap: 10px; }
+.side-list__text { display: grid; gap: 1px; min-width: 0; }
+.side-list__title { font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-list__meta { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-list__blocked { color: var(--st-blocked-fg); }
+@media (max-width: 1080px) {
+  .feed-layout { grid-template-columns: minmax(0, 1fr); }
+  .feed-side { display: none; }
+}
+
+/* Mostrar so no computador ou so no celular (ex.: acao que vai para o "..." no celular). */
+.only-mobile { display: none; }
+@media (max-width: 760px) {
+  .only-mobile { display: contents; }
+  .only-desktop { display: none !important; }
+}
+.update-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.update-card__text { margin-top: 10px; }
+
+/* Texto formatado (relatos) e o editor usado para escreve-lo. */
+.rich-text { overflow-wrap: anywhere; }
+.rich-text p { margin: 0 0 6px; }
+.rich-text p:last-child { margin-bottom: 0; }
+.rich-text ul, .rich-text ol { margin: 0 0 6px; padding-left: 22px; }
+.rich-text li p { margin: 0; }
+.rich-text a { color: var(--accent-text); text-decoration: underline; }
+.rich-editor {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.rich-editor:focus-within { border-color: var(--accent); box-shadow: var(--focus); }
+.rich-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.rich-editor__btn {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.rich-editor__btn:hover { background: var(--surface-soft); color: var(--text); }
+.rich-editor__btn--active { background: var(--accent-soft); color: var(--accent-text); }
+.rich-editor__sep { width: 1px; align-self: stretch; margin: 4px; background: var(--border); }
+.rich-editor__link { display: flex; gap: 6px; padding: 6px; border-bottom: 1px solid var(--border); }
+.rich-editor__content {
+  min-height: 86px;
+  padding: 8px 11px;
+  outline: none;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.rich-editor__content--loading { color: var(--text-soft); }
+.rich-editor__content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+
+/* Anexos compactos: miniaturas pequenas para fotos e uma linha por documento. */
+.attachments { display: grid; gap: 8px; margin-top: 12px; }
+.attachments:empty { display: none; }
+.media-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+.media-thumb {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  flex: 0 0 auto;
+}
+.media-thumb--small { width: 56px; height: 56px; }
+.media-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media-thumb__open { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; position: relative; }
+.media-thumb__open:hover img { filter: brightness(0.92); }
+.media-thumb__more {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(16, 24, 40, 0.55);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.media-thumb__remove,
+.doc-chip__remove {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.media-thumb__remove { position: absolute; top: 3px; right: 3px; background: rgba(16, 24, 40, 0.7); color: #fff; }
+.doc-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.doc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12.5px;
+}
+.doc-chip a, .doc-chip__label { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--text); }
+.doc-chip__ext {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-soft);
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+.doc-chip__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.doc-chip__size { color: var(--text-muted); white-space: nowrap; }
+.doc-chip__remove { background: var(--surface-soft); color: var(--text-muted); }
+
+/* Menu "..." de acoes. */
+.menu { position: relative; }
+.menu__list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  min-width: 170px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+}
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.menu__item:hover { background: var(--surface-soft); }
+.menu__item--danger { color: var(--danger); }
+
+/* Visualizador de fotos em tela cheia. */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 14, 20, 0.94);
+  color: #fff;
+}
+.lightbox__bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; }
+.lightbox__count { margin-right: auto; font-size: 13px; color: #c3cad4; }
+.lightbox__action {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+}
+.lightbox__action:hover { background: rgba(255, 255, 255, 0.16); text-decoration: none; }
+.lightbox__stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; padding: 0 56px; }
+.lightbox__stage img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
+.lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+.lightbox__nav:hover { background: rgba(255, 255, 255, 0.2); }
+.lightbox__nav--prev { left: 8px; }
+.lightbox__nav--next { right: 8px; }
+.lightbox__caption { padding: 12px 16px 18px; text-align: center; font-size: 13.5px; color: #e4e7ec; }
+
+.about__text { white-space: pre-wrap; }
+
+.meta-list { display: grid; gap: 12px; }
+.meta-list--cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.meta__label { font-size: 12px; color: var(--text-muted); }
+.meta__value { font-size: 13.5px; margin-top: 1px; overflow-wrap: anywhere; }
+
+/* Logo da organizacao (Configuracoes). */
+.logo-preview {
+  height: 120px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--surface-soft);
+  overflow: hidden;
+}
+.logo-preview img { max-height: 100%; max-width: 100%; object-fit: contain; }
+.logo-preview--empty { height: 48px; border-style: dashed; background: transparent; }
+
+/* Projetos de um voluntario: lista simples (nome, funcao e desvincular). */
+.person-projects { list-style: none; margin: 0; padding: 4px 0; }
+.person-projects__item { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-bottom: 1px solid var(--border-soft); }
+.person-projects__item:last-child { border-bottom: 0; }
+.person-projects__main { flex: 1; min-width: 0; }
+
+/* Horas de voluntariado e historico de status (perfil do voluntario) */
+.hours { display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; }
+.hours__value { font-size: 26px; font-weight: 700; line-height: 1.15; color: var(--accent-text); }
+.hours__hint { font-size: 12.5px; color: var(--text-muted); }
+.hours__title { margin: 18px 0 4px; }
+.status-history { list-style: none; margin: 0; padding: 0; }
+.status-history__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.status-history__item:last-child { border-bottom: 0; }
+.status-history__status { flex: 0 0 84px; }
+.status-history__dates { font-size: 13px; }
+.status-history__item .row-actions { margin-left: auto; }

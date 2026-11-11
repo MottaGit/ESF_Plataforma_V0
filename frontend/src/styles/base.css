@@ -1,0 +1,104 @@
+/* =========================================================
+   ESF - Plataforma de gestao de projetos
+   Sistema visual: superficies claras, uma cor de acao,
+   hierarquia feita com espaco; vermelho so para problema
+   (atraso, erro, exclusao).
+   ========================================================= */
+
+/* Inter (licenca OFL, ver fonts/OFL.txt): a mesma letra no Windows, no Android e no iPhone. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+
+:root {
+  /* superficies e texto */
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-soft: #f4f6f8;
+  --border: #e6e8ec;
+  /* Linhas entre itens de uma lista, dentro de um painel. */
+  --border-soft: #eef0f3;
+  --border-strong: #d2d7de;
+  --text: #1b2028;
+  --text-muted: #667085;
+  --text-soft: #8a93a2;
+
+  /* navegacao: verde bem escuro, da mesma familia da cor de acao */
+  --nav-bg: #0f2b26;
+  --nav-text: #b7cbc5;
+  --nav-text-soft: #8eaaa2;
+  --nav-text-active: #ffffff;
+  --nav-hover: rgba(255, 255, 255, 0.07);
+  --nav-active: rgba(255, 255, 255, 0.12);
+
+  /* cor de acao */
+  --accent: #10564a;
+  --accent-hover: #0c4239;
+  --accent-soft: #e8f1ee;
+  --accent-text: #0b4f43;
+  --focus: 0 0 0 3px rgba(16, 86, 74, 0.18);
+
+  /* status */
+  --st-plan-bg: #eef1f4;      --st-plan-fg: #475467;
+  --st-run-bg: #e7f0fd;       --st-run-fg: #175cd3;
+  --st-pause-bg: #fdf1e3;     --st-pause-fg: #b54708;
+  --st-done-bg: #e6f4ec;      --st-done-fg: #067647;
+  /* Cancelado, inativo, ex-membro: apagado (contorno cinza), nao alarmante. */
+  --st-cancel-bg: transparent; --st-cancel-fg: #667085;
+  --st-blocked-bg: #f4ebff;   --st-blocked-fg: #6941c6;
+
+  --danger: #b42318;
+  --danger-bg: #fdecea;
+  --warning: #b54708;
+
+  /* forma */
+  --radius: 10px;
+  --radius-sm: 7px;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.14);
+
+  --sidebar-w: 240px;
+  --header-h: 60px;
+  --content-max: 1360px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.015em; }
+h1 { font-size: 22px; }
+h2 { font-size: 16px; }
+h3 { font-size: 14px; }
+p { margin: 0 0 10px; }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--accent-text); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button { font: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

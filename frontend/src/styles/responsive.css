@@ -1,0 +1,145 @@
+/* ---------------------------------------------------------
+   Responsivo
+   --------------------------------------------------------- */
+
+@media (max-width: 1080px) {
+  .grid-sidebar, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    z-index: 70;
+    transform: translateX(-100%);
+    transition: transform 160ms ease;
+    box-shadow: var(--shadow-pop);
+  }
+  .sidebar--open { transform: translateX(0); }
+
+  .sidebar__toggle { display: grid; }
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 24, 40, 0.4);
+    z-index: 65;
+  }
+
+  .grid-2, .form-grid { grid-template-columns: minmax(0, 1fr); }
+  /* No celular as colunas do quadro continuam lado a lado: rola-se na horizontal, uma coluna por vez,
+     com a borda da proxima aparecendo. O quadro vai de ponta a ponta da tela. */
+  .board {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(85%, 340px);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 14px;
+    margin: 0 -14px;
+    padding: 0 14px 8px;
+  }
+  .board__col { scroll-snap-align: start; }
+  .board-card__status { display: flex; }
+  .login { grid-template-columns: minmax(0, 1fr); }
+  .login__aside { display: none; }
+  .meta-list--cols { grid-template-columns: minmax(0, 1fr); }
+  .activity-detail { grid-template-columns: minmax(0, 1fr); margin-left: 0; }
+  .status-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .status-tile:nth-child(2n) { border-right: 0; }
+  .status-tile:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
+  .content { padding: 18px 14px 40px; }
+  .header { padding: 0 14px; }
+}
+
+/* Celular: os numeros do projeto numa faixa so, rolando de lado, para o conteudo das abas aparecer logo. */
+@media (max-width: 760px) {
+  .status-strip {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .status-strip::-webkit-scrollbar { display: none; }
+  .status-strip .status-tile,
+  .status-strip .status-result {
+    flex: 0 0 132px;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 0;
+    border-right: 1px solid var(--border-soft);
+    border-radius: 0;
+  }
+  .status-strip .status-tile__hint { display: none; }
+  .status-strip .status-tile:first-child { flex-basis: 172px; }
+  .status-strip .status-tile:first-child .status-tile__hint { display: block; }
+  .status-results { display: contents; }
+  .status-strip .status-results__empty { flex: 0 0 240px; padding: 10px 12px; white-space: normal; }
+}
+
+@media (max-width: 560px) {
+  .act-row { flex-wrap: wrap; }
+  .act-row__side { width: 100%; padding-left: 29px; }
+  .lightbox__stage { padding: 0 6px; }
+  .lightbox__nav { width: 36px; height: 36px; background: rgba(0, 0, 0, 0.45); }
+  /* Os 3 numeros da visao geral continuam lado a lado, com menos espaco. */
+  .stat { padding: 12px 14px; }
+  .stat__go { top: 10px; right: 8px; }
+  .stat__value { font-size: 20px; }
+  .header__user-name, .header__user-role { display: none; }
+  .page-head { flex-direction: column; }
+  .page-head__actions { margin-left: 0; width: 100%; }
+}
+
+/* ---------------------------------------------------------
+   Celular: campos do tamanho do dedo e tabelas em cartoes
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  /* 16px: com letra menor, o Safari do iPhone amplia a tela a cada toque num campo. 44px: tamanho do dedo. */
+  .input, .select, .textarea, .rich-editor__content { font-size: 16px; }
+  .input, .select { min-height: 44px; }
+  .btn { height: 40px; }
+  /* Mesma altura dos botoes ao lado (Filtros), e alvo de toque maior. */
+  .segmented__option { height: 38px; }
+  .btn--sm { height: 34px; }
+  .checkbox { font-size: 14px; }
+  .checkbox input { width: 20px; height: 20px; }
+}
+
+/*
+ * Tabela que vira lista de cartoes no celular: cada linha e um cartao, a celula principal (cell--main) ocupa a
+ * largura toda e as outras vem embaixo, lado a lado. data-label poe um rotulo antes do valor; cell--desktop some;
+ * cell--actions fica no canto de cima; cell--wide ocupa uma linha inteira; cell--check fica a esquerda da principal.
+ */
+@media (max-width: 760px) {
+  .table--cards thead { display: none; }
+  .table--cards, .table--cards tbody { display: block; width: 100%; }
+  .table--cards tr {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .table--cards tbody tr:last-child { border-bottom: 0; }
+  .table--cards td { display: block; padding: 0; border: 0; min-width: 0 !important; white-space: normal; }
+  .table.table--cards td.tight { white-space: normal; }
+  .table--cards td.cell--main, .table--cards td.cell--wide { flex: 1 1 100%; }
+  .table--cards td.cell--check + td.cell--main { flex: 1 1 0; }
+  .table--cards td.cell--grow { flex: 1 1 140px; }
+  .table--cards td.cell--desktop { display: none; }
+  .table--cards td.cell--actions { position: absolute; top: 10px; right: 8px; }
+  .table--cards tr:has(> td.cell--actions) > td.cell--main { padding-right: 44px; }
+  .table--cards td[data-label]::before { content: attr(data-label) " "; color: var(--text-muted); }
+}
+
+/* Select com um botao ao lado (ex.: Programa + "Novo" no formulario de projeto). */
+.select-with-action { display: flex; gap: 8px; align-items: center; }
+.select-with-action .select { flex: 1; min-width: 0; }

@@ -1,0 +1,225 @@
+/* ---------------------------------------------------------
+   Termo de adesao assinado online (aviso no Inicio e janela de leitura e assinatura)
+   --------------------------------------------------------- */
+
+.term-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.term-callout strong { font-size: 15px; }
+.term-callout p { margin: 3px 0 0; font-size: 13.5px; color: var(--text-muted); }
+
+/* O texto rola dentro da janela: os campos e o botao Assinar ficam sempre perto. */
+.term-doc {
+  max-height: min(42vh, 420px);
+  overflow-y: auto;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.term-doc:focus-visible { outline: none; box-shadow: var(--focus); }
+.term-doc h3 { margin: 0 0 12px; font-size: 13.5px; text-align: center; }
+.term-doc p { margin: 0 0 10px; }
+.term-doc p:last-child { margin-bottom: 0; }
+.term-doc__person { margin: 0 0 10px; display: grid; gap: 2px; }
+.term-doc__person > div { display: flex; gap: 8px; }
+.term-doc__person dt { flex: 0 0 70px; color: var(--text-muted); }
+.term-doc__person dd { margin: 0; font-weight: 500; }
+
+.term-sign { display: grid; gap: 16px; margin-top: 18px; }
+.term-sign__image { margin: 0; padding: 0; border: 0; min-width: 0; }
+.term-sign__image legend { margin-bottom: 8px; padding: 0; font-size: 13px; font-weight: 600; }
+.term-sign__choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.term-choice {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.term-choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.term-choice:has(input:focus-visible) { box-shadow: var(--focus); }
+.term-choice input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--accent); }
+.term-choice strong { display: block; font-size: 14px; font-weight: 600; }
+.term-choice small { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.45; color: var(--text-muted); }
+.term-sign__accept { font-weight: 500; }
+.term-done { margin: 0; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .term-callout { flex-direction: column; align-items: stretch; }
+  .term-sign__choices { grid-template-columns: 1fr; }
+  .term-doc { max-height: 38vh; }
+}
+
+/* ---------------------------------------------------------
+   Horas por projeto (aba Equipe e registro de andamento)
+   --------------------------------------------------------- */
+
+.project-hours { margin-top: 20px; }
+.hours-list { list-style: none; margin: 0; padding: 0; }
+.hours-list__item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.hours-list__item:first-child { border-top: 0; }
+.hours-list__main { min-width: 0; font-size: 13.5px; }
+.hours-list__what { margin-top: 2px; color: var(--text-muted); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.hours-list__hours { font-weight: 600; font-size: 13.5px; padding-top: 4px; white-space: nowrap; }
+.hours-list__item .row-actions { margin-top: -2px; }
+.hours-list__more { padding: 8px 12px 12px; border-top: 1px solid var(--border-soft); }
+
+.composer-draft { margin-top: 8px; }
+.composer-hours { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
+.composer-hours label { font-weight: 500; }
+.composer-hours .input { width: 96px; }
+.composer-hours .input[type='date'] { width: 170px; }
+.composer-hours .field__hint { margin: 0; }
+
+@media (max-width: 560px) {
+  .hours-list__item { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 12px 14px; }
+  .hours-list__item .row-actions { grid-column: 2 / -1; justify-self: start; margin-top: 0; }
+}
+
+/* Janela do certificado: o tipo (periodo completo, especifico ou por projeto) em cartoes de escolha. */
+.certificate-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+.term-choice--disabled { cursor: not-allowed; opacity: 0.55; }
+@media (max-width: 640px) {
+  .certificate-kinds { grid-template-columns: 1fr; }
+}
+
+/* ---------- pagina publica do programa (/publico/{codigo}, sem login) ---------- */
+.public-page { min-height: 100vh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+.public-page__top { background: var(--nav-bg); color: var(--nav-text-active); }
+.public-page__brand {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.public-page__brand div { display: flex; flex-direction: column; line-height: 1.25; }
+.public-page__brand strong { font-size: 15px; }
+.public-page__brand span:not(.sidebar__mark) { font-size: 12.5px; color: var(--nav-text); }
+.public-page__logo { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 3px; }
+.public-page__main { flex: 1; width: 100%; max-width: 960px; margin: 0 auto; padding: 28px 20px 40px; }
+.public-hero__title { display: flex; align-items: center; gap: 14px; }
+.public-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; }
+.public-hero__meta { margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted); }
+.public-hero__where { margin: 4px 0 0; font-size: 14.5px; font-weight: 500; color: var(--text); }
+.public-hero__where + .public-hero__meta { margin-top: 2px; }
+.public-hero__about { margin: 16px 0 0; max-width: 70ch; font-size: 15px; line-height: 1.6; white-space: pre-line; }
+/* Ficha do programa na pagina publica: objetivo e para quem, lado a lado (empilham no celular). */
+.public-sheet {
+  margin: 16px 0 0;
+  max-width: 820px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 24px;
+}
+.public-sheet dt {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.public-sheet dd { margin: 4px 0 0; font-size: 14.5px; line-height: 1.5; white-space: pre-line; }
+
+/* Parceiros no topo da pagina publica: nome e papel, lado a lado (empilham no celular). */
+.public-partners { margin-top: 18px; }
+.public-partners__title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.public-partners__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.public-partner {
+  display: grid;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 14px;
+}
+.public-partner span { font-size: 12.5px; color: var(--text-muted); }
+.public-section { margin-top: 32px; }
+.public-section h2 { margin: 0 0 12px; font-size: 17px; }
+.public-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.public-stats + .public-stats { margin-top: 10px; }
+.public-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.public-stat__value { font-size: 24px; font-weight: 650; line-height: 1.15; color: var(--accent-text); }
+.public-stat--count .public-stat__value { color: var(--text); }
+.public-stat__label { font-size: 13px; color: var(--text-muted); line-height: 1.35; }
+.public-note { margin: 10px 0 0; font-size: 12.5px; color: var(--text-soft); }
+.public-projects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.public-project {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.public-project__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.public-project__head h3 { margin: 0; font-size: 15.5px; line-height: 1.3; }
+.public-project__head .badge { flex-shrink: 0; }
+.public-project__line { margin: 0; font-size: 13px; color: var(--text-muted); }
+.public-project__progress { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12.5px; color: var(--text-muted); }
+.public-project__progress .progress { flex: 1; max-width: 220px; }
+.public-project__indicators { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--border-soft); display: grid; gap: 4px; }
+.public-project__indicators div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.public-project__indicators dt { color: var(--text-muted); }
+.public-project__indicators dd { margin: 0; font-weight: 600; text-align: right; white-space: nowrap; }
+.public-project__updated { margin: 4px 0 0; font-size: 12px; color: var(--text-soft); }
+.public-empty { max-width: 460px; margin: 60px auto; text-align: center; color: var(--text-muted); }
+.public-empty h1 { font-size: 20px; color: var(--text); margin: 0 0 8px; }
+.public-empty .spinner { margin: 0 auto 10px; display: block; }
+.public-page__footer { border-top: 1px solid var(--border); background: var(--surface); }
+.public-page__footer p { max-width: 960px; margin: 0 auto; padding: 16px 20px 0; font-size: 13px; color: var(--text-muted); }
+.public-page__footer p:last-child { padding-bottom: 18px; }
+.public-page__footer strong { color: var(--text); }
+.public-page__footer a { color: var(--accent-text); }
+.public-page__footnote { font-size: 12px !important; color: var(--text-soft) !important; padding-top: 4px !important; }
+
+@media (max-width: 720px) {
+  .public-page__main { padding: 20px 16px 32px; }
+  .public-page__brand { padding: 12px 16px; }
+  .public-hero h1 { font-size: 21px; }
+  .public-projects { grid-template-columns: 1fr; }
+  .public-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .public-stat__value { font-size: 21px; }
+  .public-page__footer p { padding-left: 16px; padding-right: 16px; }
+}

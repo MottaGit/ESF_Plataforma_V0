@@ -1034,7 +1034,7 @@ ESF_Plataforma_V0/
 │     ├─ context/         autenticação e avisos
 │     ├─ pages/           login, dashboard, projetos, detalhe, voluntários,
 │     │                   relatórios, configurações
-│     ├─ styles/          sistema visual em CSS
+│     ├─ styles/          sistema visual em CSS: globals.css importa um arquivo por área (tokens em base.css)
 │     ├─ types/           openapi.ts (gerado do contrato da API) e api.ts (nomes das telas e o que a tela envia)
 │     └─ utils/           formatação de datas, números e rótulos
 └─ docker-compose.yml

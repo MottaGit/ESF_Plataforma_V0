@@ -124,7 +124,9 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
   antes de descartar o que foi digitado). O texto do registro de andamento vira rascunho no aparelho
   (`utils/drafts.ts`, apagado no "Sair").
 - Filtros, abas e visões ficam na query string da URL; links antigos são mantidos com redirecionamentos (ver README).
-- CSS num arquivo só, `styles/globals.css`, com tokens em `:root`. No celular, tabelas viram cartões com as classes
+- CSS em `styles/`, um arquivo por área (`layout.css`, `components.css`, `widgets.css`, `responsive.css`…), todos
+  importados por `globals.css` numa ordem que importa (no empate vale a regra de depois); tokens em `:root`
+  (`base.css`). Regra nova vai no arquivo da área, antes do `responsive.css` se ele ajusta. No celular, tabelas viram cartões com as classes
   `table--cards`/`cell--*`; campos têm letra de 16px e 44px de altura (no iPhone, letra menor amplia a tela).
 - Ícones em `components/ui/Icons.tsx` (SVG); os dos programas são Lucide, em `utils/programs.ts`.
 - Carregado sob demanda (`lazy`): todas as telas menos login e Início (`App.tsx`, com `Suspense` no `AppLayout`), o

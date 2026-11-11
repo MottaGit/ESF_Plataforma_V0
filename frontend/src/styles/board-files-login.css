@@ -1,0 +1,239 @@
+/* ---------------------------------------------------------
+   Quadro de atividades (tela de Projetos)
+   --------------------------------------------------------- */
+
+.chip-group { display: inline-flex; gap: 6px; }
+.chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.chip:disabled:hover { color: var(--text-muted); }
+/* Nomes longos nao fazem o filtro crescer junto. */
+.toolbar .board-filter--program { max-width: 220px; text-overflow: ellipsis; }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.board__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 220px;
+  padding: 10px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.board__col--over { border-color: var(--accent); background: var(--accent-soft); }
+
+.board__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 4px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.board__hint { font-size: 12px; font-weight: 400; color: var(--text-soft); }
+.board__count { margin-left: auto; font-weight: 500; }
+.board__empty { font-size: 12px; color: var(--text-soft); padding: 6px 4px; }
+.board__cards { display: flex; flex-direction: column; gap: 8px; }
+
+.board-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  /* Segurar para arrastar no celular: sem menu de contexto nem selecao de texto. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.board-card img { -webkit-user-drag: none; }
+.board-card:hover { border-color: var(--border-strong); }
+.board-card--dragging { opacity: 0.35; }
+.board-card--overlay { box-shadow: var(--shadow-pop); border-color: var(--border-strong); cursor: grabbing; transform: rotate(1.5deg); }
+
+.board-card__top { display: flex; align-items: flex-start; gap: 8px; }
+.board-card__title {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.board-card--done .board-card__title { color: var(--text-muted); }
+.board-card__project {
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.board-card__project:hover { color: var(--accent-text); }
+/* O que esta travando a atividade bloqueada. */
+.act-row__blocked { margin: 6px 0 0; font-size: 12.5px; color: var(--st-blocked-fg); overflow-wrap: anywhere; }
+.act-row__blocked::before { content: "Bloqueada: "; font-weight: 500; }
+.board-card__blocked {
+  margin: 0;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--st-blocked-bg);
+  color: var(--st-blocked-fg);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.board-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+.board-card__person { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-muted); }
+.board-card__person--none { color: var(--warning); font-weight: 500; }
+.board-card__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.board-card__due { flex-shrink: 0; color: var(--text-soft); }
+/* Prazo vencido: so a cor do texto muda, sem faixa nem destaque. */
+.board-card__due--late { color: var(--danger); }
+/* Selo de status no card: so em telas de toque ou estreitas; no desktop, arrasta-se o card. */
+.board-card__status { display: none; }
+@media (hover: none) {
+  .board-card__status { display: flex; }
+}
+.board__tip { margin-top: 10px; }
+
+/* ---------------------------------------------------------
+   Arquivos e mapa
+   --------------------------------------------------------- */
+
+/* Aba Arquivos: documentos e fotos em grupos separados, com o filtro Tudo | Documentos | Fotos acima. */
+.files-kind { margin-bottom: 12px; }
+.files-kind__count { margin-left: 4px; color: var(--text-muted); font-size: 12px; }
+.files-groups { display: grid; gap: 22px; }
+.files-group__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.file-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+.file-card__thumb {
+  height: 122px;
+  background: var(--surface-soft);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+.file-card__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.file-card__thumb--button { width: 100%; padding: 0; border: 0; border-bottom: 1px solid var(--border); cursor: zoom-in; }
+.file-card__ext { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.file-card__body { padding: 10px 11px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.file-card__name { font-size: 13px; font-weight: 500; word-break: break-word; }
+.file-card__meta { font-size: 12px; color: var(--text-muted); }
+.file-card__actions { display: flex; gap: 6px; padding: 0 11px 11px; }
+
+.dropzone {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  background: var(--surface-soft);
+}
+.dropzone--active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+
+.map-frame {
+  width: 100%;
+  height: 320px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+}
+
+/* ---------------------------------------------------------
+   Login
+   --------------------------------------------------------- */
+
+.login {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.login__aside {
+  background: var(--nav-bg);
+  color: #fff;
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+}
+.login__brand { display: flex; align-items: center; gap: 10px; margin-bottom: auto; }
+.login__brand-name { font-size: 14px; font-weight: 600; }
+.login__headline { font-size: 28px; font-weight: 600; line-height: 1.25; max-width: 15em; letter-spacing: -0.02em; }
+.login__points { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.login__points li { color: var(--nav-text); font-size: 13.5px; padding-left: 16px; position: relative; }
+.login__points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #48a58f;
+}
+
+.login__panel {
+  display: grid;
+  place-items: center;
+  padding: 40px 24px;
+  background: var(--surface);
+}
+.login__form { width: 100%; max-width: 344px; }
+.login__form h1 { font-size: 20px; margin-bottom: 6px; }
+.login__form-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 22px; }
+.login__fields { display: grid; gap: 14px; margin-bottom: 18px; }
+.login__demo {
+  margin-top: 22px;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.login__demo strong { color: var(--text); font-weight: 600; }
+.login__demo-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }

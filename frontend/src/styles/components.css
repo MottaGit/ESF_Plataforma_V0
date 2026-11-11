@@ -1,0 +1,429 @@
+/* ---------------------------------------------------------
+   Paineis, cards e faixa de indicadores
+   --------------------------------------------------------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.panel__head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel__head h2 { font-size: 14.5px; }
+.panel__head .panel__actions { margin-left: auto; display: flex; gap: 8px; }
+.panel__body { padding: 18px; }
+.panel__body--tight { padding: 0; }
+.panel__hint { margin-left: auto; font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+
+/* Gerados recentemente (relatorios, planilhas feitos em segundo plano) */
+.job-recent { margin-top: 16px; }
+.job-list { list-style: none; margin: 0; padding: 0; }
+.job-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.job-list__item:first-child { border-top: 0; }
+.job-list__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.job-list__name { font-weight: 600; overflow-wrap: anywhere; }
+.job-list__meta { font-size: 12.5px; color: var(--text-muted); }
+
+.stat-strip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+/* Uma linha so, tambem no celular (sao 3 numeros). */
+.stat {
+  padding: 16px 18px;
+  border-right: 1px solid var(--border-soft);
+  min-width: 0;
+}
+.stat:last-child { border-right: 0; }
+
+.stat__value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.stat__label { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.stat__hint { font-size: 12px; color: var(--text-soft); margin-top: 6px; }
+.stat--alert .stat__value { color: var(--danger); }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.grid-sidebar { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; }
+/* Coluna de paineis empilhados dentro de uma pagina de detalhe. */
+.detail-col { display: grid; gap: 20px; align-content: start; }
+
+/* ---------------------------------------------------------
+   Botoes
+   --------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.btn:hover { background: var(--surface-soft); }
+.btn:focus-visible { box-shadow: var(--focus); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+.btn--ghost { border-color: transparent; background: transparent; color: var(--text-muted); }
+.btn--ghost:hover { background: var(--surface-soft); color: var(--text); }
+
+.btn--danger { border-color: var(--border-strong); color: var(--danger); }
+.btn--danger:hover { background: var(--danger-bg); border-color: #f3c6c1; }
+
+.btn--sm { height: 29px; padding: 0 10px; font-size: 12.5px; }
+.btn--block { width: 100%; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------------------------------------------------------
+   Formularios
+   --------------------------------------------------------- */
+
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.form-grid--single { grid-template-columns: minmax(0, 1fr); }
+.span-2 { grid-column: 1 / -1; }
+.load-error { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.load-error span { flex: 1 1 220px; }
+/* Aba Equipe: uma linha por pessoa (nome com o setor ao lado, funcao embaixo; tarefas, horas e "..." a direita).
+   No celular, tarefas e horas descem para uma linha so, embaixo da funcao, e o que esta vazio some. */
+.team-list { list-style: none; margin: 0; padding: 0; }
+.team-list__item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 190px 64px 36px;
+  grid-template-areas: "avatar main tasks hours menu";
+  align-items: center;
+  gap: 4px 14px;
+  padding: 12px 12px 12px 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.team-list__item:first-child { border-top: 0; }
+.team-list__item > .avatar { grid-area: avatar; }
+.team-list__item > .menu { grid-area: menu; }
+.team-list__main { grid-area: main; min-width: 0; }
+.team-list__name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.team-list__name a { color: var(--text); font-weight: 600; font-size: 14px; }
+.team-list__name a:hover { color: var(--accent-text); text-decoration: underline; }
+.team-list__sector { color: var(--text-soft); font-size: 12px; }
+.team-list__role { margin-top: 2px; color: var(--text-muted); font-size: 13px; overflow-wrap: anywhere; }
+.team-list__meta { display: contents; }
+.team-list__tasks { grid-area: tasks; font-size: 13.5px; }
+.team-list__hours { grid-area: hours; text-align: right; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.team-list__none { color: var(--text-soft); font-weight: 400; }
+.team-list__late { color: var(--danger); }
+.team-list__tasks-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.team-list__tasks-link:hover { color: var(--accent-text); text-decoration: underline; }
+.team-role__form { margin-top: 4px; max-width: 360px; }
+.team-role__form .input { height: 32px; }
+@media (max-width: 760px) {
+  .team-list__item {
+    grid-template-columns: 32px minmax(0, 1fr) 36px;
+    grid-template-areas: "avatar main menu" ". meta meta";
+    align-items: start;
+    padding: 12px 8px 12px 14px;
+  }
+  .team-list__item > .menu { margin-top: -4px; }
+  .team-list__meta { grid-area: meta; display: flex; flex-wrap: wrap; gap: 0 6px; font-size: 13px; }
+  .team-list__meta--empty { display: none; }
+  .team-list__tasks, .team-list__hours { font-size: 13px; }
+  .team-list__hours { font-weight: 400; color: var(--text-muted); }
+  .team-list__meta .is-empty { display: none; }
+  .team-list__tasks:not(.is-empty) + .team-list__hours:not(.is-empty)::before { content: "· "; color: var(--text-soft); }
+  .team-role__form .input { height: 44px; }
+}
+/* Janela "Vincular voluntario": lista para escolher, com busca. */
+.search.volunteer-pick__search { max-width: none; width: 100%; }
+.volunteer-pick {
+  display: grid;
+  gap: 2px;
+  max-height: min(50vh, 360px);
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.volunteer-pick__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.volunteer-pick__item:hover { background: var(--surface-soft); }
+.volunteer-pick__item:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.volunteer-pick__item.is-selected { background: var(--accent-soft); border-color: var(--accent); }
+.volunteer-pick__text { display: grid; flex: 1 1 auto; min-width: 0; }
+.volunteer-pick__name { font-size: 14px; font-weight: 500; }
+.volunteer-pick__meta { color: var(--text-muted); font-size: 12.5px; }
+.volunteer-pick__check { flex: 0 0 auto; color: var(--accent); }
+.volunteer-pick .field__hint { margin: 8px 6px; }
+.composer__draft { margin: 6px 0 0; }
+/* Formulario do voluntario: o que fazer com o acesso e as tarefas de quem sai do nucleo. */
+.leave-options {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #f0d9a8;
+  border-radius: var(--radius);
+  background: #fffaf0;
+  min-width: 0;
+}
+.leave-options legend { padding: 0 4px; }
+.leave-options .checkbox { align-items: flex-start; }
+.leave-options .checkbox .field__hint { display: block; margin-top: 2px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+.field__label { font-size: 12.5px; font-weight: 500; color: var(--text); }
+.field__required { color: var(--danger); margin-left: 2px; }
+.field__hint { font-size: 12px; color: var(--text-muted); }
+.field__error { font-size: 12px; color: var(--danger); }
+
+.input, .select, .textarea {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13.5px;
+  font-family: inherit;
+}
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus);
+}
+.input:disabled, .select:disabled, .textarea:disabled { background: var(--surface-soft); color: var(--text-muted); }
+/*
+ * Senha com a letra do sistema: o Safari do iPhone esconde a senha com "●", que a Inter (so letras latinas) nao tem,
+ * e sem buscar outra fonte mostrava caixinhas "NO GLYPH" no lugar dos pontinhos.
+ */
+input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+/* Senha com o olho de "Mostrar" dentro do campo, a direita (area de toque de 44px). */
+.password-field { position: relative; display: block; }
+.password-field .input { width: 100%; padding-right: 46px; }
+.password-field__toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.password-field__toggle:hover { color: var(--text); }
+.input--invalid, .select--invalid, .textarea--invalid { border-color: var(--danger); }
+.textarea { min-height: 86px; resize: vertical; line-height: 1.45; }
+.select { appearance: none; background-image: none; cursor: pointer; }
+
+.checkbox { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.checkbox input { width: 15px; height: 15px; accent-color: var(--accent); }
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  flex: 1 1 220px;
+  max-width: 360px;
+}
+.search .input { padding-left: 32px; }
+.search__icon {
+  position: absolute;
+  left: 10px;
+  width: 14px;
+  height: 14px;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.toolbar .select { width: auto; min-width: 150px; }
+.toolbar__right { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------------------------------------------------------
+   Tabelas
+   --------------------------------------------------------- */
+
+/* position: textos so para leitor de tela (sr-only, absolutos) ficam presos aqui, sem alargar a pagina no celular. */
+.table-wrap { position: relative; width: 100%; overflow-x: auto; }
+
+.table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+.table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 12px 16px;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: #fafbfc; }
+.table td.tight { white-space: nowrap; }
+.table td.right, .table th.right { text-align: right; }
+
+.table__primary { font-weight: 500; color: var(--text); }
+.table__secondary { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.row-link { color: inherit; font-weight: 500; }
+.row-link:hover { color: var(--accent-text); }
+
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+/* Atividades: lista agrupada por status, igual no computador e no celular. */
+.act-group { margin-bottom: 16px; }
+.act-group__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.act-list { list-style: none; margin: 0; padding: 0; }
+.act-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.act-row:last-child { border-bottom: 0; }
+.act-row__check { width: 17px; height: 17px; margin-top: 2px; flex: 0 0 auto; accent-color: var(--accent); cursor: pointer; }
+.act-row__main { flex: 1; min-width: 0; }
+.act-row__title {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.act-row__title:hover { color: var(--accent-text); }
+.act-row--done .act-row__title { color: var(--text-muted); text-decoration: line-through; }
+.act-row--done { background: #fbfcfd; }
+.act-row__undo {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.act-row__undo:hover { text-decoration: underline; }
+
+/*
+ * Caixinha de concluir tarefa (Tarefas, Inicio e aba do projeto): o quadradinho continua pequeno, mas a area de
+ * toque tem 44px e fica afastada do titulo, para nao abrir a tarefa (nem concluir) sem querer.
+ */
+.check-hit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px -6px -12px -14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.check-hit input { margin: 0; }
+.act-row .check-hit { margin: -13px -8px -13px -14px; }
+.act-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.act-row__due--late { color: var(--danger); }
+.act-row__side { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.activity-detail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--surface-soft);
+  border-radius: var(--radius-sm);
+}
+.activity-detail__text { white-space: pre-wrap; margin: 0; }
+.activity-detail__dates {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.activities__count { font-size: 12.5px; color: var(--text-muted); }
