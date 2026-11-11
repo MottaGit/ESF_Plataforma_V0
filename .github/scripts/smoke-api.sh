@@ -239,6 +239,22 @@ deny "$curitiba" GET "/api/projects/$project" 404
 deny "$curitiba" GET "/api/jobs/$report_job" 404
 
 echo
+echo "== Sem Swagger e com limite de tentativas no login"
+deny - GET "/swagger/v1/swagger.json" 404
+# Por ultimo: depois daqui este endereco fica um minuto sem poder entrar. E-mail inexistente nao bloqueia conta.
+limited=""
+for _ in $(seq 1 25); do
+  status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$API/api/auth/login" "${JSON[@]}" \
+    -d '{"email":"ninguem@exemplo.org","password":"errada"}') || status="curl-erro-$?"
+  if [[ $status == 429 ]]; then limited=1; break; fi
+done
+if [[ -n $limited ]]; then
+  echo "ok   429 POST   /api/auth/login (limite de tentativas)"
+else
+  fail "Login sem limite" "25 tentativas seguidas de login do mesmo endereço não deram 429."
+fi
+
+echo
 if (( failures > 0 )); then
   echo "$failures problema(s) encontrado(s)."
   exit 1

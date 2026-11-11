@@ -3,6 +3,7 @@ using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Esf.Api.Controllers;
 
@@ -21,6 +22,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(AuthService.RateLimitPolicy)]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
         => Ok(await _auth.LoginAsync(request));
 

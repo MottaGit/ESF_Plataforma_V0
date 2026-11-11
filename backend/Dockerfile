@@ -14,7 +14,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app/publish .
-RUN mkdir -p /app/App_Data/uploads
+RUN mkdir -p /app/App_Data/uploads && chown -R app:app /app/App_Data
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+# Sem root: a imagem do .NET ja traz o usuario "app" (os arquivos ficam no banco; a pasta antiga de uploads so e lida).
+USER app
 ENTRYPOINT ["dotnet", "Esf.Api.dll"]

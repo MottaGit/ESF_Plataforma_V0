@@ -873,7 +873,8 @@ demonstração, rotinas internas) não é registrado.
 
 **Proteção do login** — depois de 10 senhas erradas seguidas, o acesso fica bloqueado por 15 minutos (nem a senha
 certa entra nesse tempo, e a mensagem não diz se a senha estava certa); um acerto antes disso zera a contagem, e a
-senha criada por um link de acesso libera o acesso na hora. Embaixo do "Entrar" fica **Esqueci minha senha**, que
+senha criada por um link de acesso libera o acesso na hora. Cada endereço também tem um limite de 20 tentativas de
+login por minuto, em qualquer conta (contra quem testa uma senha comum em muitos e-mails). Embaixo do "Entrar" fica **Esqueci minha senha**, que
 explica o caminho (não há envio por e-mail): pedir à coordenação do núcleo um link novo de acesso, que chega pelo
 WhatsApp ou por e-mail e deixa criar uma senha nova. Depois de uma senha recusada, de um acesso bloqueado ou desativado,
 a explicação já aparece aberta. A Ajuda tem a mesma resposta. Todo campo de senha (entrar, criar a senha pelo link
@@ -1052,7 +1053,12 @@ e `SET NULL` para referências a usuários (excluir um usuário não apaga o pro
 ## API
 
 Base: `http://localhost:5080`. Todas as rotas exigem `Authorization: Bearer <token>`, exceto o login.
-A documentação interativa fica em `/swagger`.
+A documentação interativa fica em `/swagger`, só no ambiente `Development` (o do `docker compose` e do `dotnet run`)
+ou com `Swagger:Enabled` ligado. No servidor ela fica desligada para não mostrar o mapa das rotas a qualquer pessoa.
+
+Erros sempre vêm como `{ message, errors }`, com a mensagem em português. Duas pessoas gravando a mesma coisa ao mesmo
+tempo (registro repetido, alterado ou excluído no meio) recebem 409 com o que fazer, não "Erro interno". Arquivo maior
+que o limite da rota recebe 413.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
@@ -1171,6 +1177,7 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | `ConnectionStrings:Default` | Postgres local | conexão com o banco |
 | `Jwt:Key` | vazio (no `Development`, uma chave só para o computador) | assinatura do token, mín. 32 caracteres. **Obrigatória no servidor** (`Jwt__Key`): sem ela, ou com uma chave de exemplo do repositório, a API não sobe. Trocar a chave obriga todos a entrar de novo |
 | `Jwt:ExpiresMinutes` | 720 | validade do token |
+| `Swagger:Enabled` | `true` só no `Development` | documentação interativa das rotas em `/swagger` |
 | `Storage:UploadsPath` | `App_Data/uploads` | pasta onde versões anteriores gravavam os arquivos; os que ainda existirem são copiados para o banco ao iniciar |
 | `Storage:MaxFileSizeMb` | 15 | tamanho máximo por arquivo |
 | `Cors:AllowedOrigins` | localhost 5173/4173 | origens liberadas |

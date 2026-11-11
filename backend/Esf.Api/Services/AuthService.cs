@@ -16,6 +16,9 @@ public class AuthService
         _tokens = tokens;
     }
 
+    /// <summary>Limite de tentativas de login de cada endereco (ver Program.cs).</summary>
+    public const string RateLimitPolicy = "login";
+
     /// <summary>Senhas erradas seguidas ate o acesso ser bloqueado.</summary>
     public const int MaxFailedAttempts = 10;
 

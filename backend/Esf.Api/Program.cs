@@ -140,6 +140,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(PublicProgramService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+    // Login: o bloqueio por conta (AuthService) nao pega quem testa uma senha comum em muitos e-mails. Com folga para
+    // varias pessoas entrando da mesma rede (sede, escola).
+    options.AddPolicy(AuthService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // ---------- API ----------
@@ -228,12 +233,18 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+// Documentacao das rotas (/swagger): so no desenvolvimento, ou com Swagger__Enabled=true. No servidor ela mostraria a
+// qualquer pessoa o mapa de todas as rotas.
+var swaggerEnabled = app.Configuration.GetValue("Swagger:Enabled", app.Environment.IsDevelopment());
+if (swaggerEnabled)
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "ESF API v0");
-    options.DocumentTitle = "ESF API";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ESF API v0");
+        options.DocumentTitle = "ESF API";
+    });
+}
 
 app.UseCors();
 
@@ -257,7 +268,9 @@ app.MapGet($"{Mapping.UploadsUrlPrefix}/{{name}}", async (string name, FileStora
     .AllowAnonymous()
     .ExcludeFromDescription();
 
-app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+// O endereco raiz responde sempre (a hospedagem pode conferir a saude por ele).
+app.MapGet("/", () => swaggerEnabled ? Results.Redirect("/swagger") : Results.Ok(new { status = "ok" }))
+    .ExcludeFromDescription();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", at = DateTime.UtcNow }))
     .ExcludeFromDescription();
 
