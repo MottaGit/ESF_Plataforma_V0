@@ -112,6 +112,8 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 - `types/api.ts` espelha os DTOs à mão (enums como uniões de string): mudou um DTO, mude os dois lados. Rótulos dos
   enums e formatação de datas ficam em `utils/format.ts`.
 - Permissões na tela: `useAuth()` → `canManage`, `isAdmin`, `isNational`.
+- Tela que busca de novo quando um filtro ou o id muda usa `useLatestRequest` (`utils/useLatestRequest.ts`): só a
+  resposta do pedido mais recente vale (senão uma resposta lenta do filtro anterior sobrescreve a nova).
 - Janelas: `components/ui/Modal.tsx`. Janela de formulário nova recebe `guardChanges` (clique fora e Esc perguntam
   antes de descartar o que foi digitado). O texto do registro de andamento vira rascunho no aparelho
   (`utils/drafts.ts`, apagado no "Sair").

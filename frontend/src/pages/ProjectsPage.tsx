@@ -22,6 +22,7 @@ import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectListItem, ProjectStatus, Volunteer } from '../types/api';
 import { PROJECT_STATUSES, coverageLabel, formatDateTime, formatNumber, projectStatusLabel, timeAgo } from '../utils/format';
 import { rememberProjectsQuery } from '../utils/listState';
+import { useLatestRequest } from '../utils/useLatestRequest';
 
 const sortOptions = [
   { value: 'recent', label: 'Atualizados recentemente' },
@@ -122,7 +123,9 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
     return () => window.clearTimeout(timer);
   }, [search, updateParams]);
 
+  const startRequest = useLatestRequest();
   const load = useCallback(async () => {
+    const isCurrent = startRequest();
     setLoading(true);
     setError(null);
     try {
@@ -136,13 +139,13 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
         includeArchived,
         memberVolunteerId: onlyMine && myVolunteerId ? myVolunteerId : undefined
       });
-      setProjects(list);
+      if (isCurrent()) setProjects(list);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os projetos.');
+      if (isCurrent()) setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os projetos.');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [debouncedSearch, status, programId, sort, onlyLate, onlyStale, includeArchived, onlyMine, myVolunteerId]);
+  }, [startRequest, debouncedSearch, status, programId, sort, onlyLate, onlyStale, includeArchived, onlyMine, myVolunteerId]);
 
   const loadPrograms = useCallback(() => {
     programsApi

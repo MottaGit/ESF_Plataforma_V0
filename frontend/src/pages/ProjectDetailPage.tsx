@@ -22,6 +22,7 @@ import { useToast } from '../context/ToastContext';
 import type { Program, ProjectDetail, ProjectStatus, Volunteer } from '../types/api';
 import { deadlineLabel, isPastProjectStatus } from '../utils/format';
 import { projectsListPath } from '../utils/listState';
+import { useLatestRequest } from '../utils/useLatestRequest';
 
 type TabKey = 'updates' | 'activities' | 'team' | 'files' | 'about';
 
@@ -93,16 +94,20 @@ export function ProjectDetailPage() {
   const [closing, setClosing] = useState<'Concluido' | 'Cancelado' | null>(null);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
 
+  // Ir de um projeto a outro (busca, aviso) com o anterior ainda carregando: so vale o ultimo aberto.
+  const startRequest = useLatestRequest();
   const load = useCallback(async () => {
+    const isCurrent = startRequest();
     setError(null);
     try {
-      setProject(await projectsApi.get(id));
+      const loaded = await projectsApi.get(id);
+      if (isCurrent()) setProject(loaded);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o projeto.');
+      if (isCurrent()) setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o projeto.');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [id]);
+  }, [startRequest, id]);
 
   useEffect(() => {
     void load();

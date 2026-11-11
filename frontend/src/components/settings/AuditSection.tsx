@@ -7,6 +7,7 @@ import { formatDateTime } from '../../utils/format';
 import { Button } from '../ui/Button';
 import { Select, TextInput } from '../ui/Field';
 import { Alert, EmptyState, Loading } from '../ui/Feedback';
+import { useLatestRequest } from '../../utils/useLatestRequest';
 
 /** Tipos de registro do historico, como a API grava. */
 const ENTITY_TYPES = [
@@ -90,17 +91,21 @@ export function AuditSection() {
     usersApi.list().then(setUsers).catch(() => undefined);
   }, []);
 
+  // Trocar o filtro no meio de um "Carregar mais" (ou de outro filtro) descarta a resposta antiga.
+  const startRequest = useLatestRequest();
   const load = useCallback(async (nextPage: number, current: AuditFilters) => {
+    const isCurrent = startRequest();
     try {
       const result = await auditApi.list({ ...current, page: nextPage });
+      if (!isCurrent()) return;
       setEntries((previous) => (nextPage === 1 ? result.items : [...(previous ?? []), ...result.items]));
       setHasMore(result.hasMore);
       setPage(nextPage);
       setError(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o histórico.');
+      if (isCurrent()) setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o histórico.');
     }
-  }, []);
+  }, [startRequest]);
 
   useEffect(() => {
     setEntries(null);

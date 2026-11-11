@@ -28,6 +28,7 @@ import {
   sectorLabel
 } from '../utils/format';
 import { VolunteerFormModal } from './VolunteersPage';
+import { useLatestRequest } from '../utils/useLatestRequest';
 
 export function VolunteerDetailPage() {
   const { id = '' } = useParams();
@@ -44,7 +45,10 @@ export function VolunteerDetailPage() {
   const [anonymizing, setAnonymizing] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Ir de um voluntario a outro com o anterior ainda carregando: so vale o ultimo aberto.
+  const startRequest = useLatestRequest();
   const load = useCallback(async () => {
+    const isCurrent = startRequest();
     setError(null);
     try {
       // As horas sao um extra: se falharem, o perfil abre do mesmo jeito.
@@ -52,14 +56,15 @@ export function VolunteerDetailPage() {
         volunteersApi.get(id),
         volunteersApi.hours(id).catch(() => null)
       ]);
+      if (!isCurrent()) return;
       setVolunteer(loaded);
       setHours(loadedHours);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o voluntário.');
+      if (isCurrent()) setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o voluntário.');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [id]);
+  }, [startRequest, id]);
 
   useEffect(() => {
     void load();

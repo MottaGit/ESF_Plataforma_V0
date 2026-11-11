@@ -17,6 +17,7 @@ import { useToast } from '../context/ToastContext';
 import type { Program } from '../types/api';
 import { emptyToNull } from '../utils/format';
 import { programIconLabel } from '../utils/programs';
+import { useLatestRequest } from '../utils/useLatestRequest';
 
 /** Endereco antigo da pagina do programa: hoje o programa e uma escolha da tela Projetos. */
 export function ProgramRedirect() {
@@ -55,12 +56,17 @@ export function ProgramEditPage() {
   const [error, setError] = useState<string | null>(null);
   const tab = tabs.find((item) => item.key === searchParams.get('aba'))?.key ?? tabs[0].key;
 
+  // Ir de um programa a outro com o anterior ainda carregando: so vale o ultimo aberto.
+  const startRequest = useLatestRequest();
   const load = useCallback(() => {
+    const isCurrent = startRequest();
     programsApi
       .get(id)
-      .then(setProgram)
-      .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o programa.'));
-  }, [id]);
+      .then((loaded) => isCurrent() && setProgram(loaded))
+      .catch(
+        (err) => isCurrent() && setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o programa.')
+      );
+  }, [startRequest, id]);
 
   useEffect(() => {
     load();

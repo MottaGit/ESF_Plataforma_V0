@@ -29,6 +29,7 @@ import {
   todayInputValue,
   volunteerStatusLabel
 } from '../utils/format';
+import { useLatestRequest } from '../utils/useLatestRequest';
 
 /** Ativos e afastados precisam do termo de adesao assinado (Lei 9.608/98). */
 function needsTerm(volunteer: Volunteer) {
@@ -108,17 +109,20 @@ export function VolunteersPage() {
     return () => window.clearTimeout(timer);
   }, [search, updateParams]);
 
+  const startRequest = useLatestRequest();
   const load = useCallback(async () => {
+    const isCurrent = startRequest();
     setLoading(true);
     setError(null);
     try {
-      setVolunteers(await volunteersApi.list(debounced || undefined, false, sectorFilter || undefined));
+      const list = await volunteersApi.list(debounced || undefined, false, sectorFilter || undefined);
+      if (isCurrent()) setVolunteers(list);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os voluntários.');
+      if (isCurrent()) setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os voluntários.');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [debounced, sectorFilter]);
+  }, [startRequest, debounced, sectorFilter]);
 
   useEffect(() => {
     void load();
