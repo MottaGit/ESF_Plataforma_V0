@@ -1027,7 +1027,9 @@ ESF_Plataforma_V0/
 │     ├─ api/             cliente HTTP e endpoints
 │     ├─ components/
 │     │  ├─ layout/       AppLayout, Sidebar, ProtectedRoute
+│     │  ├─ national/     abas da gestão nacional (painel, núcleos, indicadores, pessoas)
 │     │  ├─ projects/     formulários e abas do projeto
+│     │  ├─ settings/     abas de Configurações (organização, acessos, planilhas, histórico, conta)
 │     │  └─ ui/           botões, campos, tabela, badges, modal, estados
 │     ├─ context/         autenticação e avisos
 │     ├─ pages/           login, dashboard, projetos, detalhe, voluntários,
