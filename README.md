@@ -978,6 +978,12 @@ pelo próprio contexto (`EsfDbContext.CurrentUserId`), que na fila é quem pediu
 **Bibliotecas usadas:** Npgsql/EF Core (persistência), BCrypt.Net (hash de senha), JwtBearer (autenticação),
 QuestPDF (relatórios), ClosedXML (planilhas, licença MIT), Swashbuckle (Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
 
+**Telas sob demanda (frontend)** — só o login e o Início vêm no arquivo principal; cada outra tela é um arquivo `.js`
+próprio, baixado ao ser aberta (`lazy` em `App.tsx`, com o menu e o topo na tela enquanto ela chega). O mapa, o quadro
+de tarefas e o editor de texto também. O service worker guarda todos no primeiro acesso, então sem internet as telas
+continuam abrindo. Depois de um deploy, uma aba aberta com a versão anterior que pede uma tela que mudou recarrega
+sozinha uma vez (`vite:preloadError`, em `main.tsx`).
+
 ---
 
 ## Estrutura de diretórios

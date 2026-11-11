@@ -119,7 +119,8 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 - CSS num arquivo só, `styles/globals.css`, com tokens em `:root`. No celular, tabelas viram cartões com as classes
   `table--cards`/`cell--*`; campos têm letra de 16px e 44px de altura (no iPhone, letra menor amplia a tela).
 - Ícones em `components/ui/Icons.tsx` (SVG); os dos programas são Lucide, em `utils/programs.ts`.
-- Partes pesadas são carregadas sob demanda (`lazy`): mapa Leaflet, quadro de tarefas (dnd-kit) e editor TipTap.
+- Carregado sob demanda (`lazy`): todas as telas menos login e Início (`App.tsx`, com `Suspense` no `AppLayout`), o
+  mapa Leaflet, o quadro de tarefas (dnd-kit) e o editor TipTap. Tela nova entra pelo `page(...)` do `App.tsx`.
 - Uso sem internet: `frontend/service-worker.js` vira `/sw.js` no build, por um plugin em `vite.config.ts` (só no build
   de produção, não no `npm run dev`); `offline/offline.ts` liga a faixa "Sem internet" pelo cabeçalho `X-Esf-Offline`.
 

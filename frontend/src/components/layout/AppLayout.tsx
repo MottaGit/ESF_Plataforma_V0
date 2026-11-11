@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { organizationApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { OfflineBanner } from '../../offline/OfflineBanner';
+import { Loading } from '../ui/Feedback';
 import { IconMenu } from '../ui/Icons';
 import { AccountMenu } from './AccountMenu';
 import { BottomBar } from './BottomBar';
@@ -88,7 +89,10 @@ export function AppLayout() {
 
         <main className="content">
           <OfflineBanner />
-          <Outlet />
+          {/* A tela aberta carrega sob demanda (App.tsx): enquanto chega, o menu e o topo continuam no lugar. */}
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
         </main>
 
         {hasNucleo ? <BottomBar /> : null}
