@@ -27,8 +27,9 @@ builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOpt
 builder.Services.Configure<NationalOptions>(builder.Configuration.GetSection(NationalOptions.SectionName));
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
-if (jwtOptions.Key.Length < 32)
-    throw new InvalidOperationException("Jwt:Key deve ter ao menos 32 caracteres. Ajuste appsettings.json ou a variavel de ambiente Jwt__Key.");
+// Sem chave propria a API nao sobe: com a de exemplo, qualquer um criaria um token de administrador.
+if (JwtOptions.KeyProblem(jwtOptions.Key, builder.Environment.IsDevelopment()) is { } keyProblem)
+    throw new InvalidOperationException(keyProblem);
 
 // ---------- persistencia ----------
 // O interceptador grava o historico de alteracoes (quem mudou o que) no mesmo SaveChanges da alteracao.

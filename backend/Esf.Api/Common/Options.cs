@@ -8,6 +8,26 @@ public class JwtOptions
     public string Audience { get; set; } = "esf-plataforma-web";
     public string Key { get; set; } = string.Empty;
     public int ExpiresMinutes { get; set; } = 720;
+
+    /// <summary>
+    /// Chaves que estao (ou ja estiveram) no repositorio: com elas, quem le o codigo cria um token valido de qualquer
+    /// perfil e nucleo. Servem so no ambiente de desenvolvimento.
+    /// </summary>
+    private static readonly HashSet<string> PublicKeys = new(StringComparer.Ordinal)
+    {
+        "troque-esta-chave-em-producao-com-no-minimo-32-caracteres",
+        "chave-so-para-desenvolvimento-local-nunca-use-em-producao"
+    };
+
+    /// <summary>Motivo para a API nao subir com esta chave, ou null se ela serve.</summary>
+    public static string? KeyProblem(string? key, bool isDevelopment)
+    {
+        if (string.IsNullOrEmpty(key) || key.Length < 32)
+            return "Jwt:Key nao configurada ou com menos de 32 caracteres. Defina a variavel de ambiente Jwt__Key.";
+        if (!isDevelopment && PublicKeys.Contains(key))
+            return "Jwt:Key e uma chave de exemplo que esta no repositorio. Defina a variavel de ambiente Jwt__Key com um valor proprio.";
+        return null;
+    }
 }
 
 public class StorageOptions

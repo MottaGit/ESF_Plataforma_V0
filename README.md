@@ -1167,7 +1167,7 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | Chave | Padrão | Para quê |
 | --- | --- | --- |
 | `ConnectionStrings:Default` | Postgres local | conexão com o banco |
-| `Jwt:Key` | valor de desenvolvimento | assinatura do token — **troque em produção** (mín. 32 caracteres) |
+| `Jwt:Key` | vazio (no `Development`, uma chave só para o computador) | assinatura do token, mín. 32 caracteres. **Obrigatória no servidor** (`Jwt__Key`): sem ela, ou com uma chave de exemplo do repositório, a API não sobe. Trocar a chave obriga todos a entrar de novo |
 | `Jwt:ExpiresMinutes` | 720 | validade do token |
 | `Storage:UploadsPath` | `App_Data/uploads` | pasta onde versões anteriores gravavam os arquivos; os que ainda existirem são copiados para o banco ao iniciar |
 | `Storage:MaxFileSizeMb` | 15 | tamanho máximo por arquivo |
@@ -1190,7 +1190,8 @@ No frontend, `VITE_API_URL` só é necessário se a API não estiver atrás do p
   tela (`/projetos/...`). As telas abertas clicando dentro do app funcionam mesmo sem a regra, por isso o problema só
   aparece em link mandado para alguém ou ao recarregar. No Docker isso não acontece (o `nginx.conf` já devolve o
   `index.html`).
-- **API:** `ForwardedHeaders__ClientIpHeader=True-Client-IP` (ver a tabela acima) e `Seed__Enabled=false` num banco de
+- **API:** `Jwt__Key` com um texto aleatório próprio (64 caracteres ou mais; sem ela a API não sobe),
+  `ForwardedHeaders__ClientIpHeader=True-Client-IP` (ver a tabela acima) e `Seed__Enabled=false` num banco de
   produção.
 
 ---
