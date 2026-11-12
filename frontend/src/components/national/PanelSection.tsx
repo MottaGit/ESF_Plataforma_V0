@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ApiError } from '../../api/client';
 import { nationalApi } from '../../api/endpoints';
-import { TextInput } from '../ui/Field';
+import { PeriodPicker } from '../ui/PeriodPicker';
 import { EmptyState, LoadError, Loading } from '../ui/Feedback';
 import type { NationalPanel, SummedValue } from '../../types/api';
 import { coverageLabel, daysFromToday, formatDate, formatNumber, timeAgo, todayInputValue } from '../../utils/format';
-import { periodShortcuts } from '../../utils/periods';
+import { defaultPeriod } from '../../utils/periods';
 
 /** A partir de quantos dias sem registro nem tarefa concluida o nucleo aparece como parado. */
 const STALE_DAYS = 30;
@@ -17,12 +17,13 @@ function daysSince(value: string | null) {
 
 /**
  * Painel: os numeros de todos os nucleos, no total e por nucleo. Tarefas concluidas, registros e horas contam no
- * periodo escolhido (o ano corrente, por padrao); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+ * periodo escolhido (os ultimos 12 meses, por padrao); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
  */
 export function PanelSection() {
-  const today = todayInputValue();
-  const [from, setFrom] = useState(`${today.slice(0, 4)}-01-01`);
-  const [to, setTo] = useState(today);
+  // Comeca nos ultimos 12 meses; "Sem data final" no personalizado vai ate hoje.
+  const [from, setFrom] = useState(() => defaultPeriod().from);
+  const [to, setTo] = useState(() => defaultPeriod().to);
+  const [openEnded, setOpenEnded] = useState(false);
   const [panel, setPanel] = useState<NationalPanel | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Trocar o periodo mantem os numeros anteriores na tela ate chegarem os novos: "Atualizando…" avisa.
@@ -64,42 +65,21 @@ export function PanelSection() {
       <div className="toolbar">
         <div className="field">
           <span className="field__label">Período</span>
-          <div className="report-period">
-            <TextInput
-              type="date"
-              aria-label="Início do período"
-              value={from}
-              invalid={Boolean(periodError)}
-              onChange={(event) => setFrom(event.target.value)}
-            />
-            <span className="report-period__sep">a</span>
-            <TextInput
-              type="date"
-              aria-label="Fim do período"
-              value={to}
-              invalid={Boolean(periodError)}
-              onChange={(event) => setTo(event.target.value)}
-            />
-          </div>
-          <div className="chip-group report-period__shortcuts" role="group" aria-label="Atalhos de período">
-            {periodShortcuts().map((shortcut) => {
-              const active = from === shortcut.from && to === shortcut.to;
-              return (
-                <button
-                  key={shortcut.label}
-                  type="button"
-                  className={`chip${active ? ' chip--active' : ''}`}
-                  aria-pressed={active}
-                  onClick={() => {
-                    setFrom(shortcut.from);
-                    setTo(shortcut.to);
-                  }}
-                >
-                  {shortcut.label}
-                </button>
-              );
-            })}
-          </div>
+          <PeriodPicker
+            from={from}
+            to={to}
+            openEnded={openEnded}
+            onShortcut={(shortcut) => {
+              setFrom(shortcut.from);
+              setTo(shortcut.to);
+              setOpenEnded(false);
+            }}
+            onCustom={(nextFrom, nextTo) => {
+              setFrom(nextFrom);
+              setTo(nextTo ?? todayInputValue());
+              setOpenEnded(nextTo === null);
+            }}
+          />
           {periodError ? <span className="field__error">{periodError}</span> : null}
         </div>
         <p className="field__hint" style={{ maxWidth: 420 }}>

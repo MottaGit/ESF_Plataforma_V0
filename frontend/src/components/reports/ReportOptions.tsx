@@ -1,11 +1,13 @@
 import type { ReportFormat, ReportPayload } from '../../types/api';
-import { periodShortcuts, type PeriodShortcut } from '../../utils/periods';
-import { Field, TextArea, TextInput } from '../ui/Field';
+import { todayInputValue } from '../../utils/format';
+import { defaultPeriod, type PeriodShortcut } from '../../utils/periods';
+import { Field, TextArea } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
+import { PeriodPicker } from '../ui/PeriodPicker';
 
 /** O que a pessoa escolhe sobre o conteudo do PDF (os projetos vem de quem abriu as opcoes). */
 export interface ReportOptions {
-  /** Periodo de referencia (aaaa-mm-dd); vazio nas duas pontas, todo o historico. */
+  /** Periodo de referencia (aaaa-mm-dd). */
   from: string;
   to: string;
   includeTasks: boolean;
@@ -13,13 +15,11 @@ export interface ReportOptions {
   note: string;
 }
 
-export const DEFAULT_REPORT_OPTIONS: ReportOptions = {
-  from: '',
-  to: '',
-  includeTasks: true,
-  includePhotos: true,
-  note: ''
-};
+/** Opcoes de quem acabou de abrir: o periodo padrao (ultimos 12 meses), com tarefas e fotos. */
+export function defaultReportOptions(): ReportOptions {
+  const period = defaultPeriod();
+  return { from: period.from, to: period.to, includeTasks: true, includePhotos: true, note: '' };
+}
 
 /** Problema nas opcoes que impede gerar o PDF (null: pode gerar). */
 export function reportOptionsError(options: Pick<ReportOptions, 'from' | 'to'>) {
@@ -51,55 +51,29 @@ export function reportPayload(
 interface ReportPeriodFieldProps {
   from: string;
   to: string;
+  /** Personalizado "sem data final" (a tela Relatorios sabe pela URL). */
+  openEnded?: boolean;
   /** Atalho escolhido (a tela Relatorios guarda o nome dele na URL). */
   onShortcut: (shortcut: PeriodShortcut) => void;
-  /** Datas digitadas. */
-  onDates: (from: string, to: string) => void;
+  /** Personalizado; to null: sem data final (ate hoje). */
+  onCustom: (from: string, to: string | null) => void;
 }
 
-/** Periodo de referencia: atalhos de prestacao de contas e as duas datas. */
-export function ReportPeriodField({ from, to, onShortcut, onDates }: ReportPeriodFieldProps) {
+/** Periodo de referencia: o calendario com os atalhos (ultimos 30 dias, 3, 6 e 12 meses) e o personalizado. */
+export function ReportPeriodField({ from, to, openEnded, onShortcut, onCustom }: ReportPeriodFieldProps) {
   const periodError = reportOptionsError({ from, to });
 
   return (
     <div className="field">
-      <label className="field__label" htmlFor="report-from">
-        Período de referência
-      </label>
-      <div className="chip-group report-period__shortcuts" role="group" aria-label="Atalhos de período">
-        {periodShortcuts().map((shortcut) => {
-          const active = from === shortcut.from && to === shortcut.to;
-          return (
-            <button
-              key={shortcut.key}
-              type="button"
-              className={`chip${active ? ' chip--active' : ''}`}
-              aria-pressed={active}
-              onClick={() => onShortcut(shortcut)}
-            >
-              {shortcut.label}
-            </button>
-          );
-        })}
-      </div>
-      <div className="report-period">
-        <TextInput
-          id="report-from"
-          type="date"
-          aria-label="Início do período"
-          value={from}
-          invalid={Boolean(periodError)}
-          onChange={(event) => onDates(event.target.value, to)}
-        />
-        <span className="report-period__sep">a</span>
-        <TextInput
-          type="date"
-          aria-label="Fim do período"
-          value={to}
-          invalid={Boolean(periodError)}
-          onChange={(event) => onDates(from, event.target.value)}
-        />
-      </div>
+      <span className="field__label">Período de referência</span>
+      <PeriodPicker
+        label="Período de referência"
+        from={from}
+        to={to}
+        openEnded={openEnded}
+        onShortcut={onShortcut}
+        onCustom={onCustom}
+      />
       {periodError ? (
         <span className="field__error">{periodError}</span>
       ) : (
@@ -164,7 +138,7 @@ export function ReportOptionsFields({ value, onChange, withoutImageAuthorization
         from={value.from}
         to={value.to}
         onShortcut={(shortcut) => onChange({ ...value, from: shortcut.from, to: shortcut.to })}
-        onDates={(from, to) => onChange({ ...value, from, to })}
+        onCustom={(from, to) => onChange({ ...value, from, to: to ?? todayInputValue() })}
       />
       <ReportExtrasField value={value} onChange={onChange} />
       {value.includePhotos && withoutImageAuthorization ? (

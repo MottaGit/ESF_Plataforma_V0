@@ -6,7 +6,7 @@ import { jobStatusText } from '../api/jobs';
 import { RecentJobs } from '../components/jobs/RecentJobs';
 import { ProgramPicker } from '../components/programs/ProgramPicker';
 import {
-  DEFAULT_REPORT_OPTIONS,
+  defaultReportOptions,
   ReportExtrasField,
   ReportNoteField,
   ReportPeriodField,
@@ -28,8 +28,8 @@ import type {
   ReportFormat,
   ReportPeriodCount
 } from '../types/api';
-import { PROJECT_STATUSES, formatDate, projectStatusLabel } from '../utils/format';
-import { periodShortcuts } from '../utils/periods';
+import { PROJECT_STATUSES, projectStatusLabel, todayInputValue } from '../utils/format';
+import { defaultPeriod, legacyPeriod, periodName, periodShortcuts } from '../utils/periods';
 
 /** Acima de quantos projetos marcados o formato sugerido (sem escolha na URL) e o Resumo. */
 const SUMMARY_FROM = 10;
@@ -56,8 +56,8 @@ const plural = (count: number, one: string, many: string) => `${count} ${count =
 
 /**
  * Relatorios em tres passos: recorte (programa e periodo), formato e projetos. Programa, periodo, formato e filtros
- * ficam na URL; o periodo vai pelo nome do atalho (?periodo=trimestre-passado), entao o mesmo link serve no proximo
- * trimestre. Os projetos marcados nao vao para a URL: ao abrir e ao trocar de programa, vem marcados os do recorte
+ * ficam na URL; o periodo vai pelo nome do atalho (?periodo=trimestre: os ultimos 3 meses de quando o link for aberto)
+ * ou pelas datas (?de=&ate=; sem ate, vai ate hoje). Os projetos marcados nao vao para a URL: ao abrir e ao trocar de programa, vem marcados os do recorte
  * (menos arquivados e cancelados).
  */
 export function ReportsPage() {
@@ -86,13 +86,19 @@ export function ReportsPage() {
   const status = (searchParams.get('status') ?? '') as ProjectStatus | '';
   const includeSetAside = searchParams.get('arquivados') === '1';
 
-  // Periodo: pelo atalho (recalculado a cada dia) ou pelas datas digitadas.
+  // Periodo: pelo atalho (recalculado a cada dia), pelas datas do personalizado (sem "ate": ate hoje) ou, sem nada
+  // na URL, o padrao (ultimos 12 meses). Links de antes do seletor (?periodo=trimestre-passado) viram as datas daquela
+  // epoca.
   const shortcuts = useMemo(() => periodShortcuts(), []);
-  const shortcut = shortcuts.find((item) => item.key === searchParams.get('periodo')) ?? null;
-  const from = shortcut ? shortcut.from : searchParams.get('de') ?? '';
-  const to = shortcut ? shortcut.to : searchParams.get('ate') ?? '';
+  const periodParam = searchParams.get('periodo');
+  const shortcut = shortcuts.find((item) => item.key === periodParam) ?? null;
+  const legacy = !shortcut && periodParam ? legacyPeriod(periodParam) : null;
+  const customFrom = shortcut || legacy ? null : searchParams.get('de');
+  const openEnded = Boolean(customFrom) && !searchParams.get('ate');
+  const fallback = defaultPeriod();
+  const from = shortcut?.from ?? legacy?.from ?? customFrom ?? fallback.from;
+  const to = shortcut?.to ?? legacy?.to ?? (customFrom ? searchParams.get('ate') || todayInputValue() : fallback.to);
   const periodError = reportOptionsError({ from, to });
-  const hasPeriod = Boolean(from || to);
 
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -105,7 +111,7 @@ export function ReportsPage() {
   // "Só marcados" e "Sem autorização de imagem" mostram uma parte dos marcados, por cima dos filtros.
   const [view, setView] = useState<'all' | 'selected' | 'noImage'>('all');
   const [suggestedFormat, setSuggestedFormat] = useState<ReportFormat>('Completo');
-  const [options, setOptions] = useState(DEFAULT_REPORT_OPTIONS);
+  const [options, setOptions] = useState(defaultReportOptions);
   const [counts, setCounts] = useState<Map<string, ReportPeriodCount> | null>(null);
   const [countsFailed, setCountsFailed] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -268,22 +274,14 @@ export function ReportsPage() {
     const count = counts?.get(project.id);
     if (!counts) return <span className="table__secondary">…</span>;
     if (!count || count.updates + count.tasks === 0)
-      return <span className="table__secondary">{hasPeriod ? 'Sem andamento no período' : 'Sem andamento'}</span>;
+      return <span className="table__secondary">Sem andamento no período</span>;
     const parts = [plural(count.updates, 'registro', 'registros')];
     if (photosIncluded && count.photos > 0) parts.push(plural(count.photos, 'foto', 'fotos'));
     if (count.tasks > 0) parts.push(plural(count.tasks, 'tarefa concluída', 'tarefas concluídas'));
     return parts.join(' · ');
   }
 
-  const periodText = shortcut
-    ? shortcut.label
-    : from && to
-      ? `${formatDate(from)} a ${formatDate(to)}`
-      : from
-        ? `a partir de ${formatDate(from)}`
-        : to
-          ? `até ${formatDate(to)}`
-          : 'todo o histórico';
+  const periodText = periodName(from, to, openEnded);
 
   return (
     <>
@@ -314,8 +312,9 @@ export function ReportsPage() {
           <ReportPeriodField
             from={from}
             to={to}
-            onShortcut={(item) => updateParams({ periodo: item.key === 'tudo' ? null : item.key, de: null, ate: null })}
-            onDates={(nextFrom, nextTo) => updateParams({ periodo: null, de: nextFrom || null, ate: nextTo || null })}
+            openEnded={openEnded}
+            onShortcut={(item) => updateParams({ periodo: item.key, de: null, ate: null })}
+            onCustom={(nextFrom, nextTo) => updateParams({ periodo: null, de: nextFrom, ate: nextTo })}
           />
         </div>
 
@@ -442,7 +441,7 @@ export function ReportsPage() {
           {idle.length > 0 ? (
             <p className="report-list__idle">
               {idle.length === 1 ? '1 projeto marcado está' : `${idle.length} projetos marcados estão`} sem andamento
-              {hasPeriod ? ' no período' : ''}.{' '}
+              no período.{' '}
               <button type="button" className="link-button" onClick={unmarkIdle}>
                 {idle.length === 1 ? 'Desmarcar' : `Desmarcar os ${idle.length}`}
               </button>
@@ -473,7 +472,7 @@ export function ReportsPage() {
                   <th style={{ width: 44 }} />
                   <th>Projeto</th>
                   <th>Status</th>
-                  <th>{hasPeriod ? 'No período' : 'Andamento'}</th>
+                  <th>No período</th>
                 </tr>
               </thead>
               <tbody>

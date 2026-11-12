@@ -136,10 +136,12 @@ const SECTIONS: HelpSection[] = [
             De um projeto: no topo dele, <strong>Gerar relatório</strong> (no celular, pode estar no{' '}
             <strong>⋯</strong>). De um programa inteiro: em Projetos, escolha o programa e toque em{' '}
             <strong>Relatório do programa</strong>, embaixo dos números. Na tela <strong>Relatórios</strong>, escolha o
-            programa e o período (como o trimestre passado), o formato e os projetos: os do programa já vêm marcados. O{' '}
+            programa e o período (no calendário: últimos 30 dias, 3, 6 ou 12 meses, ou <strong>Personalizado</strong>, com
+            as datas que quiser), o formato e os projetos: os do programa já vêm marcados. O{' '}
             <strong>Resumo</strong> traz os números somados e uma tabela com os projetos, em poucas páginas; o{' '}
             <strong>Completo</strong> acrescenta um capítulo por projeto, com a linha do tempo e as fotos. O link da tela
-            guarda o programa, o período e o formato: salve-o para repetir o relatório no próximo trimestre. O PDF é montado
+            guarda o programa, o período e o formato: salve-o para repetir o relatório (com &quot;Trimestre&quot;, ele traz sempre os
+            últimos 3 meses de quando for aberto). O PDF é montado
             em segundo plano: dá para continuar usando a plataforma, e o download começa sozinho quando fica pronto. Se
             você fechar a plataforma antes, o aviso chega no sininho, e o relatório fica em{' '}
             <strong>Gerados recentemente</strong>, na tela Relatórios, por 7 dias.

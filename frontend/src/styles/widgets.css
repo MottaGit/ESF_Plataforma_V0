@@ -396,12 +396,36 @@
 /* Opcoes do relatorio em PDF (tela Relatorios e "Gerar relatorio" do projeto). */
 .report-options { display: grid; gap: 14px; }
 .report-options__checks { display: grid; gap: 8px; }
-.report-period { display: flex; align-items: center; gap: 8px; }
-.report-period .input { flex: 1 1 0; min-width: 0; }
-.report-period__sep { font-size: 13px; color: var(--text-muted); }
-/* Espaco e padding menores: os atalhos cabem em poucas linhas, acima das datas. */
-.report-period__shortcuts { margin: 2px 0 8px; flex-wrap: wrap; gap: 5px; }
-.report-period__shortcuts .chip { flex: 0 0 auto; padding: 0 9px; white-space: nowrap; }
+
+/* Periodo (relatorios e painel nacional): o calendario com o periodo escolhido; tocar abre os atalhos e o
+   Personalizado (janela com as duas datas). */
+.period-picker { position: relative; align-self: flex-start; }
+.period-picker__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.period-picker__button:hover { background: var(--surface-soft); }
+.period-picker__button:focus-visible { outline: none; box-shadow: var(--focus); }
+.period-picker__button > svg:first-child { color: var(--accent); }
+.period-picker__button > svg:last-child { color: var(--text-muted); }
+/* .period-picker na frente: as regras do menu "..." (.menu__list, .menu__item) vem depois neste arquivo. */
+.period-picker .period-picker__list { left: 0; right: auto; min-width: 240px; }
+.period-picker .period-picker__item { padding: 8px 10px; white-space: nowrap; }
+.period-picker__check { display: inline-flex; width: 14px; color: var(--accent); }
+.period-picker__hint { margin-left: auto; padding-left: 16px; color: var(--text-muted); font-size: 12px; }
+.period-picker__divider { height: 1px; margin: 4px 6px; background: var(--border); }
+.period-dialog { display: grid; gap: 14px; }
 
 /* Tela Relatorios em tres passos: recorte e formato lado a lado (um embaixo do outro no celular), depois os projetos. */
 .report-setup {

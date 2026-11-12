@@ -659,7 +659,7 @@ Relatórios (quando o registro fotográfico está marcado) mostram um aviso; o P
 **Localização** — endereço, bairro, cidade, estado e, quando houver coordenadas, mapa embutido (OpenStreetMap, sem chave de API).
 
 **Relatórios** — uma tela em três passos. **1 Recorte**: programa (a mesma lista com ícone de Projetos; "Todos os
-programas" por padrão) e período de referência (atalhos e datas). **2 Formato**: **Resumo** ou **Completo** (no
+programas" por padrão) e período de referência (o seletor de período, abaixo). **2 Formato**: **Resumo** ou **Completo** (no
 Completo, as caixinhas de tarefas concluídas e registro fotográfico) e a observação livre. **3 Projetos**: ao abrir e
 a cada troca de programa, vêm marcados os projetos do recorte, menos cancelados e arquivados; sem formato escolhido, o
 sugerido é o Resumo quando há mais de 10 marcados e o Completo até 10. Cada projeto mostra o que tem no período
@@ -670,10 +670,12 @@ período, uma linha oferece **Desmarcar os N**. Busca, status e **Incluir arquiv
 **Filtros** no celular. Autorização de imagem: com fotos no PDF, cada projeto marcado que tem foto no período e não
 tem autorização registrada ganha a marca "Sem autorização de imagem", e um aviso só com a contagem leva a eles (**Ver
 quais** ou o filtro **Sem autorização de imagem**); o PDF não muda. Embaixo da tela fica preso o resumo do que vai
-sair ("12 projetos · Resumo · Trimestre passado") com o **Gerar PDF**. Programa, período, formato e filtros ficam na
-URL (`?programa=`, `?periodo=` com o atalho — `mes-passado`, `trimestre-passado`, `ultimos-3-meses`, `este-ano`,
-`ano-passado` —, ou `?de=`/`?ate=`, `?formato=resumo|completo`, `?busca=`, `?status=`, `?arquivados=1`): como o
-período vai pelo nome do atalho, o mesmo link serve no trimestre seguinte. Os projetos marcados não vão para a URL. O
+sair ("12 projetos · Resumo · Trimestre") com o **Gerar PDF**. Programa, período, formato e filtros ficam na
+URL (`?programa=`, `?periodo=` com o atalho — `30-dias`, `trimestre`, `semestre`, `ano` —, ou `?de=`/`?ate=` do
+personalizado, sem `ate` quando é "sem data final", `?formato=resumo|completo`, `?busca=`, `?status=`, `?arquivados=1`):
+como o período vai pelo nome do atalho, o mesmo link mostra os últimos 3 meses de quando for aberto. Links antigos
+(`?periodo=trimestre-passado`, `mes-passado`, `este-ano`, `ano-passado`, `ultimos-3-meses`) abrem com as datas que
+esses nomes davam; sem período na URL (ou o antigo `tudo`), vale o padrão. Os projetos marcados não vão para a URL. O
 **Relatório do programa** (Projetos › programa) abre esta tela com `?programa=`. O PDF é montado **em segundo plano**:
 o **Gerar PDF** põe o pedido na fila e a faixa de baixo mostra a situação ("Na fila (1 na frente)", "Gerando…"); quando
 fica pronto, o download começa sozinho, mesmo que a pessoa tenha ido para outra tela da plataforma. Quem fechou a
@@ -703,9 +705,7 @@ tarefas concluídas, **Próximas etapas** (até 5 tarefas em aberto, pelo prazo,
 terminou), equipe (nome, função no projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e
 observações. Indicadores, linha do tempo e equipe sempre entram; tarefas (concluídas e próximas etapas) e fotos são
 opcionais, marcados por padrão. O **período de
-referência** (De/Até, cada ponta pode ficar em branco, com atalhos **Mês passado**, **Trimestre passado**, **Últimos 3
-meses**, **Este ano**, **Ano passado** e **Tudo**; os fechados são os da prestação de contas: em janeiro, "Este ano"
-não serve para o relatório anual; `utils/periods.ts`, os mesmos do painel nacional) aparece no topo de todas as páginas e filtra a linha do
+referência** (o seletor de período, abaixo; padrão: últimos 12 meses) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
 andamento no período". Os **indicadores** são acumulados (120 pessoas desde o início) e saem pelo **histórico dos
 valores** (`IndicatorValueChanges`, gravado no `SaveChanges` do `EsfDbContext` sempre que o número muda — tela,
@@ -748,6 +748,14 @@ primeira fileira de fotos (antes, as fotos iam para a página seguinte e deixava
 segunda fileira pode ir para a página seguinte. O título "Linha do tempo" vai junto do primeiro registro, e num
 relatório de um projeto só o nome dele não se repete no topo do capítulo (já é o título da primeira página).
 
+**Seletor de período** (tela Relatórios, "Gerar relatório" do projeto e painel nacional; `components/ui/PeriodPicker.tsx`
+e `utils/periods.ts`) — um botão com o calendário e o período escolhido ao lado ("📅 Trimestre" ou "📅 11/04/2026 –
+12/11/2026"). Tocar abre os atalhos, contados para trás a partir de hoje: **30 dias**, **Trimestre** (últimos 3 meses),
+**Semestre** (últimos 6) e **Ano** (últimos 12, o padrão), e por último **Personalizado**, que abre uma janela com a
+data inicial e a final (digitadas ou escolhidas no calendário do próprio campo) e a caixinha **Sem data final**:
+marcada, a data final fica cinza, travada em hoje. Data final antes da inicial não deixa aplicar. Não há mais "Tudo"
+nem os períodos fechados (mês, trimestre e ano passados): para eles, Personalizado.
+
 **Acesso por link** — o acesso nasce do cadastro do voluntário: na página dele, **Dar acesso** (ou, em
 Configurações › Acessos, **Novo acesso**, escolhendo o voluntário) pede o perfil e usa como login
 o e-mail do cadastro (sem e-mail, não dá). Quem dá acesso e gera link é a coordenação: o administrador, com qualquer
@@ -779,8 +787,8 @@ cadastro de voluntário, pode ser ligado a um ali.
   última atividade (último registro ou tarefa concluída: mostra quem está usando de fato) e uma coluna por indicador
   nacional. Os indicadores nacionais aparecem também somados em cartões, pela regra de **Resultados somados** (pelo
   vínculo com o nacional): "—" quando nenhum projeto informou, nunca zero, e "informado em 3 de 5 projetos" quando falta
-  algum, no cartão e em cada núcleo. Horas, tarefas e registros contam no **período** escolhido (de início, o ano
-  corrente, com os mesmos atalhos de período dos relatórios); projetos, voluntários e indicadores são a situação de
+  algum, no cartão e em cada núcleo. Horas, tarefas e registros contam no **período** escolhido (de início, os
+  últimos 12 meses, com o mesmo seletor de período dos relatórios); projetos, voluntários e indicadores são a situação de
   hoje (o histórico dos valores dos indicadores só é usado no relatório em PDF). A tabela por núcleo começa por quem está há mais tempo sem atividade
   (nenhuma primeiro), com a **última atividade** logo depois do nome, em tempo relativo ("ontem", "25/09"), e a marca
   **parado** a partir de 30 dias (ou quando nunca houve). Só

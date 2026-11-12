@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { Alert } from '../ui/Feedback';
 import { IconDownload } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
-import { DEFAULT_REPORT_OPTIONS, ReportOptionsFields, reportOptionsError, reportPayload } from './ReportOptions';
+import { ReportOptionsFields, defaultReportOptions, reportOptionsError, reportPayload } from './ReportOptions';
 
 interface ReportDialogProps {
   project: { id: string; name: string; imageAuthorizedOn: string | null };
@@ -21,7 +21,7 @@ interface ReportDialogProps {
  */
 export function ReportDialog({ project, onClose }: ReportDialogProps) {
   const { notify, notifyError } = useToast();
-  const [options, setOptions] = useState(DEFAULT_REPORT_OPTIONS);
+  const [options, setOptions] = useState(defaultReportOptions);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState<BackgroundJob | null>(null);

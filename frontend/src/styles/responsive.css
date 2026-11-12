@@ -102,7 +102,9 @@
 @media (max-width: 900px) {
   /* 16px: com letra menor, o Safari do iPhone amplia a tela a cada toque num campo. 44px: tamanho do dedo. */
   .input, .select, .textarea, .rich-editor__content { font-size: 16px; }
-  .input, .select { min-height: 44px; }
+  .input, .select, .period-picker__button { min-height: 44px; }
+  .period-picker__button { font-size: 16px; }
+  .period-picker .period-picker__item { padding: 11px 10px; font-size: 14px; }
   .btn { height: 40px; }
   /* Mesma altura dos botoes ao lado (Filtros), e alvo de toque maior. */
   .segmented__option { height: 38px; }
