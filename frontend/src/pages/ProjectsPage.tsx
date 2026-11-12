@@ -325,15 +325,26 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           ) : null}
 
           <div className="toolbar__chips" role="group" aria-label="Mais filtros">
+            {/* De quem: o mesmo controle do Minhas | Todas de Tarefas. */}
             {myVolunteerId ? (
-              <button
-                type="button"
-                className={`chip${onlyMine ? ' chip--active' : ''}`}
-                aria-pressed={onlyMine}
-                onClick={() => updateParams({ meus: onlyMine ? null : '1' })}
-              >
-                Meus projetos
-              </button>
+              <div className="segmented" role="group" aria-label="De quem">
+                <button
+                  type="button"
+                  className={`segmented__option${onlyMine ? ' segmented__option--active' : ''}`}
+                  aria-pressed={onlyMine}
+                  onClick={() => updateParams({ meus: '1' })}
+                >
+                  Meus
+                </button>
+                <button
+                  type="button"
+                  className={`segmented__option${onlyMine ? '' : ' segmented__option--active'}`}
+                  aria-pressed={!onlyMine}
+                  onClick={() => updateParams({ meus: null })}
+                >
+                  Todos
+                </button>
+              </div>
             ) : null}
             <button
               type="button"

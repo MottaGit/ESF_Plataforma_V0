@@ -153,8 +153,11 @@
 
 /* Filtros de liga e desliga (ex.: so atrasados) em chips, numa linha propria embaixo da busca. */
 .toolbar__chips { display: flex; flex-wrap: wrap; gap: 6px; flex-basis: 100%; order: 1; }
+/* Meus | Todos na mesma altura dos chips ao lado. */
+.toolbar__chips .segmented__option { height: 26px; }
 @media (max-width: 900px) {
   .toolbar__chips .chip { height: 36px; padding: 0 14px; font-size: var(--fs-md); border-radius: var(--radius-pill); }
+  .toolbar__chips .segmented__option { height: 34px; padding: 0 14px; font-size: var(--fs-md); }
 }
 
 .program-overview { padding: 16px 18px; margin-bottom: 16px; display: grid; gap: 14px; }
@@ -440,11 +443,13 @@
 /* Barra das Tarefas: no celular a busca vai para o painel de filtros. */
 .task-toolbar__search { display: flex; flex: 1 1 220px; max-width: 360px; }
 .task-toolbar__search .search { max-width: none; }
-.segmented--icons .segmented__option { padding: 0 9px; }
 .link-button.summary-line__late { color: var(--danger); }
 @media (max-width: 760px) {
   .task-toolbar { flex-wrap: nowrap; }
   .task-toolbar__search { display: none; }
+  /* Minhas | Todas, Filtros e Lista | Quadro nao cabem com texto numa linha: Lista e Quadro ficam so com o icone. */
+  .task-toolbar .segmented__text { display: none; }
+  .task-toolbar .toolbar__right .segmented__option { padding: 0 10px; }
 }
 
 /* Etiquetas dos filtros ligados, cada uma com o x que tira o filtro. */

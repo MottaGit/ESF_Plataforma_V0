@@ -235,7 +235,7 @@ cada nome leva à página da pessoa). Num núcleo que ainda não tem nenhum proj
 lugar da faixa os **Primeiros passos**: dados do núcleo (CNPJ e quem assina), um programa, mais alguém com acesso e o
 primeiro projeto; cada passo se marca sozinho e o quadro some quando o primeiro projeto é criado.
 
-**Projetos** — listagem com busca, filtros (status, **Meus projetos** — os que a pessoa coordena ou de cuja equipe faz parte, como
+**Projetos** — listagem com busca, filtros (status, **Meus | Todos** — "Meus" são os que a pessoa coordena ou de cuja equipe faz parte, como
 no Início, `?meus=1`, só para quem tem voluntário vinculado —, só atrasados, incluir arquivados; o programa é a aba
 escolhida)
 e ordenação. No celular, busca, filtros e ordenação ficam recolhidos no botão "Filtros", que mostra quantos estão
@@ -372,7 +372,7 @@ pegasse); desmarcar ou Desfazer volta exatamente ao status de antes (em andament
 volta com o motivo). A caixinha tem área de toque de 44px, afastada do título (`.check-hit`, `useJustDone` em
 `components/tasks/taskUtils.ts`). Embaixo do título, "7 em aberto · 2 atrasadas" (tocar nas atrasadas filtra só elas). Uma linha só de
 controles: **Minhas | Todas** (o voluntário começa nas dele; a coordenação, em todas), a busca, o botão **Filtros** e,
-no canto, Lista e Quadro (ícones). Filtros abre os campos com rótulo — **Situação** (atrasadas, bloqueadas ou
+no canto, **Lista | Quadro** (como o Lista | Mapa de Projetos; no celular, só os ícones). Filtros abre os campos com rótulo — **Situação** (atrasadas, bloqueadas ou
 concluídas nos últimos 30 dias, com contagem), programa, projeto e responsável (com "Sem responsável") — num painel
 preso ao botão; no celular, numa folha que sobe de baixo, com a busca e o botão "Ver N tarefas". No celular, onde as colunas de
 responsável e status não cabem, cada linha mostra embaixo do título o primeiro nome do responsável (ou "Sem

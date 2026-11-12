@@ -393,26 +393,27 @@ export function TasksPage() {
         </FilterSheet>
 
         <div className="toolbar__right">
-          <div className="segmented segmented--icons" role="group" aria-label="Exibir como">
+          {/* Igual ao Lista | Mapa de Projetos; no celular, sem espaco, fica so o icone. */}
+          <div className="segmented" role="group" aria-label="Exibir como">
             <button
               type="button"
               className={`segmented__option${showBoard ? '' : ' segmented__option--active'}`}
               aria-pressed={!showBoard}
               aria-label="Lista"
-              title="Lista"
               onClick={() => updateParams({ visao: null })}
             >
-              <IconListBullet size={16} />
+              <IconListBullet size={15} />
+              <span className="segmented__text">Lista</span>
             </button>
             <button
               type="button"
               className={`segmented__option${showBoard ? ' segmented__option--active' : ''}`}
               aria-pressed={showBoard}
               aria-label="Quadro"
-              title="Quadro"
               onClick={() => updateParams({ visao: 'quadro' })}
             >
-              <IconBoard size={16} />
+              <IconBoard size={15} />
+              <span className="segmented__text">Quadro</span>
             </button>
           </div>
         </div>
