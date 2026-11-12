@@ -322,6 +322,18 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 .table tbody tr:last-child td { border-bottom: 0; }
 .table tbody tr:hover { background: var(--surface-hover); }
 .table td.tight { white-space: nowrap; }
+/* Largura minima das colunas de nome (sem ela, a coluna espreme quando as outras crescem). */
+.table .cell--min-sm { min-width: 120px; }
+.table .cell--min-md { min-width: 150px; }
+.table .cell--min-lg { min-width: 220px; }
+/* Coluna da caixinha de marcar (Relatorios) e linha que marca ao clicar. */
+.table .cell--check { width: 44px; }
+.table__row--clickable { cursor: pointer; }
+.check-input { width: 15px; height: 15px; accent-color: var(--accent); }
+/* Recado dentro de um painel, sem cabecalho (ex.: lista que nao carregou). */
+.panel__note { padding: 12px 18px; }
+/* Dia do aniversario, ao lado do mes. */
+.birthday-day { flex: 0 0 92px; }
 .table td.right, .table th.right { text-align: right; }
 
 .table__primary { font-weight: 500; color: var(--text); }

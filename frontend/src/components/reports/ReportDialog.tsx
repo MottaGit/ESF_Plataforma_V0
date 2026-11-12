@@ -72,12 +72,12 @@ export function ReportDialog({ project, onClose }: ReportDialogProps) {
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
       {progress ? (
-        <div style={{ marginBottom: 14 }} aria-live="polite">
+        <div className="mb-16" aria-live="polite">
           <Alert kind="info">
             {jobStatusText(progress)} · pode fechar esta janela: o download começa sozinho quando o PDF ficar pronto.
           </Alert>

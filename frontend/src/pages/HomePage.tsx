@@ -103,7 +103,7 @@ export function HomePage() {
     return (
       <Alert kind="error">
         {error}{' '}
-        <button className="btn btn--sm" style={{ marginLeft: 10 }} onClick={() => void load()}>
+        <button className="btn btn--sm ml-8" onClick={() => void load()}>
           Tentar de novo
         </button>
       </Alert>

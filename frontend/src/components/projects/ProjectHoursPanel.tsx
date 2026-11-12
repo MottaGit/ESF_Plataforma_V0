@@ -210,7 +210,7 @@ function HourEntryModal({ project, entry, onClose, onSaved }: HourEntryModalProp
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -247,7 +247,7 @@ function HourEntryModal({ project, entry, onClose, onSaved }: HourEntryModalProp
             onChange={(event) => setDescription(event.target.value)}
           />
         </Field>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

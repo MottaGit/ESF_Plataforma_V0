@@ -86,7 +86,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>{message}</p>
+      <p className="text-muted">{message}</p>
     </Modal>
   );
 }

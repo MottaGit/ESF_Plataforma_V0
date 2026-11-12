@@ -118,7 +118,7 @@ export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 560 }}>
+        <p className="field__hint measure">
           Quem participa do projeto e a função de cada um. O responsável pelo projeto e quem recebe uma tarefa entram
           aqui automaticamente.
         </p>
@@ -339,7 +339,7 @@ function LinkVolunteerModal({ projectId, available, onClose, onSaved }: LinkVolu
       }
     >
       {formError ? (
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-16">
           <Alert kind="error">{formError}</Alert>
         </div>
       ) : null}

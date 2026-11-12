@@ -50,13 +50,13 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
   return (
     <>
       <div className="grid-sidebar">
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+        <div className="stack">
           <section className="panel">
             <div className="panel__head">
               <h2>Sobre o projeto</h2>
             </div>
             <div className="panel__body">
-              <div style={{ display: 'grid', gap: 16 }}>
+              <div className="stack">
                 <div>
                   <div className="meta__label">Descrição</div>
                   <p className="meta__value about__text">{project.description ?? 'Sem descrição registrada.'}</p>
@@ -123,7 +123,7 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
                           </>
                         )}
                       </span>
-                      <div className="row-actions" style={{ marginLeft: 8 }}>
+                      <div className="row-actions ml-8">
                         <Button
                           small
                           variant="ghost"
@@ -155,7 +155,7 @@ export function AboutTab({ project, canManage, onChanged }: AboutTabProps) {
           </section>
         </div>
 
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+        <div className="stack">
         <section className="panel">
           <div className="panel__head">
             <h2>Informações gerais</h2>

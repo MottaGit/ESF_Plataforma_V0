@@ -200,16 +200,16 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
 
   return (
     <div>
-      <div className="panel composer-panel" style={{ marginBottom: 16 }} ref={composerRef}>
+      <div className="panel composer-panel mb-16" ref={composerRef}>
         <div className="panel__body">
           <form onSubmit={handlePost}>
             {formError ? (
-              <div style={{ marginBottom: 12 }}>
+              <div className="mb-12">
                 <Alert kind="error">{formError}</Alert>
               </div>
             ) : null}
 
-            <div className="field__label" style={{ marginBottom: 6 }}>
+            <div className="field__label mb-8">
               Registrar andamento
             </div>
             <RichTextField
@@ -237,7 +237,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
               onRemove={(index) => setStagedFiles((current) => current.filter((_, i) => i !== index))}
             />
 
-            <p className="field__hint" style={{ marginTop: 8 }}>
+            <p className="field__hint mt-8">
               {SENSITIVE_DATA_HINT} Fotos de pessoas, só com autorização de uso de imagem.
             </p>
 
@@ -276,7 +276,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
               </div>
             ) : null}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+            <div className="row-between mt-12">
               <Button type="button" small icon={<IconUpload size={15} />} onClick={() => fileInputRef.current?.click()}>
                 Anexar fotos
               </Button>
@@ -299,7 +299,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
       {listError && !page ? (
         <Alert kind="error">
           {listError}{' '}
-          <button type="button" className="btn btn--sm" style={{ marginLeft: 10 }} onClick={() => setAttempt((n) => n + 1)}>
+          <button type="button" className="btn btn--sm ml-8" onClick={() => setAttempt((n) => n + 1)}>
             Tentar de novo
           </button>
         </Alert>
@@ -313,7 +313,7 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
           />
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div className="stack stack--tight">
           {updates.map((update) => (
             <UpdateCard key={update.id} update={update} onChanged={onChanged} onRemove={() => setRemoving(update)} />
           ))}
@@ -445,7 +445,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
         </div>
 
         {editing ? (
-          <div style={{ marginTop: 10 }}>
+          <div className="mt-12">
             <RichTextField
               value={draft}
               ariaLabel="Editar registro"
@@ -466,7 +466,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
               />
             </div>
             <UpdateAttachments files={update.attachments} onRemove={setRemovingFile} />
-            <div className="row-actions" style={{ marginTop: 10, justifyContent: 'flex-end' }}>
+            <div className="row-actions mt-12 justify-end">
               <Button
                 small
                 onClick={() => {

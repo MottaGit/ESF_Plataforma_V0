@@ -365,7 +365,7 @@ function TemplateActivityModal({
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -411,7 +411,7 @@ function TemplateActivityModal({
             onChange={(event) => setDescription(event.target.value)}
           />
         </Field>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );
@@ -469,7 +469,7 @@ function TemplateIndicatorModal({
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -519,7 +519,7 @@ function TemplateIndicatorModal({
             onChange={(event) => setTarget(event.target.value)}
           />
         </Field>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

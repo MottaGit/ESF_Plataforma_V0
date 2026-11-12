@@ -56,12 +56,12 @@ export function AccountSection() {
         </div>
         <form className="panel__body" onSubmit={handleSubmit}>
           {error ? (
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-16">
               <Alert kind="error">{error}</Alert>
             </div>
           ) : null}
 
-          <div className="form-grid form-grid--single" style={{ maxWidth: 420 }}>
+          <div className="form-grid form-grid--single measure-narrow">
             <Field label="Senha atual" htmlFor="current-password" required>
               <PasswordInput
                 id="current-password"
@@ -90,7 +90,7 @@ export function AccountSection() {
             </Field>
           </div>
 
-          <div style={{ marginTop: 18 }}>
+          <div className="mt-16">
             <Button type="submit" variant="primary" loading={saving}>
               Alterar senha
             </Button>

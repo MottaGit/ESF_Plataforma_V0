@@ -138,7 +138,7 @@ export function LocationPickerModal({ initial, address, icon, color, onClose, on
       </form>
 
       {message ? (
-        <div style={{ marginBottom: 10 }}>
+        <div className="mb-12">
           <Alert kind="info">{message}</Alert>
         </div>
       ) : null}
@@ -162,7 +162,7 @@ export function LocationPickerModal({ initial, address, icon, color, onClose, on
       ) : null}
 
       <div ref={element} className="location-map" role="region" aria-label="Mapa para marcar o local do projeto" />
-      <p className="field__hint" style={{ marginTop: 8 }}>
+      <p className="field__hint mt-8">
         {position
           ? `Pino em ${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)}.`
           : 'Nenhum ponto marcado ainda.'}{' '}

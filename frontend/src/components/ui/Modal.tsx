@@ -93,7 +93,7 @@ export function Modal({
             {subtitle ? <div className="modal__subtitle">{subtitle}</div> : null}
           </div>
           {closable ? (
-            <button type="button" className="icon-button" style={{ marginLeft: 'auto' }} onClick={onClose} aria-label="Fechar">
+            <button type="button" className="icon-button ml-auto" onClick={onClose} aria-label="Fechar">
               <IconClose />
             </button>
           ) : null}
@@ -116,7 +116,7 @@ export function Modal({
             </>
           }
         >
-          <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>
+          <p className="text-muted">
             O que você preencheu em “{title}” ainda não foi salvo e será perdido.
           </p>
         </Modal>

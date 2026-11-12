@@ -14,3 +14,4 @@
 @import './tasks-search.css'; /* janela da tarefa (checklist, anexos, comentarios), busca geral e tela Tarefas */
 @import './home-projects.css'; /* Inicio, Projetos por programa e a barra fixa do celular */
 @import './term-hours-public.css'; /* termo de adesao online, horas por projeto e pagina publica do programa */
+@import './utilities.css'; /* margens e arranjos de uso geral (mt-8, stack, row...): por ultimo, para vencer a regra da area */

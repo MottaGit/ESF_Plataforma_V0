@@ -112,7 +112,7 @@ export function PublicPageDialog({ program, onClose, onChanged }: PublicPageDial
       }
     >
       {error ? (
-        <div style={{ marginBottom: 12 }}>
+        <div className="mb-12">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}

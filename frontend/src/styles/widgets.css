@@ -569,6 +569,9 @@
   padding: 4px;
   border-bottom: 1px solid var(--border);
 }
+/* Letras dos botoes de italico e sublinhado da barra do editor. */
+.rich-editor__glyph--italic { font-family: Georgia, serif; }
+.rich-editor__glyph--underline { text-decoration: underline; }
 .rich-editor__btn {
   display: grid;
   place-items: center;

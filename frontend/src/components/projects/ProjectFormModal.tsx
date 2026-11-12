@@ -282,7 +282,7 @@ export function ProjectFormModal({
       >
         <form onSubmit={handleSubmit}>
           {formError ? (
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-16">
               <Alert kind="error">{formError}</Alert>
             </div>
           ) : null}
@@ -462,7 +462,7 @@ export function ProjectFormModal({
             ) : null}
           </div>
 
-          <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+          <button type="submit" hidden aria-hidden="true" />
         </form>
       </Modal>
 

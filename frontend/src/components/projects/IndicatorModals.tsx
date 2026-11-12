@@ -99,7 +99,7 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
     >
       <form onSubmit={handleSubmit}>
         {formError ? (
-          <div style={{ marginBottom: 16 }}>
+          <div className="mb-16">
             <Alert kind="error">{formError}</Alert>
           </div>
         ) : null}
@@ -143,7 +143,7 @@ export function IndicatorFormModal({ projectId, indicator, onClose, onSaved }: I
           ) : null}
         </div>
 
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );
@@ -228,7 +228,7 @@ export function IndicatorValueModal({ indicator, onClose, onSaved }: IndicatorVa
             }}
           />
         </Field>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

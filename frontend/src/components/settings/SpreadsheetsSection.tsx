@@ -77,7 +77,7 @@ export function SpreadsheetsSection() {
         </div>
         <div className="panel__body">
           {error ? (
-            <div style={{ marginBottom: 14 }}>
+            <div className="mb-16">
               <Alert kind="error">{error}</Alert>
             </div>
           ) : null}

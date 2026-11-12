@@ -104,7 +104,7 @@ export function ProgramFormModal({ onClose, onSaved }: ProgramFormModalProps) {
             setColorChosen(true);
           }}
         />
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

@@ -189,12 +189,12 @@ export function ImportReviewDialog({ file, preview, onClose }: ImportReviewDialo
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
       {result.fileWarnings.length > 0 ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="warning">
             {result.fileWarnings.map((warning) => (
               <div key={warning}>{warning}</div>

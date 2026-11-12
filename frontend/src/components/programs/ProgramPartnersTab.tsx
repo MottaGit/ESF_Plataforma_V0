@@ -261,7 +261,7 @@ function PartnerModal({
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -323,7 +323,7 @@ function PartnerModal({
         <Field label="Observações" htmlFor="partner-notes" hint="Ex.: o que a parceria cobre, prazos de prestação de contas.">
           <TextArea id="partner-notes" maxLength={1000} value={notes} onChange={(event) => setNotes(event.target.value)} />
         </Field>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

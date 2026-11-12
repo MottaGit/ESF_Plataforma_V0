@@ -155,7 +155,7 @@ export function CertificateModal({ volunteer, onClose }: { volunteer: Volunteer;
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -273,7 +273,7 @@ export function CertificateModal({ volunteer, onClose }: { volunteer: Volunteer;
               <TextInput id="certificate-cpf" value={cpf} placeholder="000.000.000-00" onChange={(event) => setCpf(event.target.value)} />
             </Field>
           </div>
-          <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+          <button type="submit" hidden aria-hidden="true" />
         </form>
       )}
     </Modal>

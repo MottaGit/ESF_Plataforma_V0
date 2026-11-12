@@ -129,6 +129,8 @@
   animation: spin 700ms linear infinite;
 }
 .spinner--lg { width: 26px; height: 26px; border-width: 3px; }
+/* Dentro de botao, no lugar do icone. */
+.spinner--sm { width: 14px; height: 14px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .loading-block {

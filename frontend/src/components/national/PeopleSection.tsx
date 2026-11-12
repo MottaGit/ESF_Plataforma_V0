@@ -54,7 +54,7 @@ export function PeopleSection() {
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 620 }}>
+        <p className="field__hint measure">
           Quem faz parte da gestão nacional vê os números de todos os núcleos e cuida dos núcleos e dos indicadores
           nacionais. Pode ser uma conta só nacional ou alguém de um núcleo, que continua com o mesmo login.
         </p>

@@ -73,7 +73,7 @@ export function PersonFormModal({
           <TextInput id="person-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </Field>
         <p className="field__hint">{hint}</p>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

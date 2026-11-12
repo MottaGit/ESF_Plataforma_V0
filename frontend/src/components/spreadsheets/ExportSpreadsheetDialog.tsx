@@ -71,7 +71,7 @@ export function ExportSpreadsheetDialog({ initial, onClose }: ExportSpreadsheetD
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}

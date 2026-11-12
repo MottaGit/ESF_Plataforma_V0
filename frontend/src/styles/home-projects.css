@@ -151,6 +151,8 @@
   .program-picker__panel { width: 100%; max-width: none; }
 }
 
+/* "So os parados": etiqueta do filtro vindo do Inicio, logo embaixo da barra de Projetos. */
+.chip-group--below { margin: -4px 0 16px; }
 /* Filtros de liga e desliga (ex.: so atrasados) em chips, numa linha propria embaixo da busca. */
 .toolbar__chips { display: flex; flex-wrap: wrap; gap: 6px; flex-basis: 100%; order: 1; }
 /* Meus | Todos na mesma altura dos chips ao lado. */

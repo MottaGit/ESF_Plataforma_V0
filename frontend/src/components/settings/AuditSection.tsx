@@ -180,7 +180,7 @@ export function AuditSection() {
         />
       </div>
 
-      <p className="field__hint" style={{ marginBottom: 12 }}>
+      <p className="field__hint mb-12">
         Registro automático de quem criou, alterou ou excluiu algo na plataforma. Dados pessoais de voluntários não têm o
         valor guardado, só o fato de terem mudado.
       </p>
@@ -227,7 +227,7 @@ export function AuditSection() {
       </section>
 
       {hasMore ? (
-        <div style={{ marginTop: 12, textAlign: 'center' }}>
+        <div className="mt-12 text-center">
           <Button loading={loadingMore} onClick={() => void loadMore()}>
             Carregar mais
           </Button>

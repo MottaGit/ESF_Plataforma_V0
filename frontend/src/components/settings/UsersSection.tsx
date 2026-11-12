@@ -70,7 +70,7 @@ export function UsersSection({ canEdit, canGrant }: { canEdit: boolean; canGrant
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 620 }}>
+        <p className="field__hint measure">
           Três perfis: administrador (acesso completo), coordenador (gerencia projetos e dados) e usuário (participa e
           atualiza a execução). O acesso nasce do cadastro do voluntário, de onde vêm o nome e o e-mail (o login), e
           sai como um link: a própria pessoa cria a senha. Para quem esqueceu a senha, gere um link novo.
@@ -284,7 +284,7 @@ function AccessFormModal({ user, volunteers, onClose, onSaved }: AccessFormModal
     >
       <form onSubmit={handleSubmit}>
         {formError ? (
-          <div style={{ marginBottom: 16 }}>
+          <div className="mb-16">
             <Alert kind="error">{formError}</Alert>
           </div>
         ) : null}
@@ -328,7 +328,7 @@ function AccessFormModal({ user, volunteers, onClose, onSaved }: AccessFormModal
           </div>
         </div>
 
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

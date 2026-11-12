@@ -126,7 +126,10 @@ produção vazio, desligue antes de subir. Os acessos de demonstração também 
 - Filtros, abas e visões ficam na query string da URL; links antigos são mantidos com redirecionamentos (ver README).
 - CSS em `styles/`, um arquivo por área (`layout.css`, `components.css`, `widgets.css`, `responsive.css`…), todos
   importados por `globals.css` numa ordem que importa (no empate vale a regra de depois); tokens em `:root`
-  (`base.css`): letra só pelos `--fs-*` (8 tamanhos), cantos só pelos `--radius-*` (ou 50% num círculo).
+  (`base.css`): letra só pelos `--fs-*` (8 tamanhos), cantos só pelos `--radius-*` (ou 50% num círculo), cores só
+  pelos tokens. Nos componentes, espaço e arranjo por classe (`utilities.css`: `mt-8`, `mb-16`, `stack`, `row`…, ou
+  uma classe com nome no arquivo da área), não por `style={{...}}`; `style` só para valor calculado (largura de barra,
+  cor do programa).
   Regra nova vai no arquivo da área, antes do `responsive.css` se ele ajusta. No celular, tabelas viram cartões com as classes
   `table--cards`/`cell--*`; campos têm letra de 16px e 44px de altura (no iPhone, letra menor amplia a tela).
 - Ícones em `components/ui/Icons.tsx` (SVG); os dos programas são Lucide, em `utils/programs.ts`.

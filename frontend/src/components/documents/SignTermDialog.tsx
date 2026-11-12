@@ -185,7 +185,7 @@ export function SignTermDialog({ term, onClose, onSigned }: SignTermDialogProps)
           <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
           Li o termo e concordo com ele
         </label>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

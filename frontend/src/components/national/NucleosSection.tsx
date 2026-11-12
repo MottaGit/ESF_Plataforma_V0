@@ -43,7 +43,7 @@ export function NucleosSection() {
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 620 }}>
+        <p className="field__hint measure">
           Cada núcleo nasce com quem vai administrá-lo: essa pessoa recebe um link de primeiro acesso e, lá dentro,
           cadastra os voluntários, dá os outros acessos e cuida dos dados do núcleo.
         </p>
@@ -286,7 +286,7 @@ function NucleoFormModal({
             </p>
           </>
         ) : null}
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

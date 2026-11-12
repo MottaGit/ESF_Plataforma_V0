@@ -127,7 +127,7 @@ export function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         </div>
         <form className="panel__body" onSubmit={handleSave}>
           {!canEdit ? (
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-16">
               <Alert kind="info">Somente administradores podem alterar estes dados.</Alert>
             </div>
           ) : null}
@@ -264,7 +264,7 @@ export function OrganizationSection({ canEdit }: { canEdit: boolean }) {
           </div>
 
           {canEdit ? (
-            <div style={{ marginTop: 18 }}>
+            <div className="mt-16">
               <Button type="submit" variant="primary" loading={saving}>
                 Salvar alterações
               </Button>
@@ -273,7 +273,7 @@ export function OrganizationSection({ canEdit }: { canEdit: boolean }) {
         </form>
       </section>
 
-      <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+      <div className="stack">
       <section className="panel">
         <div className="panel__head">
           <h2>Logo</h2>
@@ -294,7 +294,7 @@ export function OrganizationSection({ canEdit }: { canEdit: boolean }) {
                 Enviar imagem
               </Button>
               <input ref={logoInput} type="file" accept="image/*" hidden onChange={handleLogo} />
-              <p className="field__hint" style={{ marginTop: 8 }}>
+              <p className="field__hint mt-8">
                 PNG ou JPG. O logo aparece nesta tela e identifica a organização na plataforma.
               </p>
             </>
@@ -307,7 +307,7 @@ export function OrganizationSection({ canEdit }: { canEdit: boolean }) {
           <h2>Assinatura dos certificados</h2>
         </div>
         <div className="panel__body">
-          <p className="field__hint" style={{ marginBottom: 12 }}>
+          <p className="field__hint mb-12">
             {organization?.hasSignature
               ? `Assinatura de ${organization.signatoryName ?? 'quem assina'} enviada. Ela só aparece nos certificados de voluntariado.`
               : 'Sem imagem de assinatura: o certificado sai com a linha em branco, para assinar à mão.'}
@@ -334,7 +334,7 @@ export function OrganizationSection({ canEdit }: { canEdit: boolean }) {
               />
             </div>
           ) : null}
-          <p className="field__hint" style={{ marginTop: 8 }}>PNG com fundo transparente fica melhor.</p>
+          <p className="field__hint mt-8">PNG com fundo transparente fica melhor.</p>
         </div>
       </section>
       </div>

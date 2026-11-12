@@ -390,7 +390,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
       </div>
 
       {onlyStale ? (
-        <div className="chip-group" style={{ margin: '-4px 0 14px' }}>
+        <div className="chip-group chip-group--below">
           <button type="button" className="chip chip--active" onClick={() => updateParams({ parados: null })}>
             Só os parados (em andamento, sem registro há 30 dias)
             <span aria-hidden="true">×</span>
@@ -458,7 +458,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                   <tbody>
                     {projects.map((project) => (
                       <tr key={project.id}>
-                        <td className="cell--main" style={{ minWidth: 220 }}>
+                        <td className="cell--main cell--min-lg">
                           <div className="project-cell">
                             {!selected ? (
                               <ProgramMark icon={project.programIcon} color={project.programColor} size={24} />
@@ -481,7 +481,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
                           <StatusBadge status={project.status} />
                         </td>
                         <td className="cell--desktop">{project.ownerName ?? '—'}</td>
-                        <td className="cell--grow" style={{ minWidth: 120 }}>
+                        <td className="cell--grow cell--min-sm">
                           {/* Sem tarefas, a barra em 0% diria "nada feito"; o projeto so ainda nao tem tarefas. */}
                           {project.activitiesTotal === 0 && project.status !== 'Concluido' ? (
                             <span className="table__secondary">sem tarefas</span>

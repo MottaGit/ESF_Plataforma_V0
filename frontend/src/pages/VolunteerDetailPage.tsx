@@ -91,7 +91,7 @@ export function VolunteerDetailPage() {
     return (
       <>
         <Alert kind="error">{error ?? 'Voluntário não encontrado.'}</Alert>
-        <div className="row-actions" style={{ marginTop: 14, justifyContent: 'flex-start' }}>
+        <div className="row-actions mt-16 justify-start">
           {error ? <Button onClick={() => void load()}>Tentar de novo</Button> : null}
           <Button onClick={() => navigate('/voluntarios')}>Voltar para voluntários</Button>
         </div>
@@ -115,7 +115,7 @@ export function VolunteerDetailPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 12 }}>
+      <div className="mb-12">
         <Link to="/voluntarios" className="btn btn--sm btn--ghost">
           <IconChevronLeft size={15} />
           Voluntários
@@ -130,7 +130,7 @@ export function VolunteerDetailPage() {
             <p className="page-head__desc">{sectorLabel(volunteer.sector)}</p>
             {/* "Ativo" e o normal: so a excecao (afastado, inativo) ganha etiqueta; o historico fica em Horas. */}
             {volunteer.status !== 'Ativo' || isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? (
-              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+              <div className="row row--wrap mt-12">
                 <VolunteerStatusBadge status={volunteer.status} onlyException />
                 {isBirthdayToday(volunteer.birthDay, volunteer.birthMonth) ? <BirthdayBadge /> : null}
               </div>
@@ -165,7 +165,7 @@ export function VolunteerDetailPage() {
       </div>
 
       {volunteer.anonymized ? (
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-16">
           <Alert kind="info">
             Os dados pessoais deste voluntário foram anonimizados. O histórico de projetos e tarefas continua, sem
             identificar a pessoa.
@@ -287,7 +287,7 @@ function AccessPanel({ volunteer, isAdmin, onChanged }: { volunteer: Volunteer; 
 
   return (
     <section className="panel">
-      <div className="panel__head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="panel__head row-between">
         <h2>Acesso à plataforma</h2>
         {!access ? (
           <Button variant="primary" small icon={<IconKey size={15} />} onClick={() => setGranting(true)}>
@@ -387,7 +387,7 @@ function ProjectsPanel({
 
   return (
     <section className="panel">
-      <div className="panel__head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="panel__head row-between">
         <h2>{title}</h2>
         {allowLinking && canManage ? (
           <Button small icon={<IconPlus size={15} />} onClick={() => setLinkOpen(true)}>
@@ -513,7 +513,7 @@ function LinkProjectModal({ volunteerId, linkedProjectIds, onClose, onSaved }: L
       }
     >
       {formError ? (
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-16">
           <Alert kind="error">{formError}</Alert>
         </div>
       ) : null}

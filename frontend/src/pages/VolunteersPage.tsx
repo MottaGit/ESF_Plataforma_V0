@@ -333,7 +333,7 @@ export function VolunteersPage() {
                               </span>
                             ) : null}
                             {birthday ? (
-                              <div style={{ marginTop: 4 }}>
+                              <div className="mt-4">
                                 <BirthdayBadge />
                               </div>
                             ) : null}
@@ -512,7 +512,7 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
     >
       <form onSubmit={handleSubmit}>
         {formError ? (
-          <div style={{ marginBottom: 16 }}>
+          <div className="mb-16">
             <Alert kind="error">{formError}</Alert>
           </div>
         ) : null}
@@ -613,12 +613,12 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
             hint="Só dia e mês. Usado para lembrar a data na plataforma."
             error={birthdayError ?? undefined}
           >
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="row">
               <Select
                 id="volunteer-birth-day"
                 aria-label="Dia do aniversário"
                 value={birthDay}
-                style={{ flex: '0 0 92px' }}
+                className="birthday-day"
                 onChange={(event) => setBirthDay(event.target.value)}
               >
                 <option value="">Dia</option>
@@ -733,7 +733,7 @@ export function VolunteerFormModal({ volunteer, onClose, onSaved }: VolunteerFor
           </Field>
         </div>
 
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

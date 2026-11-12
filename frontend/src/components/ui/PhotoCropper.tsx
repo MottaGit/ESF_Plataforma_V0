@@ -205,7 +205,7 @@ export function PhotoCropper({ file, onCancel, onConfirm }: PhotoCropperProps) {
       </label>
       <p className="field__hint">Arraste a foto para escolher o que fica dentro do círculo.</p>
 
-      <div className="btn-row" style={{ justifyContent: 'center' }}>
+      <div className="btn-row justify-center">
         <Button small onClick={onCancel}>
           Cancelar
         </Button>

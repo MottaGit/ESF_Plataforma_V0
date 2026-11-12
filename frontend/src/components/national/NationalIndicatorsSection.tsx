@@ -51,7 +51,7 @@ export function NationalIndicatorsSection() {
   return (
     <>
       <div className="toolbar">
-        <p className="field__hint" style={{ maxWidth: 620 }}>
+        <p className="field__hint measure">
           Estes indicadores entram sozinhos em todo projeto de todos os núcleos, em branco até cada núcleo informar o
           número; é o que permite somar os resultados de todos. Diga como contar, para todos contarem do mesmo jeito.
           Mudar o nome ou a unidade vale para todos os núcleos; arquivar deixa de exigir o indicador (os números já
@@ -216,7 +216,7 @@ function NationalIndicatorFormModal({
             onChange={(event) => setDescription(event.target.value)}
           />
         </Field>
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

@@ -149,7 +149,7 @@ export function ProjectDetailPage() {
     return (
       <>
         <Alert kind="error">{error ?? 'Projeto não encontrado.'}</Alert>
-        <div className="row-actions" style={{ marginTop: 14, justifyContent: 'flex-start' }}>
+        <div className="row-actions mt-16 justify-start">
           {error ? (
             <Button
               onClick={() => {
@@ -184,7 +184,7 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 12 }}>
+      <div className="mb-12">
         <Link to={projectsListPath()} className="btn btn--sm btn--ghost">
           <IconChevronLeft size={15} />
           Projetos

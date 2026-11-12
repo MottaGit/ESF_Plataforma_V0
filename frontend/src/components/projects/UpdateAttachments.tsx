@@ -111,7 +111,7 @@ export function StagedFiles({ files, onRemove }: { files: File[]; onRemove: (ind
   if (files.length === 0) return null;
 
   return (
-    <div className="media-strip" style={{ marginTop: 10 }}>
+    <div className="media-strip mt-12">
       {files.map((file, index) => (
         <div className={previews[index] ? 'media-thumb media-thumb--small' : 'doc-chip'} key={`${file.name}-${index}`}>
           {previews[index] ? (

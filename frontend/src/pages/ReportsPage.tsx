@@ -452,7 +452,7 @@ export function ReportsPage() {
         {loading ? (
           <Loading label="Carregando projetos…" />
         ) : error ? (
-          <p className="field__hint" style={{ padding: 16 }}>
+          <p className="field__hint panel__note">
             A lista de projetos não carregou.
           </p>
         ) : visible.length === 0 ? (
@@ -469,7 +469,7 @@ export function ReportsPage() {
             <table className="table table--cards report-list">
               <thead>
                 <tr>
-                  <th style={{ width: 44 }} />
+                  <th className="cell--check" />
                   <th>Projeto</th>
                   <th>Status</th>
                   <th>No período</th>
@@ -477,7 +477,7 @@ export function ReportsPage() {
               </thead>
               <tbody>
                 {visible.map((project) => (
-                  <tr key={project.id} onClick={() => toggle(project.id)} style={{ cursor: 'pointer' }}>
+                  <tr key={project.id} onClick={() => toggle(project.id)} className="table__row--clickable">
                     <td className="cell--check">
                       <input
                         type="checkbox"
@@ -485,7 +485,7 @@ export function ReportsPage() {
                         onChange={() => toggle(project.id)}
                         onClick={(event) => event.stopPropagation()}
                         aria-label={`Incluir ${project.name}`}
-                        style={{ width: 15, height: 15, accentColor: 'var(--accent)' }}
+                        className="check-input"
                       />
                     </td>
                     <td className="cell--main">
@@ -514,7 +514,7 @@ export function ReportsPage() {
           </div>
         )}
         {countsFailed ? (
-          <p className="field__hint" style={{ padding: '10px 18px' }}>
+          <p className="field__hint panel__note">
             Não foi possível ver o que cada projeto tem no período; o PDF sai normalmente.
           </p>
         ) : null}

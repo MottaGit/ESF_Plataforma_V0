@@ -106,7 +106,7 @@ export default function RichTextEditor({ value, placeholder, ariaLabel, autoFocu
           <strong>B</strong>
         </ToolButton>
         <ToolButton editor={editor} label="Itálico (Ctrl+I)" active={active?.italic} run={(e) => e.chain().focus().toggleItalic().run()}>
-          <em style={{ fontFamily: 'Georgia, serif' }}>I</em>
+          <em className="rich-editor__glyph--italic">I</em>
         </ToolButton>
         <ToolButton
           editor={editor}
@@ -114,7 +114,7 @@ export default function RichTextEditor({ value, placeholder, ariaLabel, autoFocu
           active={active?.underline}
           run={(e) => e.chain().focus().toggleUnderline().run()}
         >
-          <span style={{ textDecoration: 'underline' }}>U</span>
+          <span className="rich-editor__glyph--underline">U</span>
         </ToolButton>
         <span className="rich-editor__sep" aria-hidden="true" />
         <ToolButton

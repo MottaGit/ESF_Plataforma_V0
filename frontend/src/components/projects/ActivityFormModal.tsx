@@ -436,7 +436,7 @@ export function ActivityFormModal({
       <div className={current ? 'activity-modal' : undefined}>
         <form onSubmit={handleSubmit}>
           {formError ? (
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-16">
               <Alert kind="error">{formError}</Alert>
             </div>
           ) : null}
@@ -581,7 +581,7 @@ export function ActivityFormModal({
             </Field>
           </div>
 
-          <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+          <button type="submit" hidden aria-hidden="true" />
         </form>
 
         {/* Tarefa ja criada: checklist, anexos e comentarios ao lado do formulario (embaixo, no celular). */}

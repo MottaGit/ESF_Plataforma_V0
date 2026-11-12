@@ -123,7 +123,7 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
   return (
     <>
       {!project.imageAuthorizedOn && images.length > 0 ? (
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-16">
           <Alert kind="warning">
             Sem autorização de uso de imagem dos beneficiários registrada. Antes de usar estas fotos em relatórios ou
             redes sociais, registre a autorização assinada na aba Sobre.
@@ -132,8 +132,7 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
       ) : null}
 
       <div
-        className={`dropzone${dragging ? ' dropzone--active' : ''}`}
-        style={{ marginBottom: 16 }}
+        className={`dropzone mb-16${dragging ? ' dropzone--active' : ''}`}
         onDragOver={(event) => {
           event.preventDefault();
           setDragging(true);
@@ -146,12 +145,12 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
         ) : (
           <>
             Arraste fotos ou documentos para cá (um ou vários de uma vez)
-            <div style={{ marginTop: 8 }}>
+            <div className="mt-8">
               <Button small icon={<IconUpload size={15} />} onClick={() => inputRef.current?.click()}>
                 Escolher arquivos
               </Button>
             </div>
-            <div className="field__hint" style={{ marginTop: 8 }}>
+            <div className="field__hint mt-8">
               Até 15 MB por arquivo. As fotos publicadas no Andamento também aparecem aqui.
             </div>
           </>
@@ -186,7 +185,7 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
           <div className="panel__body">
             <Alert kind="error">
               {listError}{' '}
-              <button type="button" className="btn btn--sm" style={{ marginLeft: 10 }} onClick={() => setAttempt((n) => n + 1)}>
+              <button type="button" className="btn btn--sm ml-8" onClick={() => setAttempt((n) => n + 1)}>
                 Tentar de novo
               </button>
             </Alert>
@@ -223,7 +222,7 @@ export function FilesTab({ project, onChanged }: FilesTabProps) {
                   <>
                     <div className="file-grid">{images.slice(0, photosShown).map(card)}</div>
                     {images.length > photosShown ? (
-                      <div className="feed-more" style={{ marginTop: 12 }}>
+                      <div className="feed-more mt-12">
                         <Button onClick={() => setPhotosShown((shown) => shown + PHOTOS_STEP)}>
                           Mostrar mais fotos ({images.length - photosShown})
                         </Button>
@@ -319,7 +318,7 @@ function FileCard({ file, onChanged, onRemove, onView }: FileCardProps) {
               aria-label="Legenda do arquivo"
               onChange={(event) => setCaption(event.target.value)}
             />
-            <div className="row-actions" style={{ marginTop: 6, justifyContent: 'flex-start' }}>
+            <div className="row-actions mt-8 justify-start">
               <Button small type="submit" variant="primary" loading={saving}>
                 Salvar
               </Button>

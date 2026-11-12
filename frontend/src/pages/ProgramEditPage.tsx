@@ -77,7 +77,7 @@ export function ProgramEditPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 12 }}>
+      <div className="mb-12">
         <Link to={`/projetos?programa=${program.id}`} className="btn btn--sm btn--ghost">
           <IconChevronLeft size={15} />
           {program.name}
@@ -284,7 +284,7 @@ function ProgramSheetModal({
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -341,7 +341,7 @@ function ProgramSheetModal({
             </Field>
           );
         })}
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );

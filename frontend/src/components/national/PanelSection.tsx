@@ -82,7 +82,7 @@ export function PanelSection() {
           />
           {periodError ? <span className="field__error">{periodError}</span> : null}
         </div>
-        <p className="field__hint" style={{ maxWidth: 420 }}>
+        <p className="field__hint measure-narrow">
           O período vale para horas, tarefas concluídas e registros. Projetos, voluntários e indicadores mostram a
           situação de hoje. Ativos: em planejamento, em andamento ou pausados. Horas estimadas: 6 h por semana de cada
           voluntário ativo (não são as horas lançadas nos projetos).
@@ -109,7 +109,7 @@ export function PanelSection() {
             ))}
           </div>
 
-          <section className="panel" style={{ marginTop: 16 }}>
+          <section className="panel mt-16">
             <div className="panel__head">
               <h2>Indicadores nacionais</h2>
             </div>
@@ -146,7 +146,7 @@ export function PanelSection() {
                       );
                     })}
                   </div>
-                  <p className="field__hint" style={{ marginTop: 10 }}>
+                  <p className="field__hint mt-12">
                     Valores atuais, somados nos projetos de todos os núcleos (os arquivados entram; os cancelados, não).
                     Só soma o que foi informado: em branco não conta como zero, e "—" quer dizer que nenhum projeto
                     informou.
@@ -156,7 +156,7 @@ export function PanelSection() {
             </div>
           </section>
 
-          <section className="panel" style={{ marginTop: 16 }}>
+          <section className="panel mt-16">
             <div className="panel__head">
               <h2>Por núcleo</h2>
               <span className="field__hint">
@@ -189,7 +189,7 @@ export function PanelSection() {
                     .sort((a, b) => (daysSince(b.lastActivityAt) ?? Infinity) - (daysSince(a.lastActivityAt) ?? Infinity))
                     .map((row) => (
                     <tr key={row.id}>
-                      <td className="cell--main" style={{ minWidth: 150 }}>
+                      <td className="cell--main cell--min-md">
                         <div className="table__primary">{row.name}</div>
                         <div className="table__secondary">{[row.city, row.state].filter(Boolean).join(' / ') || '—'}</div>
                       </td>

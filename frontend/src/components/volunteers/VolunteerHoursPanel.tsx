@@ -203,7 +203,7 @@ function StatusPeriodModal({ volunteerId, period, onClose, onSaved }: StatusPeri
       }
     >
       {error ? (
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-16">
           <Alert kind="error">{error}</Alert>
         </div>
       ) : null}
@@ -237,7 +237,7 @@ function StatusPeriodModal({ volunteerId, period, onClose, onSaved }: StatusPeri
             />
           </Field>
         )}
-        <button type="submit" style={{ display: 'none' }} aria-hidden="true" />
+        <button type="submit" hidden aria-hidden="true" />
       </form>
     </Modal>
   );
