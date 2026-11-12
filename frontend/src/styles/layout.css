@@ -26,19 +26,17 @@
   padding: 4px 8px 18px;
 }
 
+/* Globo do logotipo num quadrado branco, como o icone instalado no celular (BrandMark). */
 .sidebar__mark {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--surface);
   display: grid;
   place-items: center;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.02em;
   flex: 0 0 auto;
 }
+.sidebar__mark img { display: block; width: 22px; height: 22px; }
 
 .sidebar__name {
   display: block;

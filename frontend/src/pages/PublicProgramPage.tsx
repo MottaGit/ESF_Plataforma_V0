@@ -4,6 +4,7 @@ import { ApiError, assetUrl } from '../api/client';
 import { publicApi } from '../api/endpoints';
 import { GoalProgress } from '../components/programs/GoalProgress';
 import { ProgramMark } from '../components/programs/ProgramMark';
+import { BrandMark } from '../components/ui/BrandMark';
 import { Progress } from '../components/ui/Progress';
 import type { ProjectStatus, PublicIndicator, PublicProgram, PublicProject } from '../types/api';
 import { formatNumber, timeAgoPhrase } from '../utils/format';
@@ -157,7 +158,7 @@ export function PublicProgramPage() {
           {nucleo.logoUrl ? (
             <img src={assetUrl(nucleo.logoUrl)} alt="" className="public-page__logo" />
           ) : (
-            <span className="sidebar__mark">ESF</span>
+            <BrandMark />
           )}
           <div>
             <strong>{nucleo.name}</strong>

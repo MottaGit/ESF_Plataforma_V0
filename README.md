@@ -338,7 +338,9 @@ tabela (Projetos, Voluntários, Relatórios, Acessos e as da área Nacional) vir
 linha, sem rolar para o lado. Os campos têm letra de 16px e 44px de altura (no iPhone, letra menor faz a tela ampliar
 sozinha a cada toque num campo). Dá para pôr a plataforma na tela de início do celular ("Adicionar à Tela de Início"
 no Safari, "Instalar app" no Chrome): vira o ícone **CtrlESF** (o globo do logo da ESF) e abre em tela cheia
-(`frontend/public/manifest.json` e `frontend/public/icons/`; a Ajuda explica o passo a passo).
+(`frontend/public/manifest.json` e `frontend/public/icons/`; a Ajuda explica o passo a passo). O mesmo globo, sem o
+fundo branco (`icons/globe.png`), aparece num quadrado branco ao lado do nome no menu lateral, no login, no primeiro
+acesso e na página pública sem logo do núcleo, e grande no painel verde do login.
 
 **Sem internet (consulta)** — o que foi aberto com internet fica guardado no aparelho e continua abrindo sem conexão,
 com a faixa "Sem internet" no topo; os projetos de "Meus projetos" ficam guardados sozinhos quando o Início abre, mesmo

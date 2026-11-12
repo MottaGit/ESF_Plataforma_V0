@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { BrandMark } from '../ui/BrandMark';
 import {
   IconChecklist,
   IconGlobe,
@@ -40,7 +41,7 @@ export function Sidebar({ open, organizationName, onNavigate }: SidebarProps) {
   return (
     <aside className={`sidebar${open ? ' sidebar--open' : ''}`}>
       <div className="sidebar__brand">
-        <span className="sidebar__mark">ESF</span>
+        <BrandMark />
         <span>
           <span className="sidebar__name">{organizationName}</span>
           <span className="sidebar__sub">Gestão de projetos</span>

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
+import { BrandMark } from '../components/ui/BrandMark';
 import { Button } from '../components/ui/Button';
 import { Field, PasswordInput, TextInput } from '../components/ui/Field';
 import { Alert } from '../components/ui/Feedback';
@@ -52,9 +53,11 @@ export function LoginPage() {
     <div className="login">
       <section className="login__aside">
         <div className="login__brand">
-          <span className="sidebar__mark">ESF</span>
+          <BrandMark />
           <span className="login__brand-name">Engenheiros Sem Fronteiras</span>
         </div>
+
+        <img className="login__globe" src="/icons/globe.png" alt="" />
 
         <div>
           <h1 className="login__headline">Gerencie os projetos da sua organização em um só lugar.</h1>

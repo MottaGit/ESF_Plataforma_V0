@@ -206,6 +206,8 @@
   flex-direction: column;
 }
 .login__brand { display: flex; align-items: center; gap: 10px; margin-bottom: auto; }
+/* Globo grande no meio do painel verde, alinhado ao texto (some no celular junto com o painel). */
+.login__globe { display: block; width: clamp(150px, 18vw, 230px); height: auto; margin: 32px 0 auto; }
 .login__brand-name { font-size: var(--fs-md); font-weight: 600; }
 .login__headline { font-size: var(--fs-3xl); font-weight: 600; line-height: 1.25; max-width: 15em; letter-spacing: -0.02em; }
 .login__points { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { accessApi } from '../api/endpoints';
+import { BrandMark } from '../components/ui/BrandMark';
 import { Button } from '../components/ui/Button';
 import { Field, PasswordInput } from '../components/ui/Field';
 import { Alert, Loading } from '../components/ui/Feedback';
@@ -70,7 +71,7 @@ export function FirstAccessPage() {
     <div className="login">
       <section className="login__aside">
         <div className="login__brand">
-          <span className="sidebar__mark">ESF</span>
+          <BrandMark />
           <span className="login__brand-name">Engenheiros Sem Fronteiras</span>
         </div>
         <div>
