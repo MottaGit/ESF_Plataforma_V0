@@ -91,14 +91,14 @@
 .btn:focus-visible { box-shadow: var(--focus); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-dark); }
 .btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 
 .btn--ghost { border-color: transparent; background: transparent; color: var(--text-muted); }
 .btn--ghost:hover { background: var(--surface-soft); color: var(--text); }
 
 .btn--danger { border-color: var(--border-strong); color: var(--danger); }
-.btn--danger:hover { background: var(--danger-bg); border-color: #f3c6c1; }
+.btn--danger:hover { background: var(--danger-bg); border-color: var(--danger-border); }
 
 .btn--sm { height: 29px; padding: 0 10px; font-size: var(--fs-sm); }
 .btn--block { width: 100%; }
@@ -203,9 +203,9 @@
   gap: 10px;
   margin: 0;
   padding: 12px 14px;
-  border: 1px solid #f0d9a8;
+  border: 1px solid var(--warning-border);
   border-radius: var(--radius);
-  background: #fffaf0;
+  background: var(--warning-bg);
   min-width: 0;
 }
 .leave-options legend { padding: 0 4px; }
@@ -320,7 +320,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 }
 
 .table tbody tr:last-child td { border-bottom: 0; }
-.table tbody tr:hover { background: #fafbfc; }
+.table tbody tr:hover { background: var(--surface-hover); }
 .table td.tight { white-space: nowrap; }
 .table td.right, .table th.right { text-align: right; }
 
@@ -368,7 +368,7 @@ input[type="password"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe 
 }
 .act-row__title:hover { color: var(--accent-text); }
 .act-row--done .act-row__title { color: var(--text-muted); text-decoration: line-through; }
-.act-row--done { background: #fbfcfd; }
+.act-row--done { background: var(--surface-hover); }
 .act-row__undo {
   padding: 0;
   border: 0;

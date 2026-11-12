@@ -26,21 +26,21 @@
 .badge--late { background: var(--danger-bg); color: var(--danger); }
 /* Cinza com contorno leve: aparece tambem direto no fundo da pagina (ex.: Afastado, Arquivado no cabecalho). */
 .badge--neutral { background: var(--st-plan-bg); color: var(--st-plan-fg); box-shadow: inset 0 0 0 1px var(--border); }
-.badge--birthday { background: #fdf2fa; color: #a3216d; }
+.badge--birthday { background: var(--celebrate-bg); color: var(--celebrate-fg); }
 
 /* Aniversariante do dia: linha da lista e aviso no topo da pagina de voluntarios. */
-.table tbody tr.table__row--birthday { background: #fef8fc; }
-.table tbody tr.table__row--birthday:hover { background: #fcf0f8; }
+.table tbody tr.table__row--birthday { background: var(--celebrate-row); }
+.table tbody tr.table__row--birthday:hover { background: var(--celebrate-row-hover); }
 .birthday-notice {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
   padding: 10px 14px;
-  border: 1px solid #f6d5ea;
+  border: 1px solid var(--celebrate-border);
   border-radius: var(--radius);
-  background: #fdf2fa;
-  color: #7d1a54;
+  background: var(--celebrate-bg);
+  color: var(--celebrate-strong);
   font-size: var(--fs-md);
 }
 .birthday-notice__icon { font-size: var(--fs-xl); line-height: 1; }
@@ -126,7 +126,7 @@
 /* Aniversariantes do mes (Dashboard). */
 .birthday-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .birthday-list__item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); }
-.birthday-list__item--today { background: #fdf2fa; }
+.birthday-list__item--today { background: var(--celebrate-bg); }
 .birthday-list__item--passed { opacity: 0.6; }
 .birthday-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-md); }
 .birthday-list__day { font-size: var(--fs-sm); color: var(--text-muted); }
@@ -148,7 +148,7 @@
 }
 .contact-icon:hover { background: var(--surface-soft); color: var(--accent-text); text-decoration: none; }
 .contact-icon:focus-visible { outline: none; box-shadow: var(--focus); }
-.contact-icon--whatsapp:hover { color: #128c4b; }
+.contact-icon--whatsapp:hover { color: var(--whatsapp); }
 .contact-phone { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; }
 
 /* Acesso a plataforma: marca na lista de voluntarios e o link gerado para mandar a pessoa. */
@@ -195,12 +195,12 @@
 .stale-mark {
   padding: 1px 7px;
   border-radius: var(--radius-pill);
-  background: var(--warning-bg, #fff4e5);
+  background: var(--warning-bg);
   color: var(--warning);
   font-size: var(--fs-2xs);
   font-weight: 600;
 }
-.national-stat--result { background: var(--accent-soft); border-color: #cfe2dd; }
+.national-stat--result { background: var(--accent-soft); border-color: var(--accent-border); }
 .national-stat--result .national-stat__value { color: var(--accent-text); }
 
 /* Gestao nacional: administradores de cada nucleo, um por linha, com o botao do link ao lado. */
@@ -208,7 +208,7 @@
 .admin-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .admin-list .badge { margin-left: 6px; }
 .access-link__actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.contact-phone__whatsapp { display: inline-flex; align-items: center; gap: 4px; color: #128c4b; }
+.contact-phone__whatsapp { display: inline-flex; align-items: center; gap: 4px; color: var(--whatsapp); }
 
 /* Foto do voluntario: area no topo do formulario e o enquadramento circular. */
 .photo-field {
@@ -226,7 +226,7 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius);
-  background: #1b2028;
+  background: var(--media-bg);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -238,11 +238,11 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  box-shadow: 0 0 0 200px rgba(16, 24, 40, 0.6);
+  box-shadow: 0 0 0 200px var(--overlay-strong);
   outline: 2px solid rgba(255, 255, 255, 0.85);
   pointer-events: none;
 }
-.cropper__loading { position: absolute; inset: 0; display: grid; place-items: center; color: #c3cad4; font-size: var(--fs-sm); }
+.cropper__loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--on-dark-muted); font-size: var(--fs-sm); }
 .cropper__zoom { display: flex; align-items: center; gap: 10px; width: 260px; font-size: var(--fs-sm); color: var(--text-muted); }
 .cropper__zoom input { flex: 1; accent-color: var(--accent); }
 
@@ -274,7 +274,7 @@
   flex: 1;
   height: 5px;
   border-radius: var(--radius-pill);
-  background: #e8ebef;
+  background: var(--track);
   overflow: hidden;
 }
 .progress__fill { height: 100%; background: var(--accent); border-radius: var(--radius-pill); }
@@ -384,7 +384,7 @@
   gap: 10px;
   margin-bottom: 14px;
   padding: 10px 14px;
-  border: 1px solid #cfe2dd;
+  border: 1px solid var(--accent-border);
   border-radius: var(--radius);
   background: var(--accent-soft);
   color: var(--accent-text);
@@ -625,8 +625,8 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(16, 24, 40, 0.55);
-  color: #fff;
+  background: var(--overlay-strong);
+  color: var(--on-dark);
   font-size: var(--fs-lg);
   font-weight: 600;
 }
@@ -641,7 +641,7 @@
   border-radius: 50%;
   cursor: pointer;
 }
-.media-thumb__remove { position: absolute; top: 3px; right: 3px; background: rgba(16, 24, 40, 0.7); color: #fff; }
+.media-thumb__remove { position: absolute; top: 3px; right: 3px; background: var(--overlay-strong); color: var(--on-dark); }
 .doc-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .doc-chip {
   display: inline-flex;
@@ -705,11 +705,11 @@
   z-index: 90;
   display: flex;
   flex-direction: column;
-  background: rgba(10, 14, 20, 0.94);
-  color: #fff;
+  background: var(--lightbox-bg);
+  color: var(--on-dark);
 }
 .lightbox__bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; }
-.lightbox__count { margin-right: auto; font-size: var(--fs-sm); color: #c3cad4; }
+.lightbox__count { margin-right: auto; font-size: var(--fs-sm); color: var(--on-dark-muted); }
 .lightbox__action {
   display: grid;
   place-items: center;
@@ -718,7 +718,7 @@
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--on-dark);
   cursor: pointer;
 }
 .lightbox__action:hover { background: rgba(255, 255, 255, 0.16); text-decoration: none; }
@@ -735,13 +735,13 @@
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--on-dark);
   cursor: pointer;
 }
 .lightbox__nav:hover { background: rgba(255, 255, 255, 0.2); }
 .lightbox__nav--prev { left: 8px; }
 .lightbox__nav--next { right: 8px; }
-.lightbox__caption { padding: 12px 16px 18px; text-align: center; font-size: var(--fs-md); color: #e4e7ec; }
+.lightbox__caption { padding: 12px 16px 18px; text-align: center; font-size: var(--fs-md); color: var(--on-dark-soft); }
 
 .about__text { white-space: pre-wrap; }
 

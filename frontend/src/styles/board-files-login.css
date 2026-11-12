@@ -195,7 +195,7 @@
 
 .login__aside {
   background: var(--nav-bg);
-  color: #fff;
+  color: var(--nav-text-active);
   padding: 48px 44px;
   display: flex;
   flex-direction: column;
@@ -213,7 +213,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #48a58f;
+  background: var(--nav-accent);
 }
 
 .login__panel {

@@ -29,12 +29,12 @@
 .tabs-scroll__arrow--right {
   right: 0;
   justify-content: flex-end;
-  background: linear-gradient(to right, rgba(246, 247, 249, 0), var(--bg) 60%);
+  background: linear-gradient(to right, transparent, var(--bg) 60%);
 }
 .tabs-scroll__arrow--left {
   left: 0;
   justify-content: flex-start;
-  background: linear-gradient(to left, rgba(246, 247, 249, 0), var(--bg) 60%);
+  background: linear-gradient(to left, transparent, var(--bg) 60%);
 }
 
 .tab {
@@ -67,7 +67,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(16, 24, 40, 0.42);
+  background: var(--overlay);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -149,9 +149,9 @@
   font-size: var(--fs-sm);
   background: var(--surface);
 }
-.alert--error { border-left-color: var(--danger); background: var(--danger-bg); color: #7a1c14; border-color: #f3c6c1; }
-.alert--warning { border-left-color: var(--warning); background: var(--st-pause-bg); color: #7a4a0a; border-color: #f0dcc0; }
-.alert--info { border-left-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); border-color: #cfe2dd; }
+.alert--error { border-left-color: var(--danger); background: var(--danger-bg); color: var(--danger-strong); border-color: var(--danger-border); }
+.alert--warning { border-left-color: var(--warning); background: var(--st-pause-bg); color: var(--warning-strong); border-color: var(--warning-border); }
+.alert--info { border-left-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent-border); }
 /* Sem internet: faixa no topo de todas as telas (OfflineBanner). */
 .offline-banner { margin-bottom: 16px; }
 
@@ -168,7 +168,7 @@
 
 .toast {
   background: var(--nav-bg);
-  color: #fff;
+  color: var(--on-dark);
   border-radius: var(--radius-sm);
   padding: 11px 13px;
   font-size: var(--fs-sm);
@@ -177,5 +177,5 @@
   gap: 10px;
   align-items: flex-start;
 }
-.toast--error { background: #7a1c14; }
+.toast--error { background: var(--danger-strong); }
 .toast__close { margin-left: auto; background: transparent; border: 0; color: inherit; opacity: 0.7; cursor: pointer; }

@@ -23,9 +23,18 @@
   /* Linhas entre itens de uma lista, dentro de um painel. */
   --border-soft: #eef0f3;
   --border-strong: #d2d7de;
+  --border-hover: #98a2b3;
+  /* Fundo de linha ao passar o mouse (tabelas, perguntas da Ajuda) e de item concluido. */
+  --surface-hover: #f9fafb;
+  /* Trilho das barras de progresso. */
+  --track: #e8ebef;
   --text: #1b2028;
   --text-muted: #667085;
   --text-soft: #8a93a2;
+  /* Texto sobre fundo escuro ou colorido (botao verde, aviso, contador, visualizador de fotos). */
+  --on-dark: #ffffff;
+  --on-dark-soft: #e4e7ec;
+  --on-dark-muted: #c3cad4;
 
   /* navegacao: verde bem escuro, da mesma familia da cor de acao */
   --nav-bg: #0f2b26;
@@ -34,11 +43,15 @@
   --nav-text-active: #ffffff;
   --nav-hover: rgba(255, 255, 255, 0.07);
   --nav-active: rgba(255, 255, 255, 0.12);
+  /* Traco do item marcado no menu e marcadores do login. */
+  --nav-accent: #48a58f;
 
   /* cor de acao */
   --accent: #10564a;
   --accent-hover: #0c4239;
   --accent-soft: #e8f1ee;
+  --accent-soft-hover: #dcebe6;
+  --accent-border: #cfe2dd;
   --accent-text: #0b4f43;
   --focus: 0 0 0 3px rgba(16, 86, 74, 0.18);
 
@@ -50,10 +63,33 @@
   /* Cancelado, inativo, ex-membro: apagado (contorno cinza), nao alarmante. */
   --st-cancel-bg: transparent; --st-cancel-fg: #667085;
   --st-blocked-bg: #f4ebff;   --st-blocked-fg: #6941c6;
+  --st-blocked-strong: #4a2a8a;
 
+  /* problema (atraso, erro, exclusao): fundo, borda e texto forte sobre o fundo */
   --danger: #b42318;
   --danger-bg: #fdecea;
+  --danger-soft: #fff7f5;
+  --danger-border: #f3c6c1;
+  --danger-strong: #7a1c14;
+  /* atencao (aviso, parado, afastamento) */
   --warning: #b54708;
+  --warning-bg: #fff4e5;
+  --warning-border: #f0d9a8;
+  --warning-strong: #7a4a0a;
+  /* aniversario: a unica cor de festa do sistema */
+  --celebrate-bg: #fdf2fa;
+  --celebrate-fg: #a3216d;
+  --celebrate-strong: #7d1a54;
+  --celebrate-border: #f6d5ea;
+  --celebrate-row: #fef8fc;
+  --celebrate-row-hover: #fcf0f8;
+  --whatsapp: #128c4b;
+
+  /* camadas: fundo atras de janelas e menus, e do visualizador de fotos */
+  --overlay: rgba(16, 24, 40, 0.42);
+  --overlay-strong: rgba(16, 24, 40, 0.6);
+  --lightbox-bg: rgba(10, 14, 20, 0.94);
+  --media-bg: #1b2028;
 
   /* letra: so estes tamanhos (meio pixel de diferenca ninguem enxerga e deixa a hierarquia frouxa) */
   --fs-2xs: 11px;  /* contadores e etiquetas minusculas */

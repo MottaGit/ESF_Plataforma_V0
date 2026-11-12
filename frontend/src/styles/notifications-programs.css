@@ -14,7 +14,7 @@
   padding: 0 4px;
   border-radius: var(--radius-pill);
   background: var(--danger);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-2xs);
   font-weight: 600;
   line-height: 17px;
@@ -62,7 +62,7 @@
 }
 .bell__item:hover { background: var(--surface-soft); }
 .bell__item--unread { background: var(--accent-soft); }
-.bell__item--unread:hover { background: #dcebe6; }
+.bell__item--unread:hover { background: var(--accent-soft-hover); }
 .bell__dot { flex: 0 0 auto; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: transparent; }
 .bell__item--unread .bell__dot { background: var(--accent); }
 .bell__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -150,8 +150,8 @@
   border-radius: 50%;
   line-height: 1;
   color: var(--program-color);
-  background: color-mix(in srgb, var(--program-color) 12%, #fff);
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--program-color) 35%, #fff);
+  background: color-mix(in srgb, var(--program-color) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--program-color) 35%, var(--surface));
 }
 
 /* Icone e cor do programa: a previa (sugerida pelo nome) e, ao tocar em Trocar, a grade de icones e as cores. */
@@ -174,7 +174,7 @@
 .icon-picker__option--active {
   border-color: var(--program-color);
   color: var(--program-color);
-  background: color-mix(in srgb, var(--program-color) 12%, #fff);
+  background: color-mix(in srgb, var(--program-color) 12%, var(--surface));
   box-shadow: 0 0 0 1px var(--program-color);
 }
 
@@ -259,7 +259,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   border: 3px solid var(--pin);
   box-shadow: 0 2px 6px rgba(16, 24, 40, 0.3);
 }

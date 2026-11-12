@@ -118,7 +118,7 @@
 .public-page__brand div { display: flex; flex-direction: column; line-height: 1.25; }
 .public-page__brand strong { font-size: var(--fs-lg); }
 .public-page__brand span:not(.sidebar__mark) { font-size: var(--fs-sm); color: var(--nav-text); }
-.public-page__logo { width: 40px; height: 40px; object-fit: contain; border-radius: var(--radius-sm); background: #fff; padding: 3px; }
+.public-page__logo { width: 40px; height: 40px; object-fit: contain; border-radius: var(--radius-sm); background: var(--surface); padding: 3px; }
 .public-page__main { flex: 1; width: 100%; max-width: 960px; margin: 0 auto; padding: 28px 20px 40px; }
 .public-hero__title { display: flex; align-items: center; gap: 14px; }
 .public-hero h1 { margin: 0; font-size: var(--fs-2xl); line-height: 1.2; letter-spacing: -0.01em; }
