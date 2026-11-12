@@ -55,9 +55,21 @@
   --danger-bg: #fdecea;
   --warning: #b54708;
 
-  /* forma */
-  --radius: 10px;
-  --radius-sm: 7px;
+  /* letra: so estes tamanhos (meio pixel de diferenca ninguem enxerga e deixa a hierarquia frouxa) */
+  --fs-2xs: 11px;  /* contadores e etiquetas minusculas */
+  --fs-xs: 12px;   /* legendas, dicas, cabecalho de tabela, rotulos em maiusculas */
+  --fs-sm: 13px;   /* texto secundario: linha de baixo, rotulo de campo, botao pequeno */
+  --fs-md: 14px;   /* texto, botoes, campos, tabelas, titulo de painel */
+  --fs-lg: 16px;   /* titulo de secao e de janela */
+  --fs-xl: 20px;   /* titulo grande dentro da pagina, numero de faixa */
+  --fs-2xl: 24px;  /* titulo da pagina e numeros de destaque */
+  --fs-3xl: 28px;  /* chamada do login */
+
+  /* forma: cantos so nestes 4 valores (+ 50% nos circulos) */
+  --radius-xs: 4px;    /* etiquetas minusculas, miniaturas, itens dentro de menus */
+  --radius-sm: 6px;    /* botoes, campos, itens de lista */
+  --radius: 10px;      /* cartoes, paineis, janelas */
+  --radius-pill: 999px; /* selos, chips, contadores, barras de progresso */
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
   --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.14);
 
@@ -75,15 +87,15 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 14px;
+  font-size: var(--fs-md);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.015em; }
-h1 { font-size: 22px; }
-h2 { font-size: 16px; }
-h3 { font-size: 14px; }
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-lg); }
+h3 { font-size: var(--fs-md); }
 p { margin: 0 0 10px; }
 p:last-child { margin-bottom: 0; }
 

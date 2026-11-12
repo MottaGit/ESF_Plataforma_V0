@@ -89,7 +89,7 @@
   /* Os 3 numeros da visao geral continuam lado a lado, com menos espaco. */
   .stat { padding: 12px 14px; }
   .stat__go { top: 10px; right: 8px; }
-  .stat__value { font-size: 20px; }
+  .stat__value { font-size: var(--fs-xl); }
   .header__user-name, .header__user-role { display: none; }
   .page-head { flex-direction: column; }
   .page-head__actions { margin-left: 0; width: 100%; }
@@ -103,13 +103,13 @@
   /* 16px: com letra menor, o Safari do iPhone amplia a tela a cada toque num campo. 44px: tamanho do dedo. */
   .input, .select, .textarea, .rich-editor__content { font-size: 16px; }
   .input, .select { min-height: 44px; }
-  .period-picker__name { font-size: 15px; }
-  .period-picker .period-picker__item { padding: 11px 10px; font-size: 14px; }
+  .period-picker__name { font-size: var(--fs-lg); }
+  .period-picker .period-picker__item { padding: 11px 10px; font-size: var(--fs-md); }
   .btn { height: 40px; }
   /* Mesma altura dos botoes ao lado (Filtros), e alvo de toque maior. */
   .segmented__option { height: 38px; }
   .btn--sm { height: 34px; }
-  .checkbox { font-size: 14px; }
+  .checkbox { font-size: var(--fs-md); }
   .checkbox input { width: 20px; height: 20px; }
 }
 
