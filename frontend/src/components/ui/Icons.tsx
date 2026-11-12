@@ -158,6 +158,17 @@ export const IconCalendar = (p: IconProps) =>
     p
   );
 
+/** Calendario com os dias marcados (seletor de periodo). */
+export const IconCalendarDays = (p: IconProps) =>
+  svg(
+    <>
+      <rect x="3.5" y="5" width="17" height="16" rx="2" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+      <path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" strokeWidth={2.4} />
+    </>,
+    p
+  );
+
 export const IconCheck = (p: IconProps) => svg(<path d="m5 13 4.5 4.5L19 7" />, p);
 
 export const IconChevronLeft = (p: IconProps) => svg(<path d="m14 6-6 6 6 6" />, p);

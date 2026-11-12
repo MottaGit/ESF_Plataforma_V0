@@ -749,8 +749,9 @@ segunda fileira pode ir para a página seguinte. O título "Linha do tempo" vai 
 relatório de um projeto só o nome dele não se repete no topo do capítulo (já é o título da primeira página).
 
 **Seletor de período** (tela Relatórios, "Gerar relatório" do projeto e painel nacional; `components/ui/PeriodPicker.tsx`
-e `utils/periods.ts`) — um botão com o calendário e o período escolhido ao lado ("📅 Trimestre" ou "📅 11/04/2026 –
-12/11/2026"). Tocar abre os atalhos, contados para trás a partir de hoje: **30 dias** (o padrão), **Trimestre** (últimos 3 meses),
+e `utils/periods.ts`) — um botão com o calendário num quadradinho verde, o nome do período ("30 dias", "Trimestre"…,
+"Personalizado") e as datas embaixo ("13/10/2026 – 12/11/2026"); embaixo do botão, uma linha só: "Entram os
+registros, fotos, tarefas e horas desse período". Tocar abre os atalhos, contados para trás a partir de hoje: **30 dias** (o padrão), **Trimestre** (últimos 3 meses),
 **Semestre** (últimos 6) e **Ano** (últimos 12), e por último **Personalizado**, que abre uma janela com a
 data inicial e a final (digitadas ou escolhidas no calendário do próprio campo) e a caixinha **Sem data final**:
 marcada, a data final fica cinza, travada em hoje. Data final antes da inicial não deixa aplicar. Não há mais "Tudo"

@@ -77,10 +77,8 @@ export function ReportPeriodField({ from, to, openEnded, onShortcut, onCustom }:
       {periodError ? (
         <span className="field__error">{periodError}</span>
       ) : (
-        <span className="field__hint">
-          Filtra os registros (com as fotos), as tarefas concluídas e as horas. Os indicadores saem como estavam no fim
-          do período, com quanto mudaram nele; a equipe sai como está hoje.
-        </span>
+        // Curto de proposito: que os indicadores saem com o valor do fim do periodo, o proprio PDF diz.
+        <span className="field__hint">Entram os registros, fotos, tarefas e horas desse período.</span>
       )}
     </div>
   );

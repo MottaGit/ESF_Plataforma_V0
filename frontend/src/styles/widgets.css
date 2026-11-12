@@ -397,30 +397,46 @@
 .report-options { display: grid; gap: 14px; }
 .report-options__checks { display: grid; gap: 8px; }
 
-/* Periodo (relatorios e painel nacional): o calendario com o periodo escolhido; tocar abre os atalhos e o
-   Personalizado (janela com as duas datas). */
-.period-picker { position: relative; align-self: flex-start; }
+/* Periodo (relatorios e painel nacional): o calendario num quadradinho verde, o nome do periodo e as datas embaixo;
+   tocar abre os atalhos e o Personalizado (janela com as duas datas). */
+.period-picker { position: relative; align-self: flex-start; max-width: 100%; }
 .period-picker__button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 10px 0 12px;
+  gap: 10px;
+  min-width: 230px;
+  max-width: 100%;
+  padding: 6px 10px 6px 6px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
-  font-weight: 500;
+  text-align: left;
   cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.period-picker__button:hover { background: var(--surface-soft); }
+.period-picker__button:hover { border-color: var(--accent); }
+.period-picker__button--open { border-color: var(--accent); box-shadow: var(--focus); }
 .period-picker__button:focus-visible { outline: none; box-shadow: var(--focus); }
-.period-picker__button > svg:first-child { color: var(--accent); }
-.period-picker__button > svg:last-child { color: var(--text-muted); }
+.period-picker__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.period-picker__text { display: grid; flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+.period-picker__name { font-size: 14px; font-weight: 600; }
+.period-picker__dates { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.period-picker__chevron { flex: 0 0 auto; margin-left: 6px; color: var(--text-muted); transition: transform 0.15s; }
+.period-picker__button--open .period-picker__chevron { transform: rotate(180deg); }
 /* .period-picker na frente: as regras do menu "..." (.menu__list, .menu__item) vem depois neste arquivo. */
-.period-picker .period-picker__list { left: 0; right: auto; min-width: 240px; }
+.period-picker .period-picker__list { left: 0; right: auto; min-width: 100%; }
 .period-picker .period-picker__item { padding: 8px 10px; white-space: nowrap; }
 .period-picker__check { display: inline-flex; width: 14px; color: var(--accent); }
 .period-picker__hint { margin-left: auto; padding-left: 16px; color: var(--text-muted); font-size: 12px; }

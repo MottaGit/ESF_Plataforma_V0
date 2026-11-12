@@ -1,9 +1,9 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { todayInputValue } from '../../utils/format';
-import { periodName, periodShortcuts, type PeriodShortcut } from '../../utils/periods';
+import { formatDate, todayInputValue } from '../../utils/format';
+import { periodShortcuts, type PeriodShortcut } from '../../utils/periods';
 import { Button } from './Button';
 import { Field, TextInput } from './Field';
-import { IconCalendar, IconCheck, IconChevronDown } from './Icons';
+import { IconCalendarDays, IconCheck, IconChevronDown } from './Icons';
 import { Modal } from './Modal';
 import { usePopover } from './usePopover';
 
@@ -21,30 +21,37 @@ interface PeriodPickerProps {
 }
 
 /**
- * Periodo (relatorios e painel nacional): o calendario com o periodo escolhido ao lado ("30 dias", "11/04/2026 –
- * 12/11/2026"). Tocar abre os atalhos (ultimos 30 dias, 3, 6 e 12 meses) e, por ultimo, Personalizado: uma janela
- * com a data inicial e a final (ou "Sem data final", ate hoje).
+ * Periodo (relatorios e painel nacional): o calendario, o nome do periodo ("30 dias", "Personalizado") e as datas
+ * embaixo. Tocar abre os atalhos (ultimos 30 dias, 3, 6 e 12 meses) e, por ultimo, Personalizado: uma janela com a
+ * data inicial e a final (ou "Sem data final", ate hoje).
  */
 export function PeriodPicker({ from, to, openEnded = false, onShortcut, onCustom, label = 'Período' }: PeriodPickerProps) {
   const { open, setOpen, ref } = usePopover();
   const [customizing, setCustomizing] = useState(false);
   const shortcuts = useMemo(() => periodShortcuts(), []);
   const active = openEnded ? null : shortcuts.find((item) => item.from === from && item.to === to) ?? null;
-  const name = periodName(from, to, openEnded);
+  const title = active ? active.label : 'Personalizado';
 
   return (
     <div className="period-picker" ref={ref}>
       <button
         type="button"
-        className="period-picker__button"
+        className={`period-picker__button${open ? ' period-picker__button--open' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`${label}: ${name}`}
+        aria-label={`${label}: ${title}, de ${formatDate(from)} a ${formatDate(to)}`}
         onClick={() => setOpen((current) => !current)}
       >
-        <IconCalendar size={16} />
-        <span className="period-picker__name num">{name}</span>
-        <IconChevronDown size={14} />
+        <span className="period-picker__icon" aria-hidden="true">
+          <IconCalendarDays size={18} />
+        </span>
+        <span className="period-picker__text">
+          <span className="period-picker__name">{title}</span>
+          <span className="period-picker__dates num">
+            {formatDate(from)} – {formatDate(to)}
+          </span>
+        </span>
+        <IconChevronDown size={16} className="period-picker__chevron" />
       </button>
 
       {open ? (
@@ -78,7 +85,7 @@ export function PeriodPicker({ from, to, openEnded = false, onShortcut, onCustom
             }}
           >
             <span className="period-picker__check">{!active ? <IconCheck size={14} /> : null}</span>
-            <IconCalendar size={14} />
+            <IconCalendarDays size={14} />
             Personalizado
           </button>
         </div>
