@@ -28,22 +28,9 @@
 .badge--neutral { background: var(--st-plan-bg); color: var(--st-plan-fg); box-shadow: inset 0 0 0 1px var(--border); }
 .badge--birthday { background: var(--celebrate-bg); color: var(--celebrate-fg); }
 
-/* Aniversariante do dia: linha da lista e aviso no topo da pagina de voluntarios. */
+/* Aniversariante do dia: a linha da lista fica rosa-clara (o selo "Aniversario hoje" vai embaixo do nome). */
 .table tbody tr.table__row--birthday { background: var(--celebrate-row); }
 .table tbody tr.table__row--birthday:hover { background: var(--celebrate-row-hover); }
-.birthday-notice {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 10px 14px;
-  border: 1px solid var(--celebrate-border);
-  border-radius: var(--radius);
-  background: var(--celebrate-bg);
-  color: var(--celebrate-strong);
-  font-size: var(--fs-md);
-}
-.birthday-notice__icon { font-size: var(--fs-xl); line-height: 1; }
 
 /* Visao geral: numeros clicaveis (a setinha no canto indica) e quem esta sem tarefa. */
 .stat--link {

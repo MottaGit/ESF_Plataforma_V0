@@ -222,7 +222,7 @@ export function ProjectDetailPage() {
           </Button>
           {canManage ? (
             <>
-              <Button variant="primary" icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
+              <Button icon={<IconEdit size={15} />} onClick={() => setEditing(true)}>
                 Editar projeto
               </Button>
               <span className="only-mobile">

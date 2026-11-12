@@ -196,6 +196,19 @@
 /* Embaixo dos numeros: a explicacao dos resultados e, no canto, o relatorio do programa. */
 .program-overview__foot { display: flex; align-items: flex-start; gap: 8px 16px; margin-top: -4px; }
 .program-overview__note { margin: 0; flex: 1; min-width: 0; }
+.program-overview__how { flex: 1; min-width: 0; }
+.program-overview__how summary {
+  display: inline-block;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  list-style: none;
+}
+.program-overview__how summary::-webkit-details-marker { display: none; }
+.program-overview__how summary::after { content: " ›"; }
+.program-overview__how[open] summary::after { content: " ⌄"; }
+.program-overview__how summary:hover { color: var(--text); }
+.program-overview__how p { margin: 6px 0 0; max-width: 620px; }
 .program-overview__report {
   margin-left: auto;
   display: inline-flex;

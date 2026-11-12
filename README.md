@@ -266,11 +266,11 @@ ativos primeiro e os **arquivados** num grupo embaixo; com 8 programas ou mais a
 e dá para escolher pelo teclado (setas e Enter). No rodapé, para a coordenação, **+ Novo programa**. As abas de antes
 não cabiam num núcleo com dezenas de programas (a maioria de um projeto só). Em **Todos os programas** vem direto a
 lista de projetos; escolhendo um programa aparece a **visão do programa**:
-números (ativos, isto é, em planejamento, em andamento ou pausados, sem os arquivados; concluídos, com os arquivados) e
-os **resultados somados** — os indicadores nacionais e os padrão do modelo, pela regra de **Resultados somados** (abaixo
+embaixo do nome, quantos projetos estão ativos (em planejamento, em andamento ou pausados, sem os arquivados) e
+concluídos (com os arquivados); os cartões são só dos **resultados somados** — os indicadores nacionais e os padrão do modelo, pela regra de **Resultados somados** (abaixo
 de Indicadores): "—" com "não informado" quando nenhum projeto informou, e "informado em 3 de 5 projetos" quando falta
-algum; com **meta do programa**, embaixo do número vem uma barra e "de 55 · 22%" —, e, embaixo dos números, o link
-**Relatório do programa** (qualquer perfil: abre Relatórios com os projetos
+algum; com **meta do programa**, embaixo do número vem uma barra e "de 55 · 22%" —, e, embaixo dos números,
+"Como os resultados são somados" (abre a regra ao toque) e o link **Relatório do programa** (qualquer perfil: abre Relatórios com os projetos
 do programa já marcados, menos cancelados e arquivados, e a lista filtrada nele). Para a coordenação, o topo tem
 só **Página pública**, **Editar programa** e o **⋯** (arquivar/reativar e excluir, só sem projetos). A lista
 embaixo mostra só os projetos daquele programa, e "Novo projeto" já vem com ele escolhido. Os endereços antigos
@@ -540,7 +540,7 @@ os projetos atuais e anteriores; ao lado (embaixo, no celular), a parte administ
 pessoa na aba Equipe do projeto (ver Equipe, acima). O vínculo com projetos (e a função exercida em cada um) pode ser feito
 tanto pela aba de voluntários de cada projeto quanto diretamente ao editar o voluntário, sempre entre projeto e
 voluntário já cadastrados. O cadastro guarda o aniversário (só dia e mês): no dia, a pessoa ganha o selo "Aniversário
-hoje" na lista e no detalhe, e um aviso no topo da página lista os aniversariantes. A foto (opcional) é o primeiro
+hoje" na lista (a linha fica rosa-clara) e no detalhe; o Início lista os aniversariantes. A foto (opcional) é o primeiro
 item do formulário: escolhida do computador e enquadrada num círculo (arrastar e zoom) antes de ser usada; o navegador
 envia só o recorte, um quadrado de 400x400, gravado ao salvar o voluntário (com o enquadramento aberto, o Salvar fica
 desligado até "Usar foto" ou cancelar, para a foto não se perder). O formulário explica cada campo que tem

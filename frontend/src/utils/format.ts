@@ -172,12 +172,6 @@ export function displayName(user: { name: string; volunteerName: string | null }
   return user?.volunteerName ?? user?.name ?? '';
 }
 
-/** "Ana", "Ana e João", "Ana, João e Maria". */
-export function joinNames(names: string[]) {
-  if (names.length <= 1) return names[0] ?? '';
-  return `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
-}
-
 /** "12 de março" (aniversario guarda so dia e mes). */
 export function birthdayLabel(day: number | null, month: number | null) {
   if (!day || !month) return null;
@@ -242,6 +236,14 @@ export function dueDateLabel(dueDate: string | null) {
   const [year, month, day] = dueDate.slice(0, 10).split('-');
   const sameYear = Number(year) === new Date().getFullYear();
   return `até ${day}/${month}${sameYear ? '' : `/${year}`}`;
+}
+
+/** Dia curto: "11/11" (com o ano so quando nao e o deste ano). Para cartoes estreitos, como o do quadro. */
+export function shortDate(value: string | null | undefined) {
+  if (!value) return '—';
+  const [year, month, day] = value.slice(0, 10).split('-');
+  if (!year || !month || !day) return '—';
+  return Number(year) === new Date().getFullYear() ? `${day}/${month}` : `${day}/${month}/${year}`;
 }
 
 /** Detalhe do prazo para a dica do mouse: "Prazo: 14/07/2026 (atrasada 3 dias)". */

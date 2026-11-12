@@ -617,37 +617,17 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
   const archived = program.status === 'Arquivado';
   const editUrl = `/programas/${program.id}/editar`;
   const templateUrl = `${editUrl}?aba=modelo`;
-  const numbers = [
-    {
-      key: 'active',
-      value: String(program.activeProjectsCount),
-      label: program.activeProjectsCount === 1 ? 'ativo' : 'ativos',
-      title: 'Em planejamento, em andamento ou pausados' as string | undefined,
-      note: null as string | null,
-      total: null as number | null,
-      goal: null as number | null
-    },
-    {
-      key: 'done',
-      value: String(program.doneProjectsCount),
-      label: program.doneProjectsCount === 1 ? 'concluído' : 'concluídos',
-      title: undefined as string | undefined,
-      note: null as string | null,
-      total: null as number | null,
-      goal: null as number | null
-    },
-    // Resultados pela regra unica: "—" quando nenhum projeto informou (nao e zero).
-    ...program.results.map((result) => ({
-      key: `r-${result.name}`,
-      value: result.total == null ? '—' : formatNumber(result.total),
-      label: result.name,
-      title: result.name as string | undefined,
-      note: result.total == null ? 'não informado' : coverageLabel(result.informed, result.projects),
-      // Meta do programa (do modelo): "de 55 · 22%" com a barra.
-      total: result.total,
-      goal: result.target
-    }))
-  ];
+  // Os cartoes sao so dos resultados (pela regra unica: "—" quando nenhum projeto informou, que nao e zero). Ativos e
+  // concluidos, numeros pequenos, ficam na linha de baixo do nome.
+  const numbers = program.results.map((result) => ({
+    key: `r-${result.name}`,
+    value: result.total == null ? '—' : formatNumber(result.total),
+    label: result.name,
+    note: result.total == null ? 'não informado' : coverageLabel(result.informed, result.projects),
+    // Meta do programa (do modelo): "de 55 · 22%" com a barra.
+    total: result.total,
+    goal: result.target
+  }));
 
   return (
     <section className="panel program-overview" aria-label={program.name}>
@@ -659,6 +639,15 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
             {archived
               ? 'Programa arquivado: não aparece em novos projetos.'
               : `${program.projectsCount} ${program.projectsCount === 1 ? 'projeto' : 'projetos'} no programa`}
+            {program.projectsCount > 0 ? (
+              <>
+                {' · '}
+                <span title="Em planejamento, em andamento ou pausados">
+                  {program.activeProjectsCount} {program.activeProjectsCount === 1 ? 'ativo' : 'ativos'}
+                </span>
+                {` · ${program.doneProjectsCount} ${program.doneProjectsCount === 1 ? 'concluído' : 'concluídos'}`}
+              </>
+            ) : null}
             {canManage && program.publicPage ? ' · página pública ligada' : ''}
           </span>
           {program.partners.length > 0 ? (
@@ -686,29 +675,35 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
           </div>
         ) : null}
       </div>
-      <div className="program-overview__numbers">
-        {numbers.map((item) => (
-          <div key={item.key} className="program-overview__number" title={item.title}>
-            <b className="num">{item.value}</b>
-            <span>{item.label}</span>
-            {item.goal != null ? <GoalProgress value={item.total} target={item.goal} /> : null}
-            {item.note ? <span className="program-overview__coverage">{item.note}</span> : null}
-          </div>
-        ))}
-      </div>
+      {numbers.length > 0 ? (
+        <div className="program-overview__numbers">
+          {numbers.map((item) => (
+            <div key={item.key} className="program-overview__number" title={item.label}>
+              <b className="num">{item.value}</b>
+              <span>{item.label}</span>
+              {item.goal != null ? <GoalProgress value={item.total} target={item.goal} /> : null}
+              {item.note ? <span className="program-overview__coverage">{item.note}</span> : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="program-overview__foot">
         {program.results.length > 0 ? (
-          <p className="field__hint program-overview__note">
-            Resultados: os indicadores nacionais e os do modelo, somados nos projetos do programa (só o que foi
-            informado; arquivados entram, cancelados não).
-            {canManage && !program.results.some((result) => !result.national) ? (
-              <>
-                {' '}
-                Para somar outros resultados, inclua indicadores padrão no{' '}
-                <Link to={templateUrl}>modelo de projeto</Link>.
-              </>
-            ) : null}
-          </p>
+          // A regra da soma abre ao toque: fechada, nao disputa espaco com os numeros.
+          <details className="program-overview__how">
+            <summary>Como os resultados são somados</summary>
+            <p className="field__hint">
+              Os indicadores nacionais e os do modelo, somados nos projetos do programa (só o que foi informado;
+              arquivados entram, cancelados não).
+              {canManage && !program.results.some((result) => !result.national) ? (
+                <>
+                  {' '}
+                  Para somar outros resultados, inclua indicadores padrão no{' '}
+                  <Link to={templateUrl}>modelo de projeto</Link>.
+                </>
+              ) : null}
+            </p>
+          </details>
         ) : canManage ? (
           <p className="field__hint program-overview__note">
             Para ver resultados somados aqui, inclua indicadores padrão no <Link to={templateUrl}>modelo de projeto</Link>.

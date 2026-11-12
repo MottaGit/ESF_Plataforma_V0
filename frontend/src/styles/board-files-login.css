@@ -35,6 +35,11 @@
   font-weight: 600;
   color: var(--text-muted);
 }
+.board__dot { width: 8px; height: 8px; flex: 0 0 auto; align-self: center; border-radius: 50%; }
+.board__dot--AFazer { background: var(--st-plan-fg); }
+.board__dot--EmAndamento { background: var(--st-run-fg); }
+.board__dot--Bloqueada { background: var(--st-blocked-fg); }
+.board__dot--Concluida { background: var(--st-done-fg); }
 .board__hint { font-size: var(--fs-xs); font-weight: 400; color: var(--text-soft); }
 .board__count { margin-left: auto; font-weight: 500; }
 .board__empty { font-size: var(--fs-xs); color: var(--text-soft); padding: 6px 4px; }

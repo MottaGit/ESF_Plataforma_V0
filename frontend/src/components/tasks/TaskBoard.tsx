@@ -17,7 +17,7 @@ import {
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Activity, ActivityStatus } from '../../types/api';
-import { dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
+import { dueDateLabel, dueDateTitle, formatDate, shortDate } from '../../utils/format';
 import { ActivityCounters } from '../projects/ActivityCounters';
 import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
@@ -135,6 +135,8 @@ function BoardColumn({ status, title, hint, count, children }: BoardColumnProps)
   return (
     <section ref={setNodeRef} className={`board__col${highlighted ? ' board__col--over' : ''}`} aria-label={title}>
       <header className="board__head">
+        {/* Bolinha na cor do selo de status (a mesma da lista). */}
+        <span className={`board__dot board__dot--${status}`} aria-hidden="true" />
         <span>{title}</span>
         {hint ? <span className="board__hint">{hint}</span> : null}
         <span className="board__count num">{count}</span>
@@ -212,13 +214,12 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
 
         <span
           className={`board-card__due${!done && isOverdue(activity) ? ' board-card__due--late' : ''}`}
-          title={done ? undefined : dueDateTitle(activity.dueDate)}
+          title={
+            done ? (activity.completedAt ? `Concluída em ${formatDate(activity.completedAt)}` : undefined) : dueDateTitle(activity.dueDate)
+          }
         >
-          {done
-            ? activity.completedAt
-              ? `concluída em ${formatDate(activity.completedAt)}`
-              : 'concluída'
-            : dueDateLabel(activity.dueDate)}
+          {/* Ja esta na coluna Concluidas: basta o dia curto, e o nome da pessoa nao corta. */}
+          {done ? (activity.completedAt ? `em ${shortDate(activity.completedAt)}` : 'concluída') : dueDateLabel(activity.dueDate)}
         </span>
       </div>
 

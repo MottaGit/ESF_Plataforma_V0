@@ -24,7 +24,6 @@ import {
   emptyToNull,
   isBirthdayToday,
   isPastProjectStatus,
-  joinNames,
   sectorLabel,
   todayInputValue,
   volunteerStatusLabel
@@ -134,7 +133,6 @@ export function VolunteersPage() {
       (onlyPendingTerm ? needsTerm(volunteer) : situation.test(volunteer)) && (!accessFilter || accessFilter.test(volunteer))
   );
   const pending = canManage ? volunteers.filter(needsTerm) : [];
-  const birthdayPeople = volunteers.filter((volunteer) => isBirthdayToday(volunteer.birthDay, volunteer.birthMonth));
 
   function clearFilters() {
     setSearch('');
@@ -236,17 +234,6 @@ export function VolunteersPage() {
           <Button small variant="ghost" onClick={() => updateParams({ termo: onlyPendingTerm ? null : 'pendente' })}>
             {onlyPendingTerm ? 'Mostrar todos' : 'Ver quem falta'}
           </Button>
-        </div>
-      ) : null}
-
-      {birthdayPeople.length > 0 ? (
-        <div className="birthday-notice" role="status">
-          <span className="birthday-notice__icon" aria-hidden="true">
-            🎂
-          </span>
-          <span>
-            Hoje é aniversário de <strong>{joinNames(birthdayPeople.map((volunteer) => volunteer.name))}</strong>.
-          </span>
         </div>
       ) : null}
 
