@@ -113,6 +113,28 @@ const shiftPhrases: Record<Shift, string> = { Manha: 'de manhã', Tarde: 'à tar
 /** Turno no meio de uma frase: "segunda de manhã", "quinta à tarde". */
 export const shiftPhrase = (shift: Shift) => shiftPhrases[shift] ?? shift;
 
+const WEEK_DAY_SHORT_BY_JS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const WEEK_DAY_LONG_BY_JS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
+/** Dia da semana de uma data "2026-11-20" (0 = domingo, como no Date). */
+function weekDayIndex(date: string) {
+  return new Date(`${date.slice(0, 10)}T00:00:00`).getDay();
+}
+
+/** Dia da visita nas listas: "qui 20/11 · tarde" (com o ano quando nao e o deste ano). */
+export function visitDayLabel(date: string | null, shift: Shift | null) {
+  if (!date) return 'sem dia';
+  const day = `${WEEK_DAY_SHORT_BY_JS[weekDayIndex(date)]} ${shortDate(date)}`;
+  return shift ? `${day} · ${shiftLabel(shift).toLowerCase()}` : day;
+}
+
+/** Dia da visita por extenso, na janela da tarefa: "quinta, 20/11/2026 à tarde, 14:30". */
+export function visitWhenLabel(date: string | null, shift: Shift | null, time: string | null) {
+  if (!date) return 'Sem dia marcado';
+  const day = `${WEEK_DAY_LONG_BY_JS[weekDayIndex(date)]}, ${formatDate(date)}`;
+  return `${day}${shift ? ` ${shiftPhrase(shift)}` : ''}${time ? `, ${time}` : ''}`;
+}
+
 export const roleDescription: Record<UserRole, string> = {
   Administrador: 'Acesso completo, incluindo usuários e dados da organização.',
   Coordenador: 'Cria e gerencia projetos, voluntários e indicadores.',

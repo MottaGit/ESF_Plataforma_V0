@@ -836,7 +836,10 @@ public static class ProjectReportBuilder
                 foreach (var task in tasks)
                 {
                     table.Cell().Element(BodyCell).Text(task.Title);
-                    table.Cell().Element(BodyCell).Text(task.AssignedVolunteer?.Name ?? "-");
+                    // Visita: as duas pessoas que foram.
+                    var who = string.Join(" e ", new[] { task.AssignedVolunteer?.Name, task.CompanionVolunteer?.Name }
+                        .Where(name => name is not null));
+                    table.Cell().Element(BodyCell).Text(who.Length > 0 ? who : "-");
                     table.Cell().Element(BodyCell).Text(TextHelpers.BrasiliaDay(task.CompletedAt!.Value).ToString("dd/MM/yyyy"));
                 }
             });

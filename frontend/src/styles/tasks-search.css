@@ -299,6 +299,12 @@
 .task-row__who { display: flex; align-items: center; gap: 7px; width: 170px; flex: 0 0 auto; font-size: var(--fs-sm); }
 .task-row__who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-row__who--none { color: var(--warning); font-weight: 500; }
+/* Quem esta na tarefa; na visita, as duas fotos sobrepostas e "Ana e Bruno". */
+.task-people { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.task-people__faces { display: inline-flex; flex: 0 0 auto; }
+.task-people__faces > * + * { margin-left: -7px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+.task-row__who .task-people__faces, .task-row__who .task-people__faces span { overflow: visible; }
+.task-people__names { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-row__due { width: 96px; flex: 0 0 auto; text-align: right; font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
 .task-row__due--late { color: var(--danger); font-weight: 600; }
 .task-row--done .task-row__title { color: var(--text-muted); text-decoration: line-through; }

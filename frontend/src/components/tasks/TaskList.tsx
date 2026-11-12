@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { Activity, ActivityStatus } from '../../types/api';
-import { activityStatusLabel, daysFromToday, dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
+import { activityStatusLabel, daysFromToday, dueDateTitle, formatDate } from '../../utils/format';
 import { ProgramMark } from '../programs/ProgramMark';
 import { ActivityCounters } from '../projects/ActivityCounters';
-import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { EmptyState } from '../ui/Feedback';
-import { DONE_DAYS, compareDone, compareOpen, isOverdue } from './taskUtils';
+import { TaskPeople, VisitBadge } from './TaskPeople';
+import { DONE_DAYS, compareDone, compareOpen, dueText, isOverdue, peopleLabel } from './taskUtils';
 
 /** Quantas tarefas cada grupo mostra antes do "Mostrar mais". */
 const GROUP_VISIBLE = 10;
@@ -155,6 +155,7 @@ function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: Task
       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
         <span className="task-row__title">
           {activity.title}
+          <VisitBadge activity={activity} />
           {!done ? <UrgentBadge priority={activity.priority} /> : null}
         </span>
         <span className="task-row__meta">
@@ -167,7 +168,7 @@ function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: Task
           </span>
           {/* No celular as colunas de responsavel e status somem: o essencial vem aqui. */}
           <span className={`task-row__mobile${activity.assignedVolunteerName ? '' : ' task-row__mobile--none'}`}>
-            {activity.assignedVolunteerName ? activity.assignedVolunteerName.split(' ')[0] : 'Sem responsável'}
+            {peopleLabel(activity, true)}
           </span>
           {activity.status === 'EmAndamento' || activity.status === 'Bloqueada' ? (
             <span className={`task-row__mobile task-row__mobile--${activity.status === 'Bloqueada' ? 'blocked' : 'running'}`}>
@@ -193,20 +194,13 @@ function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: Task
         />
       </span>
       <span className={`task-row__who${activity.assignedVolunteerName ? '' : ' task-row__who--none'}`}>
-        {activity.assignedVolunteerName ? (
-          <>
-            <Avatar name={activity.assignedVolunteerName} photoUrl={activity.assignedVolunteerPhotoUrl} size={22} />
-            <span>{activity.assignedVolunteerName}</span>
-          </>
-        ) : (
-          'Sem responsável'
-        )}
+        {activity.assignedVolunteerName ? <TaskPeople activity={activity} /> : 'Sem responsável'}
       </span>
       <span
         className={`task-row__due${late ? ' task-row__due--late' : ''}`}
-        title={done ? undefined : dueDateTitle(activity.dueDate)}
+        title={done || activity.kind === 'Visita' ? undefined : dueDateTitle(activity.dueDate)}
       >
-        {done ? (activity.completedAt ? `concluída em ${formatDate(activity.completedAt)}` : 'concluída') : dueDateLabel(activity.dueDate)}
+        {done ? (activity.completedAt ? `concluída em ${formatDate(activity.completedAt)}` : 'concluída') : dueText(activity)}
       </span>
     </li>
   );

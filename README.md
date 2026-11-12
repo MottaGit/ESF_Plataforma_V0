@@ -485,6 +485,18 @@ escolhido ("2 tarefas em aberto, 1 atrasada."). O filtro de responsável fica na
 (`?aba=tarefas&responsavel={voluntário}`; `responsavel=sem` para as sem responsável), junto com o "Só atrasadas"
 (`filtro=atrasadas`).
 
+**Visitas** — tarefa do tipo **Visita** (à obra, à família): no formulário da tarefa, o campo **Tipo** alterna entre
+Tarefa e Visita, e a aba Tarefas do projeto tem também o botão **Nova visita**. A visita pede o **dia** (é o prazo da
+tarefa), o **turno** (manhã, tarde ou noite), a **hora** combinada (opcional) e **sempre duas pessoas**: o
+responsável e o **acompanhante** (diferentes; a API recusa sem um deles). Os dois entram na equipe do projeto, recebem
+o aviso "marcou você para a visita X (qui, 20/11 à tarde)", os de mudança de status e de comentário e, na véspera e
+no dia, o lembrete "Visita X amanhã/hoje à tarde". A visita conta para os dois em Minhas tarefas, no filtro de
+responsável, na carga mostrada ao escolher o responsável, em "Quem está sem tarefa" e na saída do núcleo (liberar as
+tarefas tira a pessoa da visita, como responsável ou acompanhante). Nas listas e no quadro, a visita tem o selo
+**Visita**, as duas fotos sobrepostas com "Ana e Bruno" e, no lugar do prazo, o dia e o turno ("qui 20/11 · tarde");
+na janela, **Quando** ("quinta, 20/11/2026 à tarde, 14:30") e **Quem vai**. Voltar para Tarefa apaga turno, hora e
+acompanhante. No PDF, as tarefas concluídas da visita mostram as duas pessoas.
+
 **Equipe** — uma linha por pessoa, o responsável pelo projeto primeiro: foto, nome (leva à página do voluntário, onde
 fica o contato) com o setor ao lado, em cinza, e embaixo a função no projeto ("Responsável · projeto elétrico"); à
 direita, as tarefas em aberto no projeto ("3 tarefas · 1 atrasada", só o "atrasada" em vermelho; tocar abre a aba
@@ -1078,7 +1090,7 @@ ESF_Plataforma_V0/
 | `Programs` | programas (nome, situação, ícone, cor, a ficha — `Description` "o que faz", `Objective`, `Audience` "para quem" — e o código do link da página pública, vazio com ela desligada) |
 | `ProgramTemplateActivities` / `ProgramTemplateIndicators` | tarefas e indicadores padrão do modelo de cada programa (o indicador com a meta do programa, opcional) |
 | `ProgramPartners` | parceiros de cada programa (ordem, nome, papel, pessoa de contato, e-mail, telefone, observações) |
-| `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional) |
+| `Activities` | tarefas do projeto (FK `ProjectId`, responsável opcional; na visita, `Kind = Visita`, turno, hora e o acompanhante `CompanionVolunteerId`) |
 | `ActivityChecklistItems` | itens do checklist de cada tarefa (texto, feito, ordem) |
 | `ActivityComments` | comentários das tarefas (autor, texto, voluntários mencionados, edição) |
 | `Indicators` | indicadores do projeto (nome, valor — vazio é "não informado" — e unidade; `NationalIndicatorId` quando é um indicador nacional) |

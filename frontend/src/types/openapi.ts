@@ -44,7 +44,15 @@ export interface ActivityDto {
   commentsCount: number;
   programIcon: string | null;
   programColor: string | null;
+  kind: ActivityKind;
+  visitShift: Shift | null;
+  visitTime: string | null;
+  companionVolunteerId: string | null;
+  companionVolunteerName: string | null;
+  companionVolunteerPhotoUrl: string | null;
 }
+
+export type ActivityKind = 'Tarefa' | 'Visita';
 
 export type ActivityPriority = 'Baixa' | 'Media' | 'Alta';
 
@@ -690,6 +698,10 @@ export interface SaveActivityRequest {
   priority: ActivityPriority;
   dueDate: string | null;
   blockedReason: string | null;
+  kind: ActivityKind;
+  visitShift: Shift | null;
+  visitTime: string | null;
+  companionVolunteerId: string | null;
 }
 
 export interface SaveAvailabilityRequest {

@@ -36,8 +36,7 @@ public class VolunteerService
     /// arquivados (o mesmo recorte do Inicio, da escolha do responsavel e da saida do nucleo).
     /// </summary>
     private IQueryable<Activity> OpenTasksOf(Guid volunteerId) =>
-        _db.Activities.Where(a => a.AssignedVolunteerId == volunteerId
-                                  && a.Status != ActivityStatus.Concluida
+        _db.Activities.Involving(volunteerId).Where(a => a.Status != ActivityStatus.Concluida
                                   && !a.Project!.IsArchived
                                   && (a.Project.Status == ProjectStatus.Planejamento
                                       || a.Project.Status == ProjectStatus.EmAndamento));
@@ -105,19 +104,21 @@ public class VolunteerService
     public async Task<List<VolunteerLoadDto>> LoadAsync()
     {
         var today = Mapping.Today;
-        var open = await _db.Activities
-            .Where(a => a.AssignedVolunteerId != null
+        // Responsavel e acompanhante (na visita) contam igual. O volume e pequeno: a soma e feita em memoria.
+        var tasks = await _db.Activities
+            .Where(a => (a.AssignedVolunteerId != null || a.CompanionVolunteerId != null)
                         && a.Status != ActivityStatus.Concluida
                         && !a.Project!.IsArchived
                         && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento))
-            .GroupBy(a => a.AssignedVolunteerId!.Value)
-            .Select(g => new
-            {
-                g.Key,
-                Open = g.Count(),
-                Late = g.Count(a => a.DueDate.HasValue && a.DueDate.Value < today)
-            })
-            .ToDictionaryAsync(x => x.Key, x => (x.Open, x.Late));
+            .Select(a => new { a.AssignedVolunteerId, a.CompanionVolunteerId, a.DueDate })
+            .ToListAsync();
+        var open = tasks
+            .SelectMany(a => new[] { a.AssignedVolunteerId, a.CompanionVolunteerId }
+                .Where(id => id.HasValue)
+                .Distinct()
+                .Select(id => (VolunteerId: id!.Value, Late: a.DueDate.HasValue && a.DueDate.Value < today)))
+            .GroupBy(x => x.VolunteerId)
+            .ToDictionary(g => g.Key, g => (Open: g.Count(), Late: g.Count(x => x.Late)));
 
         var volunteers = await _db.Volunteers
             .AsNoTracking()
@@ -264,7 +265,10 @@ public class VolunteerService
             if (request.DeactivateAccess) await DeactivateAccessAsync(volunteer.Id);
             if (request.ReleaseTasks)
                 foreach (var task in await OpenTasksOf(volunteer.Id).ToListAsync())
-                    task.AssignedVolunteerId = null;
+                {
+                    if (task.AssignedVolunteerId == volunteer.Id) task.AssignedVolunteerId = null;
+                    if (task.CompanionVolunteerId == volunteer.Id) task.CompanionVolunteerId = null;
+                }
         }
         await _db.SaveChangesAsync();
 

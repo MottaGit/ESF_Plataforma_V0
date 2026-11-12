@@ -28,6 +28,7 @@ public class DashboardService
             .AsNoTracking()
             .Include(a => a.Project).ThenInclude(p => p!.Program)
             .Include(a => a.AssignedVolunteer)
+            .Include(a => a.CompanionVolunteer)
             .Where(a => a.Status != ActivityStatus.Concluida
                         && !a.Project!.IsArchived
                         && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento))
@@ -53,7 +54,8 @@ public class DashboardService
         if (myVolunteerId.HasValue)
         {
             var volunteerId = myVolunteerId.Value;
-            var myOpen = open.Where(a => a.AssignedVolunteerId == volunteerId).ToList();
+            // Na visita, o acompanhante tambem tem a tarefa.
+            var myOpen = open.Where(a => a.Involves(volunteerId)).ToList();
             mine = new MyActivitiesDto(myOpen.Count, myOpen.Count(IsLate), myOpen.Count(IsBlocked));
 
             var tasks = myOpen
@@ -99,10 +101,7 @@ public class DashboardService
     /// </summary>
     private async Task<List<IdleVolunteerDto>> IdleVolunteersAsync(List<Activity> open)
     {
-        var busy = open
-            .Where(a => a.AssignedVolunteerId.HasValue)
-            .Select(a => a.AssignedVolunteerId!.Value)
-            .ToHashSet();
+        var busy = open.SelectMany(ActivityPeople.Of).ToHashSet();
 
         var volunteers = await _db.Volunteers
             .AsNoTracking()

@@ -138,6 +138,7 @@ public class ProjectService
             .Include(p => p.Program)
             .Include(p => p.OwnerVolunteer)
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
+            .Include(p => p.Activities).ThenInclude(a => a.CompanionVolunteer)
             .Include(p => p.Volunteers).ThenInclude(pv => pv.Volunteer)
             .Include(p => p.Indicators)
             .FirstOrDefaultAsync(p => p.Id == id);

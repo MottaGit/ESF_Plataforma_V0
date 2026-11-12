@@ -5,7 +5,7 @@ import { activitiesApi, projectsApi, volunteersApi } from '../api/endpoints';
 import { BlockActivityDialog } from '../components/projects/BlockActivityDialog';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
 import { TaskList } from '../components/tasks/TaskList';
-import { isOverdue, normalize, useJustDone, withStatus } from '../components/tasks/taskUtils';
+import { involves, isOverdue, normalize, peopleOf, useJustDone, withStatus } from '../components/tasks/taskUtils';
 import { Button } from '../components/ui/Button';
 import { Field, Select, TextInput } from '../components/ui/Field';
 import { Alert, LoadError, Loading } from '../components/ui/Feedback';
@@ -161,9 +161,7 @@ export function TasksPage() {
   const assigneeOptions = useMemo(
     () =>
       uniqueOptions(
-        activities
-          .filter((a) => a.assignedVolunteerId)
-          .map((a) => [a.assignedVolunteerId!, a.assignedVolunteerName ?? 'Voluntário'])
+        activities.flatMap((a) => peopleOf(a).map((person): [string, string] => [person.id, person.name]))
       ),
     [activities]
   );
@@ -171,11 +169,12 @@ export function TasksPage() {
   // Filtros (sem o recorte): base dos numeros dos atalhos.
   const term = normalize(query.trim());
   const filtered = activities.filter((activity) => {
-    if (mine && activity.assignedVolunteerId !== myVolunteerId) return false;
+    // Na visita, o acompanhante tambem tem a tarefa.
+    if (mine && !involves(activity, myVolunteerId)) return false;
     if (programFilter && activity.programId !== programFilter) return false;
     if (projectFilter && activity.projectId !== projectFilter) return false;
     if (assigneeFilter === UNASSIGNED && activity.assignedVolunteerId) return false;
-    if (assigneeFilter && assigneeFilter !== UNASSIGNED && activity.assignedVolunteerId !== assigneeFilter) return false;
+    if (assigneeFilter && assigneeFilter !== UNASSIGNED && !involves(activity, assigneeFilter)) return false;
     if (term && !normalize(`${activity.title} ${activity.projectName ?? ''}`).includes(term)) return false;
     return true;
   });

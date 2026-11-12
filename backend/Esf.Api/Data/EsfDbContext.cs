@@ -254,6 +254,12 @@ public class EsfDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.AssignedVolunteerId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            e.Property(x => x.VisitTime).HasMaxLength(5);
+            e.HasOne(x => x.CompanionVolunteer)
+                .WithMany()
+                .HasForeignKey(x => x.CompanionVolunteerId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<ActivityChecklistItem>(e =>

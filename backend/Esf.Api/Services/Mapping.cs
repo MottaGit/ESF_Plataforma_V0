@@ -65,7 +65,13 @@ public static class Mapping
             counts?.Attachments ?? 0,
             counts?.Comments ?? 0,
             a.Project?.Program?.Icon,
-            a.Project?.Program?.Color);
+            a.Project?.Program?.Color,
+            a.Kind,
+            a.VisitShift,
+            a.VisitTime,
+            a.CompanionVolunteerId,
+            a.CompanionVolunteer?.Name,
+            PhotoUrl(a.CompanionVolunteer?.PhotoStoredName));
 
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt, i.NationalIndicatorId, i.ValueUpdatedAt);

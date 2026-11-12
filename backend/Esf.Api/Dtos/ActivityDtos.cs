@@ -31,7 +31,14 @@ public record ActivityDto(
     int CommentsCount,
     // Icone e cor do programa (preenchidos quando o projeto e seu programa foram carregados).
     string? ProgramIcon,
-    string? ProgramColor);
+    string? ProgramColor,
+    // Visita: dia (DueDate), turno, hora opcional e a segunda pessoa (acompanhante).
+    ActivityKind Kind,
+    Shift? VisitShift,
+    string? VisitTime,
+    Guid? CompanionVolunteerId,
+    string? CompanionVolunteerName,
+    string? CompanionVolunteerPhotoUrl);
 
 public record ChecklistItemDto(Guid Id, string Text, bool Done, DateTime? DoneAt);
 
@@ -102,6 +109,17 @@ public class SaveActivityRequest
     /// <summary>Opcional; so e guardado quando o status e Bloqueada.</summary>
     [StringLength(300, ErrorMessage = "Descreva o bloqueio em até 300 caracteres.")]
     public string? BlockedReason { get; set; }
+
+    /// <summary>Tarefa comum (padrao) ou visita: a visita pede dia (DueDate), turno e duas pessoas diferentes.</summary>
+    public ActivityKind Kind { get; set; } = ActivityKind.Tarefa;
+
+    public Shift? VisitShift { get; set; }
+
+    [RegularExpression(@"^([01]\d|2[0-3]):[0-5]\d$", ErrorMessage = "Informe a hora da visita como 14:30.")]
+    public string? VisitTime { get; set; }
+
+    /// <summary>Segunda pessoa da visita (ignorada nas tarefas comuns).</summary>
+    public Guid? CompanionVolunteerId { get; set; }
 }
 
 public class UpdateActivityStatusRequest

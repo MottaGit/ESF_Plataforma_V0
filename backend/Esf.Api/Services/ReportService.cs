@@ -55,6 +55,7 @@ public class ReportService
             .Include(p => p.Indicators)
             .Include(p => p.Updates).ThenInclude(u => u.Attachments)
             .Include(p => p.Activities).ThenInclude(a => a.AssignedVolunteer)
+            .Include(p => p.Activities).ThenInclude(a => a.CompanionVolunteer)
             .Where(p => ids.Contains(p.Id))
             .ToListAsync();
 

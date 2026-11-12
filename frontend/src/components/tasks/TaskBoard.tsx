@@ -17,11 +17,11 @@ import {
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Activity, ActivityStatus } from '../../types/api';
-import { dueDateLabel, dueDateTitle, formatDate, shortDate } from '../../utils/format';
+import { dueDateTitle, formatDate, shortDate } from '../../utils/format';
 import { ActivityCounters } from '../projects/ActivityCounters';
-import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
-import { DONE_DAYS, compareDone, compareOpen, isOverdue } from './taskUtils';
+import { TaskPeople, VisitBadge } from './TaskPeople';
+import { DONE_DAYS, compareDone, compareOpen, dueText, isOverdue } from './taskUtils';
 
 const COLUMNS: Array<{ status: ActivityStatus; title: string; hint?: string }> = [
   { status: 'AFazer', title: 'Não iniciadas' },
@@ -182,6 +182,7 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
         <button type="button" className="board-card__title">
           {activity.title}
         </button>
+        <VisitBadge activity={activity} />
         {!done ? <UrgentBadge priority={activity.priority} /> : null}
       </div>
 
@@ -205,8 +206,7 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
       <div className="board-card__foot">
         {activity.assignedVolunteerName ? (
           <span className="board-card__person">
-            <Avatar name={activity.assignedVolunteerName} photoUrl={activity.assignedVolunteerPhotoUrl} size={20} />
-            <span className="board-card__name">{activity.assignedVolunteerName}</span>
+            <TaskPeople activity={activity} size={20} />
           </span>
         ) : (
           <span className="board-card__person board-card__person--none">Sem responsável</span>
@@ -215,11 +215,17 @@ function BoardCard({ activity, onOpen, onStatusChange, overlay, cardRef, listene
         <span
           className={`board-card__due${!done && isOverdue(activity) ? ' board-card__due--late' : ''}`}
           title={
-            done ? (activity.completedAt ? `Concluída em ${formatDate(activity.completedAt)}` : undefined) : dueDateTitle(activity.dueDate)
+            done
+              ? activity.completedAt
+                ? `Concluída em ${formatDate(activity.completedAt)}`
+                : undefined
+              : activity.kind === 'Visita'
+                ? undefined
+                : dueDateTitle(activity.dueDate)
           }
         >
           {/* Ja esta na coluna Concluidas: basta o dia curto, e o nome da pessoa nao corta. */}
-          {done ? (activity.completedAt ? `em ${shortDate(activity.completedAt)}` : 'concluída') : dueDateLabel(activity.dueDate)}
+          {done ? (activity.completedAt ? `em ${shortDate(activity.completedAt)}` : 'concluída') : dueText(activity)}
         </span>
       </div>
 

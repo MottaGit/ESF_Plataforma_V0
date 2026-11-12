@@ -72,6 +72,9 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid?>("CompanionVolunteerId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -83,6 +86,9 @@ namespace Esf.Api.Data.Migrations
 
                     b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
@@ -98,9 +104,18 @@ namespace Esf.Api.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int?>("VisitShift")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VisitTime")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedVolunteerId");
+
+                    b.HasIndex("CompanionVolunteerId");
 
                     b.HasIndex("ProjectId");
 
@@ -1257,6 +1272,11 @@ namespace Esf.Api.Data.Migrations
                         .HasForeignKey("AssignedVolunteerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Esf.Api.Domain.Entities.Volunteer", "CompanionVolunteer")
+                        .WithMany()
+                        .HasForeignKey("CompanionVolunteerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Esf.Api.Domain.Entities.Project", "Project")
                         .WithMany("Activities")
                         .HasForeignKey("ProjectId")
@@ -1264,6 +1284,8 @@ namespace Esf.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedVolunteer");
+
+                    b.Navigation("CompanionVolunteer");
 
                     b.Navigation("Project");
                 });

@@ -1,6 +1,33 @@
 import { useCallback, useState } from 'react';
 import type { Activity, ActivityPriority, ActivityStatus } from '../../types/api';
-import { daysFromToday } from '../../utils/format';
+import { daysFromToday, dueDateLabel, visitDayLabel } from '../../utils/format';
+
+/** A pessoa esta na tarefa: responsavel ou, na visita, acompanhante. */
+export function involves(activity: Activity, volunteerId: string | null | undefined) {
+  return Boolean(volunteerId) && (activity.assignedVolunteerId === volunteerId || activity.companionVolunteerId === volunteerId);
+}
+
+/** Responsavel e acompanhante (na visita), com nome e foto. */
+export function peopleOf(activity: Activity) {
+  const people: Array<{ id: string; name: string; photoUrl: string | null }> = [];
+  if (activity.assignedVolunteerId && activity.assignedVolunteerName)
+    people.push({ id: activity.assignedVolunteerId, name: activity.assignedVolunteerName, photoUrl: activity.assignedVolunteerPhotoUrl });
+  if (activity.companionVolunteerId && activity.companionVolunteerName)
+    people.push({ id: activity.companionVolunteerId, name: activity.companionVolunteerName, photoUrl: activity.companionVolunteerPhotoUrl });
+  return people;
+}
+
+/** "Ana Aumond"; na visita, "Ana e Bruno" (so os primeiros nomes); "Sem responsável" quando nao ha ninguem. */
+export function peopleLabel(activity: Activity, firstNamesOnly = false) {
+  const names = peopleOf(activity).map((person) => person.name);
+  if (names.length === 0) return 'Sem responsável';
+  return (firstNamesOnly || names.length > 1 ? names.map((name) => name.split(' ')[0]) : names).join(' e ');
+}
+
+/** Data da tarefa nas listas: a visita mostra o dia e o turno ("qui 20/11 · tarde"); a tarefa, o prazo. */
+export function dueText(activity: Activity) {
+  return activity.kind === 'Visita' ? visitDayLabel(activity.dueDate, activity.visitShift) : dueDateLabel(activity.dueDate);
+}
 
 /**
  * Tarefas concluidas nesta visita a tela, guardadas como estavam antes (status e motivo do bloqueio): ficam riscadas

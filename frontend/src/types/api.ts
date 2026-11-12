@@ -128,6 +128,9 @@ export type ProjectListItem = G.ProjectListItemDto;
 
 export type Activity = G.ActivityDto;
 
+/** Tarefa comum ou visita (dia, turno e duas pessoas: responsavel e acompanhante). */
+export type ActivityKind = G.ActivityKind;
+
 export type ChecklistItem = G.ChecklistItemDto;
 
 /** O que fica dentro da atividade: checklist, anexos e comentarios. */
@@ -283,8 +286,14 @@ export interface SaveActivityPayload {
   assignedVolunteerId: string | null;
   status: ActivityStatus;
   priority: ActivityPriority;
+  /** Na visita, o dia dela (obrigatorio). */
   dueDate: string | null;
   blockedReason: string | null;
+  kind: ActivityKind;
+  /** So na visita: turno (obrigatorio), hora "14:30" (opcional) e o acompanhante (obrigatorio). */
+  visitShift: Shift | null;
+  visitTime: string | null;
+  companionVolunteerId: string | null;
 }
 
 export interface SaveVolunteerPayload {

@@ -6,7 +6,8 @@ namespace Esf.Api.Services;
 
 /// <summary>
 /// A equipe do projeto (ProjectVolunteers) e a referencia de quem participa dele:
-/// o responsavel pelo projeto e os responsaveis pelas atividades entram nela automaticamente.
+/// o responsavel pelo projeto, os responsaveis pelas atividades e os acompanhantes das visitas entram nela
+/// automaticamente.
 /// </summary>
 public static class ProjectTeam
 {
@@ -41,6 +42,11 @@ public static class ProjectTeam
             .Where(a => a.AssignedVolunteerId != null)
             .Select(a => new { a.ProjectId, VolunteerId = a.AssignedVolunteerId!.Value })
             .ToListAsync();
+        // O acompanhante da visita tambem entra na equipe.
+        assignees.AddRange(await db.Activities
+            .Where(a => a.CompanionVolunteerId != null)
+            .Select(a => new { a.ProjectId, VolunteerId = a.CompanionVolunteerId!.Value })
+            .ToListAsync());
 
         var existing = (await db.ProjectVolunteers
             .Select(pv => new { pv.ProjectId, pv.VolunteerId })

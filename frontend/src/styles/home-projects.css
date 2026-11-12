@@ -281,6 +281,7 @@
 .task-view__facts dt { font-size: var(--fs-xs); color: var(--text-muted); }
 .task-view__facts dd { margin: 3px 0 0; font-size: var(--fs-md); }
 .task-view__person { display: inline-flex; align-items: center; gap: 7px; }
+.task-view__people { display: inline-flex; flex-wrap: wrap; gap: 6px 16px; }
 .task-view__none { color: var(--warning); font-weight: 500; }
 .task-view__late { color: var(--danger); font-weight: 600; }
 .task-view__text h3 { margin: 0 0 4px; font-size: var(--fs-xs); font-weight: 500; color: var(--text-muted); }

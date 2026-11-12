@@ -24,6 +24,8 @@
 .badge--urgent { background: var(--st-pause-bg); color: var(--st-pause-fg); }
 .badge--blocked { background: var(--st-blocked-bg); color: var(--st-blocked-fg); }
 .badge--late { background: var(--danger-bg); color: var(--danger); }
+/* Visita (dia, turno e duas pessoas): a cor de acao, discreta. */
+.badge--visit { background: var(--accent-soft); color: var(--accent-text); }
 /* Cinza com contorno leve: aparece tambem direto no fundo da pagina (ex.: Afastado, Arquivado no cabecalho). */
 .badge--neutral { background: var(--st-plan-bg); color: var(--st-plan-fg); box-shadow: inset 0 0 0 1px var(--border); }
 .badge--birthday { background: var(--celebrate-bg); color: var(--celebrate-fg); }

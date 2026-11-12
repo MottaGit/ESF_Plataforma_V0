@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import type { Activity, ProjectDetail } from '../../types/api';
-import { dueDateLabel, dueDateTitle } from '../../utils/format';
+import { dueDateTitle } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
+import { dueText, peopleLabel } from '../tasks/taskUtils';
 import { UpdatesSection } from './UpdatesSection';
 
 /** Quantas tarefas e pessoas aparecem na lateral antes do "Ver todas". */
@@ -63,10 +64,14 @@ function NextTasks({ project, onOpenTab }: { project: ProjectDetail; onOpenTab: 
               <Link className="side-list__item" to={`/projetos/${project.id}?aba=tarefas&tarefa=${activity.id}`}>
                 <span className="side-list__title">{activity.title}</span>
                 <span className="side-list__meta">
-                  {activity.assignedVolunteerName ? activity.assignedVolunteerName.split(' ')[0] : 'Sem responsável'}
+                  {activity.kind === 'Visita' ? 'Visita: ' : ''}
+                  {peopleLabel(activity, true)}
                   {' · '}
-                  <span className={activity.isLate ? 'late-text' : undefined} title={dueDateTitle(activity.dueDate)}>
-                    {dueDateLabel(activity.dueDate)}
+                  <span
+                    className={activity.isLate ? 'late-text' : undefined}
+                    title={activity.kind === 'Visita' ? undefined : dueDateTitle(activity.dueDate)}
+                  >
+                    {dueText(activity)}
                   </span>
                   {activity.status === 'Bloqueada' ? <span className="side-list__blocked"> · bloqueada</span> : null}
                 </span>

@@ -12,6 +12,7 @@ import { Alert, ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconCheck, IconEdit, IconPlus, IconSearch, IconTrash } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
 import { Modal } from '../ui/Modal';
+import { involves } from '../tasks/taskUtils';
 import { ProjectHoursPanel } from './ProjectHoursPanel';
 
 interface TeamTabProps {
@@ -90,7 +91,7 @@ export function TeamTab({ project, onOpenTasks, onChanged }: TeamTabProps) {
 
   function workload(volunteerId: string) {
     const open = project.activities.filter(
-      (activity) => activity.assignedVolunteerId === volunteerId && activity.status !== 'Concluida'
+      (activity) => involves(activity, volunteerId) && activity.status !== 'Concluida'
     );
     return { open: open.length, late: open.filter((activity) => activity.isLate).length };
   }

@@ -54,7 +54,8 @@ public static class AuditTrail
         {
             ["Title"] = "Título", ["Status"] = "Status", ["Priority"] = "Prioridade",
             ["AssignedVolunteerId"] = "Responsável", ["DueDate"] = "Prazo", ["BlockedReason"] = "O que está travando",
-            ["Description"] = "Descrição"
+            ["Description"] = "Descrição", ["Kind"] = "Tipo", ["VisitShift"] = "Turno da visita",
+            ["VisitTime"] = "Hora da visita", ["CompanionVolunteerId"] = "Acompanhante"
         },
         [typeof(Volunteer)] = new()
         {
@@ -287,6 +288,8 @@ public static class AuditTrail
                 _ => "Usuário"
             },
             ProgramStatus status => status == ProgramStatus.Ativo ? "Ativo" : "Arquivado",
+            ActivityKind kind => kind == ActivityKind.Visita ? "Visita" : "Tarefa",
+            Shift shift => shift switch { Shift.Manha => "Manhã", Shift.Tarde => "Tarde", _ => "Noite" },
             VolunteerSector sector => sector switch
             {
                 VolunteerSector.Juridico => "Jurídico",

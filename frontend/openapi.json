@@ -6509,9 +6509,48 @@
           "programColor": {
             "type": "string",
             "nullable": true
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ActivityKind"
+              }
+            ]
+          },
+          "visitShift": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Shift"
+              }
+            ],
+            "nullable": true
+          },
+          "visitTime": {
+            "type": "string",
+            "nullable": true
+          },
+          "companionVolunteerId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "companionVolunteerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "companionVolunteerPhotoUrl": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
+      },
+      "ActivityKind": {
+        "enum": [
+          "Tarefa",
+          "Visita"
+        ],
+        "type": "string"
       },
       "ActivityPriority": {
         "enum": [
@@ -8890,6 +8929,31 @@
             "maxLength": 300,
             "minLength": 0,
             "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ActivityKind"
+              }
+            ]
+          },
+          "visitShift": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Shift"
+              }
+            ],
+            "nullable": true
+          },
+          "visitTime": {
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "type": "string",
+            "nullable": true
+          },
+          "companionVolunteerId": {
+            "type": "string",
+            "format": "uuid",
             "nullable": true
           }
         },

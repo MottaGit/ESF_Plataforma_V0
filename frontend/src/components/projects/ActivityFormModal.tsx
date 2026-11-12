@@ -6,23 +6,30 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type {
   Activity,
+  ActivityKind,
   ActivityPriority,
   ActivityStatus,
   ProjectVolunteer,
   SaveActivityPayload,
+  Shift,
   Volunteer,
   VolunteerLoad
 } from '../../types/api';
 import {
   ACTIVITY_STATUSES,
   SENSITIVE_DATA_HINT,
+  SHIFTS,
   activityStatusLabel,
   daysFromToday,
   emptyToNull,
   formatDate,
   formatDateTime,
+  shiftLabel,
+  visitWhenLabel,
   volunteerStatusLabel
 } from '../../utils/format';
+import { VisitBadge } from '../tasks/TaskPeople';
+import { peopleOf } from '../tasks/taskUtils';
 import { Avatar } from '../ui/Avatar';
 import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -79,6 +86,8 @@ interface ActivityFormModalProps {
   onExtrasChanged?: () => void;
   /** Veio de um aviso de comentario ou mencao: a janela abre ja nos comentarios. */
   focusComments?: boolean;
+  /** Tarefa nova: ja comeca como visita (botao "Nova visita"). */
+  initialKind?: ActivityKind;
 }
 
 /**
@@ -95,7 +104,8 @@ export function ActivityFormModal({
   onClose,
   onSaved,
   onExtrasChanged,
-  focusComments = false
+  focusComments = false,
+  initialKind = 'Tarefa'
 }: ActivityFormModalProps) {
   const { user } = useAuth();
   const { notify } = useToast();
@@ -130,6 +140,12 @@ export function ActivityFormModal({
   const [priority, setPriority] = useState<ActivityPriority>(activity?.priority ?? 'Media');
   const [dueDate, setDueDate] = useState(activity?.dueDate?.slice(0, 10) ?? '');
   const [blockedReason, setBlockedReason] = useState(activity?.blockedReason ?? '');
+  // Visita: dia (o prazo), turno, hora opcional e a segunda pessoa (acompanhante).
+  const [kind, setKind] = useState<ActivityKind>(activity?.kind ?? initialKind);
+  const [visitShift, setVisitShift] = useState<Shift | ''>(activity?.visitShift ?? '');
+  const [visitTime, setVisitTime] = useState(activity?.visitTime ?? '');
+  const [companionVolunteerId, setCompanionVolunteerId] = useState(activity?.companionVolunteerId ?? '');
+  const isVisit = kind === 'Visita';
 
   // Sem a lista de voluntarios de quem abriu, busca so quando for editar.
   const [loadedVolunteers, setLoadedVolunteers] = useState<Volunteer[] | null>(null);
@@ -165,7 +181,9 @@ export function ActivityFormModal({
   const currentTeam = team ?? loadedTeam ?? [];
   const teamIds = new Set(currentTeam.map((member) => member.volunteerId));
   const others = allVolunteers.filter((volunteer) => !teamIds.has(volunteer.id));
-  const outsiderSelected = !teamLoading && Boolean(assignedVolunteerId) && !teamIds.has(assignedVolunteerId);
+  const outsiderSelected =
+    !teamLoading &&
+    [assignedVolunteerId, isVisit ? companionVolunteerId : ''].some((id) => Boolean(id) && !teamIds.has(id));
 
   // Carga de cada pessoa (tarefas em aberto e situacao), ao lado do nome na escolha do responsavel.
   const [load, setLoad] = useState<Map<string, VolunteerLoad> | null>(null);
@@ -177,9 +195,11 @@ export function ActivityFormModal({
       .catch(() => setLoad(new Map()));
   }, [mode, load]);
   const ownerLoad = assignedVolunteerId ? load?.get(assignedVolunteerId) : undefined;
+  const companionLoad = companionVolunteerId ? load?.get(companionVolunteerId) : undefined;
 
   const [projectError, setProjectError] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [visitError, setVisitError] = useState<{ day?: string; shift?: string; people?: string }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -211,7 +231,21 @@ export function ActivityFormModal({
     const shortTitle = title.trim().length < 3;
     setProjectError(missingProject ? 'Selecione o projeto da tarefa.' : null);
     setTitleError(shortTitle ? 'Informe um título com ao menos 3 caracteres.' : null);
-    if (missingProject || shortTitle) return;
+    // A visita pede o dia, o turno e duas pessoas diferentes.
+    const visitProblems = isVisit
+      ? {
+          day: dueDate ? undefined : 'Informe o dia da visita.',
+          shift: visitShift ? undefined : 'Escolha o turno.',
+          people:
+            !assignedVolunteerId || !companionVolunteerId
+              ? 'A visita precisa de duas pessoas: o responsável e o acompanhante.'
+              : assignedVolunteerId === companionVolunteerId
+                ? 'Escolha duas pessoas diferentes.'
+                : undefined
+        }
+      : {};
+    setVisitError(visitProblems);
+    if (missingProject || shortTitle || Object.values(visitProblems).some(Boolean)) return;
 
     const payload: SaveActivityPayload = {
       title: title.trim(),
@@ -220,7 +254,11 @@ export function ActivityFormModal({
       status,
       priority,
       dueDate: dueDate || null,
-      blockedReason: status === 'Bloqueada' ? emptyToNull(blockedReason) : null
+      blockedReason: status === 'Bloqueada' ? emptyToNull(blockedReason) : null,
+      kind,
+      visitShift: isVisit ? visitShift || null : null,
+      visitTime: isVisit ? visitTime || null : null,
+      companionVolunteerId: isVisit ? companionVolunteerId || null : null
     };
 
     setSaving(true);
@@ -252,7 +290,11 @@ export function ActivityFormModal({
         status: current.status,
         priority: current.priority,
         dueDate: current.dueDate?.slice(0, 10) ?? null,
-        blockedReason: current.blockedReason
+        blockedReason: current.blockedReason,
+        kind: current.kind,
+        visitShift: current.visitShift,
+        visitTime: current.visitTime,
+        companionVolunteerId: current.companionVolunteerId
       });
       setCurrent(result);
       setAssignedVolunteerId(user.volunteerId);
@@ -320,6 +362,7 @@ export function ActivityFormModal({
                   label="Status da tarefa"
                   onChange={(next) => (next === 'Bloqueada' ? setBlocking(true) : void changeStatus(next))}
                 />
+                <VisitBadge activity={current} />
                 {!done ? <UrgentBadge priority={current.priority} /> : null}
               </div>
 
@@ -330,6 +373,37 @@ export function ActivityFormModal({
               ) : null}
 
               <dl className="task-view__facts">
+                {current.kind === 'Visita' ? (
+                  <>
+                    <div>
+                      <dt>Quando</dt>
+                      <dd className={late ? 'task-view__late' : undefined}>
+                        {visitWhenLabel(current.dueDate, current.visitShift, current.visitTime)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Quem vai</dt>
+                      <dd>
+                        {peopleOf(current).length > 0 ? (
+                          <span className="task-view__people">
+                            {peopleOf(current).map((person) => (
+                              <span key={person.id} className="task-view__person">
+                                <Avatar name={person.name} photoUrl={person.photoUrl} size={22} />
+                                {person.name}
+                              </span>
+                            ))}
+                          </span>
+                        ) : (
+                          <span className="task-view__none">Ninguém marcado</span>
+                        )}
+                        {peopleOf(current).length === 1 ? (
+                          <span className="task-view__none"> · falta a segunda pessoa (edite a visita)</span>
+                        ) : null}
+                      </dd>
+                    </div>
+                  </>
+                ) : (
+                  <>
                 <div>
                   <dt>Responsável</dt>
                   <dd>
@@ -356,6 +430,8 @@ export function ActivityFormModal({
                     {current.dueDate ? `${formatDate(current.dueDate)}${late ? ' · atrasada' : ''}` : 'Sem prazo'}
                   </dd>
                 </div>
+                  </>
+                )}
                 <div>
                   <dt>Projeto</dt>
                   <dd>
@@ -411,11 +487,39 @@ export function ActivityFormModal({
     );
   }
 
+  /** Equipe primeiro, depois os demais (que entram na equipe); a outra pessoa da visita fica de fora. */
+  function personOptions(excludeId: string) {
+    return (
+      <>
+        <optgroup label="Equipe do projeto">
+          {currentTeam
+            .filter((member) => member.volunteerId !== excludeId)
+            .map((member) => (
+              <option key={member.volunteerId} value={member.volunteerId}>
+                {ownerOptionLabel(member.name, load?.get(member.volunteerId))}
+              </option>
+            ))}
+        </optgroup>
+        {others.length > 0 ? (
+          <optgroup label="Outros voluntários (entram na equipe)">
+            {others
+              .filter((volunteer) => volunteer.id !== excludeId)
+              .map((volunteer) => (
+                <option key={volunteer.id} value={volunteer.id}>
+                  {ownerOptionLabel(volunteer.name, load?.get(volunteer.id))}
+                </option>
+              ))}
+          </optgroup>
+        ) : null}
+      </>
+    );
+  }
+
   // ---------- formulario (nova tarefa ou edicao) ----------
   return (
     <Modal
       guardChanges
-      title={current ? 'Editar tarefa' : 'Nova tarefa'}
+      title={current ? (isVisit ? 'Editar visita' : 'Editar tarefa') : isVisit ? 'Nova visita' : 'Nova tarefa'}
       subtitle={
         current
           ? 'Checklist, anexos e comentários são gravados na hora; os demais campos, ao salvar.'
@@ -428,7 +532,7 @@ export function ActivityFormModal({
           {/* Aberta para ler, "Cancelar" volta para a leitura; aberta direto na edicao, fecha. */}
           <Button onClick={openedToRead || saved ? () => setMode('view') : close}>Cancelar</Button>
           <Button variant="primary" loading={saving} onClick={(event) => void handleSubmit(event)}>
-            {current ? 'Salvar alterações' : 'Criar tarefa'}
+            {current ? 'Salvar alterações' : isVisit ? 'Criar visita' : 'Criar tarefa'}
           </Button>
         </>
       }
@@ -464,13 +568,36 @@ export function ActivityFormModal({
               </Field>
             ) : null}
 
+            <Field
+              label="Tipo"
+              span
+              hint={isVisit ? 'A visita tem dia, turno e sempre duas pessoas: o responsável e o acompanhante.' : undefined}
+            >
+              <div className="segmented" role="group" aria-label="Tipo">
+                {(['Tarefa', 'Visita'] as ActivityKind[]).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={kind === option}
+                    className={`segmented__option${kind === option ? ' segmented__option--active' : ''}`}
+                    onClick={() => {
+                      setKind(option);
+                      setVisitError({});
+                    }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
             <Field label="Título" htmlFor="activity-title" required error={titleError ?? undefined} span>
               <TextInput
                 id="activity-title"
                 autoFocus={!current && !(chooseProject && !projectId)}
                 value={title}
                 invalid={Boolean(titleError)}
-                placeholder="Ex.: Refazer instalação elétrica da casa 2"
+                placeholder={isVisit ? 'Ex.: Visita técnica à casa da família Silva' : 'Ex.: Refazer instalação elétrica da casa 2'}
                 onChange={(event) => {
                   setTitle(event.target.value);
                   setTitleError(null);
@@ -478,9 +605,49 @@ export function ActivityFormModal({
               />
             </Field>
 
+            {isVisit ? (
+              <>
+                <Field label="Dia da visita" htmlFor="activity-due" required error={visitError.day}>
+                  <TextInput
+                    id="activity-due"
+                    type="date"
+                    value={dueDate}
+                    invalid={Boolean(visitError.day)}
+                    onChange={(event) => {
+                      setDueDate(event.target.value);
+                      setVisitError((current) => ({ ...current, day: undefined }));
+                    }}
+                  />
+                </Field>
+                <Field label="Turno" htmlFor="activity-shift" required error={visitError.shift}>
+                  <Select
+                    id="activity-shift"
+                    value={visitShift}
+                    invalid={Boolean(visitError.shift)}
+                    onChange={(event) => {
+                      setVisitShift(event.target.value as Shift | '');
+                      setVisitError((current) => ({ ...current, shift: undefined }));
+                    }}
+                  >
+                    <option value="">Selecione</option>
+                    {SHIFTS.map((option) => (
+                      <option key={option} value={option}>
+                        {shiftLabel(option)}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Hora" htmlFor="activity-time" hint="Opcional: a hora combinada com a família.">
+                  <TextInput id="activity-time" type="time" value={visitTime} onChange={(event) => setVisitTime(event.target.value)} />
+                </Field>
+              </>
+            ) : null}
+
             <Field
               label="Responsável"
               htmlFor="activity-owner"
+              required={isVisit}
+              error={isVisit ? visitError.people : undefined}
               hint={
                 !selectedProjectId
                   ? 'Escolha o projeto primeiro.'
@@ -496,36 +663,48 @@ export function ActivityFormModal({
                 id="activity-owner"
                 value={assignedVolunteerId}
                 disabled={teamLoading || !selectedProjectId}
-                onChange={(event) => setAssignedVolunteerId(event.target.value)}
+                invalid={isVisit && Boolean(visitError.people) && !assignedVolunteerId}
+                onChange={(event) => {
+                  setAssignedVolunteerId(event.target.value);
+                  setVisitError((current) => ({ ...current, people: undefined }));
+                }}
               >
-                <option value="">Sem responsável</option>
-                <optgroup label="Equipe do projeto">
-                  {currentTeam.map((member) => (
-                    <option key={member.volunteerId} value={member.volunteerId}>
-                      {ownerOptionLabel(member.name, load?.get(member.volunteerId))}
-                    </option>
-                  ))}
-                </optgroup>
-                {others.length > 0 ? (
-                  <optgroup label="Outros voluntários (entram na equipe)">
-                    {others.map((volunteer) => (
-                      <option key={volunteer.id} value={volunteer.id}>
-                        {ownerOptionLabel(volunteer.name, load?.get(volunteer.id))}
-                      </option>
-                    ))}
-                  </optgroup>
-                ) : null}
+                <option value="">{isVisit ? 'Selecione' : 'Sem responsável'}</option>
+                {personOptions(companionVolunteerId)}
               </Select>
             </Field>
 
-            <Field label="Prazo" htmlFor="activity-due">
-              <TextInput
-                id="activity-due"
-                type="date"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-              />
-            </Field>
+            {isVisit ? (
+              <Field
+                label="Acompanhante"
+                htmlFor="activity-companion"
+                required
+                hint={selectedProjectId ? ownerLoadHint(companionLoad) ?? undefined : 'Escolha o projeto primeiro.'}
+              >
+                <Select
+                  id="activity-companion"
+                  value={companionVolunteerId}
+                  disabled={teamLoading || !selectedProjectId}
+                  invalid={Boolean(visitError.people) && !companionVolunteerId}
+                  onChange={(event) => {
+                    setCompanionVolunteerId(event.target.value);
+                    setVisitError((current) => ({ ...current, people: undefined }));
+                  }}
+                >
+                  <option value="">Selecione</option>
+                  {personOptions(assignedVolunteerId)}
+                </Select>
+              </Field>
+            ) : (
+              <Field label="Prazo" htmlFor="activity-due">
+                <TextInput
+                  id="activity-due"
+                  type="date"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
+                />
+              </Field>
+            )}
 
             <Field label="Prioridade" hint="A tarefa urgente aparece em destaque nas listas e no quadro.">
               <label className="checkbox">

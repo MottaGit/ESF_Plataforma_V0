@@ -118,6 +118,13 @@ public enum SignedDocumentKind
     BeneficiaryImageAuthorization = 1
 }
 
+/// <summary>Tipo da tarefa: a visita tem dia, turno e sempre duas pessoas (responsavel e acompanhante).</summary>
+public enum ActivityKind
+{
+    Tarefa = 0,
+    Visita = 1
+}
+
 /// <summary>Dia da semana na grade de disponibilidade (comeca na segunda, como a grade da tela).</summary>
 public enum WeekDay
 {

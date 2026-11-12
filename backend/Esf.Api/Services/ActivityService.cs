@@ -28,6 +28,7 @@ public class ActivityService
         var activities = await _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
+            .Include(a => a.CompanionVolunteer)
             .Where(a => a.ProjectId == projectId)
             .OrderBy(a => a.Status)
             .ThenByDescending(a => a.Priority)
@@ -51,6 +52,7 @@ public class ActivityService
         var activities = await _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
+            .Include(a => a.CompanionVolunteer)
             .Include(a => a.Project).ThenInclude(p => p!.Program)
             .Where(a => !a.Project!.IsArchived
                 && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento)
@@ -66,11 +68,13 @@ public class ActivityService
         var query = _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
+            .Include(a => a.CompanionVolunteer)
             .Include(a => a.Project)
             .Where(a => a.Status != ActivityStatus.Concluida && !a.Project!.IsArchived);
 
+        // Na visita, o acompanhante tambem tem a tarefa.
         if (assignedVolunteerId.HasValue)
-            query = query.Where(a => a.AssignedVolunteerId == assignedVolunteerId.Value);
+            query = query.Involving(assignedVolunteerId.Value);
 
         var activities = await query
             .OrderBy(a => a.DueDate ?? DateOnly.MaxValue)
@@ -98,15 +102,18 @@ public class ActivityService
         if (!await _db.Projects.AnyAsync(p => p.Id == projectId))
             throw AppException.NotFound("Projeto");
 
+        ValidateVisit(request);
         await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
+        await EnsureAssigneeExistsAsync(request.CompanionVolunteerId);
 
         var activity = new Activity { ProjectId = projectId };
         Apply(activity, request);
         activity.CreatedAt = DateTime.UtcNow;
 
         _db.Activities.Add(activity);
-        await ProjectTeam.EnsureMemberAsync(_db, projectId, activity.AssignedVolunteerId);
-        await _notifications.ActivityAssignedAsync(activity);
+        foreach (var person in ActivityPeople.Of(activity))
+            await ProjectTeam.EnsureMemberAsync(_db, projectId, person);
+        await _notifications.ActivityAssignedAsync(activity, ActivityPeople.Of(activity));
         await TouchProjectAsync(projectId);
         await _db.SaveChangesAsync();
 
@@ -116,19 +123,21 @@ public class ActivityService
     public async Task<ActivityDto> UpdateAsync(Guid id, SaveActivityRequest request)
     {
         var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Tarefa", feminine: true);
+        ValidateVisit(request);
         await EnsureAssigneeExistsAsync(request.AssignedVolunteerId);
+        await EnsureAssigneeExistsAsync(request.CompanionVolunteerId);
 
-        var previousAssignee = activity.AssignedVolunteerId;
+        var previousPeople = ActivityPeople.Of(activity);
         var previousStatus = activity.Status;
 
         Apply(activity, request);
-        await ProjectTeam.EnsureMemberAsync(_db, activity.ProjectId, activity.AssignedVolunteerId);
+        foreach (var person in ActivityPeople.Of(activity))
+            await ProjectTeam.EnsureMemberAsync(_db, activity.ProjectId, person);
 
-        // Mudou o responsavel: o aviso de atribuicao ja basta; senao, avisa da mudanca de status (se houver).
-        if (activity.AssignedVolunteerId.HasValue && activity.AssignedVolunteerId != previousAssignee)
-            await _notifications.ActivityAssignedAsync(activity);
-        else
-            await _notifications.ActivityStatusChangedAsync(activity, previousStatus);
+        // Quem entrou na tarefa recebe o aviso de atribuicao (ja basta); quem continua, o da mudanca de status.
+        var newcomers = ActivityPeople.Of(activity).Except(previousPeople).ToList();
+        await _notifications.ActivityAssignedAsync(activity, newcomers);
+        await _notifications.ActivityStatusChangedAsync(activity, previousStatus, except: newcomers);
         await TouchProjectAsync(activity.ProjectId);
         await _db.SaveChangesAsync();
 
@@ -165,6 +174,7 @@ public class ActivityService
         var activity = await _db.Activities
             .AsNoTracking()
             .Include(a => a.AssignedVolunteer)
+            .Include(a => a.CompanionVolunteer)
             .Include(a => a.Project).ThenInclude(p => p!.Program)
             .FirstOrDefaultAsync(a => a.Id == id) ?? throw AppException.NotFound("Tarefa", feminine: true);
 
@@ -244,6 +254,18 @@ public class ActivityService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>A visita pede o dia, o turno e duas pessoas diferentes (responsavel e acompanhante).</summary>
+    private static void ValidateVisit(SaveActivityRequest r)
+    {
+        if (r.Kind != ActivityKind.Visita) return;
+        if (!r.DueDate.HasValue) throw new AppException("Informe o dia da visita.");
+        if (!r.VisitShift.HasValue) throw new AppException("Escolha o turno da visita.");
+        if (!r.AssignedVolunteerId.HasValue || !r.CompanionVolunteerId.HasValue)
+            throw new AppException("A visita precisa de duas pessoas: o responsável e o acompanhante.");
+        if (r.AssignedVolunteerId == r.CompanionVolunteerId)
+            throw new AppException("Escolha duas pessoas diferentes para a visita.");
+    }
+
     private async Task EnsureAssigneeExistsAsync(Guid? volunteerId)
     {
         if (volunteerId.HasValue && !await _db.Volunteers.AnyAsync(v => v.Id == volunteerId.Value))
@@ -265,6 +287,13 @@ public class ActivityService
         activity.Priority = r.Priority!.Value;
         activity.DueDate = r.DueDate;
         activity.BlockedReason = BlockedReasonFor(activity.Status, r.BlockedReason);
+
+        // Turno, hora e acompanhante so existem na visita.
+        var visit = r.Kind == ActivityKind.Visita;
+        activity.Kind = r.Kind;
+        activity.VisitShift = visit ? r.VisitShift : null;
+        activity.VisitTime = visit && !string.IsNullOrWhiteSpace(r.VisitTime) ? r.VisitTime.Trim() : null;
+        activity.CompanionVolunteerId = visit ? r.CompanionVolunteerId : null;
 
         if (activity.Status == ActivityStatus.Concluida)
             activity.CompletedAt ??= DateTime.UtcNow;

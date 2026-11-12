@@ -87,6 +87,16 @@ const SECTIONS: HelpSection[] = [
         )
       },
       {
+        question: 'Como marco uma visita à obra ou à família?',
+        answer: (
+          <p>
+            No projeto, aba <strong>Tarefas</strong>, toque em <strong>Nova visita</strong> (ou escolha{' '}
+            <strong>Visita</strong> no tipo da tarefa). Informe o dia, o turno e as duas pessoas que vão: o
+            responsável e o acompanhante. As duas recebem o aviso e veem a visita em <strong>Minhas tarefas</strong>.
+          </p>
+        )
+      },
+      {
         question: 'Como chamo alguém num comentário?',
         answer: (
           <p>

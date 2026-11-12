@@ -3,14 +3,16 @@ import { useSearchParams } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
-import type { Activity, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
-import { ACTIVITY_STATUSES, activityStatusLabel, dueDateLabel, dueDateTitle, formatDate } from '../../utils/format';
+import type { Activity, ActivityKind, ActivityStatus, ProjectDetail, Volunteer } from '../../types/api';
+import { ACTIVITY_STATUSES, activityStatusLabel, dueDateTitle, formatDate } from '../../utils/format';
 import { ActivityStatusSelect, UrgentBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Field';
 import { ConfirmDialog, EmptyState } from '../ui/Feedback';
 import { IconEdit, IconPlus, IconTrash } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
+import { VisitBadge } from '../tasks/TaskPeople';
+import { dueText, involves, peopleLabel, peopleOf } from '../tasks/taskUtils';
 import { ActivityCounters } from './ActivityCounters';
 import { ActivityFormModal } from './ActivityFormModal';
 import { BlockActivityDialog } from './BlockActivityDialog';
@@ -59,6 +61,8 @@ export function ActivitiesTab({
   const [editing, setEditing] = useState<Activity | null>(null);
   /** A tarefa abre para ler; "Editar" no menu abre direto no formulario. */
   const [formMode, setFormMode] = useState<'view' | 'edit'>('view');
+  // "Nova visita" abre o mesmo formulario, ja no tipo visita.
+  const [newKind, setNewKind] = useState<ActivityKind>('Tarefa');
   const [removing, setRemoving] = useState<Activity | null>(null);
   const [blocking, setBlocking] = useState<Activity | null>(null);
   const [busy, setBusy] = useState(false);
@@ -128,10 +132,7 @@ export function ActivitiesTab({
   // Responsaveis que aparecem nas atividades do projeto, para o filtro.
   const assignees = useMemo(() => {
     const byId = new Map<string, string>();
-    activities.forEach((activity) => {
-      if (activity.assignedVolunteerId && activity.assignedVolunteerName)
-        byId.set(activity.assignedVolunteerId, activity.assignedVolunteerName);
-    });
+    activities.forEach((activity) => peopleOf(activity).forEach((person) => byId.set(person.id, person.name)));
     return [...byId.entries()].sort((a, b) => a[1].localeCompare(b[1]));
   }, [activities]);
 
@@ -139,7 +140,7 @@ export function ActivitiesTab({
     if (statusFilter && activity.status !== statusFilter) return false;
     if (onlyLate && !activity.isLate) return false;
     if (assigneeFilter === UNASSIGNED) return !activity.assignedVolunteerId;
-    if (assigneeFilter && activity.assignedVolunteerId !== assigneeFilter) return false;
+    if (assigneeFilter && !involves(activity, assigneeFilter)) return false;
     return true;
   });
 
@@ -157,8 +158,9 @@ export function ActivitiesTab({
     });
   }
 
-  function openForm(activity: Activity | null, mode: 'view' | 'edit' = 'view') {
+  function openForm(activity: Activity | null, mode: 'view' | 'edit' = 'view', kind: ActivityKind = 'Tarefa') {
     setEditing(activity);
+    setNewKind(kind);
     setFormMode(mode);
     setFormOpen(true);
   }
@@ -257,6 +259,9 @@ export function ActivitiesTab({
               {hasFilters ? ` · mostrando ${visible.length}` : ''}
             </span>
           ) : null}
+          <Button small icon={<IconPlus size={15} />} onClick={() => openForm(null, 'view', 'Visita')}>
+            Nova visita
+          </Button>
           <Button variant="primary" small icon={<IconPlus size={15} />} onClick={() => openForm(null)}>
             Nova tarefa
           </Button>
@@ -328,6 +333,7 @@ export function ActivitiesTab({
           team={project.volunteers}
           volunteers={volunteers}
           focusComments={focusComments}
+          initialKind={newKind}
           onClose={() => {
             setFormOpen(false);
             setFocusComments(false);
@@ -419,16 +425,17 @@ function ActivityRow({
           {activity.title}
         </button>
         <div className="act-row__meta">
-          <span>{activity.assignedVolunteerName ?? 'Sem responsável'}</span>
+          <VisitBadge activity={activity} />
+          <span>{peopleLabel(activity)}</span>
           <span
             className={activity.isLate ? 'act-row__due--late' : undefined}
-            title={done ? undefined : dueDateTitle(activity.dueDate)}
+            title={done || activity.kind === 'Visita' ? undefined : dueDateTitle(activity.dueDate)}
           >
             {done
               ? activity.completedAt
                 ? `concluída em ${formatDate(activity.completedAt)}`
                 : 'concluída'
-              : dueDateLabel(activity.dueDate)}
+              : dueText(activity)}
           </span>
           {!done ? <UrgentBadge priority={activity.priority} /> : null}
           <ActivityCounters activity={activity} onClick={onOpen} />

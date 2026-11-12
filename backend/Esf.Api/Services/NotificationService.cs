@@ -44,19 +44,28 @@ public class NotificationService
 
     // ---------- registro (chamado pelos outros servicos, antes do SaveChanges deles) ----------
 
-    public async Task ActivityAssignedAsync(Activity activity)
+    /// <summary>Avisa quem acabou de entrar na tarefa (o responsavel e, na visita, o acompanhante).</summary>
+    public async Task ActivityAssignedAsync(Activity activity, IReadOnlyCollection<Guid> volunteerIds)
     {
-        if (!activity.AssignedVolunteerId.HasValue) return;
+        if (volunteerIds.Count == 0) return;
         var actor = await GetActorAsync();
-        await AddAsync(activity.AssignedVolunteerId.Value, NotificationType.ActivityAssigned,
-            $"{actor.Name} atribuiu a você \"{activity.Title}\"",
-            activity.ProjectId, activity.Id, await ProjectNameAsync(activity.ProjectId));
+        var message = activity.Kind == ActivityKind.Visita
+            ? $"{actor.Name} marcou você para a visita \"{activity.Title}\" ({ActivityPeople.VisitWhen(activity)})"
+            : $"{actor.Name} atribuiu a você \"{activity.Title}\"";
+        var projectName = await ProjectNameAsync(activity.ProjectId);
+        foreach (var volunteerId in volunteerIds)
+            await AddAsync(volunteerId, NotificationType.ActivityAssigned, message, activity.ProjectId, activity.Id, projectName);
     }
 
-    /// <summary>Avisa o responsavel quando outra pessoa bloqueia, conclui ou reabre a atividade dele.</summary>
-    public async Task ActivityStatusChangedAsync(Activity activity, ActivityStatus previous)
+    /// <summary>
+    /// Avisa o responsavel (e, na visita, o acompanhante) quando outra pessoa bloqueia, conclui ou reabre a tarefa.
+    /// except: quem ja recebeu outro aviso agora (acabou de entrar na tarefa).
+    /// </summary>
+    public async Task ActivityStatusChangedAsync(Activity activity, ActivityStatus previous,
+        IReadOnlyCollection<Guid>? except = null)
     {
-        if (!activity.AssignedVolunteerId.HasValue || activity.Status == previous) return;
+        var people = ActivityPeople.Of(activity).Where(id => except is null || !except.Contains(id)).ToList();
+        if (people.Count == 0 || activity.Status == previous) return;
         var actor = await GetActorAsync();
 
         NotificationType type;
@@ -80,8 +89,9 @@ public class NotificationService
                 break;
         }
 
-        await AddAsync(activity.AssignedVolunteerId.Value, type, message,
-            activity.ProjectId, activity.Id, await ProjectNameAsync(activity.ProjectId));
+        var projectName = await ProjectNameAsync(activity.ProjectId);
+        foreach (var volunteerId in people)
+            await AddAsync(volunteerId, type, message, activity.ProjectId, activity.Id, projectName);
     }
 
     /// <summary>
@@ -98,8 +108,9 @@ public class NotificationService
             await AddAsync(volunteerId, NotificationType.CommentMention,
                 $"{actor.Name} mencionou você em \"{activity.Title}\": {snippet}", activity.ProjectId, activity.Id, projectName);
 
-        if (notifyAssignee && activity.AssignedVolunteerId.HasValue && !mentioned.Contains(activity.AssignedVolunteerId.Value))
-            await AddAsync(activity.AssignedVolunteerId.Value, NotificationType.ActivityCommented,
+        if (!notifyAssignee) return;
+        foreach (var volunteerId in ActivityPeople.Of(activity).Where(id => !mentioned.Contains(id)))
+            await AddAsync(volunteerId, NotificationType.ActivityCommented,
                 $"{actor.Name} comentou em \"{activity.Title}\": {snippet}", activity.ProjectId, activity.Id, projectName);
     }
 
@@ -191,12 +202,12 @@ public class NotificationService
 
         var due = await _db.Activities
             .AsNoTracking()
-            .Where(a => a.AssignedVolunteerId == volunteerId
-                        && a.Status != ActivityStatus.Concluida
+            .Involving(volunteerId)
+            .Where(a => a.Status != ActivityStatus.Concluida
                         && (a.DueDate == today || a.DueDate == tomorrow)
                         && !a.Project!.IsArchived
                         && (a.Project.Status == ProjectStatus.Planejamento || a.Project.Status == ProjectStatus.EmAndamento))
-            .Select(a => new { a.Id, a.Title, a.DueDate, a.ProjectId, ProjectName = a.Project!.Name })
+            .Select(a => new { a.Id, a.Title, a.DueDate, a.ProjectId, ProjectName = a.Project!.Name, a.Kind, a.VisitShift })
             .ToListAsync();
         if (due.Count == 0) return;
 
@@ -218,7 +229,10 @@ public class NotificationService
             {
                 VolunteerId = volunteerId,
                 Type = isToday ? NotificationType.ActivityDueToday : NotificationType.ActivityDueTomorrow,
-                Message = $"\"{activity.Title}\" vence {(isToday ? "hoje" : "amanhã")}",
+                // Visita nao "vence": e o dia dela.
+                Message = activity.Kind == ActivityKind.Visita
+                    ? $"Visita \"{activity.Title}\" {(isToday ? "hoje" : "amanhã")}{ShiftPhrase(activity.VisitShift)}"
+                    : $"\"{activity.Title}\" vence {(isToday ? "hoje" : "amanhã")}",
                 Context = activity.ProjectName,
                 ProjectId = activity.ProjectId,
                 ActivityId = activity.Id,
@@ -283,4 +297,12 @@ public class NotificationService
         ?? await _db.Projects.Where(p => p.Id == projectId).Select(p => p.Name).FirstOrDefaultAsync();
 
     private static string Truncate(string value, int max) => value.Length <= max ? value : value[..(max - 1)] + "…";
+
+    private static string ShiftPhrase(Shift? shift) => shift switch
+    {
+        Shift.Manha => " de manhã",
+        Shift.Tarde => " à tarde",
+        Shift.Noite => " à noite",
+        _ => ""
+    };
 }

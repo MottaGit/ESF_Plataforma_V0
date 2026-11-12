@@ -13,6 +13,19 @@ public class Activity
     public Guid? AssignedVolunteerId { get; set; }
     public Volunteer? AssignedVolunteer { get; set; }
 
+    /// <summary>Tarefa comum ou visita (a obra, a familia): a visita tem dia (DueDate), turno e duas pessoas.</summary>
+    public ActivityKind Kind { get; set; } = ActivityKind.Tarefa;
+
+    /// <summary>Turno da visita (so na visita).</summary>
+    public Shift? VisitShift { get; set; }
+
+    /// <summary>Hora combinada da visita, "HH:mm" (opcional, so na visita).</summary>
+    public string? VisitTime { get; set; }
+
+    /// <summary>Segunda pessoa da visita (acompanhante); nas tarefas comuns fica vazio.</summary>
+    public Guid? CompanionVolunteerId { get; set; }
+    public Volunteer? CompanionVolunteer { get; set; }
+
     public ActivityStatus Status { get; set; } = ActivityStatus.AFazer;
     /// <summary>O que esta travando a atividade; so existe enquanto ela esta bloqueada.</summary>
     public string? BlockedReason { get; set; }
