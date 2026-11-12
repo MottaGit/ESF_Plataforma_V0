@@ -15,6 +15,7 @@ import { Menu } from '../components/ui/Menu';
 import { Modal } from '../components/ui/Modal';
 import { EmailLink, PhoneLink } from '../components/volunteers/ContactLinks';
 import { CertificateModal } from '../components/volunteers/CertificateModal';
+import { AvailabilityPanel } from '../components/volunteers/Availability';
 import { VolunteerHoursPanel } from '../components/volunteers/VolunteerHoursPanel';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -224,6 +225,17 @@ export function VolunteerDetailPage() {
         <div className="detail-col">
           {canManage && !volunteer.anonymized ? (
             <AccessPanel volunteer={volunteer} isAdmin={isAdmin} onChanged={() => void load()} />
+          ) : null}
+
+          {/* Bairro, deslocamento e turnos: so a coordenacao e a propria pessoa recebem (e mudam). */}
+          {volunteer.availability && !volunteer.anonymized ? (
+            <AvailabilityPanel
+              volunteerId={volunteer.id}
+              availability={volunteer.availability}
+              isSelf={user?.volunteerId === volunteer.id}
+              canEdit
+              onSaved={(availability) => setVolunteer({ ...volunteer, availability })}
+            />
           ) : null}
 
           {hours ? (

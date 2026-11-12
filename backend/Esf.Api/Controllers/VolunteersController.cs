@@ -59,6 +59,16 @@ public class VolunteersController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Bairro, deslocamento e turnos livres: a coordenacao ve os de todos; os demais, so os proprios.</summary>
+    [HttpGet("volunteers/{id:guid}/availability")]
+    public async Task<ActionResult<VolunteerAvailabilityDto>> GetAvailability(Guid id)
+        => Ok(await _volunteers.GetAvailabilityAsync(id));
+
+    /// <summary>A propria pessoa (Minha conta) ou a coordenacao.</summary>
+    [HttpPut("volunteers/{id:guid}/availability")]
+    public async Task<ActionResult<VolunteerAvailabilityDto>> SaveAvailability(Guid id, SaveAvailabilityRequest request)
+        => Ok(await _volunteers.SaveAvailabilityAsync(id, request));
+
     [HttpPost("volunteers/{id:guid}/photo")]
     [Authorize(Policy = Policies.ManageProjects)]
     [RequestSizeLimit(10 * 1024 * 1024)]

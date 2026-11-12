@@ -557,6 +557,21 @@ lista de voluntários, no detalhe, na aba Equipe dos projetos e no canto superio
 nome e a foto desse voluntário no topo, na barra lateral, no "Olá" do Início, como autor dos registros de andamento
 e em "Enviado por" dos arquivos; sem vínculo, usa o nome do próprio usuário.
 
+**Disponibilidade para visitas** — cada voluntário pode informar o **bairro e a cidade** onde mora (nunca o
+endereço), **como se desloca** (carro ou transporte público) e a **grade da semana** com os turnos em que costuma estar
+livre (segunda a domingo × manhã, tarde e noite; toque em cada casa para marcar). Quem preenche é a própria pessoa
+(Minha conta e o próprio perfil) ou a coordenação (painel **Disponibilidade para visitas** na página do voluntário).
+Só a coordenação e a própria pessoa veem e mudam esses dados: a lista de voluntários não os traz e, para os demais
+perfis, a página do voluntário não mostra o painel (`VolunteerDto.availability` vem vazio). Ao salvar, o navegador
+procura o bairro no OpenStreetMap (só o texto "bairro, cidade", sem o nome de ninguém) e manda o centro aproximado
+dele, usado para a distância até a obra nas sugestões de visita; sem mudar bairro nem cidade, a busca não se repete e o
+ponto de antes fica. Bairro não achado: salva assim mesmo e avisa para conferir o nome. No Início, quem nunca preencheu
+(ou preencheu há mais de seis meses, quando o horário de aula costuma mudar) vê o convite **Quando você costuma estar
+livre?** (ou **Seus turnos livres ainda valem?**), que abre a mesma janela. Anonimizar apaga bairro, ponto,
+deslocamento e turnos. No histórico de alterações, esses campos entram como dado pessoal (registra que mudou, sem o
+valor). A grade fica guardada num número só (`Volunteers.AvailabilityMask`, um bit por dia e turno; ver
+`Services/VolunteerAvailability.cs`).
+
 **Termo de adesão e uso de imagem** — quem assina é sempre o próprio voluntário, online, na conta dele (qualquer perfil
 de acesso, inclusive administrador e coordenador): o Início mostra "Assine seu termo de adesão" (ativos e afastados sem
 termo), e Configurações › Minha conta e o próprio perfil têm o botão "Ler e assinar" e, depois, o download da via
@@ -1069,7 +1084,7 @@ ESF_Plataforma_V0/
 | `Indicators` | indicadores do projeto (nome, valor — vazio é "não informado" — e unidade; `NationalIndicatorId` quando é um indicador nacional) |
 | `IndicatorValueChanges` | histórico do valor de cada indicador (novo valor e desde quando vale), gravado sozinho no `SaveChanges` quando o número muda; o relatório em PDF lê dele o valor no fim do período |
 | `NationalIndicators` | indicadores nacionais da gestão nacional (nome, unidade, como contar, arquivado); sem núcleo |
-| `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro) |
+| `Volunteers` | cadastro de voluntários (inclui setor: Projetos, Juridico, Pessoas, Comunicacao, Qualidade ou Financeiro; bairro, cidade, ponto aproximado, deslocamento e a grade de turnos livres) |
 | `VolunteerStatusChanges` | histórico de status dos voluntários (a partir de que dia valeu cada situação), base das horas de voluntariado |
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com a função no projeto |
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento; `PreviewState` diz se a foto já tem miniatura e versão do PDF |
@@ -1135,6 +1150,7 @@ que o limite da rota recebe 413.
 | GET | `/api/volunteers/load` | situação e tarefas em aberto (e atrasadas) de cada voluntário, para escolher o responsável |
 | POST | `/api/volunteers/{id}/anonymize` | anonimiza os dados pessoais e mantém o histórico (LGPD) |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |
+| GET/PUT | `/api/volunteers/{id}/availability` | bairro, cidade, ponto aproximado, deslocamento e turnos livres (a coordenação, de todos; os demais, só os próprios) |
 | GET | `/api/volunteers/{id}/hours` | horas de voluntariado; o histórico de status só vem para a coordenação e para o próprio voluntário |
 | POST/PUT/DELETE | `/api/volunteers/{id}/status-history[/{periodId}]` | inclui, edita ou remove um período do histórico de status (coordenação) |
 | GET/POST/DELETE | `/api/projects/{id}/volunteers[/{volunteerId}]` | vínculo com projetos |

@@ -60,7 +60,9 @@ public static class AuditTrail
         {
             ["Name"] = "Nome", ["Email"] = "E-mail", ["Phone"] = "Telefone", ["Sector"] = "Setor",
             ["Skills"] = "Competências", ["Notes"] = "Observações", ["Status"] = "Situação",
-            ["BirthDay"] = "Aniversário (dia)", ["BirthMonth"] = "Aniversário (mês)", ["PhotoStoredName"] = "Foto"
+            ["BirthDay"] = "Aniversário (dia)", ["BirthMonth"] = "Aniversário (mês)", ["PhotoStoredName"] = "Foto",
+            ["HomeDistrict"] = "Bairro onde mora", ["HomeCity"] = "Cidade onde mora", ["Transport"] = "Deslocamento",
+            ["AvailabilityMask"] = "Turnos livres"
         },
         [typeof(User)] = new()
         {
@@ -108,7 +110,11 @@ public static class AuditTrail
     /// <summary>Campos cujo valor nunca vai para o historico (so o fato de terem mudado).</summary>
     private static readonly Dictionary<Type, HashSet<string>> MaskedFields = new()
     {
-        [typeof(Volunteer)] = new() { "Name", "Email", "Phone", "Skills", "Notes", "BirthDay", "BirthMonth", "PhotoStoredName" },
+        [typeof(Volunteer)] = new()
+        {
+            "Name", "Email", "Phone", "Skills", "Notes", "BirthDay", "BirthMonth", "PhotoStoredName",
+            "HomeDistrict", "HomeCity", "Transport", "AvailabilityMask"
+        },
         [typeof(User)] = new() { "PasswordHash" },
         [typeof(Organization)] = new() { "LogoUrl", "SignatureStoredName" },
         // O codigo do link publico nao vai para o historico: so que a pagina foi ligada, desligada ou trocada.

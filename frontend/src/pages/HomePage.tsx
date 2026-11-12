@@ -10,6 +10,7 @@ import {
   volunteersApi
 } from '../api/endpoints';
 import { TermCallout } from '../components/documents/MyTermPanel';
+import { AvailabilityCallout } from '../components/volunteers/Availability';
 import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
@@ -127,6 +128,7 @@ export function HomePage() {
       </div>
 
       <TermCallout volunteerId={user?.volunteerId ?? null} />
+      <AvailabilityCallout volunteerId={user?.volunteerId ?? null} />
 
       {isAdmin && data.setup ? <FirstSteps setup={data.setup} /> : null}
 

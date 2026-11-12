@@ -65,6 +65,33 @@
 }
 
 /* ---------------------------------------------------------
+   Disponibilidade para visitas: bairro, deslocamento e a grade
+   da semana (dias x manha, tarde e noite)
+   --------------------------------------------------------- */
+.avail-grid { width: 100%; max-width: 440px; margin: 6px 0 0; border-collapse: separate; border-spacing: 4px; table-layout: fixed; }
+.avail-grid th { padding: 0 0 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); text-align: center; }
+.avail-grid th[scope="row"] { width: 54px; padding: 0; font-weight: 500; text-align: left; }
+.avail-grid td { padding: 0; }
+.avail-cell { display: block; height: 20px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-soft); }
+.avail-cell--on { border-color: var(--accent); background: var(--accent); }
+.avail-grid--edit .avail-cell { height: 38px; cursor: pointer; }
+.avail-grid--edit .avail-cell:hover { border-color: var(--border-hover); }
+.avail-grid--edit .avail-cell--on:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+.avail-cell:focus-within { box-shadow: var(--focus); }
+.avail-fieldset { min-width: 0; margin: 20px 0 0; padding: 0; border: 0; }
+.avail-fieldset legend { padding: 0; font-size: var(--fs-sm); font-weight: 600; }
+.avail-fieldset .field__hint { margin: 2px 0 4px; }
+.avail-empty { display: grid; justify-items: start; gap: 12px; }
+.avail-stale { color: var(--warning); }
+
+/* No celular, cada casa da grade tem a altura de um campo (dedo). */
+@media (max-width: 640px) {
+  .avail-grid--edit .avail-cell { height: 44px; }
+  .avail-grid { border-spacing: 3px; }
+  .avail-grid th[scope="row"] { width: 46px; }
+}
+
+/* ---------------------------------------------------------
    Horas por projeto (aba Equipe e registro de andamento)
    --------------------------------------------------------- */
 

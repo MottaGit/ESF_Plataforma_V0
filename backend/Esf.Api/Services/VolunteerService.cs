@@ -92,7 +92,9 @@ public class VolunteerService
                     .Where(u => u.VolunteerId == v.Id)
                     .Select(u => new VolunteerAccessDto(u.Id, u.Role, u.IsActive, u.PasswordHash == "",
                         _db.AccessLinks.Where(l => l.UserId == u.Id && l.UsedAt == null).Max(l => (DateTime?)l.ExpiresAt)))
-                    .FirstOrDefault()))
+                    .FirstOrDefault(),
+                // A lista nao leva bairro nem turnos: ficam na pagina do voluntario.
+                null))
             .ToListAsync();
     }
 
@@ -138,7 +140,68 @@ public class VolunteerService
             .FirstOrDefaultAsync(v => v.Id == id) ?? throw AppException.NotFound("Voluntário");
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
-        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
+        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id),
+            await CanSeeAvailabilityAsync(id));
+    }
+
+    private bool IsManager => _currentUser?.Role is UserRole.Administrador or UserRole.Coordenador;
+
+    /// <summary>Bairro, deslocamento e turnos: a coordenacao ve e muda os de todos; os demais, so os proprios.</summary>
+    private async Task<bool> CanSeeAvailabilityAsync(Guid volunteerId)
+    {
+        if (IsManager) return true;
+        var userId = _currentUser?.Id;
+        return userId.HasValue && await _db.Users.AnyAsync(u => u.Id == userId && u.VolunteerId == volunteerId);
+    }
+
+    public async Task<VolunteerAvailabilityDto> GetAvailabilityAsync(Guid id)
+    {
+        var volunteer = await _db.Volunteers.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id)
+                        ?? throw AppException.NotFound("Voluntário");
+        if (!await CanSeeAvailabilityAsync(id))
+            throw AppException.Forbidden("Só a coordenação e a própria pessoa veem onde ela mora e quando está livre.");
+        return Mapping.ToAvailabilityDto(volunteer);
+    }
+
+    /// <summary>
+    /// Salva bairro, cidade, deslocamento e turnos livres (a propria pessoa, em Minha conta, ou a coordenacao). O
+    /// ponto do bairro vem do navegador, que o procura no mapa; sem bairro nem cidade, nao ha ponto.
+    /// </summary>
+    public async Task<VolunteerAvailabilityDto> SaveAvailabilityAsync(Guid id, SaveAvailabilityRequest request)
+    {
+        var volunteer = await _db.Volunteers.FirstOrDefaultAsync(v => v.Id == id)
+                        ?? throw AppException.NotFound("Voluntário");
+        if (!await CanSeeAvailabilityAsync(id))
+            throw AppException.Forbidden("Só a coordenação e a própria pessoa mudam onde ela mora e quando está livre.");
+        EnsureNotAnonymized(volunteer);
+
+        var district = string.IsNullOrWhiteSpace(request.District) ? null : request.District.Trim();
+        var city = string.IsNullOrWhiteSpace(request.City) ? null : request.City.Trim();
+        var samePlace = district == volunteer.HomeDistrict && city == volunteer.HomeCity;
+        volunteer.HomeDistrict = district;
+        volunteer.HomeCity = city;
+        if (district is null && city is null)
+        {
+            volunteer.HomeLatitude = null;
+            volunteer.HomeLongitude = null;
+        }
+        // O navegador so procura o bairro no mapa quando ele muda: sem ponto novo, o mesmo lugar fica com o de antes.
+        else if (request.Latitude.HasValue && request.Longitude.HasValue)
+        {
+            volunteer.HomeLatitude = request.Latitude;
+            volunteer.HomeLongitude = request.Longitude;
+        }
+        else if (!samePlace)
+        {
+            volunteer.HomeLatitude = null;
+            volunteer.HomeLongitude = null;
+        }
+        volunteer.Transport = request.Transport;
+        volunteer.AvailabilityMask = VolunteerAvailability.ToMask(request.Slots);
+        volunteer.AvailabilityUpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Mapping.ToAvailabilityDto(volunteer);
     }
 
     /// <summary>Depois de anonimizado, o cadastro nao volta a receber dados pessoais.</summary>
@@ -176,7 +239,7 @@ public class VolunteerService
         VolunteerStatusHistoryService.Start(_db, volunteer, request.ActiveSince ?? Mapping.Today);
         await _db.SaveChangesAsync();
 
-        return Mapping.ToDto(volunteer, new List<VolunteerProjectDto>());
+        return Mapping.ToDto(volunteer, new List<VolunteerProjectDto>(), withAvailability: true);
     }
 
     public async Task<VolunteerDto> UpdateAsync(Guid id, SaveVolunteerRequest request)
@@ -206,7 +269,8 @@ public class VolunteerService
         await _db.SaveChangesAsync();
 
         var projects = volunteer.Projects.Select(Mapping.ToProjectDto).ToList();
-        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id));
+        return Mapping.ToDto(volunteer, projects, await TermSignedOnAsync(id), await AccessOfAsync(id),
+            withAvailability: true);
     }
 
     /// <summary>
@@ -245,7 +309,8 @@ public class VolunteerService
     }
 
     /// <summary>
-    /// LGPD: troca a exclusao. Apaga nome, contatos, habilidades, observacoes, aniversario e foto, desvincula o
+    /// LGPD: troca a exclusao. Apaga nome, contatos, habilidades, observacoes, aniversario, foto, bairro, deslocamento
+    /// e turnos, desvincula o
     /// acesso e apaga os avisos da pessoa; mantem projetos, atividades e os documentos assinados (guardados para
     /// defesa da organizacao), agora sem identificar a pessoa.
     /// </summary>
@@ -263,6 +328,13 @@ public class VolunteerService
         volunteer.BirthDay = null;
         volunteer.BirthMonth = null;
         volunteer.PhotoStoredName = null;
+        volunteer.HomeDistrict = null;
+        volunteer.HomeCity = null;
+        volunteer.HomeLatitude = null;
+        volunteer.HomeLongitude = null;
+        volunteer.Transport = null;
+        volunteer.AvailabilityMask = 0;
+        volunteer.AvailabilityUpdatedAt = null;
         volunteer.AnonymizedAt = DateTime.UtcNow;
         if (volunteer.Status != VolunteerStatus.ExMembro)
             await VolunteerStatusHistoryService.ApplyPeriodAsync(_db, volunteer, VolunteerStatus.ExMembro, Mapping.Today, null);

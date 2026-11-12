@@ -118,6 +118,33 @@ public enum SignedDocumentKind
     BeneficiaryImageAuthorization = 1
 }
 
+/// <summary>Dia da semana na grade de disponibilidade (comeca na segunda, como a grade da tela).</summary>
+public enum WeekDay
+{
+    Segunda = 0,
+    Terca = 1,
+    Quarta = 2,
+    Quinta = 3,
+    Sexta = 4,
+    Sabado = 5,
+    Domingo = 6
+}
+
+/// <summary>Turno do dia: na grade de disponibilidade e no horario da visita.</summary>
+public enum Shift
+{
+    Manha = 0,
+    Tarde = 1,
+    Noite = 2
+}
+
+/// <summary>Como o voluntario costuma se deslocar ate as obras.</summary>
+public enum TransportMode
+{
+    Carro = 0,
+    TransportePublico = 1
+}
+
 /// <summary>O que aconteceu com o registro, no historico de alteracoes.</summary>
 public enum AuditAction
 {

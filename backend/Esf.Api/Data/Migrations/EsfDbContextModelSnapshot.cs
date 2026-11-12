@@ -1138,6 +1138,12 @@ namespace Esf.Api.Data.Migrations
                     b.Property<DateTime?>("AnonymizedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("AvailabilityMask")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("AvailabilityUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int?>("BirthDay")
                         .HasColumnType("integer");
 
@@ -1150,6 +1156,20 @@ namespace Esf.Api.Data.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<string>("HomeCity")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("HomeDistrict")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<double?>("HomeLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("HomeLongitude")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1177,6 +1197,9 @@ namespace Esf.Api.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Transport")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

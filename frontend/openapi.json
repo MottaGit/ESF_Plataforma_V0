@@ -5675,6 +5675,115 @@
         }
       }
     },
+    "/api/volunteers/{id}/availability": {
+      "get": {
+        "tags": [
+          "Volunteers"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolunteerAvailabilityDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolunteerAvailabilityDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolunteerAvailabilityDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Volunteers"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SaveAvailabilityRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SaveAvailabilityRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SaveAvailabilityRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolunteerAvailabilityDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolunteerAvailabilityDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolunteerAvailabilityDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/volunteers/{id}/photo": {
       "post": {
         "tags": [
@@ -6529,6 +6638,26 @@
           },
           "hasMore": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AvailabilitySlotDto": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WeekDay"
+              }
+            ]
+          },
+          "shift": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Shift"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -8766,6 +8895,53 @@
         },
         "additionalProperties": false
       },
+      "SaveAvailabilityRequest": {
+        "type": "object",
+        "properties": {
+          "district": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "maxLength": 120,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "transport": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransportMode"
+              }
+            ],
+            "nullable": true
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilitySlotDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "SaveChecklistItemRequest": {
         "required": [
           "text"
@@ -9608,6 +9784,14 @@
         },
         "additionalProperties": false
       },
+      "Shift": {
+        "enum": [
+          "Manha",
+          "Tarde",
+          "Noite"
+        ],
+        "type": "string"
+      },
       "SignTermRequest": {
         "type": "object",
         "properties": {
@@ -9751,6 +9935,13 @@
           }
         },
         "additionalProperties": false
+      },
+      "TransportMode": {
+        "enum": [
+          "Carro",
+          "TransportePublico"
+        ],
+        "type": "string"
       },
       "UnreadNotificationsDto": {
         "type": "object",
@@ -10022,6 +10213,42 @@
         },
         "additionalProperties": false
       },
+      "VolunteerAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "district": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "located": {
+            "type": "boolean"
+          },
+          "transport": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransportMode"
+              }
+            ],
+            "nullable": true
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilitySlotDto"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "VolunteerDto": {
         "type": "object",
         "properties": {
@@ -10098,6 +10325,14 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/VolunteerAccessDto"
+              }
+            ],
+            "nullable": true
+          },
+          "availability": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VolunteerAvailabilityDto"
               }
             ],
             "nullable": true
@@ -10244,6 +10479,18 @@
           }
         },
         "additionalProperties": false
+      },
+      "WeekDay": {
+        "enum": [
+          "Segunda",
+          "Terca",
+          "Quarta",
+          "Quinta",
+          "Sexta",
+          "Sabado",
+          "Domingo"
+        ],
+        "type": "string"
       }
     },
     "securitySchemes": {

@@ -24,6 +24,25 @@ public class Volunteer : IOrganizationOwned
     /// <summary>Foto (ja recortada em quadrado pelo navegador), gravada no armazenamento de arquivos.</summary>
     public string? PhotoStoredName { get; set; }
 
+    /// <summary>Bairro e cidade onde mora (nunca o endereco): servem para sugerir quem vai a uma visita.</summary>
+    public string? HomeDistrict { get; set; }
+    public string? HomeCity { get; set; }
+
+    /// <summary>Ponto aproximado do bairro (o centro dele no mapa), para calcular a distancia ate a obra.</summary>
+    public double? HomeLatitude { get; set; }
+    public double? HomeLongitude { get; set; }
+
+    public TransportMode? Transport { get; set; }
+
+    /// <summary>
+    /// Turnos em que a pessoa costuma estar livre: um bit por dia e turno (ver VolunteerAvailability). Zero: nada
+    /// marcado.
+    /// </summary>
+    public int AvailabilityMask { get; set; }
+
+    /// <summary>Quando bairro, deslocamento ou turnos foram salvos pela ultima vez (vazio: nunca preenchidos).</summary>
+    public DateTime? AvailabilityUpdatedAt { get; set; }
+
     /// <summary>
     /// Quando os dados pessoais foram anonimizados (pedido do titular ou saida da organizacao): nome generico,
     /// sem contatos, foto nem aniversario. Projetos, atividades e documentos assinados continuam.

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import { authApi } from '../../api/endpoints';
 import { MyTermPanel } from '../documents/MyTermPanel';
+import { MyAvailabilityPanel } from '../volunteers/Availability';
 import { Button } from '../ui/Button';
 import { Field, PasswordInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
@@ -128,6 +129,8 @@ export function AccountSection() {
             </div>
           </div>
         </section>
+
+        <MyAvailabilityPanel volunteerId={user?.volunteerId ?? null} />
 
         <MyTermPanel volunteerId={user?.volunteerId ?? null} />
       </div>

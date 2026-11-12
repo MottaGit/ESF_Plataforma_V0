@@ -1,9 +1,12 @@
 import type {
   ActivityStatus,
   ProjectStatus,
+  Shift,
+  TransportMode,
   UserRole,
   VolunteerSector,
-  VolunteerStatus
+  VolunteerStatus,
+  WeekDay
 } from '../types/api';
 
 export const PROJECT_STATUSES: ProjectStatus[] = ['Planejamento', 'EmAndamento', 'Pausado', 'Concluido', 'Cancelado'];
@@ -70,6 +73,45 @@ export const activityStatusLabel = (status: ActivityStatus) => activityStatusLab
 export const roleLabel = (role: UserRole) => roleLabels[role] ?? role;
 export const sectorLabel = (sector: VolunteerSector) => sectorLabels[sector] ?? sector;
 export const volunteerStatusLabel = (status: VolunteerStatus) => volunteerStatusLabels[status] ?? status;
+
+/** Grade de disponibilidade: dias a partir da segunda e os tres turnos. */
+export const WEEK_DAYS: WeekDay[] = ['Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
+export const SHIFTS: Shift[] = ['Manha', 'Tarde', 'Noite'];
+export const TRANSPORT_MODES: TransportMode[] = ['Carro', 'TransportePublico'];
+
+const weekDayShort: Record<WeekDay, string> = {
+  Segunda: 'Seg',
+  Terca: 'Ter',
+  Quarta: 'Qua',
+  Quinta: 'Qui',
+  Sexta: 'Sex',
+  Sabado: 'Sáb',
+  Domingo: 'Dom'
+};
+
+const weekDayLong: Record<WeekDay, string> = {
+  Segunda: 'segunda',
+  Terca: 'terça',
+  Quarta: 'quarta',
+  Quinta: 'quinta',
+  Sexta: 'sexta',
+  Sabado: 'sábado',
+  Domingo: 'domingo'
+};
+
+const shiftLabels: Record<Shift, string> = { Manha: 'Manhã', Tarde: 'Tarde', Noite: 'Noite' };
+
+const transportLabels: Record<TransportMode, string> = { Carro: 'Carro', TransportePublico: 'Transporte público' };
+
+export const weekDayShortLabel = (day: WeekDay) => weekDayShort[day] ?? day;
+export const weekDayLabel = (day: WeekDay) => weekDayLong[day] ?? day;
+export const shiftLabel = (shift: Shift) => shiftLabels[shift] ?? shift;
+export const transportLabel = (mode: TransportMode) => transportLabels[mode] ?? mode;
+
+const shiftPhrases: Record<Shift, string> = { Manha: 'de manhã', Tarde: 'à tarde', Noite: 'à noite' };
+
+/** Turno no meio de uma frase: "segunda de manhã", "quinta à tarde". */
+export const shiftPhrase = (shift: Shift) => shiftPhrases[shift] ?? shift;
 
 export const roleDescription: Record<UserRole, string> = {
   Administrador: 'Acesso completo, incluindo usuários e dados da organização.',

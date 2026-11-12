@@ -82,6 +82,11 @@ export interface AuditPageDto {
   hasMore: boolean;
 }
 
+export interface AvailabilitySlotDto {
+  day: WeekDay;
+  shift: Shift;
+}
+
 export interface BackgroundJobDto {
   id: string;
   kind: BackgroundJobKind;
@@ -687,6 +692,15 @@ export interface SaveActivityRequest {
   blockedReason: string | null;
 }
 
+export interface SaveAvailabilityRequest {
+  district: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  transport: TransportMode | null;
+  slots: AvailabilitySlotDto[] | null;
+}
+
 export interface SaveChecklistItemRequest {
   text: string;
 }
@@ -890,6 +904,8 @@ export interface SetupDto {
   teamDone: boolean;
 }
 
+export type Shift = 'Manha' | 'Tarde' | 'Noite';
+
 export interface SignTermRequest {
   fullName: string | null;
   cpf: string | null;
@@ -932,6 +948,8 @@ export interface TermClause {
   title: string;
   text: string;
 }
+
+export type TransportMode = 'Carro' | 'TransportePublico';
 
 export interface UnreadNotificationsDto {
   linked: boolean;
@@ -1005,6 +1023,15 @@ export interface VolunteerAccessDto {
   linkExpiresAt: string | null;
 }
 
+export interface VolunteerAvailabilityDto {
+  district: string | null;
+  city: string | null;
+  located: boolean;
+  transport: TransportMode | null;
+  slots: AvailabilitySlotDto[];
+  updatedAt: string | null;
+}
+
 export interface VolunteerDto {
   id: string;
   name: string;
@@ -1022,6 +1049,7 @@ export interface VolunteerDto {
   termSignedOn: string | null;
   anonymized: boolean;
   access: VolunteerAccessDto | null;
+  availability: VolunteerAvailabilityDto | null;
 }
 
 export interface VolunteerHoursDto {
@@ -1062,3 +1090,5 @@ export interface VolunteerTermText {
   commitment: string;
   clauses: TermClause[];
 }
+
+export type WeekDay = 'Segunda' | 'Terca' | 'Quarta' | 'Quinta' | 'Sexta' | 'Sabado' | 'Domingo';

@@ -29,7 +29,48 @@ public record VolunteerDto(
     // Dados pessoais ja anonimizados: so o historico continua.
     bool Anonymized,
     // Acesso a plataforma ligado a este voluntario (null: sem acesso).
-    VolunteerAccessDto? Access);
+    VolunteerAccessDto? Access,
+    // Bairro, deslocamento e turnos livres: so para a coordenacao e para a propria pessoa (null para os demais).
+    VolunteerAvailabilityDto? Availability = null);
+
+/// <summary>Um turno livre na grade de disponibilidade.</summary>
+public record AvailabilitySlotDto(WeekDay Day, Shift Shift);
+
+/// <summary>
+/// Onde o voluntario mora (bairro e cidade), como se desloca e em que turnos costuma estar livre. Located: o bairro
+/// foi achado no mapa (sem ele, a distancia ate a obra nao aparece). UpdatedAt vazio: nunca preenchido.
+/// </summary>
+public record VolunteerAvailabilityDto(
+    string? District,
+    string? City,
+    bool Located,
+    TransportMode? Transport,
+    List<AvailabilitySlotDto> Slots,
+    DateTime? UpdatedAt);
+
+/// <summary>Bairro, deslocamento e turnos, salvos pela propria pessoa (Minha conta) ou pela coordenacao.</summary>
+public class SaveAvailabilityRequest
+{
+    [StringLength(120, ErrorMessage = "O bairro deve ter no máximo 120 caracteres.")]
+    public string? District { get; set; }
+
+    [StringLength(120, ErrorMessage = "A cidade deve ter no máximo 120 caracteres.")]
+    public string? City { get; set; }
+
+    /// <summary>
+    /// Centro aproximado do bairro, achado pelo navegador no mapa. Vazio com o mesmo bairro e cidade: fica o ponto
+    /// que ja havia; vazio com outro lugar: nao achado.
+    /// </summary>
+    [Range(-90, 90, ErrorMessage = "Latitude inválida.")]
+    public double? Latitude { get; set; }
+
+    [Range(-180, 180, ErrorMessage = "Longitude inválida.")]
+    public double? Longitude { get; set; }
+
+    public TransportMode? Transport { get; set; }
+
+    public List<AvailabilitySlotDto>? Slots { get; set; }
+}
 
 /// <summary>Acesso de um voluntario: perfil, se esta ativo e se ainda espera o primeiro acesso (sem senha).</summary>
 /// <remarks>LinkExpiresAt: validade do link de acesso ainda nao usado mais recente (null: nenhum).</remarks>

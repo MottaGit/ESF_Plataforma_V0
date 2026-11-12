@@ -6,5 +6,5 @@ namespace Esf.Api.Common;
 /// </summary>
 public static class PrivacyTerms
 {
-    public const string CurrentVersion = "2026-10-20";
+    public const string CurrentVersion = "2026-11-12";
 }

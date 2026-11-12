@@ -8,7 +8,7 @@ import type { Organization } from '../types/api';
  * Versao do texto abaixo. Ao mudar o conteudo, atualize tambem PrivacyTerms.CurrentVersion na API: todos
  * recebem o pedido de aceite de novo.
  */
-export const PRIVACY_VERSION_LABEL = '20 de outubro de 2026';
+export const PRIVACY_VERSION_LABEL = '12 de novembro de 2026';
 
 /** Politica de privacidade e termos de uso, abertos a qualquer pessoa (link na tela de login). */
 export function PrivacyPage() {
@@ -56,7 +56,8 @@ export function PrivacyContent({ organization }: { organization: Organization | 
         </li>
         <li>
           <strong>De voluntários:</strong> nome, e-mail, telefone, setor, habilidades, dia e mês do aniversário, foto,
-          observações da coordenação, participação em projetos e atividades e o termo de adesão assinado.
+          bairro e cidade onde mora (nunca o endereço), como se desloca, turnos em que costuma estar livre, observações
+          da coordenação, participação em projetos e atividades e o termo de adesão assinado.
         </li>
         <li>
           <strong>Dos projetos:</strong> endereço e localização das obras, relatos de andamento, fotos e documentos —
@@ -72,6 +73,10 @@ export function PrivacyContent({ organization }: { organization: Organization | 
       <ul>
         <li>Planejar e acompanhar os projetos, distribuir atividades e avisar cada pessoa do que é dela.</li>
         <li>Organizar o voluntariado, incluindo o termo de adesão e os certificados de participação.</li>
+        <li>
+          Combinar as visitas às obras, sugerindo quem está livre no turno e mora mais perto. O bairro, o deslocamento
+          e os turnos só aparecem para a coordenação e para a própria pessoa.
+        </li>
         <li>Prestar contas a parceiros e financiadores, por meio de relatórios.</li>
         <li>Cumprir obrigações legais e proteger a organização em caso de questionamentos.</li>
       </ul>
@@ -85,7 +90,8 @@ export function PrivacyContent({ organization }: { organization: Organization | 
       <p>
         Não vendemos nem cedemos dados pessoais. Relatórios de projeto, que podem incluir nomes da equipe e fotos com
         autorização de uso de imagem, são enviados a parceiros e financiadores. Os serviços de hospedagem que mantêm a
-        plataforma no ar tratam os dados apenas em nome da organização.
+        plataforma no ar tratam os dados apenas em nome da organização. Para achar um endereço ou um bairro no mapa, só
+        o texto procurado é enviado ao OpenStreetMap, sem o nome de ninguém.
       </p>
 
       <h2>5. Por quanto tempo</h2>

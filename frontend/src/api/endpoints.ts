@@ -52,6 +52,7 @@ import type {
   SaveProgramPayload,
   SaveProjectPayload,
   SaveUserPayload,
+  SaveAvailabilityPayload,
   SaveStatusPeriodPayload,
   SaveVolunteerPayload,
   SearchResults,
@@ -66,6 +67,7 @@ import type {
   User,
   UserRole,
   Volunteer,
+  VolunteerAvailability,
   VolunteerHours,
   VolunteerLoad,
   VolunteerSector
@@ -198,6 +200,10 @@ export const volunteersApi = {
     return http.request<Volunteer>(`/api/volunteers/${id}/photo`, { method: 'POST', formData });
   },
   removePhoto: (id: string) => http.request<Volunteer>(`/api/volunteers/${id}/photo`, { method: 'DELETE' }),
+  /** Bairro, deslocamento e turnos livres: a coordenacao ve os de todos; os demais, so os proprios. */
+  availability: (id: string) => http.request<VolunteerAvailability>(`/api/volunteers/${id}/availability`),
+  saveAvailability: (id: string, payload: SaveAvailabilityPayload) =>
+    http.request<VolunteerAvailability>(`/api/volunteers/${id}/availability`, { method: 'PUT', body: payload }),
   /** Horas de voluntariado e, para quem pode ver, o historico de status. */
   hours: (id: string) => http.request<VolunteerHours>(`/api/volunteers/${id}/hours`),
   addStatusPeriod: (id: string, payload: SaveStatusPeriodPayload) =>

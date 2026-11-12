@@ -70,10 +70,20 @@ public static class Mapping
     public static IndicatorDto ToDto(Indicator i) =>
         new(i.Id, i.ProjectId, i.Name, i.Unit, i.Value, i.CreatedAt, i.NationalIndicatorId, i.ValueUpdatedAt);
 
+    /// <summary>withAvailability: bairro, deslocamento e turnos (so para a coordenacao e para a propria pessoa).</summary>
     public static VolunteerDto ToDto(Volunteer v, List<VolunteerProjectDto> projects, DateOnly? termSignedOn = null,
-        VolunteerAccessDto? access = null) =>
+        VolunteerAccessDto? access = null, bool withAvailability = false) =>
         new(v.Id, v.Name, v.Email, v.Phone, v.Sector, v.Skills, v.Notes, v.Status, projects, v.CreatedAt,
-            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName), termSignedOn, v.AnonymizedAt != null, access);
+            v.BirthDay, v.BirthMonth, PhotoUrl(v.PhotoStoredName), termSignedOn, v.AnonymizedAt != null, access,
+            withAvailability ? ToAvailabilityDto(v) : null);
+
+    public static VolunteerAvailabilityDto ToAvailabilityDto(Volunteer v) =>
+        new(v.HomeDistrict,
+            v.HomeCity,
+            v.HomeLatitude.HasValue && v.HomeLongitude.HasValue,
+            v.Transport,
+            VolunteerAvailability.ToSlots(v.AvailabilityMask),
+            v.AvailabilityUpdatedAt);
 
     /// <summary>Endereco publico da foto de um voluntario (null quando nao ha foto).</summary>
     public static string? PhotoUrl(string? storedName) =>

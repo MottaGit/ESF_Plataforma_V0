@@ -154,6 +154,8 @@ public class EsfDbContext : DbContext
             e.Property(x => x.Email).HasMaxLength(200);
             e.Property(x => x.Phone).HasMaxLength(40);
             e.Property(x => x.PhotoStoredName).HasMaxLength(160);
+            e.Property(x => x.HomeDistrict).HasMaxLength(120);
+            e.Property(x => x.HomeCity).HasMaxLength(120);
             e.HasIndex(x => x.Name);
             e.HasIndex(x => x.Sector);
             e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);

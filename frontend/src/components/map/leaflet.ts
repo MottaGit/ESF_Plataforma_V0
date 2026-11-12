@@ -31,27 +31,6 @@ export function programPin(icon: string, color: string) {
   });
 }
 
-export interface PlaceResult {
-  label: string;
-  lat: number;
-  lng: number;
-}
-
-/**
- * Procura um endereco no OpenStreetMap (Nominatim). So e chamado quando a pessoa pede (um pedido por busca),
- * como pede a politica de uso do servico.
- */
-export async function searchAddress(query: string): Promise<PlaceResult[]> {
-  const url = new URL('https://nominatim.openstreetmap.org/search');
-  url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('limit', '5');
-  url.searchParams.set('countrycodes', 'br');
-  url.searchParams.set('accept-language', 'pt-BR');
-  url.searchParams.set('q', query);
-  const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error('busca indisponivel');
-  const data = (await response.json()) as Array<{ display_name: string; lat: string; lon: string }>;
-  return data.map((item) => ({ label: item.display_name, lat: Number(item.lat), lng: Number(item.lon) }));
-}
+export { searchAddress, type PlaceResult } from '../../utils/geocode';
 
 export { L };

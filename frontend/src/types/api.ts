@@ -170,6 +170,28 @@ export interface SaveStatusPeriodPayload {
 /** Situacao e tarefas em aberto (projetos em planejamento ou andamento), para escolher o responsavel. */
 export type VolunteerLoad = G.VolunteerLoadDto;
 
+export type WeekDay = G.WeekDay;
+
+/** Turno do dia: na grade de disponibilidade e no horario da visita. */
+export type Shift = G.Shift;
+
+export type TransportMode = G.TransportMode;
+
+export type AvailabilitySlot = G.AvailabilitySlotDto;
+
+/** Bairro, deslocamento e turnos livres (so a coordenacao e a propria pessoa veem). */
+export type VolunteerAvailability = G.VolunteerAvailabilityDto;
+
+export interface SaveAvailabilityPayload {
+  district: string | null;
+  city: string | null;
+  /** Centro aproximado do bairro, achado no mapa pelo navegador (null: nao achado). */
+  latitude: number | null;
+  longitude: number | null;
+  transport: TransportMode | null;
+  slots: AvailabilitySlot[];
+}
+
 export type ProjectVolunteer = G.ProjectVolunteerDto;
 
 export type ProjectUpdate = G.ProjectUpdateDto;
