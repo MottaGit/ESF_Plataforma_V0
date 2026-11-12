@@ -9,7 +9,7 @@ import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Field, Select, TextArea, TextInput } from '../components/ui/Field';
 import { Alert, EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
-import { IconDownload, IconKey, IconPlus, IconSearch, IconUpload } from '../components/ui/Icons';
+import { IconDownload, IconPlus, IconSearch, IconUpload, IconUserCheck } from '../components/ui/Icons';
 import { PhotoCropper } from '../components/ui/PhotoCropper';
 import { Modal } from '../components/ui/Modal';
 import { ContactIcons } from '../components/volunteers/ContactLinks';
@@ -329,7 +329,7 @@ export function VolunteersPage() {
                                 aria-label={volunteer.access.pending ? 'Acesso aguardando o primeiro acesso' : 'Tem acesso à plataforma'}
                                 title={volunteer.access.pending ? 'Acesso aguardando o primeiro acesso' : 'Tem acesso à plataforma'}
                               >
-                                <IconKey size={13} />
+                                <IconUserCheck size={15} />
                               </span>
                             ) : null}
                             {birthday ? (

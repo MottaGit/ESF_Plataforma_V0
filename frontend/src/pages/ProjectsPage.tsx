@@ -294,7 +294,7 @@ function ProjectList({ searchParams, updateParams }: ProjectListProps) {
           <span className="search">
             <IconSearch className="search__icon" />
             <TextInput
-              placeholder={selected ? 'Buscar neste programa' : 'Buscar por nome, comunidade ou cidade'}
+              placeholder={selected ? 'Buscar neste programa' : 'Buscar projeto, bairro ou cidade'}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               aria-label="Buscar projetos"

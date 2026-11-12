@@ -318,6 +318,17 @@ export const IconKey = (p: IconProps) =>
     p
   );
 
+/* Pessoa com visto (Lucide user-check): "tem acesso" ao lado do nome. A chave, pequena e sozinha, parecia o simbolo ♂. */
+export const IconUserCheck = (p: IconProps) =>
+  svg(
+    <>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="m16 11 2 2 4-4" />
+    </>,
+    p
+  );
+
 export const IconGlobe = (p: IconProps) =>
   svg(
     <>

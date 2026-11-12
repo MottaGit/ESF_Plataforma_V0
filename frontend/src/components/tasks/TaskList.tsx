@@ -158,10 +158,13 @@ function TaskRow({ activity, justDone, onOpen, onRequestStatus, onReopen }: Task
           {!done ? <UrgentBadge priority={activity.priority} /> : null}
         </span>
         <span className="task-row__meta">
-          {activity.programIcon && activity.programColor ? (
-            <ProgramMark icon={activity.programIcon} color={activity.programColor} size={16} />
-          ) : null}
-          <span className="task-row__project">{activity.projectName}</span>
+          {/* Icone e nome juntos: quebrando a linha, os dois descem juntos (o nome corta com reticencias). */}
+          <span className="task-row__project-wrap">
+            {activity.programIcon && activity.programColor ? (
+              <ProgramMark icon={activity.programIcon} color={activity.programColor} size={16} />
+            ) : null}
+            <span className="task-row__project">{activity.projectName}</span>
+          </span>
           {/* No celular as colunas de responsavel e status somem: o essencial vem aqui. */}
           <span className={`task-row__mobile${activity.assignedVolunteerName ? '' : ' task-row__mobile--none'}`}>
             {activity.assignedVolunteerName ? activity.assignedVolunteerName.split(' ')[0] : 'Sem responsável'}

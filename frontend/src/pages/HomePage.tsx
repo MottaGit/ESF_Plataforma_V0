@@ -381,10 +381,12 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
                       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
                         <span className="task-row__title">{activity.title}</span>
                         <span className="task-row__meta">
-                          {activity.programIcon && activity.programColor ? (
-                            <ProgramMark icon={activity.programIcon} color={activity.programColor} size={16} />
-                          ) : null}
-                          <span className="task-row__project">{activity.projectName}</span>
+                          <span className="task-row__project-wrap">
+                            {activity.programIcon && activity.programColor ? (
+                              <ProgramMark icon={activity.programIcon} color={activity.programColor} size={16} />
+                            ) : null}
+                            <span className="task-row__project">{activity.projectName}</span>
+                          </span>
                           <ActivityCounters activity={activity} />
                         </span>
                       </button>

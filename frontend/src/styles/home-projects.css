@@ -2,7 +2,8 @@
    Inicio
    --------------------------------------------------------- */
 
-.home__col { display: grid; gap: 20px; align-content: start; }
+/* minmax(0, 1fr): sem isso a coluna cresce ate o texto mais comprido e a tela rola de lado no celular. */
+.home__col { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-content: start; }
 
 /* Primeiros passos de um nucleo novo. */
 .first-steps { margin-bottom: 22px; }

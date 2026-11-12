@@ -279,6 +279,7 @@
   flex: 1;
   min-width: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 3px;
   padding: 4px 0;
   border: 0;
@@ -291,6 +292,7 @@
 .task-row__main:hover .task-row__title { text-decoration: underline; }
 .task-row__title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
 .task-row__meta { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-muted); }
+.task-row__project-wrap { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
 .task-row__project { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; }
 .task-row__blocked { font-size: 12.5px; color: var(--st-blocked-fg); }
 .task-row__status { flex: 0 0 auto; }

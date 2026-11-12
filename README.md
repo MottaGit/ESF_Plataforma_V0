@@ -773,7 +773,7 @@ principal (o caso mais comum é quem já criou a senha e tocou no link de novo) 
 a senha, **Gerar link de acesso** (página do voluntário ou ícone da chave em Acessos) faz um link novo e anula os
 anteriores ainda não usados. As rotas públicas do link aceitam 20 tentativas por minuto por endereço (o endereço real de quem acessa, não o do
 proxy; ver `ForwardedHeaders` em Configuração). A lista de
-voluntários mostra uma chave ao lado de quem tem acesso (cinza enquanto aguarda o primeiro acesso), e a página do
+voluntários mostra um ícone de pessoa com visto ao lado de quem tem acesso (cinza enquanto aguarda o primeiro acesso), e a página do
 voluntário mostra o perfil e a situação do acesso. Acessos antigos, com senha definida antes, continuam valendo. O nome e
 o e-mail do acesso vêm do cadastro do voluntário: mudar o e-mail no cadastro muda o login (não pode ficar em branco
 nem repetir o de outro acesso, de qualquer núcleo). Em **Configurações › Acessos** a lista mostra a pessoa (com o
