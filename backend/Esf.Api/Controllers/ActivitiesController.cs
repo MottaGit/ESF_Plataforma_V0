@@ -1,4 +1,5 @@
 using Esf.Api.Common;
+using Esf.Api.Domain;
 using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -35,6 +36,17 @@ public class ActivitiesController : ControllerBase
             ? await _activities.ListUpcomingForUserAsync(_currentUser.RequireId(), take)
             : await _activities.ListUpcomingAsync(take));
     }
+
+    /// <summary>
+    /// Sugestoes para uma visita do projeto (coordenacao, porque usa bairro e turnos das pessoas): os turnos com mais
+    /// gente livre nas proximas duas semanas e, com dia e turno, todos os voluntarios ativos na ordem sugerida.
+    /// activityId: a visita sendo editada (nao conta como "outra visita" no turno).
+    /// </summary>
+    [HttpGet("projects/{projectId:guid}/visit-suggestions")]
+    [Authorize(Policy = Policies.ManageProjects)]
+    public async Task<ActionResult<VisitSuggestionsDto>> VisitSuggestions(Guid projectId, [FromQuery] DateOnly? date,
+        [FromQuery] Shift? shift, [FromQuery] Guid? activityId, [FromServices] VisitPlannerService planner)
+        => Ok(await planner.SuggestAsync(projectId, date, shift, activityId));
 
     /// <summary>Quadro de atividades da tela de Projetos (projetos ativos; concluidas dos ultimos 30 dias).</summary>
     [HttpGet("activities/board")]

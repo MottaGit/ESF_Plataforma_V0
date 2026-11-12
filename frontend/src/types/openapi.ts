@@ -1027,6 +1027,35 @@ export interface UserDto {
 
 export type UserRole = 'Administrador' | 'Coordenador' | 'Usuario';
 
+export type VisitAvailability = 'Livre' | 'NaoInformou' | 'Ocupado';
+
+export interface VisitCandidateDto {
+  volunteerId: string;
+  name: string;
+  photoUrl: string | null;
+  district: string | null;
+  availability: VisitAvailability;
+  otherVisit: boolean;
+  distanceKm: number | null;
+  transport: TransportMode | null;
+  openActivities: number;
+  suggested: boolean;
+}
+
+export interface VisitSlotDto {
+  date: string;
+  shift: Shift;
+  available: number;
+  withCar: number;
+}
+
+export interface VisitSuggestionsDto {
+  projectLocated: boolean;
+  withoutAvailability: number;
+  slots: VisitSlotDto[];
+  candidates: VisitCandidateDto[];
+}
+
 export interface VolunteerAccessDto {
   userId: string;
   role: UserRole;

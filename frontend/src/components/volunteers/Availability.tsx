@@ -239,9 +239,11 @@ export function AvailabilityPanel({ volunteerId, availability, isSelf, canEdit, 
       <div className="panel__head">
         <h2>Disponibilidade para visitas</h2>
         {canEdit && filled ? (
-          <Button small icon={<IconEdit size={14} />} onClick={() => setEditing(true)}>
-            Editar
-          </Button>
+          <div className="panel__actions">
+            <Button small icon={<IconEdit size={14} />} onClick={() => setEditing(true)}>
+              Editar
+            </Button>
+          </div>
         ) : null}
       </div>
       <div className="panel__body">

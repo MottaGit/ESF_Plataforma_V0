@@ -8,7 +8,7 @@ export function VisitBadge({ activity }: { activity: Activity }) {
 }
 
 /**
- * Quem esta na tarefa: a foto e o nome do responsavel; na visita, as duas fotos sobrepostas e "Ana e Bruno".
+ * Quem esta na tarefa: a foto e o nome do responsavel; na visita, as duas fotos e "Ana e Bruno".
  * Sem ninguem, nao mostra nada (quem usa decide o "Sem responsavel").
  */
 export function TaskPeople({ activity, size = 22 }: { activity: Activity; size?: number }) {

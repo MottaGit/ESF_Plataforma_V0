@@ -15,7 +15,8 @@ import { ProgramMark } from '../components/programs/ProgramMark';
 import { ActivityCounters } from '../components/projects/ActivityCounters';
 import { ActivityFormModal } from '../components/projects/ActivityFormModal';
 import { groupByDue } from '../components/tasks/TaskList';
-import { isOverdue, useJustDone } from '../components/tasks/taskUtils';
+import { VisitBadge } from '../components/tasks/TaskPeople';
+import { dueText, isOverdue, peopleLabel, useJustDone } from '../components/tasks/taskUtils';
 import { Avatar } from '../components/ui/Avatar';
 import { BirthdayBadge } from '../components/ui/Badge';
 import { Alert, EmptyState, Loading } from '../components/ui/Feedback';
@@ -30,7 +31,6 @@ import {
   birthdayLabel,
   birthdayOffset,
   displayName,
-  dueDateLabel,
   dueDateTitle,
   timeAgoPhrase
 } from '../utils/format';
@@ -381,7 +381,10 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
                         />
                       </label>
                       <button type="button" className="task-row__main" onClick={() => onOpen(activity)}>
-                        <span className="task-row__title">{activity.title}</span>
+                        <span className="task-row__title">
+                          {activity.title}
+                          <VisitBadge activity={activity} />
+                        </span>
                         <span className="task-row__meta">
                           <span className="task-row__project-wrap">
                             {activity.programIcon && activity.programColor ? (
@@ -389,6 +392,8 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
                             ) : null}
                             <span className="task-row__project">{activity.projectName}</span>
                           </span>
+                          {/* Na visita, quem vai junto. */}
+                          {activity.kind === 'Visita' ? <span>{peopleLabel(activity, true)}</span> : null}
                           <ActivityCounters activity={activity} />
                         </span>
                       </button>
@@ -401,9 +406,9 @@ function MyTasksPanel({ tasks, total, onOpen, onChanged }: MyTasksPanelProps) {
                       ) : (
                         <span
                           className={`task-row__due${isOverdue(activity) ? ' task-row__due--late' : ''}`}
-                          title={dueDateTitle(activity.dueDate)}
+                          title={activity.kind === 'Visita' ? undefined : dueDateTitle(activity.dueDate)}
                         >
-                          {dueDateLabel(activity.dueDate)}
+                          {dueText(activity)}
                         </span>
                       )}
                     </li>

@@ -497,6 +497,21 @@ tarefas tira a pessoa da visita, como responsável ou acompanhante). Nas listas 
 na janela, **Quando** ("quinta, 20/11/2026 à tarde, 14:30") e **Quem vai**. Voltar para Tarefa apaga turno, hora e
 acompanhante. No PDF, as tarefas concluídas da visita mostram as duas pessoas.
 
+**Quem pode ir** (só a coordenação, porque usa bairro e turnos das pessoas) — painel dentro do formulário da visita
+(`GET /api/projects/{id}/visit-suggestions?date=&shift=&activityId=`, `VisitPlannerService`). Em cima, os **turnos com
+mais gente livre** nas próximas duas semanas (a partir de amanhã; até 6, só os com 2 pessoas ou mais, "qui 20/11 · tarde
+· 5 livres, 2 de carro"); tocar num deles preenche o dia e o turno. Com dia e turno escolhidos, **todos os voluntários
+ativos** em ordem, cada um com o porquê ("livre · 4 km · Carro · Restinga · 2 tarefas"): primeiro quem marcou o turno
+como livre, depois quem não preencheu a grade, por último quem marcou o turno como ocupado ou já tem outra visita em
+aberto no mesmo dia e turno; dentro de cada grupo, quem mora mais perto (linha reta do centro do bairro até o ponto do
+projeto) e, no empate, quem tem menos tarefas em aberto. As **duas primeiras** que podem ir ganham o selo
+**Sugerida** e o botão **Usar as 2 sugeridas** preenche responsável e acompanhante de uma vez; a lista mostra 6 e
+"Ver todas". **Escolher** preenche o responsável e depois o acompanhante (com os dois, vira **Trocar acompanhante**);
+**Tirar** desfaz. Não há dupla fixa nem prioridade para quem já está no projeto: a coordenação escolhe. Embaixo, o
+aviso de quantas pessoas ainda não preencheram bairro e turnos e, sem o ponto do projeto no mapa, o pedido para
+marcá-lo (Editar projeto), senão a lista não ordena pela distância. A demonstração traz bairro e turnos para os
+voluntários de Porto Alegre (Carol e Alice ainda sem preencher) e uma visita na Horta Vila Farrapos.
+
 **Equipe** — uma linha por pessoa, o responsável pelo projeto primeiro: foto, nome (leva à página do voluntário, onde
 fica o contato) com o setor ao lado, em cinza, e embaixo a função no projeto ("Responsável · projeto elétrico"); à
 direita, as tarefas em aberto no projeto ("3 tarefas · 1 atrasada", só o "atrasada" em vermelho; tocar abre a aba
@@ -1159,6 +1174,7 @@ que o limite da rota recebe 413.
 | GET | `/api/notifications` · `/unread` | avisos do usuário logado (todos os não lidos, até 50, e os lidos completando 15) e a quantidade de não lidos |
 | POST | `/api/notifications/{id}/read` · `/read-all` | marcar um aviso, ou todos, como lido |
 | GET/POST/PUT | `/api/volunteers[/{id}]` | cadastro de voluntários (DELETE, exclusão definitiva, só administrador) |
+| GET | `/api/projects/{id}/visit-suggestions` | turnos com mais gente livre nas próximas 2 semanas e, com `date` e `shift`, os voluntários ativos na ordem sugerida para a visita (coordenação) |
 | GET | `/api/volunteers/load` | situação e tarefas em aberto (e atrasadas) de cada voluntário, para escolher o responsável |
 | POST | `/api/volunteers/{id}/anonymize` | anonimiza os dados pessoais e mantém o histórico (LGPD) |
 | POST/DELETE | `/api/volunteers/{id}/photo` | troca ou remove a foto do voluntário (imagem já recortada) |

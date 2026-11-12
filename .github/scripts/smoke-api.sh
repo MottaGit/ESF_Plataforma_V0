@@ -116,6 +116,10 @@ done
 call "$admin" GET "/api/projects/$project/documents/template"
 expect_pdf "O modelo de autorização de imagem"
 
+# Quem pode ir a uma visita (bairro e turnos dos voluntários de demonstração).
+call "$admin" GET "/api/projects/$project/visit-suggestions?date=$today&shift=Tarde"
+expect '.candidates | length > 0' 'As sugestões de visita vieram sem ninguém.'
+
 call "$admin" GET "/api/projects/$project/activities"
 activity=$(field '.[0].id')
 if [[ -n $activity ]]; then
@@ -131,7 +135,7 @@ done
 
 call "$admin" GET /api/volunteers
 volunteer=$(field '.[0].id')
-for path in "" /hours /documents /certificate/options; do
+for path in "" /hours /documents /certificate/options /availability; do
   call "$admin" GET "/api/volunteers/$volunteer$path"
 done
 if [[ -n $(field '.full') ]]; then

@@ -399,6 +399,73 @@
         }
       }
     },
+    "/api/projects/{projectId}/visit-suggestions": {
+      "get": {
+        "tags": [
+          "Activities"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "shift",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Shift"
+                }
+              ]
+            }
+          },
+          {
+            "name": "activityId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSuggestionsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSuggestionsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSuggestionsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/activities/board": {
       "get": {
         "tags": [
@@ -10248,6 +10315,115 @@
           "Usuario"
         ],
         "type": "string"
+      },
+      "VisitAvailability": {
+        "enum": [
+          "Livre",
+          "NaoInformou",
+          "Ocupado"
+        ],
+        "type": "string"
+      },
+      "VisitCandidateDto": {
+        "type": "object",
+        "properties": {
+          "volunteerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "district": {
+            "type": "string",
+            "nullable": true
+          },
+          "availability": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitAvailability"
+              }
+            ]
+          },
+          "otherVisit": {
+            "type": "boolean"
+          },
+          "distanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "transport": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransportMode"
+              }
+            ],
+            "nullable": true
+          },
+          "openActivities": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggested": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VisitSlotDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "shift": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Shift"
+              }
+            ]
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withCar": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VisitSuggestionsDto": {
+        "type": "object",
+        "properties": {
+          "projectLocated": {
+            "type": "boolean"
+          },
+          "withoutAvailability": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VisitSlotDto"
+            }
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VisitCandidateDto"
+            }
+          }
+        },
+        "additionalProperties": false
       },
       "VolunteerAccessDto": {
         "type": "object",

@@ -93,6 +93,8 @@ const SECTIONS: HelpSection[] = [
             No projeto, aba <strong>Tarefas</strong>, toque em <strong>Nova visita</strong> (ou escolha{' '}
             <strong>Visita</strong> no tipo da tarefa). Informe o dia, o turno e as duas pessoas que vão: o
             responsável e o acompanhante. As duas recebem o aviso e veem a visita em <strong>Minhas tarefas</strong>.
+            Para a coordenação, o painel <strong>Quem pode ir</strong> mostra os turnos com mais gente livre e quem está
+            livre e mora mais perto, com as duas melhores marcadas como <strong>Sugerida</strong>.
           </p>
         )
       },

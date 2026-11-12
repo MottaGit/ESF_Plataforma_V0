@@ -55,6 +55,7 @@ import type {
   SaveAvailabilityPayload,
   SaveStatusPeriodPayload,
   SaveVolunteerPayload,
+  Shift,
   SearchResults,
   SignedDocument,
   SignTermPayload,
@@ -70,7 +71,8 @@ import type {
   VolunteerAvailability,
   VolunteerHours,
   VolunteerLoad,
-  VolunteerSector
+  VolunteerSector,
+  VisitSuggestions
 } from '../types/api';
 
 export const authApi = {
@@ -156,6 +158,9 @@ export const activitiesApi = {
     http.request<Activity[]>('/api/activities/upcoming', { query: { take, mine } }),
   /** Quadro de atividades: projetos em planejamento ou em andamento; concluidas dos ultimos 30 dias. */
   board: () => http.request<Activity[]>('/api/activities/board'),
+  /** Quem pode ir a uma visita do projeto (coordenacao); sem dia e turno, so os turnos com mais gente livre. */
+  visitSuggestions: (projectId: string, options: { date?: string; shift?: Shift; activityId?: string }) =>
+    http.request<VisitSuggestions>(`/api/projects/${projectId}/visit-suggestions`, { query: options }),
   create: (projectId: string, payload: SaveActivityPayload) =>
     http.request<Activity>(`/api/projects/${projectId}/activities`, { method: 'POST', body: payload }),
   update: (id: string, payload: SaveActivityPayload) =>

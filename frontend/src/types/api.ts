@@ -131,6 +131,13 @@ export type Activity = G.ActivityDto;
 /** Tarefa comum ou visita (dia, turno e duas pessoas: responsavel e acompanhante). */
 export type ActivityKind = G.ActivityKind;
 
+/** Sugestoes para uma visita: turnos com mais gente livre e as pessoas na ordem sugerida. */
+export type VisitSuggestions = G.VisitSuggestionsDto;
+
+export type VisitCandidate = G.VisitCandidateDto;
+
+export type VisitSlot = G.VisitSlotDto;
+
 export type ChecklistItem = G.ChecklistItemDto;
 
 /** O que fica dentro da atividade: checklist, anexos e comentarios. */

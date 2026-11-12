@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Esf.Api.Common;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Dtos;
 using Esf.Api.Reports;
 using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -320,6 +321,37 @@ public static class DbSeeder
         Joined(vMariaAntonia, -450, signedTerm: true);
         Joined(vAlice, -400, signedTerm: false);
         Joined(vCarol, -100, signedTerm: false);
+
+        // Bairro (centro aproximado), deslocamento e turnos livres, para as sugestoes de visita. Carol e Alice, que
+        // entraram ha pouco, ainda nao preencheram; Edu esta afastado.
+        void Lives(Volunteer v, string district, double lat, double lng, TransportMode transport, params (WeekDay, Shift)[] free)
+        {
+            v.HomeDistrict = district;
+            v.HomeCity = "Porto Alegre";
+            v.HomeLatitude = lat;
+            v.HomeLongitude = lng;
+            v.Transport = transport;
+            v.AvailabilityMask = VolunteerAvailability.ToMask(free.Select(slot => new AvailabilitySlotDto(slot.Item1, slot.Item2)));
+            v.AvailabilityUpdatedAt = At(-20);
+        }
+        Lives(vLeonardo, "Menino Deus", -30.0560, -51.2240, TransportMode.Carro,
+            (WeekDay.Segunda, Shift.Noite), (WeekDay.Quarta, Shift.Noite), (WeekDay.Sabado, Shift.Manha), (WeekDay.Sabado, Shift.Tarde));
+        Lives(vAna, "Cidade Baixa", -30.0420, -51.2190, TransportMode.TransportePublico,
+            (WeekDay.Terca, Shift.Tarde), (WeekDay.Quinta, Shift.Tarde), (WeekDay.Sabado, Shift.Manha));
+        Lives(vFausto, "Sarandi", -29.9930, -51.1270, TransportMode.Carro,
+            (WeekDay.Terca, Shift.Tarde), (WeekDay.Quinta, Shift.Tarde), (WeekDay.Sexta, Shift.Manha));
+        Lives(vAdriano, "Partenon", -30.0600, -51.1800, TransportMode.Carro,
+            (WeekDay.Quarta, Shift.Tarde), (WeekDay.Sexta, Shift.Tarde), (WeekDay.Sabado, Shift.Manha));
+        Lives(vLuca, "Santana", -30.0480, -51.2060, TransportMode.TransportePublico,
+            (WeekDay.Segunda, Shift.Tarde), (WeekDay.Quarta, Shift.Tarde), (WeekDay.Quinta, Shift.Tarde), (WeekDay.Sabado, Shift.Manha));
+        Lives(vGuilherme, "Petrópolis", -30.0430, -51.1830, TransportMode.TransportePublico,
+            (WeekDay.Terca, Shift.Manha), (WeekDay.Quinta, Shift.Manha), (WeekDay.Sabado, Shift.Tarde));
+        Lives(vJulia, "Navegantes", -29.9880, -51.2050, TransportMode.TransportePublico,
+            (WeekDay.Quarta, Shift.Tarde), (WeekDay.Quinta, Shift.Tarde), (WeekDay.Sabado, Shift.Manha));
+        Lives(vFrancielly, "Restinga", -30.1480, -51.1400, TransportMode.TransportePublico,
+            (WeekDay.Quinta, Shift.Tarde), (WeekDay.Sabado, Shift.Manha));
+        Lives(vMariaAntonia, "Bom Fim", -30.0330, -51.2100, TransportMode.Carro,
+            (WeekDay.Quarta, Shift.Noite), (WeekDay.Quinta, Shift.Tarde));
 
         // Acessos de demonstracao representam voluntarios ja cadastrados.
         leonardo.Volunteer = vLeonardo;
@@ -753,6 +785,14 @@ public static class DbSeeder
             {
                 Project = hFarrapos, Title = "Oficina de manejo e compostagem", Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media,
                 AssignedVolunteer = vLuca, DueDate = Day(30)
+            },
+            // Visita: sempre duas pessoas (a Julia mora ao lado, em Navegantes).
+            new Activity
+            {
+                Project = hFarrapos, Title = "Visita à associação para combinar o mutirão", Kind = ActivityKind.Visita,
+                Status = ActivityStatus.AFazer, Priority = ActivityPriority.Media, DueDate = Day(3),
+                VisitShift = Shift.Tarde, VisitTime = "15:00", AssignedVolunteer = vJulia, CompanionVolunteer = vLuca,
+                Description = "Combinar com a associação o dia do mutirão de plantio e o uso do ponto de água."
             });
         db.ActivityComments.AddRange(
             new ActivityComment

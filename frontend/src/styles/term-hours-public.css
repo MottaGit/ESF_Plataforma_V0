@@ -88,7 +88,7 @@
 @media (max-width: 640px) {
   .avail-grid--edit .avail-cell { height: 44px; }
   .avail-grid { border-spacing: 3px; }
-  .avail-grid th[scope="row"] { width: 46px; }
+  .avail-grid th[scope="row"] { width: 52px; }
 }
 
 /* ---------------------------------------------------------

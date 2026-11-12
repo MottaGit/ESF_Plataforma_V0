@@ -145,6 +145,17 @@ public enum Shift
     Noite = 2
 }
 
+/// <summary>Como o turno da visita fica para a pessoa, pela grade de disponibilidade dela.</summary>
+public enum VisitAvailability
+{
+    /// <summary>Marcou o turno como livre.</summary>
+    Livre = 0,
+    /// <summary>Nunca preencheu a grade.</summary>
+    NaoInformou = 1,
+    /// <summary>Preencheu a grade sem esse turno.</summary>
+    Ocupado = 2
+}
+
 /// <summary>Como o voluntario costuma se deslocar ate as obras.</summary>
 public enum TransportMode
 {

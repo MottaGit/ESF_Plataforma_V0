@@ -39,6 +39,7 @@ import { IconEdit, IconTrash } from '../ui/Icons';
 import { linkify } from '../ui/Linkify';
 import { Modal } from '../ui/Modal';
 import { ActivityExtras } from './ActivityExtras';
+import { VisitPlanner } from './VisitPlanner';
 import { BlockActivityDialog } from './BlockActivityDialog';
 
 /** Nome com a carga ao lado, na lista de responsaveis: "Ana Aumond · 3 em aberto", "Edu Grehs · afastado". */
@@ -107,7 +108,7 @@ export function ActivityFormModal({
   focusComments = false,
   initialKind = 'Tarefa'
 }: ActivityFormModalProps) {
-  const { user } = useAuth();
+  const { user, canManage } = useAuth();
   const { notify } = useToast();
   // Status, checklist, anexos e comentarios gravam na hora; ao fechar sem salvar, quem abriu ainda precisa saber.
   const extrasChanged = useRef(false);
@@ -487,6 +488,18 @@ export function ActivityFormModal({
     );
   }
 
+  /**
+   * Escolha pela lista de sugestoes: a primeira pessoa vira o responsavel e a segunda, o acompanhante; com os dois
+   * preenchidos, troca o acompanhante. Tocar em quem ja esta escolhido tira a pessoa.
+   */
+  function pickPerson(volunteerId: string) {
+    setVisitError((errors) => ({ ...errors, people: undefined }));
+    if (volunteerId === assignedVolunteerId) setAssignedVolunteerId('');
+    else if (volunteerId === companionVolunteerId) setCompanionVolunteerId('');
+    else if (!assignedVolunteerId) setAssignedVolunteerId(volunteerId);
+    else setCompanionVolunteerId(volunteerId);
+  }
+
   /** Equipe primeiro, depois os demais (que entram na equipe); a outra pessoa da visita fica de fora. */
   function personOptions(excludeId: string) {
     return (
@@ -637,10 +650,32 @@ export function ActivityFormModal({
                     ))}
                   </Select>
                 </Field>
-                <Field label="Hora" htmlFor="activity-time" hint="Opcional: a hora combinada com a família.">
-                  <TextInput id="activity-time" type="time" value={visitTime} onChange={(event) => setVisitTime(event.target.value)} />
-                </Field>
               </>
+            ) : null}
+
+            {/* Coordenacao: quem esta livre no turno e mora mais perto (usa bairro e turnos das pessoas). */}
+            {isVisit && canManage && selectedProjectId ? (
+              <div className="span-2">
+                <VisitPlanner
+                  projectId={selectedProjectId}
+                  date={dueDate}
+                  shift={visitShift}
+                  activityId={current?.id}
+                  assignedId={assignedVolunteerId}
+                  companionId={companionVolunteerId}
+                  onPickSlot={(day, turn) => {
+                    setDueDate(day);
+                    setVisitShift(turn);
+                    setVisitError((errors) => ({ ...errors, day: undefined, shift: undefined }));
+                  }}
+                  onPickPerson={pickPerson}
+                  onPickBoth={(first, second) => {
+                    setAssignedVolunteerId(first);
+                    setCompanionVolunteerId(second);
+                    setVisitError((errors) => ({ ...errors, people: undefined }));
+                  }}
+                />
+              </div>
             ) : null}
 
             <Field
@@ -705,6 +740,12 @@ export function ActivityFormModal({
                 />
               </Field>
             )}
+
+            {isVisit ? (
+              <Field label="Hora" htmlFor="activity-time" hint="Opcional: a hora combinada com a família.">
+                <TextInput id="activity-time" type="time" value={visitTime} onChange={(event) => setVisitTime(event.target.value)} />
+              </Field>
+            ) : null}
 
             <Field label="Prioridade" hint="A tarefa urgente aparece em destaque nas listas e no quadro.">
               <label className="checkbox">
