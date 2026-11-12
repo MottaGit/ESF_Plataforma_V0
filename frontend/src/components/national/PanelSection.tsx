@@ -17,10 +17,10 @@ function daysSince(value: string | null) {
 
 /**
  * Painel: os numeros de todos os nucleos, no total e por nucleo. Tarefas concluidas, registros e horas contam no
- * periodo escolhido (os ultimos 12 meses, por padrao); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
+ * periodo escolhido (os ultimos 30 dias, por padrao); projetos, voluntarios ativos e indicadores sao a situacao de hoje.
  */
 export function PanelSection() {
-  // Comeca nos ultimos 12 meses; "Sem data final" no personalizado vai ate hoje.
+  // Comeca nos ultimos 30 dias; "Sem data final" no personalizado vai ate hoje.
   const [from, setFrom] = useState(() => defaultPeriod().from);
   const [to, setTo] = useState(() => defaultPeriod().to);
   const [openEnded, setOpenEnded] = useState(false);

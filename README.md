@@ -705,7 +705,7 @@ tarefas concluídas, **Próximas etapas** (até 5 tarefas em aberto, pelo prazo,
 terminou), equipe (nome, função no projeto e horas; sem e-mail nem telefone, porque o relatório vai para fora) e
 observações. Indicadores, linha do tempo e equipe sempre entram; tarefas (concluídas e próximas etapas) e fotos são
 opcionais, marcados por padrão. O **período de
-referência** (o seletor de período, abaixo; padrão: últimos 12 meses) aparece no topo de todas as páginas e filtra a linha do
+referência** (o seletor de período, abaixo; padrão: últimos 30 dias) aparece no topo de todas as páginas e filtra a linha do
 tempo (registros e as fotos deles) e as tarefas concluídas; projeto sem registro no período mostra "Nenhum registro de
 andamento no período". Os **indicadores** são acumulados (120 pessoas desde o início) e saem pelo **histórico dos
 valores** (`IndicatorValueChanges`, gravado no `SaveChanges` do `EsfDbContext` sempre que o número muda — tela,
@@ -750,8 +750,8 @@ relatório de um projeto só o nome dele não se repete no topo do capítulo (j�
 
 **Seletor de período** (tela Relatórios, "Gerar relatório" do projeto e painel nacional; `components/ui/PeriodPicker.tsx`
 e `utils/periods.ts`) — um botão com o calendário e o período escolhido ao lado ("📅 Trimestre" ou "📅 11/04/2026 –
-12/11/2026"). Tocar abre os atalhos, contados para trás a partir de hoje: **30 dias**, **Trimestre** (últimos 3 meses),
-**Semestre** (últimos 6) e **Ano** (últimos 12, o padrão), e por último **Personalizado**, que abre uma janela com a
+12/11/2026"). Tocar abre os atalhos, contados para trás a partir de hoje: **30 dias** (o padrão), **Trimestre** (últimos 3 meses),
+**Semestre** (últimos 6) e **Ano** (últimos 12), e por último **Personalizado**, que abre uma janela com a
 data inicial e a final (digitadas ou escolhidas no calendário do próprio campo) e a caixinha **Sem data final**:
 marcada, a data final fica cinza, travada em hoje. Data final antes da inicial não deixa aplicar. Não há mais "Tudo"
 nem os períodos fechados (mês, trimestre e ano passados): para eles, Personalizado.
@@ -788,7 +788,7 @@ cadastro de voluntário, pode ser ligado a um ali.
   nacional. Os indicadores nacionais aparecem também somados em cartões, pela regra de **Resultados somados** (pelo
   vínculo com o nacional): "—" quando nenhum projeto informou, nunca zero, e "informado em 3 de 5 projetos" quando falta
   algum, no cartão e em cada núcleo. Horas, tarefas e registros contam no **período** escolhido (de início, os
-  últimos 12 meses, com o mesmo seletor de período dos relatórios); projetos, voluntários e indicadores são a situação de
+  últimos 30 dias, com o mesmo seletor de período dos relatórios); projetos, voluntários e indicadores são a situação de
   hoje (o histórico dos valores dos indicadores só é usado no relatório em PDF). A tabela por núcleo começa por quem está há mais tempo sem atividade
   (nenhuma primeiro), com a **última atividade** logo depois do nome, em tempo relativo ("ontem", "25/09"), e a marca
   **parado** a partir de 30 dias (ou quando nunca houve). Só

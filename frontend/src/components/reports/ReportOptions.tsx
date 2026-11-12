@@ -15,7 +15,7 @@ export interface ReportOptions {
   note: string;
 }
 
-/** Opcoes de quem acabou de abrir: o periodo padrao (ultimos 12 meses), com tarefas e fotos. */
+/** Opcoes de quem acabou de abrir: o periodo padrao (ultimos 30 dias), com tarefas e fotos. */
 export function defaultReportOptions(): ReportOptions {
   const period = defaultPeriod();
   return { from: period.from, to: period.to, includeTasks: true, includePhotos: true, note: '' };

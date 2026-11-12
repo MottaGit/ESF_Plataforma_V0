@@ -33,8 +33,8 @@ export function periodShortcuts(today = new Date()): PeriodShortcut[] {
   ];
 }
 
-/** Periodo de quem ainda nao escolheu outro: o ultimo ano. */
-export const DEFAULT_PERIOD_KEY = 'ano';
+/** Periodo de quem ainda nao escolheu outro: os ultimos 30 dias. */
+export const DEFAULT_PERIOD_KEY = '30-dias';
 
 export function defaultPeriod(today = new Date()) {
   return periodShortcuts(today).find((shortcut) => shortcut.key === DEFAULT_PERIOD_KEY)!;

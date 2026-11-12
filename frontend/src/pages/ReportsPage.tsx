@@ -87,7 +87,7 @@ export function ReportsPage() {
   const includeSetAside = searchParams.get('arquivados') === '1';
 
   // Periodo: pelo atalho (recalculado a cada dia), pelas datas do personalizado (sem "ate": ate hoje) ou, sem nada
-  // na URL, o padrao (ultimos 12 meses). Links de antes do seletor (?periodo=trimestre-passado) viram as datas daquela
+  // na URL, o padrao (ultimos 30 dias). Links de antes do seletor (?periodo=trimestre-passado) viram as datas daquela
   // epoca.
   const shortcuts = useMemo(() => periodShortcuts(), []);
   const periodParam = searchParams.get('periodo');
