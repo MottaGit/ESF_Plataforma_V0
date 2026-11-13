@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ApiError } from '../../api/client';
 import { activitiesApi } from '../../api/endpoints';
 import type { Shift, VisitCandidate, VisitSuggestions } from '../../types/api';
-import { formatNumber, transportLabel, visitDayLabel } from '../../utils/format';
+import { formatNumber, transportLabel, travelTimeLabel, visitDayLabel } from '../../utils/format';
 import { useLatestRequest } from '../../utils/useLatestRequest';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
@@ -16,19 +16,31 @@ const availabilityText: Record<VisitCandidate['availability'], string> = {
   Ocupado: 'não costuma estar livre'
 };
 
-/** "livre · 4 km · Carro · Restinga · 2 tarefas": por que a pessoa esta nessa posicao. */
+/** "~40 min de carro", "~1h10 de ônibus", "~10 min a pé" ("se for de ônibus" quando a pessoa não informou o meio). */
+function travelText(candidate: VisitCandidate) {
+  if (candidate.travelMinutes === null || !candidate.travelMode) return null;
+  const time = travelTimeLabel(candidate.travelMinutes);
+  if (candidate.travelMode === 'APe') return `${time} a pé`;
+  if (candidate.travelMode === 'Carro') return `${time} de carro`;
+  return candidate.transportAssumed ? `${time} se for de ônibus` : `${time} de ônibus`;
+}
+
+/** "Distância em linha reta: 13 km", na dica do mouse sobre o tempo. */
+function distanceTitle(candidate: VisitCandidate) {
+  if (candidate.distanceKm === null) return undefined;
+  const km = candidate.distanceKm < 1 ? 'menos de 1 km' : `${formatNumber(Math.round(candidate.distanceKm))} km`;
+  return `Distância em linha reta: ${km}`;
+}
+
+/** "livre · ~40 min de carro · Restinga · 2 tarefas": por que a pessoa esta nessa posicao. */
 function candidateFacts(candidate: VisitCandidate, projectLocated: boolean) {
   return [
     candidate.otherVisit ? 'já tem outra visita nesse turno' : availabilityText[candidate.availability],
-    candidate.distanceKm === null
-      ? // Com a obra no mapa, a distancia so falta quando a pessoa nao tem o bairro no mapa.
-        projectLocated
-        ? 'sem bairro no mapa'
-        : null
-      : candidate.distanceKm < 1
-        ? 'menos de 1 km'
-        : `${formatNumber(Math.round(candidate.distanceKm))} km`,
-    candidate.transport ? transportLabel(candidate.transport) : null,
+    travelText(candidate) ??
+      // Com a obra no mapa, o tempo so falta quando a pessoa nao tem o bairro no mapa.
+      (projectLocated ? 'sem bairro no mapa' : null),
+    // Sem o tempo, o meio de transporte ainda ajuda a decidir.
+    candidate.travelMinutes === null && candidate.transport ? transportLabel(candidate.transport) : null,
     candidate.district,
     candidate.openActivities > 0
       ? `${candidate.openActivities} ${candidate.openActivities === 1 ? 'tarefa' : 'tarefas'}`
@@ -147,7 +159,9 @@ export function VisitPlanner({
                       {candidate.name}
                       {candidate.suggested ? <span className="badge badge--visit">Sugerida</span> : null}
                     </span>
-                    <span className="visit-planner__facts">{candidateFacts(candidate, data.projectLocated)}</span>
+                    <span className="visit-planner__facts" title={distanceTitle(candidate)}>
+                      {candidateFacts(candidate, data.projectLocated)}
+                    </span>
                   </div>
                   <Button
                     small
@@ -175,7 +189,7 @@ export function VisitPlanner({
           data.withoutAvailability > 0
             ? `${data.withoutAvailability} ${data.withoutAvailability === 1 ? 'pessoa ainda não preencheu' : 'pessoas ainda não preencheram'} bairro e turnos.`
             : null,
-          'Distância em linha reta, do bairro de cada um até a obra.'
+          'O tempo é uma estimativa pela distância e pelo meio de transporte de cada um, fora do horário de pico: serve para comparar, não é a rota.'
         ]
           .filter(Boolean)
           .join(' ')}

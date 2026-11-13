@@ -94,7 +94,8 @@ const SECTIONS: HelpSection[] = [
             <strong>Visita</strong> no tipo da tarefa). Informe o dia, o turno e as duas pessoas que vão: o
             responsável e o acompanhante. As duas recebem o aviso e veem a visita em <strong>Minhas tarefas</strong>.
             Para a coordenação, o painel <strong>Quem pode ir</strong> mostra os turnos com mais gente livre e quem está
-            livre e mora mais perto, com as duas melhores marcadas como <strong>Sugerida</strong>.
+            livre e chega mais rápido (tempo estimado pela distância e pelo meio de transporte de cada um), com as duas
+            melhores marcadas como <strong>Sugerida</strong>.
           </p>
         )
       },

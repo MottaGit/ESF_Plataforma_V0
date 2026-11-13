@@ -6,9 +6,10 @@ namespace Esf.Api.Dtos;
 public record VisitSlotDto(DateOnly Date, Shift Shift, int Available, int WithCar);
 
 /// <summary>
-/// Uma pessoa para a visita, na ordem sugerida: livre no turno, sem outra visita nele, mais perto da obra e com menos
-/// tarefas em aberto. DistanceKm: em linha reta, do centro do bairro dela ao ponto do projeto (null sem um dos dois).
-/// Suggested: as duas primeiras que podem ir.
+/// Uma pessoa para a visita, na ordem sugerida: livre no turno, sem outra visita nele, chegando mais rapido a obra e
+/// com menos tarefas em aberto. DistanceKm: em linha reta, do centro do bairro dela ao ponto do projeto (null sem um
+/// dos dois). TravelMinutes/TravelMode: tempo estimado e o meio considerado (VisitTravel); TransportAssumed: a pessoa
+/// nao informou o meio e a conta foi como transporte publico. Suggested: as duas primeiras que podem ir.
 /// </summary>
 public record VisitCandidateDto(
     Guid VolunteerId,
@@ -20,7 +21,10 @@ public record VisitCandidateDto(
     double? DistanceKm,
     TransportMode? Transport,
     int OpenActivities,
-    bool Suggested);
+    bool Suggested,
+    int? TravelMinutes,
+    TravelMode? TravelMode,
+    bool TransportAssumed);
 
 /// <summary>
 /// Sugestoes para uma visita: os turnos com mais gente livre nas proximas duas semanas e, com dia e turno escolhidos,

@@ -110,6 +110,19 @@ export const transportLabel = (mode: TransportMode) => transportLabels[mode] ?? 
 
 const shiftPhrases: Record<Shift, string> = { Manha: 'de manhã', Tarde: 'à tarde', Noite: 'à noite' };
 
+/**
+ * Tempo estimado de deslocamento, sem falsa precisao: ate 1 hora, de 5 em 5 minutos ("~40 min"); acima, de 10 em 10
+ * ("~1h10").
+ */
+export function travelTimeLabel(minutes: number) {
+  const byFive = Math.max(5, Math.round(minutes / 5) * 5);
+  if (byFive < 60) return `~${byFive} min`;
+  const byTen = Math.round(minutes / 10) * 10;
+  const hours = Math.floor(byTen / 60);
+  const rest = byTen % 60;
+  return `~${hours}h${rest ? String(rest).padStart(2, '0') : ''}`;
+}
+
 /** Turno no meio de uma frase: "segunda de manhã", "quinta à tarde". */
 export const shiftPhrase = (shift: Shift) => shiftPhrases[shift] ?? shift;
 

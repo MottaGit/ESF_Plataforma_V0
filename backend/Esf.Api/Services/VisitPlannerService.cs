@@ -8,9 +8,10 @@ namespace Esf.Api.Services;
 
 /// <summary>
 /// Sugere quem vai a uma visita e em que turno: pela grade de disponibilidade de cada voluntario ativo, pela
-/// distancia do bairro dele ate a obra e pela carga de tarefas. Regra simples e visivel na tela (sem pontuacao
-/// escondida): primeiro quem esta livre no turno, depois quem nao preencheu a grade, por ultimo quem marcou o turno
-/// como ocupado ou ja tem outra visita nele; dentro de cada grupo, o mais perto e, no empate, o menos carregado.
+/// tempo estimado de casa ate a obra (VisitTravel: distancia e meio de transporte) e pela carga de tarefas. Regra
+/// simples e visivel na tela (sem pontuacao escondida): primeiro quem esta livre no turno, depois quem nao preencheu a
+/// grade, por ultimo quem marcou o turno como ocupado ou ja tem outra visita nele; dentro de cada grupo, quem chega
+/// mais rapido e, no empate, o menos carregado.
 /// </summary>
 public class VisitPlannerService
 {
@@ -104,13 +105,16 @@ public class VisitPlannerService
                     ? Math.Round(VolunteerAvailability.DistanceKm(p.HomeLatitude.Value, p.HomeLongitude.Value,
                         project.Latitude!.Value, project.Longitude!.Value), 1)
                     : null;
+                (int Minutes, TravelMode Mode)? travel = distance.HasValue
+                    ? VisitTravel.Estimate(distance.Value, p.Transport)
+                    : null;
                 var busy = otherVisit.Contains(p.Id);
                 // Grupo: livre (0), nao informou (1), ocupado (2), outra visita no turno (3).
                 var group = busy ? 3 : (int)availability;
-                return new { p, availability, distance, busy, group, load = load.GetValueOrDefault(p.Id) };
+                return new { p, availability, distance, travel, busy, group, load = load.GetValueOrDefault(p.Id) };
             })
             .OrderBy(x => x.group)
-            .ThenBy(x => x.distance ?? double.MaxValue)
+            .ThenBy(x => x.travel?.Minutes ?? int.MaxValue)
             .ThenBy(x => x.load)
             .ThenBy(x => x.p.Name)
             .ToList();
@@ -128,7 +132,10 @@ public class VisitPlannerService
                 x.distance,
                 x.p.Transport,
                 x.load,
-                suggested.Contains(x.p.Id)))
+                suggested.Contains(x.p.Id),
+                x.travel?.Minutes,
+                x.travel?.Mode,
+                x.travel.HasValue && x.p.Transport is null))
             .ToList();
 
         return new VisitSuggestionsDto(located, withoutAvailability, slots, candidates);

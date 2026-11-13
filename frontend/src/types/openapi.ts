@@ -963,6 +963,8 @@ export interface TermClause {
 
 export type TransportMode = 'Carro' | 'TransportePublico';
 
+export type TravelMode = 'Carro' | 'TransportePublico' | 'APe';
+
 export interface UnreadNotificationsDto {
   linked: boolean;
   count: number;
@@ -1040,6 +1042,9 @@ export interface VisitCandidateDto {
   transport: TransportMode | null;
   openActivities: number;
   suggested: boolean;
+  travelMinutes: number | null;
+  travelMode: TravelMode | null;
+  transportAssumed: boolean;
 }
 
 export interface VisitSlotDto {

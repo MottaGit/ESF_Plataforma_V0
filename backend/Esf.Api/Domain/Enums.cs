@@ -156,6 +156,15 @@ public enum VisitAvailability
     Ocupado = 2
 }
 
+/// <summary>Meio considerado no tempo estimado ate a obra (ver VisitTravel).</summary>
+public enum TravelMode
+{
+    Carro = 0,
+    TransportePublico = 1,
+    /// <summary>Perto o bastante para andar ser mais rapido que esperar o onibus.</summary>
+    APe = 2
+}
+
 /// <summary>Como o voluntario costuma se deslocar ate as obras.</summary>
 public enum TransportMode
 {

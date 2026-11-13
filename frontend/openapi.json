@@ -10074,6 +10074,14 @@
         ],
         "type": "string"
       },
+      "TravelMode": {
+        "enum": [
+          "Carro",
+          "TransportePublico",
+          "APe"
+        ],
+        "type": "string"
+      },
       "UnreadNotificationsDto": {
         "type": "object",
         "properties": {
@@ -10370,6 +10378,22 @@
             "format": "int32"
           },
           "suggested": {
+            "type": "boolean"
+          },
+          "travelMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "travelMode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TravelMode"
+              }
+            ],
+            "nullable": true
+          },
+          "transportAssumed": {
             "type": "boolean"
           }
         },

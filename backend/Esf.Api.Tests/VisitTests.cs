@@ -178,6 +178,22 @@ public class VisitTests
         return (busy.Id, noGrid.Id);
     }
 
+    [Theory]
+    // Obra na Restinga: do mesmo bairro (a pe), do Menino Deus (13 km) e do Sarandi (18 km).
+    [InlineData(0.6, TransportMode.TransportePublico, TravelMode.APe, 10)]
+    [InlineData(13, TransportMode.Carro, TravelMode.Carro, 40)]
+    [InlineData(13, TransportMode.TransportePublico, TravelMode.TransportePublico, 70)]
+    [InlineData(18, TransportMode.Carro, TravelMode.Carro, 54)]
+    [InlineData(18, TransportMode.TransportePublico, TravelMode.TransportePublico, 91)]
+    // Sem o meio informado, conta como transporte publico.
+    [InlineData(13, null, TravelMode.TransportePublico, 70)]
+    public void TravelTimeIsARealisticEstimate(double straightKm, TransportMode? transport, TravelMode mode, int minutes)
+    {
+        var (estimated, used) = VisitTravel.Estimate(straightKm, transport);
+        Assert.Equal(mode, used);
+        Assert.Equal(minutes, estimated);
+    }
+
     [Fact]
     public async Task SuggestsWhoIsFreeAndLivesNearFirst()
     {
@@ -197,6 +213,10 @@ public class VisitTests
         Assert.Equal(VisitAvailability.Ocupado, result.Candidates[3].Availability);
         Assert.InRange(result.Candidates[0].DistanceKm!.Value, 0, 2);
         Assert.Equal(TransportMode.Carro, result.Candidates[0].Transport);
+        Assert.Equal(TravelMode.Carro, result.Candidates[0].TravelMode);
+        Assert.InRange(result.Candidates[0].TravelMinutes!.Value, 5, 10);
+        // Quem nao preencheu (sem meio informado) conta como transporte publico.
+        Assert.True(result.Candidates[2].TransportAssumed);
         // A tarefa do nucleo e do voluntario do administrador: conta como carga.
         Assert.Equal(1, result.Candidates[0].OpenActivities);
         Assert.Equal(1, result.WithoutAvailability);

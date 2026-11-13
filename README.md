@@ -501,10 +501,17 @@ acompanhante. No PDF, as tarefas concluídas da visita mostram as duas pessoas.
 (`GET /api/projects/{id}/visit-suggestions?date=&shift=&activityId=`, `VisitPlannerService`). Em cima, os **turnos com
 mais gente livre** nas próximas duas semanas (a partir de amanhã; até 6, só os com 2 pessoas ou mais, "qui 20/11 · tarde
 · 5 livres, 2 de carro"); tocar num deles preenche o dia e o turno. Com dia e turno escolhidos, **todos os voluntários
-ativos** em ordem, cada um com o porquê ("livre · 4 km · Carro · Restinga · 2 tarefas"): primeiro quem marcou o turno
-como livre, depois quem não preencheu a grade, por último quem marcou o turno como ocupado ou já tem outra visita em
-aberto no mesmo dia e turno; dentro de cada grupo, quem mora mais perto (linha reta do centro do bairro até o ponto do
-projeto) e, no empate, quem tem menos tarefas em aberto. As **duas primeiras** que podem ir ganham o selo
+ativos** em ordem, cada um com o porquê ("livre · ~40 min de carro · Restinga · 2 tarefas"): primeiro quem marcou o
+turno como livre, depois quem não preencheu a grade, por último quem marcou o turno como ocupado ou já tem outra visita
+em aberto no mesmo dia e turno; dentro de cada grupo, quem chega mais rápido e, no empate, quem tem menos tarefas em
+aberto. O **tempo estimado** (`Services/VisitTravel.cs`) parte da linha reta do centro do bairro até o ponto do
+projeto (a distância aparece na dica do mouse), corrige pelo desvio das ruas e usa o meio de transporte da pessoa:
+carro, reta × 1,35 a 30 km/h + 5 min (sair e estacionar); ônibus, reta × 1,4 a 20 km/h + 15 min (ir até a parada e
+esperar); a pé, reta × 1,3 a 4,5 km/h, quando andar é mais rápido que o ônibus (até uns 1,5 km). Sem o meio
+informado, conta como ônibus ("~1h10 se for de ônibus"). Mostra "~40 min" de 5 em 5 minutos até 1 hora e "~1h10" de
+10 em 10 acima. Exemplos com a obra na Restinga: do Menino Deus (13 km), ~40 min de carro ou ~1h10 de ônibus; do
+Sarandi (18 km), ~55 min ou ~1h30. É uma ordem de grandeza para comparar pessoas (não conhece pico, linhas, baldeação
+nem pontes); para calibrar com trajetos conhecidos do núcleo, ajustam-se as constantes desse arquivo. As **duas primeiras** que podem ir ganham o selo
 **Sugerida** e o botão **Usar as 2 sugeridas** preenche responsável e acompanhante de uma vez; a lista mostra 6 e
 "Ver todas". **Escolher** preenche o responsável e depois o acompanhante (com os dois, vira **Trocar acompanhante**);
 **Tirar** desfaz. Não há dupla fixa nem prioridade para quem já está no projeto: a coordenação escolhe. Embaixo, o
