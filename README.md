@@ -589,10 +589,18 @@ endereço), **como se desloca** (carro ou transporte público) e a **grade da se
 livre (segunda a domingo × manhã, tarde e noite; toque em cada casa para marcar). Quem preenche é a própria pessoa
 (Minha conta e o próprio perfil) ou a coordenação (painel **Disponibilidade para visitas** na página do voluntário).
 Só a coordenação e a própria pessoa veem e mudam esses dados: a lista de voluntários não os traz e, para os demais
-perfis, a página do voluntário não mostra o painel (`VolunteerDto.availability` vem vazio). Ao salvar, o navegador
-procura o bairro no OpenStreetMap (só o texto "bairro, cidade", sem o nome de ninguém) e manda o centro aproximado
-dele, usado para a distância até a obra nas sugestões de visita; sem mudar bairro nem cidade, a busca não se repete e o
-ponto de antes fica. Bairro não achado: salva assim mesmo e avisa para conferir o nome. No Início, quem nunca preencheu
+perfis, a página do voluntário não mostra o painel (`VolunteerDto.availability` vem vazio). **Onde mora** é um campo
+só, de busca: a pessoa escreve o bairro e toca em **Buscar** (um pedido por toque ao OpenStreetMap, só com o texto, sem o
+nome de ninguém; nada de sugerir a cada letra, que a política do serviço gratuito proíbe). Sem vírgula, a busca procura
+na cidade do núcleo ("Restinga" acha a de Porto Alegre, não a cidade de São Paulo); de outra cidade, "bairro, cidade". A
+lista traz só bairros, vilas e cidades (ruas ficam de fora), com a cidade e o estado embaixo; escolhido, bairro e cidade
+vêm do mapa (não são digitados) e aparecem como texto com **no mapa ✓**, **Trocar** e um mapa pequeno com a área do
+bairro (um círculo, nunca um pino). **Não achou? Marcar no mapa**: a pessoa toca perto de onde mora (o ponto vai
+arredondado a duas casas, uns 1 km) e escreve o nome do bairro; a cidade vem com a do núcleo. A API guarda o ponto com
+três casas decimais (uns 100 m) e o devolve no painel; sem trocar o lugar, o ponto de antes fica. Quem ficou sem ponto
+(digitou antes desta busca, por exemplo) vê **sem ponto no mapa** no painel e na janela, e em **Quem pode ir** aparece
+"sem bairro no mapa" no lugar dos km. Salvar com a busca aberta e nada escolhido pede para escolher ou cancelar a
+troca. No Início, quem nunca preencheu
 (ou preencheu há mais de seis meses, quando o horário de aula costuma mudar) vê o convite **Quando você costuma estar
 livre?** (ou **Seus turnos livres ainda valem?**), que abre a mesma janela. Anonimizar apaga bairro, ponto,
 deslocamento e turnos. No histórico de alterações, esses campos entram como dado pessoal (registra que mudou, sem o

@@ -84,6 +84,36 @@
 .avail-empty { display: grid; justify-items: start; gap: 12px; }
 .avail-stale { color: var(--warning); }
 
+/* Onde mora: busca do bairro no mapa, lista para escolher e o mapa pequeno de confirmacao. */
+.place-field { display: grid; gap: 10px; }
+.place-field__chosen { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; font-size: var(--fs-md); }
+.place-field__chosen .btn { margin-left: auto; }
+.place-field__ok { font-size: var(--fs-sm); color: var(--accent-text); }
+.place-field__warn { font-size: var(--fs-sm); color: var(--warning); }
+.place-field .field__hint { margin: 0; }
+.place-search { display: flex; gap: 8px; }
+.place-search .input { flex: 1; min-width: 0; }
+.place-results { margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.place-results li + li { border-top: 1px solid var(--border-soft); }
+.place-results button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  background: var(--surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.place-results button:hover, .place-results button:focus-visible { background: var(--surface-hover); outline: none; }
+.place-results strong { font-weight: 500; }
+.place-results span { font-size: var(--fs-sm); color: var(--text-muted); }
+.place-map { height: 180px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
+.place-map--pick { height: 260px; }
+.place-map--pick.leaflet-grab { cursor: crosshair; }
+
 /* No celular, cada casa da grade tem a altura de um campo (dedo). */
 @media (max-width: 640px) {
   .avail-grid--edit .avail-cell { height: 44px; }

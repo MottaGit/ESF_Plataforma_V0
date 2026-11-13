@@ -89,7 +89,9 @@ public static class Mapping
             v.HomeLatitude.HasValue && v.HomeLongitude.HasValue,
             v.Transport,
             VolunteerAvailability.ToSlots(v.AvailabilityMask),
-            v.AvailabilityUpdatedAt);
+            v.AvailabilityUpdatedAt,
+            v.HomeLatitude,
+            v.HomeLongitude);
 
     /// <summary>Endereco publico da foto de um voluntario (null quando nao ha foto).</summary>
     public static string? PhotoUrl(string? storedName) =>

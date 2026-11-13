@@ -17,11 +17,14 @@ const availabilityText: Record<VisitCandidate['availability'], string> = {
 };
 
 /** "livre · 4 km · Carro · Restinga · 2 tarefas": por que a pessoa esta nessa posicao. */
-function candidateFacts(candidate: VisitCandidate) {
+function candidateFacts(candidate: VisitCandidate, projectLocated: boolean) {
   return [
     candidate.otherVisit ? 'já tem outra visita nesse turno' : availabilityText[candidate.availability],
     candidate.distanceKm === null
-      ? null
+      ? // Com a obra no mapa, a distancia so falta quando a pessoa nao tem o bairro no mapa.
+        projectLocated
+        ? 'sem bairro no mapa'
+        : null
       : candidate.distanceKm < 1
         ? 'menos de 1 km'
         : `${formatNumber(Math.round(candidate.distanceKm))} km`,
@@ -144,7 +147,7 @@ export function VisitPlanner({
                       {candidate.name}
                       {candidate.suggested ? <span className="badge badge--visit">Sugerida</span> : null}
                     </span>
-                    <span className="visit-planner__facts">{candidateFacts(candidate)}</span>
+                    <span className="visit-planner__facts">{candidateFacts(candidate, data.projectLocated)}</span>
                   </div>
                   <Button
                     small

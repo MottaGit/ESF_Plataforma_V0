@@ -36,8 +36,8 @@ public class VolunteerAvailabilityTests
     {
         District = "  Restinga ",
         City = "Porto Alegre",
-        Latitude = -30.15,
-        Longitude = -51.14,
+        Latitude = -30.152134,
+        Longitude = -51.143087,
         Transport = TransportMode.TransportePublico,
         Slots = new()
         {
@@ -58,6 +58,9 @@ public class VolunteerAvailabilityTests
             var saved = await Service(db, member).SaveAvailabilityAsync(f.A.VolunteerWithoutAccessId, Request());
             Assert.Equal("Restinga", saved.District);
             Assert.True(saved.Located);
+            // Nunca o ponto exato: arredondado para uns 100 m.
+            Assert.Equal(-30.152, saved.Latitude);
+            Assert.Equal(-51.143, saved.Longitude);
             Assert.Equal(TransportMode.TransportePublico, saved.Transport);
             // Na ordem da grade e sem repetir.
             Assert.Equal(

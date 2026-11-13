@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { Suspense, lazy, useEffect, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { ApiError } from '../../api/client';
-import { volunteersApi } from '../../api/endpoints';
+import { organizationApi, volunteersApi } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import type { AvailabilitySlot, Shift, TransportMode, VolunteerAvailability, WeekDay } from '../../types/api';
 import {
@@ -14,12 +14,16 @@ import {
   weekDayLabel,
   weekDayShortLabel
 } from '../../utils/format';
-import { locateDistrict } from '../../utils/geocode';
+import { searchAddress, searchPlaces, type PlaceOption } from '../../utils/geocode';
+import type { MapPoint } from '../map/PlaceMap';
 import { Button } from '../ui/Button';
 import { Field, Select, TextInput } from '../ui/Field';
 import { Alert } from '../ui/Feedback';
 import { IconEdit } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
+
+// O mapa (Leaflet) so carrega quando a janela mostra um.
+const PlaceMap = lazy(() => import('../map/PlaceMap').then((module) => ({ default: module.PlaceMap })));
 
 /** Turnos livres que pedem revisao: o horario de aula muda a cada semestre. */
 const STALE_DAYS = 180;
@@ -93,6 +97,246 @@ export function AvailabilityGrid({
   );
 }
 
+/** Onde a pessoa mora, como fica no formulario: bairro e cidade e o ponto aproximado (null: sem ponto no mapa). */
+interface ChosenPlace {
+  district: string | null;
+  city: string | null;
+  point: MapPoint | null;
+}
+
+/** Toque no mapa: duas casas decimais (uns 1 km), para nunca marcar a casa da pessoa. */
+const roundToKm = (value: number) => Math.round(value * 100) / 100;
+
+/** "Porto Alegre, RS" / "cidade, RS" embaixo de cada resultado da busca. */
+function placeDetail(option: PlaceOption) {
+  return option.district ? [option.city, option.uf].filter(Boolean).join(', ') : ['cidade', option.uf].filter(Boolean).join(', ');
+}
+
+interface PlaceFieldProps {
+  value: ChosenPlace | null;
+  nucleoCity: string | null;
+  onChange: (place: ChosenPlace) => void;
+  /** A busca ou a marcacao no mapa esta aberta sem nada escolhido: o formulario nao salva assim. */
+  onPendingChange: (pending: boolean) => void;
+}
+
+/**
+ * "Onde mora": um campo de busca que procura o bairro no mapa e mostra a lista para escolher (bairro e cidade vem do
+ * mapa, nao sao digitados); escolhido, o bairro aparece num mapa pequeno. Nao achou: tocar no mapa perto de onde mora
+ * e escrever o nome do bairro.
+ */
+function PlaceField({ value, nucleoCity, onChange, onPendingChange }: PlaceFieldProps) {
+  const [mode, setMode] = useState<'show' | 'search' | 'pick'>(value ? 'show' : 'search');
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<PlaceOption[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [pickPoint, setPickPoint] = useState<MapPoint | null>(null);
+  const [pickDistrict, setPickDistrict] = useState('');
+  const [pickCity, setPickCity] = useState(nucleoCity ?? '');
+  const [cityCenter, setCityCenter] = useState<MapPoint | null>(null);
+
+  useEffect(() => {
+    onPendingChange(mode === 'pick' || (mode === 'search' && query.trim().length > 0));
+  }, [mode, query, onPendingChange]);
+
+  async function search() {
+    if (query.trim().length < 2) {
+      setMessage('Escreva o nome do bairro.');
+      return;
+    }
+    setSearching(true);
+    setMessage(null);
+    setResults(null);
+    try {
+      const found = await searchPlaces(query, nucleoCity);
+      setResults(found);
+      if (found.length === 0)
+        setMessage(
+          query.includes(',') || !nucleoCity
+            ? 'Nenhum bairro com esse nome no mapa. Confira o nome ou marque no mapa.'
+            : `Nenhum bairro com esse nome em ${nucleoCity}. Mora em outra cidade? Escreva "bairro, cidade" (ex.: Centro, Canoas). Ou marque no mapa.`
+        );
+    } catch {
+      setMessage('A busca do mapa não respondeu. Tente de novo ou marque no mapa.');
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function onSearchKey(event: KeyboardEvent<HTMLInputElement>) {
+    // Enter busca, em vez de salvar a janela inteira.
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    void search();
+  }
+
+  function choose(option: PlaceOption) {
+    onChange({ district: option.district, city: option.city, point: { lat: option.lat, lng: option.lng } });
+    setResults(null);
+    setQuery('');
+    setMessage(null);
+    setMode('show');
+  }
+
+  async function startPick() {
+    setMode('pick');
+    setPickPoint(null);
+    setPickDistrict(query.split(',')[0].trim());
+    setPickCity((current) => current || nucleoCity || '');
+    // O mapa abre no bairro de antes ou na cidade do nucleo (uma busca so, a da cidade).
+    if (value?.point) setCityCenter(value.point);
+    else if (nucleoCity && !cityCenter) {
+      try {
+        const [city] = await searchAddress(nucleoCity);
+        if (city) setCityCenter({ lat: city.lat, lng: city.lng });
+      } catch {
+        // Sem a cidade, o mapa fica no centro padrao.
+      }
+    }
+  }
+
+  function usePicked() {
+    if (!pickPoint || !pickDistrict.trim()) return;
+    onChange({ district: pickDistrict.trim(), city: pickCity.trim() || null, point: pickPoint });
+    setMode('show');
+    setQuery('');
+  }
+
+  if (mode === 'show' && value) {
+    return (
+      <div className="place-field">
+        <div className="place-field__chosen">
+          <span>
+            <strong>{value.district ?? value.city}</strong>
+            {value.district && value.city ? ` · ${value.city}` : ''}
+          </span>
+          {value.point ? (
+            <span className="place-field__ok">no mapa ✓</span>
+          ) : (
+            <span className="place-field__warn">sem ponto no mapa</span>
+          )}
+          <Button
+            small
+            onClick={() => {
+              setQuery(value.district ?? value.city ?? '');
+              setMode('search');
+            }}
+          >
+            Trocar
+          </Button>
+        </div>
+        {value.point ? (
+          <Suspense fallback={<div className="place-map" />}>
+            <PlaceMap point={value.point} />
+          </Suspense>
+        ) : (
+          <p className="field__hint">Toque em Trocar e escolha o bairro na busca, para a distância até as obras aparecer.</p>
+        )}
+      </div>
+    );
+  }
+
+  if (mode === 'pick') {
+    return (
+      <div className="place-field">
+        <p className="field__hint">
+          Toque no mapa perto de onde mora. O ponto é arredondado (uns 1 km): a casa nunca fica marcada.
+        </p>
+        <Suspense fallback={<div className="place-map place-map--pick" />}>
+          <PlaceMap
+            point={pickPoint}
+            center={cityCenter}
+            onPick={(point) => setPickPoint({ lat: roundToKm(point.lat), lng: roundToKm(point.lng) })}
+          />
+        </Suspense>
+        <div className="form-grid">
+          <Field label="Nome do bairro" htmlFor="availability-pick-district" required>
+            <TextInput
+              id="availability-pick-district"
+              maxLength={120}
+              value={pickDistrict}
+              onChange={(event) => setPickDistrict(event.target.value)}
+            />
+          </Field>
+          <Field label="Cidade" htmlFor="availability-pick-city">
+            <TextInput
+              id="availability-pick-city"
+              maxLength={120}
+              value={pickCity}
+              onChange={(event) => setPickCity(event.target.value)}
+            />
+          </Field>
+        </div>
+        <div className="row">
+          <Button small variant="primary" disabled={!pickPoint || !pickDistrict.trim()} onClick={usePicked}>
+            Usar este lugar
+          </Button>
+          <Button small onClick={() => setMode('search')}>
+            Voltar à busca
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="place-field">
+      <div className="place-search">
+        <TextInput
+          id="availability-place"
+          value={query}
+          maxLength={120}
+          placeholder="Bairro, ex.: Restinga"
+          onKeyDown={onSearchKey}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <Button loading={searching} onClick={() => void search()}>
+          Buscar
+        </Button>
+      </div>
+      <p className="field__hint">
+        {nucleoCity ? `Procura em ${nucleoCity}; de outra cidade, escreva "bairro, cidade". ` : 'Escreva "bairro, cidade". '}
+        Só o bairro, nunca o endereço.
+      </p>
+
+      {results && results.length > 0 ? (
+        <ul className="place-results" aria-label="Bairros achados">
+          {results.map((option) => (
+            <li key={`${option.district}-${option.city}-${option.lat}`}>
+              <button type="button" onClick={() => choose(option)}>
+                <strong>{option.district ?? option.city}</strong>
+                <span>{placeDetail(option)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {message ? <p className="field__hint">{message}</p> : null}
+
+      <div className="row">
+        <button type="button" className="link-button" onClick={() => void startPick()}>
+          Não achou? Marcar no mapa
+        </button>
+        {value ? (
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => {
+              setQuery('');
+              setResults(null);
+              setMessage(null);
+              setMode('show');
+            }}
+          >
+            Cancelar a troca
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 interface AvailabilityModalProps {
   volunteerId: string;
   availability: VolunteerAvailability | null;
@@ -102,15 +346,36 @@ interface AvailabilityModalProps {
   onSaved: (saved: VolunteerAvailability) => void;
 }
 
-/** Bairro, cidade, deslocamento e a grade de turnos livres. O bairro e procurado no mapa ao salvar. */
+/** Onde mora (busca no mapa), deslocamento e a grade de turnos livres. */
 export function AvailabilityModal({ volunteerId, availability, isSelf, onClose, onSaved }: AvailabilityModalProps) {
   const { notify } = useToast();
-  const [district, setDistrict] = useState(availability?.district ?? '');
-  const [city, setCity] = useState(availability?.city ?? '');
+  const [place, setPlace] = useState<ChosenPlace | null>(
+    availability && (availability.district || availability.city)
+      ? {
+          district: availability.district,
+          city: availability.city,
+          point:
+            availability.latitude !== null && availability.longitude !== null
+              ? { lat: availability.latitude, lng: availability.longitude }
+              : null
+        }
+      : null
+  );
+  // Ponto novo so vai para a API quando o lugar foi escolhido agora; sem isso, ela mantem o de antes.
+  const [placeChanged, setPlaceChanged] = useState(false);
+  const [placePending, setPlacePending] = useState(false);
+  const [nucleoCity, setNucleoCity] = useState<string | null>(null);
   const [transport, setTransport] = useState<TransportMode | ''>(availability?.transport ?? '');
   const [slots, setSlots] = useState<AvailabilitySlot[]>(availability?.slots ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    organizationApi
+      .get()
+      .then((organization) => setNucleoCity(organization.city))
+      .catch(() => setNucleoCity(null));
+  }, []);
 
   function toggle(day: WeekDay, shift: Shift) {
     setSlots((current) =>
@@ -123,25 +388,21 @@ export function AvailabilityModal({ volunteerId, availability, isSelf, onClose, 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    if (placePending) {
+      setError('Escolha o bairro na lista da busca (ou cancele a troca) antes de salvar.');
+      return;
+    }
     setSaving(true);
     try {
-      const place = { district: district.trim() || null, city: city.trim() || null };
-      // O bairro so e procurado no mapa quando mudou (ou ainda nao foi achado); sem ponto novo, a API mantem o de antes.
-      const samePlace =
-        availability?.located && place.district === (availability.district ?? null) && place.city === (availability.city ?? null);
-      const point = samePlace ? null : await locateDistrict(place.district, place.city);
       const result = await volunteersApi.saveAvailability(volunteerId, {
-        ...place,
-        latitude: point?.lat ?? null,
-        longitude: point?.lng ?? null,
+        district: place?.district ?? null,
+        city: place?.city ?? null,
+        latitude: placeChanged ? place?.point?.lat ?? null : null,
+        longitude: placeChanged ? place?.point?.lng ?? null : null,
         transport: transport || null,
         slots
       });
-      notify(
-        (place.district || place.city) && !result.located
-          ? 'Salvo. Não achamos esse bairro no mapa: confira o nome para a distância até as obras aparecer.'
-          : 'Disponibilidade salva.'
-      );
+      notify(place && !result.located ? 'Salvo, mas o bairro ficou sem ponto no mapa: a distância até as obras não aparece.' : 'Disponibilidade salva.');
       onSaved(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível salvar.');
@@ -173,22 +434,16 @@ export function AvailabilityModal({ volunteerId, availability, isSelf, onClose, 
         ) : null}
 
         <div className="form-grid">
-          <Field label="Bairro" htmlFor="availability-district" hint="Só o bairro, nunca o endereço.">
-            <TextInput
-              id="availability-district"
-              maxLength={120}
-              value={district}
-              placeholder="Ex.: Restinga"
-              onChange={(event) => setDistrict(event.target.value)}
-            />
-          </Field>
-          <Field label="Cidade" htmlFor="availability-city">
-            <TextInput
-              id="availability-city"
-              maxLength={120}
-              value={city}
-              placeholder="Ex.: Porto Alegre"
-              onChange={(event) => setCity(event.target.value)}
+          <Field label={isSelf ? 'Onde você mora' : 'Onde mora'} htmlFor="availability-place" span>
+            <PlaceField
+              value={place}
+              nucleoCity={nucleoCity}
+              onChange={(chosen) => {
+                setPlace(chosen);
+                setPlaceChanged(true);
+                setError(null);
+              }}
+              onPendingChange={setPlacePending}
             />
           </Field>
           <Field label="Como se desloca" htmlFor="availability-transport" span>
@@ -267,7 +522,10 @@ export function AvailabilityPanel({ volunteerId, availability, isSelf, canEdit, 
                 <div className="meta__label">Mora em</div>
                 <div className="meta__value">{place || 'Não informado'}</div>
                 {place && !availability.located ? (
-                  <div className="field__hint">Bairro não achado no mapa: confira o nome para a distância aparecer.</div>
+                  <div className="field__hint avail-stale">
+                    Sem ponto no mapa: {canEdit ? 'toque em Editar e escolha o bairro na busca' : 'falta escolher o bairro na busca'}, para a
+                    distância até as obras aparecer.
+                  </div>
                 ) : null}
               </div>
               <div>

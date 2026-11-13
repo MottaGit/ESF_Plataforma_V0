@@ -215,9 +215,10 @@ const SECTIONS: HelpSection[] = [
         question: 'Onde informo meu bairro e os horários em que estou livre?',
         answer: (
           <p>
-            Em <strong>Minha conta</strong>, no painel <strong>Disponibilidade para visitas</strong>: bairro, cidade,
-            como você se desloca e os turnos livres da semana. A coordenação usa isso para sugerir quem vai a cada
-            visita; só ela e você veem. Quando o horário mudar (no começo do semestre, por exemplo), atualize a grade.
+            Em <strong>Minha conta</strong>, no painel <strong>Disponibilidade para visitas</strong>. Busque o seu
+            bairro e escolha na lista (não achou? marque no mapa, perto de onde mora), diga como se desloca e marque os
+            turnos livres da semana. A coordenação usa isso para sugerir quem vai a cada visita; só ela e você veem.
+            Quando o horário mudar (no começo do semestre, por exemplo), atualize a grade.
           </p>
         )
       },

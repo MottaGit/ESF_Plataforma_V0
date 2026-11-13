@@ -1071,6 +1071,8 @@ export interface VolunteerAvailabilityDto {
   transport: TransportMode | null;
   slots: AvailabilitySlotDto[];
   updatedAt: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface VolunteerDto {

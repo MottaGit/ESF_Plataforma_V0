@@ -189,8 +189,9 @@ public class VolunteerService
         // O navegador so procura o bairro no mapa quando ele muda: sem ponto novo, o mesmo lugar fica com o de antes.
         else if (request.Latitude.HasValue && request.Longitude.HasValue)
         {
-            volunteer.HomeLatitude = request.Latitude;
-            volunteer.HomeLongitude = request.Longitude;
+            // Uns 100 m: basta para a distancia ate a obra e nunca aponta a casa da pessoa.
+            volunteer.HomeLatitude = Math.Round(request.Latitude.Value, 3);
+            volunteer.HomeLongitude = Math.Round(request.Longitude.Value, 3);
         }
         else if (!samePlace)
         {

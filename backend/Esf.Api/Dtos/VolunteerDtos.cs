@@ -38,7 +38,8 @@ public record AvailabilitySlotDto(WeekDay Day, Shift Shift);
 
 /// <summary>
 /// Onde o voluntario mora (bairro e cidade), como se desloca e em que turnos costuma estar livre. Located: o bairro
-/// foi achado no mapa (sem ele, a distancia ate a obra nao aparece). UpdatedAt vazio: nunca preenchido.
+/// tem ponto no mapa (sem ele, a distancia ate a obra nao aparece); Latitude/Longitude: esse ponto, aproximado (centro
+/// do bairro ou um toque no mapa, arredondado). UpdatedAt vazio: nunca preenchido.
 /// </summary>
 public record VolunteerAvailabilityDto(
     string? District,
@@ -46,7 +47,9 @@ public record VolunteerAvailabilityDto(
     bool Located,
     TransportMode? Transport,
     List<AvailabilitySlotDto> Slots,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt,
+    double? Latitude = null,
+    double? Longitude = null);
 
 /// <summary>Bairro, deslocamento e turnos, salvos pela propria pessoa (Minha conta) ou pela coordenacao.</summary>
 public class SaveAvailabilityRequest
@@ -58,8 +61,9 @@ public class SaveAvailabilityRequest
     public string? City { get; set; }
 
     /// <summary>
-    /// Centro aproximado do bairro, achado pelo navegador no mapa. Vazio com o mesmo bairro e cidade: fica o ponto
-    /// que ja havia; vazio com outro lugar: nao achado.
+    /// Ponto aproximado do bairro, escolhido na busca do mapa (centro do bairro) ou com um toque no mapa. A API guarda
+    /// com 3 casas decimais (uns 100 m), nunca o ponto exato. Vazio com o mesmo bairro e cidade: fica o ponto que ja
+    /// havia; vazio com outro lugar: sem ponto.
     /// </summary>
     [Range(-90, 90, ErrorMessage = "Latitude inválida.")]
     public double? Latitude { get; set; }
