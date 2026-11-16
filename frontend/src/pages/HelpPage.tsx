@@ -119,7 +119,9 @@ const SECTIONS: HelpSection[] = [
             Toque em <strong>Registrar</strong> ao lado do projeto, em Meus projetos no Início (no celular,{' '}
             <strong>+ Registrar</strong> na barra de baixo), ou abra o projeto na aba <strong>Andamento</strong>.
             Escreva o que foi feito, anexe fotos se quiser e publique. Foi em outro dia? Mude{' '}
-            <strong>Quando aconteceu</strong> (ou toque em "ontem"). As fotos entram no relatório do projeto. Se
+            <strong>Quando aconteceu</strong> (ou toque em "ontem"). Se quiser, escolha o <strong>Tipo</strong> (visita
+            técnica, obra, ação com a comunidade ou entrega final): com o Google Drive do núcleo ligado, as fotos desse
+            registro ficam numa pasta própria lá. As fotos entram no relatório do projeto. Se
             sair no meio, o texto fica guardado como rascunho neste aparelho (as fotos não) e volta quando você abrir
             o projeto de novo.
           </p>
@@ -138,7 +140,8 @@ const SECTIONS: HelpSection[] = [
         answer: (
           <p>
             Na aba <strong>Arquivos</strong> do projeto, junto com as fotos dos registros. Ali também se muda a
-            legenda, que aparece embaixo da foto no relatório.
+            legenda, que aparece embaixo da foto no relatório. Se o núcleo ligou o Google Drive, cada foto e documento
+            ganha também uma cópia na pasta do projeto: abra pelo link <strong>Pasta no Drive</strong>, no topo dele.
           </p>
         )
       },
@@ -167,7 +170,8 @@ const SECTIONS: HelpSection[] = [
           <p>
             No status do topo do projeto, escolha <strong>Concluído</strong>. A janela pede o dia em que terminou e os
             números finais dos indicadores: confira antes de confirmar, porque são eles que vão para o relatório e a
-            soma nacional.
+            soma nacional. Com o Google Drive do núcleo ligado, o relatório final em PDF vai sozinho para a pasta do
+            projeto.
           </p>
         )
       }
@@ -331,6 +335,17 @@ const SECTIONS: HelpSection[] = [
             aba Instruções explica cada coluna), preencha e envie. Antes de gravar aparece a conferência. A importação só
             cria registros novos: o que já existe não muda. Se você fechar a janela no meio da importação, ela termina
             do mesmo jeito, e o resumo aparece num aviso.
+          </p>
+        )
+      },
+      {
+        question: 'Como ligo o Google Drive do núcleo?',
+        answer: (
+          <p>
+            Em <strong>Configurações › Google Drive</strong> (administradores), siga os três passos da tela: criar um
+            Drive compartilhado, adicionar a conta da plataforma como <strong>Gerente de conteúdo</strong> e colar o link
+            da pasta. Cada programa e projeto em aberto ganha uma pasta lá, com cópia das fotos e documentos. Funciona num
+            sentido só: o que for feito direto no Drive não volta para a plataforma.
           </p>
         )
       }

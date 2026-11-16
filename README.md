@@ -1017,7 +1017,8 @@ só "Minha conta", sem abas), **Ajuda** e **Sair**.
 **Ajuda** (`/ajuda`) — perguntas frequentes que abrem ao toque, agrupadas em Primeiros passos (celular e ícone na
 tela, uso sem internet, busca), Tarefas, Projetos e andamento (registro, fotos, relatório) e Avisos e sua conta
 (sininho, perfil e horas, termo, senha). A coordenação vê também "Para a coordenação" (acompanhar a organização,
-programa e modelo, indicador nacional, cadastro e acesso de voluntário, certificado, importar planilha); a gestão
+programa e modelo, indicador nacional, cadastro e acesso de voluntário, certificado, importar planilha, ligar o
+Google Drive); a gestão
 nacional, a seção dela. Respostas curtas, de uma ou duas frases: só entra o que não dá para descobrir olhando a tela
 (onde fica, o que não é óbvio). O texto fica em `pages/HelpPage.tsx`: ao mudar um botão ou uma tela, confira se a
 resposta correspondente continua certa. Ao lado fica o **sininho**
