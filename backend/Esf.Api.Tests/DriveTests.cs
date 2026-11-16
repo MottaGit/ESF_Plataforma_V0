@@ -295,15 +295,18 @@ public class DriveTests
     }
 
     /// <summary>Registro de andamento do projeto A com os anexos (nome, tipo de conteudo), publicado pelo admin.</summary>
-    private static async Task<(Guid Id, List<Guid> Files)> AddRecordAsync(TwoNucleos f, ProjectUpdateKind? kind, DateOnly day,
-        params (string Name, string Type)[] files)
+    private static Task<(Guid Id, List<Guid> Files)> AddRecordAsync(TwoNucleos f, ProjectUpdateKind? kind, DateOnly day,
+        params (string Name, string Type)[] files) => AddRecordAsync(f, f.A.ProjectId, kind, day, files);
+
+    private static async Task<(Guid Id, List<Guid> Files)> AddRecordAsync(TwoNucleos f, Guid projectId, ProjectUpdateKind? kind,
+        DateOnly day, params (string Name, string Type)[] files)
     {
         await using var db = f.Context(f.A.Admin);
         var record = new ProjectUpdate
         {
-            ProjectId = f.A.ProjectId, Text = "<p>Registro</p>", AuthorUserId = f.A.AdminUserId, HappenedOn = day, Kind = kind
+            ProjectId = projectId, Text = "<p>Registro</p>", AuthorUserId = f.A.AdminUserId, HappenedOn = day, Kind = kind
         };
-        foreach (var (name, type) in files) record.Attachments.Add(NewFile(db, f.A.ProjectId, name, type));
+        foreach (var (name, type) in files) record.Attachments.Add(NewFile(db, projectId, name, type));
         db.ProjectUpdates.Add(record);
         await db.SaveChangesAsync();
         return (record.Id, record.Attachments.Select(a => a.Id).ToList());
@@ -434,6 +437,37 @@ public class DriveTests
         await setup.SyncAsync();
         Assert.NotNull(setup.At($"{Documents}/contrato.pdf"));
         Assert.False(setup.At($"{Documents}/contrato.pdf")!.Trashed);
+    }
+
+    [Fact]
+    public async Task ClosedProjectGetsItsFolderWhenSomethingArrives()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        Guid closedId;
+        await using (var db = f.Context(f.A.Admin))
+        {
+            var closed = new Project
+            {
+                ProgramId = f.A.ProgramId, Name = "Projeto encerrado", StartDate = Mapping.Today.AddDays(-90),
+                Status = ProjectStatus.Concluido, ClosedOn = Mapping.Today.AddDays(-1)
+            };
+            db.Projects.Add(closed);
+            await db.SaveChangesAsync();
+            closedId = closed.Id;
+        }
+
+        await setup.SyncAsync();
+        Assert.Null(setup.At($"{ProgramA}/Projeto encerrado"));
+
+        // Duas fotos num registro com tipo: a pasta do projeto nasce uma vez so (no banco, um item por coisa).
+        var day = Mapping.Today;
+        await AddRecordAsync(f, closedId, ProjectUpdateKind.EntregaFinal, day, ("antes.jpg", "image/jpeg"), ("depois.jpg", "image/jpeg"));
+        await setup.SyncAsync();
+        Assert.Equal(new[] { "antes.jpg", "depois.jpg" },
+            setup.Drive.ChildNames(setup.At($"{ProgramA}/Projeto encerrado/04. Fotos e vídeos/{Folder(day, "Entrega final")}")!.Id));
+        await using var check = f.SystemContext();
+        Assert.Single(await check.DriveItems.Where(i => i.Kind == DriveItemKind.Projeto && i.EntityId == closedId).ToListAsync());
     }
 
     [Fact]

@@ -331,8 +331,13 @@ public class DriveSyncService
         return item;
     }
 
-    private Task<DriveItem?> FindItemAsync(DriveItemKind kind, Guid entityId, CancellationToken cancellationToken) =>
-        _db.DriveItems.FirstOrDefaultAsync(i => i.Kind == kind && i.EntityId == entityId && i.Key == "", cancellationToken);
+    /// <summary>
+    /// O item da coisa da plataforma: primeiro entre os criados neste passo e ainda nao gravados (a consulta ao banco nao
+    /// os ve; criar de novo daria dois itens iguais), depois no banco.
+    /// </summary>
+    private async Task<DriveItem?> FindItemAsync(DriveItemKind kind, Guid entityId, CancellationToken cancellationToken) =>
+        _db.DriveItems.Local.FirstOrDefault(i => i.Kind == kind && i.EntityId == entityId && i.Key == "")
+        ?? await _db.DriveItems.FirstOrDefaultAsync(i => i.Kind == kind && i.EntityId == entityId && i.Key == "", cancellationToken);
 
     /// <summary>
     /// Alguma pasta do projeto sumiu do Drive (apagada de vez): esquece as pastas do projeto e dos registros dele, para a
@@ -538,8 +543,7 @@ public class DriveSyncService
     private async Task<string> ProgramFolderAsync(string root, Guid programId, Guid organizationId,
         CancellationToken cancellationToken, bool recreate = false)
     {
-        var item = await _db.DriveItems.FirstOrDefaultAsync(
-            i => i.Kind == DriveItemKind.Programa && i.EntityId == programId && i.Key == "", cancellationToken);
+        var item = await FindItemAsync(DriveItemKind.Programa, programId, cancellationToken);
         var isNew = item is null;
         item ??= new DriveItem
         {
