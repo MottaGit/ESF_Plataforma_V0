@@ -3,6 +3,7 @@ using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
 using Esf.Api.Drive;
+using Esf.Api.Dtos;
 using Google;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,17 +23,29 @@ public class DriveSyncService
 
     private static readonly TimeSpan Lease = TimeSpan.FromMinutes(5);
 
+    /// <summary>
+    /// O relatorio final espera um pouco depois da conclusao: o registro de encerramento e os numeros finais chegam logo
+    /// depois de mudar o status.
+    /// </summary>
+    public static readonly TimeSpan FinalReportDelay = TimeSpan.FromMinutes(2);
+
+    /// <summary>Quem aparece como autor no relatorio final.</summary>
+    public const string FinalReportAuthor = "Plataforma ESF, ao concluir o projeto";
+
     private readonly EsfDbContext _db;
     private readonly IDriveClient _drive;
     private readonly FileStorageService _storage;
+    private readonly IServiceScopeFactory _scopes;
     private readonly ILogger<DriveSyncService> _logger;
 
-    public DriveSyncService(EsfDbContext db, IDriveClient drive, FileStorageService storage, ILogger<DriveSyncService> logger)
+    public DriveSyncService(EsfDbContext db, IDriveClient drive, FileStorageService storage, IServiceScopeFactory scopes,
+        ILogger<DriveSyncService> logger)
     {
         _db = db;
         _db.AllOrganizations = true;
         _drive = drive;
         _storage = storage;
+        _scopes = scopes;
         _logger = logger;
     }
 
@@ -96,7 +109,7 @@ public class DriveSyncService
             // Apagar vale mais que qualquer aviso anterior ou seguinte.
             item.State = request.Delete || item.State == DriveItemState.Apagar ? DriveItemState.Apagar : DriveItemState.Pendente;
             item.Attempts = 0;
-            item.NextAttemptAt = null;
+            item.NextAttemptAt = request.Kind == DriveItemKind.RelatorioFinal ? now + FinalReportDelay : null;
             item.LastError = null;
             item.Stamp = Guid.NewGuid();
             item.UpdatedAt = now;
@@ -212,6 +225,7 @@ public class DriveSyncService
         DriveItemKind.Projeto => SyncProjectAsync(root, item, cancellationToken),
         DriveItemKind.Registro => SyncRecordAsync(root, item, cancellationToken),
         DriveItemKind.Arquivo => SyncFileAsync(root, item, cancellationToken),
+        DriveItemKind.RelatorioFinal => SyncFinalReportAsync(root, item, cancellationToken),
         _ => Task.FromResult(false)
     };
 
@@ -480,6 +494,44 @@ public class DriveSyncService
         var position = siblings.Where(u => u.Day == record.Day).OrderBy(u => u.CreatedAt).ThenBy(u => u.Id)
             .Select(u => u.Id).ToList().IndexOf(record.Id);
         return DriveNames.RecordFolder(record.Day, UpdateKinds.Label(kind), position + 1);
+    }
+
+    // ---------- relatorio final ----------
+
+    /// <summary>
+    /// Relatorio completo do projeto (do inicio a conclusao), na pasta do projeto: "Relatório final – Nome –
+    /// AAAA-MM-DD.pdf". Reaberto antes de a rotina chegar nele: nao gera. Uma vez enviado, fica (nao e refeito).
+    /// </summary>
+    private async Task<bool> SyncFinalReportAsync(string root, DriveItem item, CancellationToken cancellationToken)
+    {
+        var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == item.EntityId, cancellationToken);
+        if (project is null || project.Status != ProjectStatus.Concluido) return false;
+        if (item.DriveId is not null) return true;
+
+        var projectItem = await ProjectItemAsync(root, project, cancellationToken);
+        var tag = DriveNames.FinalReportTag(project.Id, item.Key);
+        item.DriveId = await _drive.FindByTagAsync(projectItem.DriveId!, tag, cancellationToken);
+        if (item.DriveId is null)
+        {
+            var name = DriveNames.FinalReport(project.Name, item.Key);
+            item.DriveId = await _drive.UploadAsync(projectItem.DriveId!, name, "application/pdf",
+                await FinalReportPdfAsync(project), tag, cancellationToken);
+            item.Name = name;
+        }
+
+        item.ParentDriveId = projectItem.DriveId;
+        return true;
+    }
+
+    /// <summary>O mesmo relatorio da tela Relatorios (formato completo, sem periodo), gerado no nucleo do projeto.</summary>
+    private async Task<byte[]> FinalReportPdfAsync(Project project)
+    {
+        using var scope = _scopes.CreateScope();
+        scope.ServiceProvider.GetRequiredService<CurrentUserOverride>().User =
+            new JobUser(Guid.Empty, FinalReportAuthor, UserRole.Administrador, project.OrganizationId);
+        var (content, _) = await scope.ServiceProvider.GetRequiredService<ReportService>().GenerateAsync(
+            new ReportRequest { ProjectIds = new List<Guid> { project.Id }, Format = ReportFormat.Completo }, FinalReportAuthor);
+        return content;
     }
 
     /// <summary>Id da pasta do programa, criando se preciso (um projeto precisa dela, seja o programa como for).</summary>

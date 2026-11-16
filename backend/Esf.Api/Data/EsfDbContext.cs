@@ -77,8 +77,9 @@ public class EsfDbContext : DbContext
     }
 
     /// <summary>
-    /// Programa ou projeto novo, renomeado ou que mudou de programa, registro de andamento novo, que mudou de tipo ou de
-    /// dia ou foi apagado, e arquivo novo, que entrou num registro ou foi apagado viram avisos para a rotina do Google
+    /// Programa ou projeto novo, renomeado ou que mudou de programa, projeto concluido, registro de andamento novo, que
+    /// mudou de tipo ou de dia ou foi apagado, e arquivo novo, que entrou num registro ou foi apagado viram avisos para a
+    /// rotina do Google
     /// Drive (DriveSyncService), no mesmo SaveChanges: assim nenhum caminho (tela, planilha, demonstracao) fica de fora.
     /// A rotina descarta o aviso se o nucleo nao ligou o Drive. Excluir o projeto nao apaga nada no Drive.
     /// </summary>
@@ -126,12 +127,20 @@ public class EsfDbContext : DbContext
                 requests.Add(Request(entry.Entity.OrganizationId, DriveItemKind.Programa, entry.Entity.Id));
         }
 
-        foreach (var entry in ChangeTracker.Entries<Project>())
+        foreach (var entry in projects)
         {
             if (entry.State == EntityState.Added
                 || (entry.State == EntityState.Modified
                     && (entry.Property(x => x.Name).IsModified || entry.Property(x => x.ProgramId).IsModified)))
                 requests.Add(Request(entry.Entity.OrganizationId, DriveItemKind.Projeto, entry.Entity.Id));
+
+            // Concluido agora (nao estava): o relatorio final vai para a pasta do projeto. Reabrir e concluir de novo
+            // gera outro, com o dia novo.
+            var status = entry.Property(x => x.Status);
+            if (entry.State == EntityState.Modified && status.IsModified && entry.Entity.Status == ProjectStatus.Concluido
+                && status.OriginalValue != ProjectStatus.Concluido)
+                requests.Add(Request(entry.Entity.OrganizationId, DriveItemKind.RelatorioFinal, entry.Entity.Id,
+                    entry.Entity.ClosedOn?.ToString("yyyy-MM-dd") ?? ""));
         }
 
         if (requests.Count > 0) DriveSyncRequests.AddRange(requests);

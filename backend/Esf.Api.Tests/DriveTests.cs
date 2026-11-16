@@ -5,6 +5,7 @@ using Esf.Api.Drive;
 using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -29,9 +30,18 @@ public class DriveTests
 
         public async Task SyncAsync()
         {
+            await using var services = JobServices.Create(F.Options);
             await using var db = F.SystemContext();
             await new DriveSyncService(db, Drive, new FileStorageService(db, Options.Create(new StorageOptions())),
-                NullLogger<DriveSyncService>.Instance).RunUntilIdleAsync();
+                services.GetRequiredService<IServiceScopeFactory>(), NullLogger<DriveSyncService>.Instance).RunUntilIdleAsync();
+        }
+
+        /// <summary>Como se o tempo de espera do relatorio final ja tivesse passado.</summary>
+        public async Task SkipWaitAsync()
+        {
+            await using var db = F.SystemContext();
+            foreach (var item in await db.DriveItems.Where(i => i.NextAttemptAt != null).ToListAsync()) item.NextAttemptAt = null;
+            await db.SaveChangesAsync();
         }
 
         public FakeDriveClient.Item? At(string path) => Drive.At(Root, path);
@@ -443,6 +453,61 @@ public class DriveTests
 
         Assert.NotNull(setup.At($"{Photos}/{Folder(day, "Visita técnica")}/terreno.jpg"));
         Assert.NotNull(setup.At($"{Documents}/levantamento.pdf"));
+    }
+
+    // ---------- relatorio final ----------
+
+    [Fact]
+    public async Task ConcludingPutsTheFinalReportInTheProjectFolder()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        var day = Mapping.Today.AddDays(-1);
+        await using (var db = f.Context(f.A.Admin))
+            await Projects(db, f.A.Admin).UpdateStatusAsync(f.A.ProjectId, ProjectStatus.Concluido, day);
+
+        // Espera um pouco (registro de encerramento e numeros finais chegam logo depois).
+        await setup.SyncAsync();
+        var reportName = $"Relatório final – Projeto a – {day:yyyy-MM-dd}.pdf";
+        Assert.Null(setup.At($"{ProgramA}/Projeto a/{reportName}"));
+
+        await setup.SkipWaitAsync();
+        await setup.SyncAsync();
+        var report = setup.At($"{ProgramA}/Projeto a/{reportName}")!;
+        Assert.Equal("application/pdf", report.ContentType);
+        Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(report.Content!, 0, 4));
+
+        // Reaberto e concluido de novo noutro dia: outro relatorio, o primeiro fica.
+        await using (var db = f.Context(f.A.Admin))
+        {
+            await Projects(db, f.A.Admin).UpdateStatusAsync(f.A.ProjectId, ProjectStatus.EmAndamento);
+            await Projects(db, f.A.Admin).UpdateStatusAsync(f.A.ProjectId, ProjectStatus.Concluido, Mapping.Today);
+        }
+        await setup.SyncAsync();
+        await setup.SkipWaitAsync();
+        await setup.SyncAsync();
+        Assert.NotNull(setup.At($"{ProgramA}/Projeto a/{reportName}"));
+        Assert.NotNull(setup.At($"{ProgramA}/Projeto a/Relatório final – Projeto a – {Mapping.Today:yyyy-MM-dd}.pdf"));
+    }
+
+    [Fact]
+    public async Task ReopenedBeforeTheReportOrCancelledMakesNoReport()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        await using (var db = f.Context(f.A.Admin))
+        {
+            await Projects(db, f.A.Admin).UpdateStatusAsync(f.A.ProjectId, ProjectStatus.Concluido);
+            await Projects(db, f.A.Admin).UpdateStatusAsync(f.A.ProjectId, ProjectStatus.EmAndamento);
+            await Projects(db, f.A.Admin).UpdateStatusAsync(f.A.ProjectId, ProjectStatus.Cancelado);
+        }
+
+        await setup.SyncAsync();
+        await setup.SkipWaitAsync();
+        await setup.SyncAsync();
+        Assert.DoesNotContain(setup.Drive.ChildNames(setup.At($"{ProgramA}/Projeto a")!.Id), name => name.EndsWith(".pdf"));
+        await using var check = f.SystemContext();
+        Assert.DoesNotContain(await check.DriveItems.ToListAsync(), i => i.Kind == DriveItemKind.RelatorioFinal);
     }
 
     [Theory]

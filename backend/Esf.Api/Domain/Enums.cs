@@ -134,7 +134,9 @@ public enum DriveItemKind
     /// <summary>Pasta "AAAA-MM-DD – Tipo" do registro de andamento com tipo e com fotos.</summary>
     Registro = 2,
     /// <summary>Copia de uma foto ou documento enviado na plataforma.</summary>
-    Arquivo = 3
+    Arquivo = 3,
+    /// <summary>Relatorio completo em PDF, gerado quando o projeto e concluido (a chave e o dia da conclusao).</summary>
+    RelatorioFinal = 4
 }
 
 public enum DriveItemState

@@ -133,6 +133,7 @@ export function CloseProjectDialog({ project, status, onCancel, onClosed, onOpen
           {concluding
             ? 'O projeto passa para concluído e conta como 100% de progresso.'
             : 'O projeto passa para cancelado. Tarefas, registros e arquivos continuam guardados.'}{' '}
+          {concluding && project.driveFolderUrl ? 'O relatório final em PDF vai para a pasta do projeto no Drive. ' : null}
           Dá para reabrir depois, mudando o status de novo.
         </p>
 

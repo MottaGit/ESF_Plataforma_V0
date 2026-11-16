@@ -59,6 +59,11 @@ public static partial class DriveNames
     public static string SubfolderTag(Guid projectId, Subfolder subfolder) => $"projeto:{projectId:N}:{subfolder.Slot}";
     public static string RecordTag(Guid id) => $"registro:{id:N}";
     public static string FileTag(Guid id) => $"arquivo:{id:N}";
+    public static string FinalReportTag(Guid projectId, string day) => $"relatorio:{projectId:N}:{day}";
+
+    /// <summary>"Relatório final – Casa da Alessandra – 2026-10-30.pdf" (direto na pasta do projeto).</summary>
+    public static string FinalReport(string projectName, string day) =>
+        Clean($"Relatório final – {projectName}{(day.Length > 0 ? $" – {day}" : "")}") + ".pdf";
 
     /// <summary>Pasta do registro de andamento com tipo: "2026-06-18 – Obra"; a segunda do dia, "2026-06-18 – Obra (2)".</summary>
     public static string RecordFolder(DateOnly day, string kind, int position = 1) =>

@@ -966,7 +966,12 @@ documentos, de onde vierem, para `05. Documentos`. Mudar o tipo ou o dia do regi
 tipo leva as fotos para `Outras fotos` e manda a pasta vazia para a lixeira. Apagar uma foto, um documento ou um
 registro na plataforma manda a cópia (ou a pasta do registro) para a **lixeira do Drive**, de onde dá para recuperar
 por 30 dias. Excluir o projeto ou o programa não apaga nada no Drive. Termos de adesão e autorizações de imagem são
-documentos à parte e nunca vão para o Drive. Funciona num sentido só: o que for feito direto no Drive não volta para a plataforma, e uma pasta
+documentos à parte e nunca vão para o Drive. **Relatório final:** ao concluir um projeto que tem pasta, o relatório
+completo em PDF (o mesmo da tela Relatórios, do início à conclusão) vai para a pasta dele, com o nome
+`Relatório final – Nome do projeto – AAAA-MM-DD.pdf` (o dia da conclusão). Ele sai dois minutos depois de concluir,
+para pegar o registro de encerramento e os números finais que a janela **Concluir projeto** grava logo depois do
+status (a janela avisa, quando o projeto tem pasta). Reabrir antes disso não gera nada; reabrir e concluir de novo gera
+outro relatório, e o primeiro fica. Cancelar não gera relatório. Funciona num sentido só: o que for feito direto no Drive não volta para a plataforma, e uma pasta
 apagada de vez lá é criada de novo quando a plataforma precisar dela. No projeto (linha do status e do prazo) e no
 programa (linha do nome), o link **Pasta no Drive** abre a pasta em outra aba, para quem tem acesso ao Drive
 compartilhado; quem entra no Drive continua sendo decidido no próprio Drive. Tudo acontece por uma rotina em segundo
@@ -1094,7 +1099,8 @@ andamento (novo, outro tipo, outro dia, apagado) ou um arquivo (novo, anexado a 
 no `EsfDbContext`; o que pertence a um projeto excluído no mesmo `SaveChanges` não gera aviso). A `DriveSyncService`, rodada sem parar pelo `DriveSyncWorker` (outro `BackgroundService` da API,
 independente da fila de tarefas), transforma os avisos dos núcleos com o Drive ligado em itens pendentes de
 `DriveItems` (os de núcleo sem Drive só somem) e acerta um item por vez no Drive: cria a pasta, renomeia, move, envia
-a cópia (o conteúdo vem de `StoredFiles`) ou manda para a lixeira. Cada
+a cópia (o conteúdo vem de `StoredFiles`), gera e envia o relatório final (o `ReportService`, num escopo em que o
+usuário atual é um `JobUser` do núcleo do projeto, como na fila) ou manda para a lixeira. Cada
 item guarda o id no Drive, a pasta-mãe e o nome que tem lá (é assim que a rotina sabe o que mudou) e, no projeto, as
 subpastas que recebem as cópias. Tudo o que a plataforma cria no Drive leva uma etiqueta com o id da plataforma
 (`appProperties`): se a rotina cair entre criar e gravar o id, na próxima vez acha pela etiqueta e não duplica. Falha
@@ -1183,7 +1189,7 @@ ESF_Plataforma_V0/
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento; `PreviewState` diz se a foto já tem miniatura e versão do PDF |
 | `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina) e a pasta do Google Drive ligada (vazia: Drive desligado); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |
-| `DriveItems` | o que a plataforma criou no Google Drive de cada núcleo (pasta de programa, de projeto e de registro, cópia de arquivo): id no Drive, pasta-mãe, nome, subpastas do projeto e a situação na rotina (pendente, em dia, apagar, falhou, com tentativas e último erro) |
+| `DriveItems` | o que a plataforma criou no Google Drive de cada núcleo (pasta de programa, de projeto e de registro, cópia de arquivo, relatório final — a chave leva o dia da conclusão): id no Drive, pasta-mãe, nome, subpastas do projeto e a situação na rotina (pendente, em dia, apagar, falhou, com tentativas e último erro) |
 | `DriveSyncRequests` | avisos de mudança para a rotina do Drive, gravados no mesmo `SaveChanges` da mudança e consumidos por ela |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
