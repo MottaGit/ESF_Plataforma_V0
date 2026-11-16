@@ -104,7 +104,8 @@ public static class AuditTrail
             ["Name"] = "Nome", ["LegalName"] = "Razão social", ["Cnpj"] = "CNPJ", ["Email"] = "E-mail",
             ["Phone"] = "Telefone", ["Website"] = "Site", ["City"] = "Cidade", ["State"] = "Estado",
             ["SignatoryName"] = "Quem assina", ["SignatoryRole"] = "Cargo de quem assina",
-            ["SignatoryNote"] = "Linha abaixo do cargo", ["LogoUrl"] = "Logo", ["SignatureStoredName"] = "Assinatura"
+            ["SignatoryNote"] = "Linha abaixo do cargo", ["LogoUrl"] = "Logo", ["SignatureStoredName"] = "Assinatura",
+            ["DriveFolderName"] = "Pasta do Google Drive"
         }
     };
 

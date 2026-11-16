@@ -1,0 +1,278 @@
+using Esf.Api.Common;
+using Esf.Api.Domain;
+using Esf.Api.Domain.Entities;
+using Esf.Api.Drive;
+using Esf.Api.Dtos;
+using Esf.Api.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace Esf.Api.Tests;
+
+/// <summary>
+/// Google Drive do nucleo (mao unica): ligar a uma pasta de Drive compartilhado, pastas dos programas e projetos
+/// criadas, renomeadas e movidas pela rotina, falhas adiadas e nucleo sem Drive intocado.
+/// </summary>
+public class DriveTests
+{
+    private const string ProgramA = "Banheiros";
+
+    /// <summary>Nucleo A ligado a uma pasta "ESF A – Plataforma" de um Drive compartilhado.</summary>
+    private sealed class Setup
+    {
+        public required TwoNucleos F { get; init; }
+        public required FakeDriveClient Drive { get; init; }
+        public required string Root { get; init; }
+
+        public DriveSettingsService Settings(Data.EsfDbContext db) => new(db, Drive, NullLogger<DriveSettingsService>.Instance);
+
+        public async Task SyncAsync()
+        {
+            await using var db = F.SystemContext();
+            await new DriveSyncService(db, Drive, NullLogger<DriveSyncService>.Instance).RunUntilIdleAsync();
+        }
+
+        public FakeDriveClient.Item? At(string path) => Drive.At(Root, path);
+    }
+
+    private static async Task<Setup> ConnectedAsync(bool sync = true)
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var drive = new FakeDriveClient();
+        var setup = new Setup { F = f, Drive = drive, Root = drive.AddRootFolder("ESF A – Plataforma") };
+        await using (var db = f.Context(f.A.Admin))
+            await setup.Settings(db).ConnectAsync(new ConnectDriveRequest { FolderLink = FakeDriveClient.LinkTo(setup.Root) });
+        if (sync) await setup.SyncAsync();
+        return setup;
+    }
+
+    private static ProjectService Projects(Data.EsfDbContext db, TestUser user) => new(db, new NotificationService(db, user));
+
+    [Fact]
+    public async Task ConnectingCreatesTheFoldersOfOpenProjectsOnly()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        Guid closedId;
+        await using (var db = f.Context(f.A.Admin))
+        {
+            var closed = new Project
+            {
+                ProgramId = f.A.ProgramId, Name = "Projeto encerrado", StartDate = Mapping.Today.AddDays(-90),
+                Status = ProjectStatus.Concluido, ClosedOn = Mapping.Today.AddDays(-5)
+            };
+            db.Projects.Add(closed);
+            await db.SaveChangesAsync();
+            closedId = closed.Id;
+        }
+
+        var drive = new FakeDriveClient();
+        var root = drive.AddRootFolder("ESF A – Plataforma");
+        var setup = new Setup { F = f, Drive = drive, Root = root };
+        await using (var db = f.Context(f.A.Admin))
+        {
+            var status = await setup.Settings(db).ConnectAsync(new ConnectDriveRequest { FolderLink = FakeDriveClient.LinkTo(root) });
+            Assert.Equal("ESF A – Plataforma", status.FolderName);
+            Assert.Equal(DriveNames.FolderUrl(root), status.FolderUrl);
+        }
+
+        await setup.SyncAsync();
+
+        // Programa › projeto › subpastas fixas; "Outras fotos" dentro de "04. Fotos e vídeos".
+        Assert.Equal(new[] { ProgramA }, drive.ChildNames(root));
+        Assert.Equal(new[] { "Projeto a" }, drive.ChildNames(setup.At(ProgramA)!.Id));
+        Assert.Equal(
+            new[] { "01. Gestão", "02. Projeto técnico", "03. Orçamento e compras", "04. Fotos e vídeos", "05. Documentos" },
+            drive.ChildNames(setup.At($"{ProgramA}/Projeto a")!.Id));
+        Assert.Equal(new[] { "Outras fotos" }, drive.ChildNames(setup.At($"{ProgramA}/Projeto a/04. Fotos e vídeos")!.Id));
+        Assert.Equal(8, drive.Created);
+
+        // Links nas telas: projeto e programa com pasta; o encerrado, sem.
+        await using (var db = f.Context(f.A.Admin))
+        {
+            var detail = await Projects(db, f.A.Admin).GetDetailAsync(f.A.ProjectId);
+            Assert.Equal(DriveNames.FolderUrl(setup.At($"{ProgramA}/Projeto a")!.Id), detail.DriveFolderUrl);
+            Assert.Null((await Projects(db, f.A.Admin).GetDetailAsync(closedId)).DriveFolderUrl);
+            Assert.Equal(DriveNames.FolderUrl(setup.At(ProgramA)!.Id), (await new ProgramService(db).GetAsync(f.A.ProgramId)).DriveFolderUrl);
+
+            var status = await setup.Settings(db).GetAsync();
+            Assert.Equal((1, 0, 0), (status.ProjectsWithFolder, status.Pending, status.Failed));
+        }
+
+        // Rodar de novo nao duplica nada; o nucleo B (sem Drive) nao ganhou nada.
+        await setup.SyncAsync();
+        Assert.Equal(8, drive.Created);
+        await using (var db = f.Context(f.B.Admin))
+        {
+            Assert.Null((await Projects(db, f.B.Admin).GetDetailAsync(f.B.ProjectId)).DriveFolderUrl);
+            Assert.Empty(await db.DriveItems.ToListAsync());
+        }
+    }
+
+    [Fact]
+    public async Task NewProjectsGetAFolderAndRenamingOrMovingFollows()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        Guid newProgramId;
+        Guid newProjectId;
+        await using (var db = f.Context(f.A.Admin))
+        {
+            var program = new ProjectProgram { Name = "Hortas" };
+            var project = new Project { ProgramId = f.A.ProgramId, Name = "Casa da Alessandra / Sarandi", StartDate = Mapping.Today };
+            db.AddRange(program, project);
+            await db.SaveChangesAsync();
+            (newProgramId, newProjectId) = (program.Id, project.Id);
+        }
+
+        await setup.SyncAsync();
+        // Programa novo ganha pasta mesmo sem projeto; a barra do nome vira traco.
+        Assert.Equal(new[] { ProgramA, "Hortas" }, setup.Drive.ChildNames(setup.Root));
+        var folder = setup.At($"{ProgramA}/Casa da Alessandra - Sarandi")!;
+        Assert.Equal(5, setup.Drive.Children(folder.Id).Count);
+
+        await using (var db = f.Context(f.A.Admin))
+        {
+            var project = await db.Projects.SingleAsync(p => p.Id == newProjectId);
+            project.Name = "Casa da Alessandra";
+            project.ProgramId = newProgramId;
+            var program = await db.Programs.SingleAsync(p => p.Id == newProgramId);
+            program.Name = "Hortas urbanas";
+            await db.SaveChangesAsync();
+        }
+
+        await setup.SyncAsync();
+        // A mesma pasta (com o que tiver dentro), renomeada e no programa novo, tambem renomeado.
+        var moved = setup.At("Hortas urbanas/Casa da Alessandra")!;
+        Assert.Equal(folder.Id, moved.Id);
+        Assert.Equal(5, setup.Drive.Children(moved.Id).Count);
+        Assert.Equal(new[] { "Projeto a" }, setup.Drive.ChildNames(setup.At(ProgramA)!.Id));
+    }
+
+    [Fact]
+    public async Task FolderDeletedInDriveIsCreatedAgain()
+    {
+        var setup = await ConnectedAsync();
+        setup.Drive.DeleteForever(setup.At(ProgramA)!.Id);
+
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+        {
+            var project = await db.Projects.SingleAsync(p => p.Id == setup.F.A.ProjectId);
+            project.Name = "Projeto a (obra)";
+            await db.SaveChangesAsync();
+        }
+
+        await setup.SyncAsync();
+        Assert.Equal(5, setup.Drive.Children(setup.At($"{ProgramA}/Projeto a (obra)")!.Id).Count);
+    }
+
+    [Fact]
+    public async Task GoogleOutOfTheAirOnlyPostponesAndRetryResumes()
+    {
+        var setup = await ConnectedAsync(sync: false);
+        setup.Drive.Down = true;
+        await setup.SyncAsync();
+        Assert.Empty(setup.Drive.Children(setup.Root));
+
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+        {
+            var item = await db.DriveItems.SingleAsync(i => i.Kind == DriveItemKind.Projeto);
+            Assert.Equal((DriveItemState.Pendente, 1), (item.State, item.Attempts));
+            Assert.True(item.NextAttemptAt > DateTime.UtcNow);
+
+            // So o projeto espera (a pasta do programa vem junto com a dele).
+            var status = await setup.Settings(db).GetAsync();
+            Assert.Equal(1, status.Pending);
+            Assert.StartsWith("Não foi possível falar com o Google Drive", status.LastError);
+        }
+
+        // Antes do intervalo, a rotina nao insiste; "Tentar de novo" poe na fila agora.
+        setup.Drive.Down = false;
+        await setup.SyncAsync();
+        Assert.Empty(setup.Drive.Children(setup.Root));
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+            await setup.Settings(db).RetryAsync();
+        await setup.SyncAsync();
+        Assert.NotNull(setup.At($"{ProgramA}/Projeto a"));
+    }
+
+    [Fact]
+    public async Task ManyFailuresStopUntilSomeoneRetries()
+    {
+        var setup = await ConnectedAsync(sync: false);
+        setup.Drive.Down = true;
+        for (var attempt = 0; attempt < DriveSyncService.MaxAttempts; attempt++)
+        {
+            await setup.SyncAsync();
+            await using var db = setup.F.SystemContext();
+            foreach (var item in await db.DriveItems.ToListAsync()) item.NextAttemptAt = null;
+            await db.SaveChangesAsync();
+        }
+
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+        {
+            Assert.Equal(DriveItemState.Falhou, (await db.DriveItems.SingleAsync()).State);
+            Assert.Equal(1, (await setup.Settings(db).GetAsync()).Failed);
+        }
+
+        setup.Drive.Down = false;
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+            await setup.Settings(db).RetryAsync();
+        await setup.SyncAsync();
+        Assert.NotNull(setup.At($"{ProgramA}/Projeto a"));
+    }
+
+    [Fact]
+    public async Task ConnectingChecksTheFolderBeforeSaving()
+    {
+        var f = await TwoNucleos.CreateAsync();
+        var drive = new FakeDriveClient();
+        var myDrive = drive.AddRootFolder("Pasta no Meu Drive", sharedDrive: false);
+        var readOnly = drive.AddRootFolder("Só leitura", canAddChildren: false);
+        await using var db = f.Context(f.A.Admin);
+        var settings = new DriveSettingsService(db, drive, NullLogger<DriveSettingsService>.Instance);
+
+        async Task<string> Refused(string link) =>
+            (await Assert.ThrowsAsync<AppException>(() => settings.ConnectAsync(new ConnectDriveRequest { FolderLink = link }))).Message;
+
+        Assert.StartsWith("Cole o link de uma pasta", await Refused("https://docs.google.com/document/d/x"));
+        Assert.Contains(drive.AccountEmail!, await Refused(FakeDriveClient.LinkTo("pastaQueNaoExiste123")));
+        Assert.StartsWith("A pasta precisa estar num Drive compartilhado", await Refused(FakeDriveClient.LinkTo(myDrive)));
+        Assert.Contains("Gerente de conteúdo", await Refused(FakeDriveClient.LinkTo(readOnly)));
+
+        drive.IsConfigured = false;
+        Assert.Contains("não foi configurada no servidor", await Refused(FakeDriveClient.LinkTo(readOnly)));
+        Assert.False((await settings.GetAsync()).Available);
+        Assert.Null((await db.Organizations.SingleAsync()).DriveFolderId);
+    }
+
+    [Fact]
+    public async Task DisconnectingStopsTheRoutineAndKeepsWhatIsInTheDrive()
+    {
+        var setup = await ConnectedAsync();
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+        {
+            await setup.Settings(db).DisconnectAsync();
+            var project = await db.Projects.SingleAsync(p => p.Id == setup.F.A.ProjectId);
+            project.Name = "Outro nome";
+            await db.SaveChangesAsync();
+            Assert.Null((await Projects(db, setup.F.A.Admin).GetDetailAsync(setup.F.A.ProjectId)).DriveFolderUrl);
+        }
+
+        await setup.SyncAsync();
+        Assert.NotNull(setup.At($"{ProgramA}/Projeto a"));
+        await using (var db = setup.F.SystemContext())
+        {
+            Assert.Empty(await db.DriveItems.ToListAsync());
+            Assert.Empty(await db.DriveSyncRequests.ToListAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("https://drive.google.com/drive/folders/1AbC_def-GHIjkl?usp=sharing", "1AbC_def-GHIjkl")]
+    [InlineData("https://drive.google.com/drive/u/1/folders/1AbC_def-GHIjkl", "1AbC_def-GHIjkl")]
+    [InlineData("https://drive.google.com/open?id=1AbC_def-GHIjkl", "1AbC_def-GHIjkl")]
+    [InlineData("  1AbC_def-GHIjkl ", "1AbC_def-GHIjkl")]
+    [InlineData("https://docs.google.com/document/d/1AbC/edit", null)]
+    [InlineData("", null)]
+    public void FolderIdComesFromTheLink(string link, string? id) => Assert.Equal(id, DriveNames.FolderIdFrom(link));
+}

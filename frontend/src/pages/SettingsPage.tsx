@@ -1,5 +1,6 @@
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { AuditSection } from '../components/settings/AuditSection';
+import { DriveSection } from '../components/settings/DriveSection';
 import { SpreadsheetsSection } from '../components/settings/SpreadsheetsSection';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
@@ -7,13 +8,14 @@ import { AccountSection } from '../components/settings/AccountSection';
 import { OrganizationSection } from '../components/settings/OrganizationSection';
 import { UsersSection } from '../components/settings/UsersSection';
 
-type TabKey = 'organization' | 'users' | 'spreadsheets' | 'history' | 'account';
+type TabKey = 'organization' | 'users' | 'spreadsheets' | 'drive' | 'history' | 'account';
 
 // A aba aberta fica na URL (?aba=conta), para o menu da conta e links diretos cairem no lugar certo.
 const tabs: Array<{ key: TabKey; label: string; slug: string; adminOnly?: boolean; manageOnly?: boolean }> = [
   { key: 'organization', label: 'Organização', slug: 'organizacao', manageOnly: true },
   { key: 'users', label: 'Acessos', slug: 'acessos', manageOnly: true },
   { key: 'spreadsheets', label: 'Planilhas', slug: 'planilhas', adminOnly: true },
+  { key: 'drive', label: 'Google Drive', slug: 'drive', adminOnly: true },
   { key: 'history', label: 'Histórico', slug: 'historico', adminOnly: true },
   { key: 'account', label: 'Minha conta', slug: 'conta' }
 ];
@@ -60,6 +62,7 @@ export function SettingsPage() {
       {tab === 'organization' ? <OrganizationSection canEdit={isAdmin} /> : null}
       {tab === 'users' ? <UsersSection canEdit={isAdmin} canGrant={canManage} /> : null}
       {tab === 'spreadsheets' ? <SpreadsheetsSection /> : null}
+      {tab === 'drive' ? <DriveSection /> : null}
       {tab === 'history' ? <AuditSection /> : null}
       {tab === 'account' ? <AccountSection /> : null}
     </>

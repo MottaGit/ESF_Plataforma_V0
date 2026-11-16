@@ -27,5 +27,14 @@ public class Organization
     public string? SignatoryNote { get; set; }
     /// <summary>Imagem da assinatura usada nos certificados (arquivo privado).</summary>
     public string? SignatureStoredName { get; set; }
+
+    /// <summary>
+    /// Pasta do Google Drive em que a plataforma cria as pastas dos programas e projetos (num Drive compartilhado).
+    /// Vazia: o nucleo nao ligou o Drive.
+    /// </summary>
+    public string? DriveFolderId { get; set; }
+    public string? DriveFolderName { get; set; }
+    public DateTime? DriveConnectedAt { get; set; }
+
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

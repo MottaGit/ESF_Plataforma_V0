@@ -155,7 +155,8 @@ public static class Mapping
 
     /// <summary>Detalhe do projeto, com tarefas, equipe e indicadores ja carregados.</summary>
     public static ProjectDetailDto ToDetailDto(Project p, int updatesCount, int filesCount,
-        DateOnly? imageAuthorizedOn = null, IReadOnlyDictionary<Guid, ActivityCounts>? counts = null) =>
+        DateOnly? imageAuthorizedOn = null, IReadOnlyDictionary<Guid, ActivityCounts>? counts = null,
+        string? driveFolderId = null) =>
         new(p.Id,
             p.Name,
             p.Description,
@@ -195,5 +196,6 @@ public static class Mapping
             imageAuthorizedOn,
             p.Program.Icon,
             p.Program.Color,
-            p.ClosedOn);
+            p.ClosedOn,
+            driveFolderId is null ? null : Drive.DriveNames.FolderUrl(driveFolderId));
 }

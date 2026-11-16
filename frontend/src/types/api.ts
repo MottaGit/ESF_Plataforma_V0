@@ -449,6 +449,11 @@ export interface AuditFilters {
 /** Busca geral do topo: poucos resultados de cada tipo. */
 export type SearchResults = G.SearchResultsDto;
 
+// ---------- Google Drive do nucleo ----------
+
+/** Configuracoes › Google Drive: a pasta ligada e como anda a rotina que cria as pastas e copia os arquivos. */
+export type DriveStatus = G.DriveStatusDto;
+
 // ---------- planilha (exportar e importar) ----------
 
 /** O que entra na planilha exportada (ao menos um). */

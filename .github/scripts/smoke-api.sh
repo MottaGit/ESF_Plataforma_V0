@@ -214,6 +214,9 @@ cp "$BODY" "$sheet"
 # Conferencia (sem gravar) do modelo vazio, tambem em segundo plano: a resposta vem em result.
 job "$admin" /api/spreadsheets/import -F "file=@$sheet;filename=modelo.xlsx"
 expect '.result.applied == false' 'A conferência da planilha não trouxe o resultado.'
+# Google Drive: no CI nao ha conta de servico, entao a tela diz que a ligacao nao foi configurada no servidor.
+call "$admin" GET /api/drive
+expect '.available == false and .folderUrl == null' 'Configurações › Google Drive não respondeu como "não configurado".'
 
 echo "== Perfil Usuário"
 user=$(login fausto.silva@esf.org.br)
@@ -223,6 +226,7 @@ done
 deny "$user" GET /api/audit
 deny "$user" GET /api/spreadsheets/template
 deny "$user" POST /api/spreadsheets/export
+deny "$user" GET /api/drive
 deny "$user" GET /api/national/panel
 # Relatorio de outra pessoa do mesmo nucleo: so quem pediu ve e baixa.
 deny "$user" GET "/api/jobs/$report_job/download" 404

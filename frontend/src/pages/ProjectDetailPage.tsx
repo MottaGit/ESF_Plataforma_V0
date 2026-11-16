@@ -14,7 +14,7 @@ import { ReportDialog } from '../components/reports/ReportDialog';
 import { NeutralBadge, StatusSelect } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Alert, Loading } from '../components/ui/Feedback';
-import { IconCalendar, IconCheck, IconChevronLeft, IconDownload, IconEdit } from '../components/ui/Icons';
+import { IconCalendar, IconCheck, IconChevronLeft, IconDownload, IconEdit, IconFolder } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { ScrollTabs } from '../components/ui/ScrollTabs';
 import { useAuth } from '../context/AuthContext';
@@ -208,6 +208,12 @@ export function ProjectDetailPage() {
               <IconCalendar size={14} />
               {deadlineLabel(project.endDateForecast, project.status, project.closedOn)}
             </span>
+            {project.driveFolderUrl ? (
+              <a className="drive-open project-head__drive" href={project.driveFolderUrl} target="_blank" rel="noreferrer">
+                <IconFolder size={14} />
+                Pasta no Drive
+              </a>
+            ) : null}
           </div>
         </div>
 

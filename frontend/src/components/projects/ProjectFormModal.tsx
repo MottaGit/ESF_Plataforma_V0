@@ -124,7 +124,8 @@ export function ProjectFormModal({
             templateIndicatorsCount: 0,
             publicPage: false,
             partners: [],
-            results: []
+            results: [],
+            driveFolderUrl: null
           }
         ]
       : programs

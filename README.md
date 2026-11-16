@@ -910,8 +910,8 @@ visão do programa diz "página pública ligada".
 **Configurações** — dados institucionais, logo, gestão de usuários (editar perfil, voluntário vinculado e ativo;
 senha só por link) e troca da própria senha. No formulário de
 projeto, o botão "Novo" ao lado do Programa cria um programa num diálogo por cima, já escolhido ao salvar. A aba
-aberta fica na URL (`?aba=organizacao`, `acessos`, `planilhas`, `historico` ou `conta`; o antigo `usuarios` leva a
-Acessos).
+aberta fica na URL (`?aba=organizacao`, `acessos`, `planilhas`, `drive`, `historico` ou `conta`; o antigo `usuarios`
+leva a Acessos).
 
 **Planilhas (exportar e importar)** — em Configurações › Planilhas (só administradores, porque o arquivo leva dados
 pessoais). **Exportar planilha** abre uma lista do que entra no arquivo do Excel (.xlsx): **Projetos** (um por linha, com
@@ -939,6 +939,25 @@ fica pronta e aparece em **Exportadas recentemente** por 7 dias; fechar a janela
 interrompe, e o resumo ("Entraram 2 projetos…") vem num aviso, ou no sininho para quem saiu da plataforma. O arquivo é reconhecido pela aba oculta **Listas** (tipo e versão do modelo) e
 pelos títulos das colunas; outro arquivo é recusado com a explicação, e uma planilha de outro núcleo gera um aviso. O
 formato fica num lugar só (`Spreadsheets/SpreadsheetLayout.cs`), usado para gerar e para ler.
+
+**Google Drive do núcleo** — em Configurações › Google Drive (só administradores) o núcleo liga a plataforma a uma
+pasta de um **Drive compartilhado** (no Meu Drive não dá: a conta da plataforma não tem espaço próprio). A tela mostra
+os três passos: criar o Drive compartilhado e a pasta da plataforma, adicionar a conta da plataforma (o e-mail aparece
+ali, com **Copiar**) como **Gerente de conteúdo** e colar o link da pasta em **Conectar**, que confere se a plataforma
+abre a pasta e cria coisas nela antes de gravar (cada problema tem a sua explicação). Ligado, aparecem a pasta (link),
+quantos projetos têm pasta, quantos itens aguardam e quantos deram erro, o último erro com **Tentar de novo**, **Trocar
+pasta** (a plataforma começa do zero na nova; o que já foi criado na antiga fica lá) e **Desligar** (com confirmação; o
+que está no Drive continua lá). A plataforma cria uma pasta por programa e, dentro dela, uma por projeto, sempre com
+as mesmas subpastas: `01. Gestão`, `02. Projeto técnico`, `03. Orçamento e compras`, `04. Fotos e vídeos` (com
+`Outras fotos` dentro) e `05. Documentos`. Ao ligar, ganham pasta os projetos em aberto (não concluídos, não cancelados
+e não arquivados); os encerrados ficam sem pasta nova, porque o material deles já está no Drive antigo, que a plataforma
+não toca. Depois, projeto novo ganha a pasta ao ser salvo, e programa novo também; renomear o projeto ou o programa
+renomeia a pasta, e mudar o projeto de programa move a pasta (com o que tiver dentro). Excluir projeto ou programa não
+apaga nada no Drive. Funciona num sentido só: o que for feito direto no Drive não volta para a plataforma, e uma pasta
+apagada de vez lá é criada de novo quando a plataforma precisar dela. No projeto (linha do status e do prazo) e no
+programa (linha do nome), o link **Pasta no Drive** abre a pasta em outra aba, para quem tem acesso ao Drive
+compartilhado; quem entra no Drive continua sendo decidido no próprio Drive. Tudo acontece por uma rotina em segundo
+plano (ver Arquitetura): com o Google fora do ar, a plataforma segue normal e a rotina tenta de novo mais tarde.
 
 **Privacidade (LGPD)** — a política de privacidade e os termos de uso ficam em `/privacidade`, aberta a qualquer pessoa
 (link na tela de login). No primeiro acesso, e de novo sempre que o texto muda, uma janela pede o aceite antes de usar
@@ -1020,6 +1039,7 @@ API (ver **Tarefas em segundo plano**, abaixo). As responsabilidades ficam separ
 | Infra comum | `Common/` | Erros, opções de configuração, JWT, usuário atual, políticas. |
 | Relatórios | `Reports/` | Composição do PDF (QuestPDF), isolada do resto. |
 | Planilhas | `Spreadsheets/` | Formato da planilha (colunas, listas), montagem do .xlsx e leitura das células (ClosedXML). |
+| Google Drive | `Drive/` | Acesso ao Google Drive (`IDriveClient`) e os nomes das pastas que a plataforma cria. |
 
 Os serviços não conhecem HTTP e os controllers não conhecem EF Core. É esse acoplamento baixo que permite, na V1,
 reorganizar o projeto em módulos com Clean Architecture e DDD sem reescrever as regras.
@@ -1055,8 +1075,23 @@ fila de tarefas (uma foto não espera um relatório grande), procura a cada 5 s 
 gera a miniatura e a versão do PDF (`Reports/ImagePreviews.cs`), uma por vez. O histórico de alterações (`AuditInterceptor`) lê quem age
 pelo próprio contexto (`EsfDbContext.CurrentUserId`), que na fila é quem pediu.
 
+**Google Drive (mão única)** — mudar um programa ou projeto (novo, renomeado, outro programa) grava, no mesmo
+`SaveChanges` e por qualquer caminho (tela, planilha, demonstração), um aviso em `DriveSyncRequests` (`QueueDriveSync`,
+no `EsfDbContext`). A `DriveSyncService`, rodada sem parar pelo `DriveSyncWorker` (outro `BackgroundService` da API,
+independente da fila de tarefas), transforma os avisos dos núcleos com o Drive ligado em itens pendentes de
+`DriveItems` (os de núcleo sem Drive só somem) e acerta um item por vez no Drive: cria a pasta, renomeia, move. Cada
+item guarda o id no Drive, a pasta-mãe e o nome que tem lá (é assim que a rotina sabe o que mudou) e, no projeto, as
+subpastas que recebem as cópias. Tudo o que a plataforma cria no Drive leva uma etiqueta com o id da plataforma
+(`appProperties`): se a rotina cair entre criar e gravar o id, na próxima vez acha pela etiqueta e não duplica. Falha
+(Google fora do ar, acesso tirado) só adia o item, com intervalo crescente (1 min, 5 min, 15 min… até 1 dia); depois de
+8 tentativas ele para e espera o **Tentar de novo** de Configurações. Dois servidores não pegam o mesmo item (`Stamp` e
+`LeaseUntil`, como na fila). O acesso ao Google fica atrás de `IDriveClient` (`Drive/`): no servidor, o
+`GoogleDriveClient` (biblioteca oficial `Google.Apis.Drive.v3`, conta de serviço da chave
+`GoogleDrive:ServiceAccountJson`); nos testes, um Drive em memória (`FakeDriveClient`).
+
 **Bibliotecas usadas:** Npgsql/EF Core (persistência), BCrypt.Net (hash de senha), JwtBearer (autenticação),
-QuestPDF (relatórios), ClosedXML (planilhas, licença MIT), Swashbuckle (Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
+QuestPDF (relatórios), ClosedXML (planilhas, licença MIT), Google.Apis.Drive.v3 (Google Drive, Apache 2.0), Swashbuckle
+(Swagger). No frontend: React, React Router e CSS próprio — sem framework de UI.
 
 **Telas sob demanda (frontend)** — só o login e o Início vêm no arquivo principal; cada outra tela é um arquivo `.js`
 próprio, baixado ao ser aberta (`lazy` em `App.tsx`, com o menu e o topo na tela enquanto ela chega). O mapa, o quadro
@@ -1086,6 +1121,7 @@ ESF_Plataforma_V0/
 │     ├─ Dtos/            contratos da API
 │     ├─ Reports/         ProjectReportBuilder (PDF) e ReportModel
 │     ├─ Spreadsheets/    formato da planilha, montagem do .xlsx e leitura (exportar/importar)
+│     ├─ Drive/           acesso ao Google Drive (IDriveClient) e nomes das pastas criadas
 │     ├─ Services/        regras de aplicação
 │     ├─ Program.cs       composição da aplicação
 │     └─ appsettings.json
@@ -1131,7 +1167,9 @@ ESF_Plataforma_V0/
 | `ProjectVolunteers` | vínculo N:N projeto × voluntário, com a função no projeto |
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento; `PreviewState` diz se a foto já tem miniatura e versão do PDF |
 | `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
-| `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |
+| `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina) e a pasta do Google Drive ligada (vazia: Drive desligado); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |
+| `DriveItems` | o que a plataforma criou no Google Drive de cada núcleo (pasta de programa e de projeto): id no Drive, pasta-mãe, nome, subpastas do projeto e a situação na rotina (pendente, em dia, apagar, falhou, com tentativas e último erro) |
+| `DriveSyncRequests` | avisos de mudança para a rotina do Drive, gravados no mesmo `SaveChanges` da mudança e consumidos por ela |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |
 | `AuditEntries` | histórico de alterações: quem fez, quando, o quê e os campos alterados (antes e depois) |
@@ -1214,6 +1252,10 @@ que o limite da rota recebe 413.
 | POST | `/api/spreadsheets/export` | pede a planilha .xlsx com o que foi escolhido (`projects`, `volunteers`): responde 202 com a tarefa em segundo plano, e o arquivo sai em `/api/jobs/{id}/download`; entra no histórico (administrador) |
 | GET | `/api/spreadsheets/template` | modelo vazio de importação, com as listas do núcleo (administrador) |
 | POST | `/api/spreadsheets/import?confirm=` | planilha preenchida (multipart, .xlsx até 10 MB): sem `confirm`, só a conferência linha a linha; com `confirm=true`, cria o que é novo e sem erro. Responde 202 com a tarefa em segundo plano; o resultado de cada linha vem em `result` (administrador) |
+| GET | `/api/drive` | ligação do núcleo com o Google Drive: se o servidor tem a conta configurada, o e-mail dela, a pasta ligada, projetos com pasta, itens aguardando e com erro, último erro (administrador) |
+| PUT | `/api/drive` | liga (ou troca) a pasta da plataforma (`folderLink`), conferindo antes se a plataforma abre a pasta e cria coisas nela; os projetos em aberto ganham pasta em seguida (administrador) |
+| DELETE | `/api/drive` | desliga o Google Drive; o que já está lá fica (administrador) |
+| POST | `/api/drive/retry` | põe de volta na fila o que parou depois de muitas tentativas (administrador) |
 | GET/PUT/DELETE | `/api/users[/{id}]` | gestão de usuários (acesso novo só pelo voluntário, abaixo) |
 | POST | `/api/volunteers/{id}/access` | dá acesso ao voluntário (perfil; login = e-mail do cadastro) e devolve o link de primeiro acesso (administrador) |
 | POST | `/api/users/{id}/access-link` | link novo de acesso (primeiro acesso perdido ou senha esquecida); anula os anteriores (administrador) |
@@ -1280,6 +1322,7 @@ Tudo por `appsettings.json` ou variáveis de ambiente (prefixo com `__` para se�
 | `Nacional:AdminEmail` | (vazio) | conta inicial da gestão nacional, criada na subida do servidor enquanto não existe nenhuma; se o e-mail já for o login de alguém, essa pessoa ganha a permissão |
 | `Nacional:AdminPassword` | (vazio) | senha dessa conta inicial (mín. 6 caracteres; troque em Minha conta depois de entrar) |
 | `Nacional:AdminName` | `Gestão nacional` | nome da conta inicial |
+| `GoogleDrive:ServiceAccountJson` | (vazio) | chave (o arquivo JSON inteiro) da conta de serviço do Google com que a plataforma entra no Drive dos núcleos. Vazia, Configurações › Google Drive avisa que a ligação não foi configurada. Ver **Google Drive: configurar a conta da plataforma** |
 | `ForwardedHeaders:ForwardLimit` | `1` | quantos proxies nossos ficam na frente da API (nginx do Docker = 1). O endereço de quem acessa sai do fim do `X-Forwarded-For`, que é o que o nosso proxy acrescentou; o que o navegador mandou antes não vale |
 | `ForwardedHeaders:ClientIpHeader` | (vazio = `X-Forwarded-For`) | cabeçalho com o endereço real, quando a hospedagem preenche um. No Render (Cloudflare na frente, e o `X-Forwarded-For` só acrescenta), use `True-Client-IP` e confira |
 
@@ -1296,6 +1339,28 @@ No frontend, `VITE_API_URL` só é necessário se a API não estiver atrás do p
 - **API:** `Jwt__Key` com um texto aleatório próprio (64 caracteres ou mais; sem ela a API não sobe),
   `ForwardedHeaders__ClientIpHeader=True-Client-IP` (ver a tabela acima) e `Seed__Enabled=false` num banco de
   produção.
+
+### Google Drive: configurar a conta da plataforma
+
+A plataforma entra no Drive dos núcleos com uma **conta de serviço** do Google (um "usuário" da própria plataforma, com
+e-mail terminado em `iam.gserviceaccount.com`). Uma chave só no servidor serve a todos os núcleos; cada núcleo adiciona
+essa conta ao próprio Drive compartilhado.
+
+1. Com uma conta do núcleo (ex.: a de projetos), abra o [Google Cloud Console](https://console.cloud.google.com) e
+   crie um projeto (ex.: "ESF Plataforma"). Não tem custo.
+2. Em **APIs e serviços › Biblioteca**, ative a **Google Drive API**.
+3. Em **IAM e administrador › Contas de serviço**, crie uma conta de serviço (ex.: "plataforma-drive"), sem papéis. Na
+   conta criada, **Chaves › Adicionar chave › Criar nova chave › JSON** baixa o arquivo da chave. Se aparecer que a
+   criação de chaves está desativada pela política da organização (`iam.disableServiceAccountKeyCreation`), quem
+   administra o Google da ESF precisa liberar para esse projeto.
+4. No servidor da API (no Render, **Environment**), crie a variável `GoogleDrive__ServiceAccountJson` com o conteúdo
+   inteiro do arquivo JSON e reinicie. Depois, guarde o arquivo num lugar seguro ou apague: quem tem a chave entra no
+   Drive como a plataforma.
+5. No Google Drive, crie um **Drive compartilhado** (ex.: "ESF Porto Alegre – Plataforma") e, dentro dele, a pasta da
+   plataforma. Em **Gerenciar membros**, adicione o e-mail da conta de serviço (aparece em Configurações › Google Drive)
+   como **Gerente de conteúdo**. Se o Drive recusar por ser alguém de fora da organização, o administrador do Google
+   Workspace precisa permitir membros de fora nesse Drive compartilhado.
+6. Na plataforma, em **Configurações › Google Drive**, cole o link da pasta e clique em **Conectar**.
 
 ---
 

@@ -536,6 +536,34 @@
 .import-steps li > .btn { grid-column: 2; justify-self: start; }
 .import-steps strong { font-weight: 600; }
 
+/* Configuracoes › Google Drive: a pasta ligada, os numeros da rotina e o desenho das pastas. */
+.drive-link { grid-column: 2; display: flex; gap: 8px; flex-wrap: wrap; }
+.drive-link .input { flex: 1 1 240px; min-width: 0; }
+.drive-email { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.drive-email code {
+  font-size: var(--fs-sm);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  overflow-wrap: anywhere;
+}
+.drive-connected { display: flex; align-items: flex-start; gap: 10px; color: var(--accent-text); }
+.drive-connected__text { display: grid; gap: 2px; font-size: var(--fs-md); }
+.drive-connected__text a { font-weight: 600; overflow-wrap: anywhere; }
+.drive-numbers { margin: 12px 0 16px; font-size: var(--fs-md); color: var(--text-muted); }
+.drive-tree {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.drive-note { margin: 0; font-size: var(--fs-md); line-height: 1.55; color: var(--text-muted); }
+
 .export-options__intro { margin: 0 0 10px; font-size: var(--fs-md); color: var(--text-muted); }
 .export-options { display: grid; gap: 8px; }
 .export-option {

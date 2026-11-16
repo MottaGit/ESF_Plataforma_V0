@@ -108,6 +108,26 @@ public enum BackgroundJobStatus
     Failed = 3
 }
 
+/// <summary>O que um item do Google Drive representa na plataforma (ver DriveItem).</summary>
+public enum DriveItemKind
+{
+    /// <summary>Pasta do programa, dentro da pasta da plataforma.</summary>
+    Programa = 0,
+    /// <summary>Pasta do projeto (com as subpastas fixas), dentro da do programa.</summary>
+    Projeto = 1
+}
+
+public enum DriveItemState
+{
+    /// <summary>Falta criar, renomear ou mover no Drive.</summary>
+    Pendente = 0,
+    EmDia = 1,
+    /// <summary>Sumiu da plataforma: a copia vai para a lixeira do Drive.</summary>
+    Apagar = 2,
+    /// <summary>Muitas tentativas sem sucesso: espera alguem pedir de novo em Configuracoes.</summary>
+    Falhou = 3
+}
+
 /// <summary>Documentos assinados guardados na plataforma.</summary>
 public enum SignedDocumentKind
 {

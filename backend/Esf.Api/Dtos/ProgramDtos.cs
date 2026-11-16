@@ -27,7 +27,9 @@ public record ProgramDto(
     // Nomes dos parceiros, na ordem da lista (o contato fica em /partners).
     List<string> Partners,
     // Resultados do programa: nacionais e indicadores padrao do modelo, somados como em ResultTotals.
-    List<ProgramResultDto> Results);
+    List<ProgramResultDto> Results,
+    // Pasta do programa no Google Drive do nucleo (null: Drive desligado ou pasta ainda nao criada).
+    string? DriveFolderUrl);
 
 /// <summary>Parceiro do programa, completo (so para quem e do nucleo).</summary>
 public record ProgramPartnerDto(

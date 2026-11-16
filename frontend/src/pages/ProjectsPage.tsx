@@ -14,7 +14,7 @@ import { CollapsibleFilters } from '../components/ui/CollapsibleFilters';
 import { Select, TextInput } from '../components/ui/Field';
 import { ConfirmDialog, EmptyState, LoadError, Loading } from '../components/ui/Feedback';
 import { ExportSpreadsheetDialog } from '../components/spreadsheets/ExportSpreadsheetDialog';
-import { IconDownload, IconEdit, IconGlobe, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
+import { IconDownload, IconEdit, IconFolder, IconGlobe, IconListBullet, IconMapPin, IconPlus, IconSearch, IconTrash } from '../components/ui/Icons';
 import { Menu } from '../components/ui/Menu';
 import { Progress } from '../components/ui/Progress';
 import { useAuth } from '../context/AuthContext';
@@ -649,6 +649,15 @@ function ProgramOverview({ program, canManage, onPublicPage, onToggleArchived, o
               </>
             ) : null}
             {canManage && program.publicPage ? ' · página pública ligada' : ''}
+            {program.driveFolderUrl ? (
+              <>
+                {' · '}
+                <a className="drive-open" href={program.driveFolderUrl} target="_blank" rel="noreferrer">
+                  <IconFolder size={13} />
+                  Pasta no Drive
+                </a>
+              </>
+            ) : null}
           </span>
           {program.partners.length > 0 ? (
             <span className="field__hint program-overview__partners">

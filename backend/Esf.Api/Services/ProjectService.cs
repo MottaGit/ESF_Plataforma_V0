@@ -119,7 +119,11 @@ public class ProjectService
         var counts = await ActivityCounts.ForAsync(_db, project.Activities.Select(a => a.Id).ToList());
         var updatesCount = await _db.ProjectUpdates.CountAsync(u => u.ProjectId == id);
         var filesCount = await _db.ProjectFiles.CountAsync(f => f.ProjectId == id);
-        return Mapping.ToDetailDto(project, updatesCount, filesCount, imageAuthorizedOn, counts);
+        var driveFolderId = await _db.DriveItems
+            .Where(i => i.Kind == DriveItemKind.Projeto && i.EntityId == id && i.DriveId != null)
+            .Select(i => i.DriveId)
+            .FirstOrDefaultAsync();
+        return Mapping.ToDetailDto(project, updatesCount, filesCount, imageAuthorizedOn, counts, driveFolderId);
     }
 
     /// <summary>

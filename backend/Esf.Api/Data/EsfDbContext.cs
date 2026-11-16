@@ -57,11 +57,14 @@ public class EsfDbContext : DbContext
     public DbSet<AccessLink> AccessLinks => Set<AccessLink>();
     public DbSet<NationalIndicator> NationalIndicators => Set<NationalIndicator>();
     public DbSet<BackgroundJob> BackgroundJobs => Set<BackgroundJob>();
+    public DbSet<DriveItem> DriveItems => Set<DriveItem>();
+    public DbSet<DriveSyncRequest> DriveSyncRequests => Set<DriveSyncRequest>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         StampOrganization();
         RecordIndicatorHistory();
+        QueueDriveSync();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
@@ -69,7 +72,39 @@ public class EsfDbContext : DbContext
     {
         StampOrganization();
         RecordIndicatorHistory();
+        QueueDriveSync();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    /// <summary>
+    /// Programa ou projeto novo, renomeado ou que mudou de programa vira um aviso para a rotina do Google Drive
+    /// (DriveSyncService), no mesmo SaveChanges: assim nenhum caminho (tela, planilha, demonstracao) fica de fora. A
+    /// rotina descarta o aviso se o nucleo nao ligou o Drive.
+    /// </summary>
+    private void QueueDriveSync()
+    {
+        var requests = new List<DriveSyncRequest>();
+
+        foreach (var entry in ChangeTracker.Entries<ProjectProgram>())
+        {
+            if (entry.State == EntityState.Added
+                || (entry.State == EntityState.Modified && entry.Property(x => x.Name).IsModified))
+                requests.Add(Request(entry.Entity.OrganizationId, DriveItemKind.Programa, entry.Entity.Id));
+        }
+
+        foreach (var entry in ChangeTracker.Entries<Project>())
+        {
+            if (entry.State == EntityState.Added
+                || (entry.State == EntityState.Modified
+                    && (entry.Property(x => x.Name).IsModified || entry.Property(x => x.ProgramId).IsModified)))
+                requests.Add(Request(entry.Entity.OrganizationId, DriveItemKind.Projeto, entry.Entity.Id));
+        }
+
+        if (requests.Count > 0) DriveSyncRequests.AddRange(requests);
+
+        static DriveSyncRequest Request(Guid organizationId, DriveItemKind kind, Guid entityId, string key = "",
+            bool delete = false) =>
+            new() { OrganizationId = organizationId, Kind = kind, EntityId = entityId, Key = key, Delete = delete };
     }
 
     /// <summary>
@@ -400,6 +435,31 @@ public class EsfDbContext : DbContext
             e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Cascade);
         });
 
+        b.Entity<DriveItem>(e =>
+        {
+            e.Property(x => x.Key).HasMaxLength(40).IsRequired();
+            e.Property(x => x.DriveId).HasMaxLength(100);
+            e.Property(x => x.ParentDriveId).HasMaxLength(100);
+            e.Property(x => x.Name).HasMaxLength(300);
+            e.Property(x => x.PhotosFolderId).HasMaxLength(100);
+            e.Property(x => x.OtherPhotosFolderId).HasMaxLength(100);
+            e.Property(x => x.DocumentsFolderId).HasMaxLength(100);
+            e.Property(x => x.LastError).HasMaxLength(500);
+            e.Property(x => x.Stamp).IsConcurrencyToken();
+            // Um item por coisa da plataforma; a rotina procura os que esperam pelo estado.
+            e.HasIndex(x => new { x.Kind, x.EntityId, x.Key }).IsUnique();
+            e.HasIndex(x => new { x.State, x.NextAttemptAt });
+            e.HasIndex(x => x.OrganizationId);
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<DriveSyncRequest>(e =>
+        {
+            e.Property(x => x.Key).HasMaxLength(40).IsRequired();
+            e.HasIndex(x => x.CreatedAt);
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<ProjectFile>(e =>
         {
             e.Property(x => x.FileName).HasMaxLength(260).IsRequired();
@@ -462,6 +522,8 @@ public class EsfDbContext : DbContext
             e.Property(x => x.SignatoryRole).HasMaxLength(120);
             e.Property(x => x.SignatoryNote).HasMaxLength(80);
             e.Property(x => x.SignatureStoredName).HasMaxLength(160);
+            e.Property(x => x.DriveFolderId).HasMaxLength(100);
+            e.Property(x => x.DriveFolderName).HasMaxLength(300);
         });
 
         ApplyOrganizationFilters(b);
@@ -511,5 +573,7 @@ public class EsfDbContext : DbContext
 
         b.Entity<AccessLink>().HasQueryFilter(x => AllOrganizations || x.User!.OrganizationId == CurrentOrganizationId);
         b.Entity<BackgroundJob>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+        b.Entity<DriveItem>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
+        b.Entity<DriveSyncRequest>().HasQueryFilter(x => AllOrganizations || x.OrganizationId == CurrentOrganizationId);
     }
 }

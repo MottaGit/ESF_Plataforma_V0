@@ -14,6 +14,7 @@ import type {
   CertificatePayload,
   ChecklistItem,
   Dashboard,
+  DriveStatus,
   ExportSpreadsheetPayload,
   ImportResult,
   Indicator,
@@ -309,6 +310,14 @@ export const spreadsheetsApi = {
     const job = await http.request<BackgroundJob>('/api/spreadsheets/import', { method: 'POST', formData, query: { confirm } });
     return (await waitForJob(job)).result as ImportResult;
   }
+};
+
+/** Google Drive do nucleo (so administradores): ligar a uma pasta, acompanhar e desligar. */
+export const driveApi = {
+  get: () => http.request<DriveStatus>('/api/drive'),
+  connect: (folderLink: string) => http.request<DriveStatus>('/api/drive', { method: 'PUT', body: { folderLink } }),
+  disconnect: () => http.request<void>('/api/drive', { method: 'DELETE' }),
+  retry: () => http.request<DriveStatus>('/api/drive/retry', { method: 'POST' })
 };
 
 export const usersApi = {

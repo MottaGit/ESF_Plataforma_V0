@@ -4,6 +4,7 @@ using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
+using Esf.Api.Drive;
 using Esf.Api.Dtos;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,8 @@ public class ProgramService
         p.TemplateIndicators.Count,
         p.PublicToken != null,
         new List<string>(),
-        new List<ProgramResultDto>());
+        new List<ProgramResultDto>(),
+        null);
 
     public async Task<List<ProgramDto>> ListAsync(bool onlyActive)
     {
@@ -82,10 +84,15 @@ public class ProgramService
             .Where(i => ids.Contains(i.Project!.ProgramId) && i.Project.Status != ProjectStatus.Cancelado)
             .Select(i => new { i.Project!.ProgramId, i.ProjectId, i.Name, i.Unit, i.Value, i.NationalIndicatorId })
             .ToListAsync();
+        var folders = await _db.DriveItems.AsNoTracking()
+            .Where(i => i.Kind == DriveItemKind.Programa && ids.Contains(i.EntityId) && i.DriveId != null)
+            .Select(i => new { i.EntityId, i.DriveId })
+            .ToDictionaryAsync(i => i.EntityId, i => i.DriveId!);
 
         return programs
             .Select(p => p with
             {
+                DriveFolderUrl = folders.TryGetValue(p.Id, out var folder) ? DriveNames.FolderUrl(folder) : null,
                 Partners = partners.Where(x => x.ProgramId == p.Id).Select(x => x.Name).ToList(),
                 Results = ResultTotals
                     .Compute(

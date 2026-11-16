@@ -234,6 +234,11 @@
 }
 .project-head__deadline--late { color: var(--danger); font-weight: 500; }
 
+/* Link "Pasta no Drive" (projeto e programa): abre a pasta no Google Drive do nucleo, em outra aba. */
+.drive-open { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); font-weight: 500; }
+.drive-open:hover { text-decoration: underline; }
+.project-head__drive { margin-left: 4px; font-size: var(--fs-sm); }
+
 .section { margin-bottom: 26px; }
 
 .section__head {

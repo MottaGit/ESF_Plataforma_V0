@@ -38,6 +38,17 @@ public class StorageOptions
     public int MaxFileSizeMb { get; set; } = 15;
 }
 
+/// <summary>
+/// Google Drive: a chave (JSON) da conta de servico com que a plataforma entra no Drive dos nucleos (variavel
+/// GoogleDrive__ServiceAccountJson). Vazia: a ligacao com o Drive fica indisponivel em Configuracoes.
+/// </summary>
+public class GoogleDriveOptions
+{
+    public const string SectionName = "GoogleDrive";
+
+    public string? ServiceAccountJson { get; set; }
+}
+
 public class SeedOptions
 {
     public const string SectionName = "Seed";

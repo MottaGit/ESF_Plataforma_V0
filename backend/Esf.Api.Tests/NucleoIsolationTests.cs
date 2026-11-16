@@ -63,6 +63,10 @@ public class NucleoIsolationTests
             Assert.Equal(mine.OrganizationId, Assert.Single(await db.AuditEntries.ToListAsync()).OrganizationId);
             Assert.Equal(mine.AdminUserId, Assert.Single(await db.AccessLinks.ToListAsync()).UserId);
             Assert.Equal(mine.AdminUserId, Assert.Single(await db.BackgroundJobs.ToListAsync()).RequestedByUserId);
+            Assert.Equal(mine.ProgramId, Assert.Single(await db.DriveItems.ToListAsync()).EntityId);
+            // Avisos do programa e do projeto novos, gravados sozinhos no SaveChanges.
+            Assert.Equal(new[] { mine.ProgramId, mine.ProjectId }.Order(),
+                (await db.DriveSyncRequests.ToListAsync()).Select(r => r.EntityId).Order());
 
             Assert.False(await db.Projects.AnyAsync(p => p.Id == other.ProjectId));
             Assert.False(await db.Volunteers.AnyAsync(v => v.Id == other.VolunteerId));

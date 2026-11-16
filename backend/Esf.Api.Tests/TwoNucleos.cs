@@ -111,7 +111,9 @@ public sealed class TwoNucleos
             {
                 OrganizationId = org.Id, Kind = BackgroundJobKind.SpreadsheetExport, Status = BackgroundJobStatus.Done,
                 RequestedByUserId = admin.Id, RequestedByName = admin.Name, RequestedByRole = admin.Role
-            });
+            },
+            new DriveItem { OrganizationId = org.Id, Kind = DriveItemKind.Programa, EntityId = program.Id, DriveId = $"drive-{slug}" });
+        // (O programa e o projeto novos tambem deixam avisos para a rotina do Drive: DriveSyncRequests.)
         await db.SaveChangesAsync();
 
         return new Nucleo(org.Id, admin.Id, admin.Email, volunteer.Id, withoutAccess.Id, program.Id, project.Id, activity.Id);

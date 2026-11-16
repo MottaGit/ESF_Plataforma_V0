@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
+using Esf.Api.Drive;
 using Esf.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -23,6 +24,7 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptio
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection(StorageOptions.SectionName));
 builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOptions.SectionName));
 builder.Services.Configure<NationalOptions>(builder.Configuration.GetSection(NationalOptions.SectionName));
+builder.Services.Configure<GoogleDriveOptions>(builder.Configuration.GetSection(GoogleDriveOptions.SectionName));
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 // Sem chave propria a API nao sobe: com a de exemplo, qualquer um criaria um token de administrador.
@@ -79,6 +81,12 @@ builder.Services.AddSingleton<JobSignal>();
 builder.Services.AddScoped<JobQueue>();
 builder.Services.AddScoped<JobRunner>();
 builder.Services.AddHostedService<JobWorker>();
+
+// Google Drive do nucleo (mao unica): pastas dos programas e projetos, por uma rotina propria por tras.
+builder.Services.AddSingleton<IDriveClient, GoogleDriveClient>();
+builder.Services.AddScoped<DriveSyncService>();
+builder.Services.AddScoped<DriveSettingsService>();
+builder.Services.AddHostedService<DriveSyncWorker>();
 
 // ---------- autenticacao e autorizacao ----------
 builder.Services

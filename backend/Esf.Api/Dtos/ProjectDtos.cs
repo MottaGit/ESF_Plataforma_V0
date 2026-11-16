@@ -73,7 +73,9 @@ public record ProjectDetailDto(
     string ProgramIcon,
     string ProgramColor,
     // Dia em que foi concluido ou cancelado (null: em aberto, ou encerrado antes de o campo existir).
-    DateOnly? ClosedOn)
+    DateOnly? ClosedOn,
+    // Pasta do projeto no Google Drive do nucleo (null: Drive desligado ou pasta ainda nao criada).
+    string? DriveFolderUrl)
 {
     /// <summary>Calculado a partir das atividades (ver Mapping.ProjectProgress).</summary>
     public int Progress => Mapping.ProjectProgress(

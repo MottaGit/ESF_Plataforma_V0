@@ -174,6 +174,10 @@ export interface CommentDto {
   canDelete: boolean;
 }
 
+export interface ConnectDriveRequest {
+  folderLink: string;
+}
+
 export interface CreateNucleoRequest {
   name: string;
   city: string | null;
@@ -189,6 +193,18 @@ export interface DashboardDto {
   org: OrgSummaryDto;
   idle: IdleVolunteerDto[];
   setup: SetupDto | null;
+}
+
+export interface DriveStatusDto {
+  available: boolean;
+  accountEmail: string | null;
+  folderName: string | null;
+  folderUrl: string | null;
+  connectedAt: string | null;
+  projectsWithFolder: number;
+  pending: number;
+  failed: number;
+  lastError: string | null;
 }
 
 export interface ExportSpreadsheetRequest {
@@ -442,6 +458,7 @@ export interface ProgramDto {
   publicPage: boolean;
   partners: string[];
   results: ProgramResultDto[];
+  driveFolderUrl: string | null;
 }
 
 export interface ProgramPartnerDto {
@@ -510,6 +527,7 @@ export interface ProjectDetailDto {
   programIcon: string;
   programColor: string;
   closedOn: string | null;
+  driveFolderUrl: string | null;
   progress: number;
 }
 

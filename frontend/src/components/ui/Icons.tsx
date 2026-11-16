@@ -238,6 +238,9 @@ export const IconListOrdered = (p: IconProps) =>
     p
   );
 
+export const IconFolder = (p: IconProps) =>
+  svg(<path d="M3.5 7.5a2 2 0 0 1 2-2h3.7l2 2.2h7.3a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />, p);
+
 export const IconLink = (p: IconProps) =>
   svg(
     <>
