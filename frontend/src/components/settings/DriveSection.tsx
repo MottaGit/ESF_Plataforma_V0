@@ -14,7 +14,8 @@ const REFRESH_MS = 5000;
 
 /**
  * Configuracoes › Google Drive (so administradores): ligar o nucleo a uma pasta de um Drive compartilhado. A
- * plataforma cria nela a pasta de cada programa e projeto (mao unica: o que se faz direto no Drive nao volta).
+ * plataforma cria nela a pasta de cada programa e projeto e copia as fotos e documentos (mao unica: o que se faz direto
+ * no Drive nao volta).
  */
 export function DriveSection() {
   const { notify, notifyError } = useToast();
@@ -55,7 +56,7 @@ export function DriveSection() {
       setStatus(await driveApi.connect(link.trim()));
       setLink('');
       setChanging(false);
-      notify('Google Drive ligado. As pastas dos projetos em aberto vão aparecer em instantes.');
+      notify('Google Drive ligado. As pastas dos projetos em aberto, com o que eles já têm, vão aparecer em instantes.');
     } catch (err) {
       setConnectError(err instanceof ApiError ? err.message : 'Não foi possível ligar o Google Drive.');
     } finally {
@@ -224,9 +225,10 @@ export function DriveSection() {
         </div>
         <div className="panel__body">
           <p className="spreadsheets__text">
-            Cada programa ganha uma pasta, e cada projeto em aberto, a sua, com as mesmas subpastas. Renomear ou mudar o
-            projeto de programa acompanha no Drive. Funciona num sentido só: o que for feito direto no Drive não volta para
-            a plataforma.
+            Cada programa ganha uma pasta, e cada projeto em aberto, a sua, com as mesmas subpastas. Fotos e documentos
+            enviados na plataforma ganham uma cópia lá: a foto de um registro de andamento com tipo vai para a pasta do
+            registro, as outras fotos para "Outras fotos" e os documentos para "05. Documentos". Apagar na plataforma manda
+            a cópia para a lixeira do Drive.
           </p>
           <pre className="drive-tree">{`Pasta da plataforma/
 └── Programa/
@@ -235,11 +237,13 @@ export function DriveSection() {
         ├── 02. Projeto técnico/
         ├── 03. Orçamento e compras/
         ├── 04. Fotos e vídeos/
+        │   ├── 2026-06-18 – Obra/
         │   └── Outras fotos/
         └── 05. Documentos/`}</pre>
           <p className="drive-note">
-            Projetos concluídos e cancelados não ganham pasta ao ligar: o material deles continua onde já está. No projeto e
-            no programa, o link "Pasta no Drive" abre a pasta para quem tem acesso ao Drive compartilhado.
+            Funciona num sentido só: o que for feito direto no Drive não volta para a plataforma. Projetos concluídos e
+            cancelados não ganham pasta ao ligar, e termos de adesão e autorizações de imagem ficam só na plataforma. No
+            projeto e no programa, o link "Pasta no Drive" abre a pasta para quem tem acesso ao Drive compartilhado.
           </p>
         </div>
       </section>

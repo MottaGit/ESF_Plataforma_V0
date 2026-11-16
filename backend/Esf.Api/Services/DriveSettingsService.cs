@@ -10,7 +10,8 @@ namespace Esf.Api.Services;
 
 /// <summary>
 /// Configuracoes › Google Drive (so administradores): ligar o nucleo a uma pasta de um Drive compartilhado, ver como
-/// anda a rotina e desligar. Ao ligar, os projetos em aberto ganham pasta; os encerrados ficam como estao.
+/// anda a rotina e desligar. Ao ligar, os projetos em aberto ganham pasta, com a copia do que ja tem; os encerrados
+/// ficam como estao.
 /// </summary>
 public class DriveSettingsService
 {
@@ -89,15 +90,22 @@ public class DriveSettingsService
         org.DriveFolderName = folder.Name;
         org.DriveConnectedAt = DateTime.UtcNow;
 
-        // Projetos em aberto ganham pasta agora; os encerrados, so se algo precisar dela.
+        // Projetos em aberto ganham pasta agora, com a copia das fotos e documentos que ja tem; os encerrados, so se
+        // algo precisar dela.
         var open = await _db.Projects
             .Where(p => !p.IsArchived && p.Status != ProjectStatus.Concluido && p.Status != ProjectStatus.Cancelado)
             .Select(p => p.Id)
             .ToListAsync();
+        var files = await _db.ProjectFiles.Where(f => open.Contains(f.ProjectId)).OrderBy(f => f.UploadedAt).Select(f => f.Id)
+            .ToListAsync();
         _db.DriveSyncRequests.AddRange(open.Select(id => new DriveSyncRequest
-        {
-            OrganizationId = org.Id, Kind = DriveItemKind.Projeto, EntityId = id
-        }));
+            {
+                OrganizationId = org.Id, Kind = DriveItemKind.Projeto, EntityId = id
+            })
+            .Concat(files.Select(id => new DriveSyncRequest
+            {
+                OrganizationId = org.Id, Kind = DriveItemKind.Arquivo, EntityId = id
+            })));
 
         await _db.SaveChangesAsync();
         return await GetAsync();

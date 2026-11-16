@@ -955,10 +955,18 @@ pasta** (a plataforma começa do zero na nova; o que já foi criado na antiga fi
 que está no Drive continua lá). A plataforma cria uma pasta por programa e, dentro dela, uma por projeto, sempre com
 as mesmas subpastas: `01. Gestão`, `02. Projeto técnico`, `03. Orçamento e compras`, `04. Fotos e vídeos` (com
 `Outras fotos` dentro) e `05. Documentos`. Ao ligar, ganham pasta os projetos em aberto (não concluídos, não cancelados
-e não arquivados); os encerrados ficam sem pasta nova, porque o material deles já está no Drive antigo, que a plataforma
-não toca. Depois, projeto novo ganha a pasta ao ser salvo, e programa novo também; renomear o projeto ou o programa
-renomeia a pasta, e mudar o projeto de programa move a pasta (com o que tiver dentro). Excluir projeto ou programa não
-apaga nada no Drive. Funciona num sentido só: o que for feito direto no Drive não volta para a plataforma, e uma pasta
+e não arquivados), já com a cópia das fotos e documentos que eles têm; os encerrados ficam sem pasta nova, porque o
+material deles já está no Drive antigo, que a plataforma não toca. Depois, projeto novo ganha a pasta ao ser salvo, e
+programa novo também; renomear o projeto ou o programa renomeia a pasta, e mudar o projeto de programa move a pasta
+(com o que tiver dentro). **Cópias:** toda foto ou documento enviado na plataforma ganha uma cópia, alguns minutos
+depois. A foto de um registro de andamento **com tipo** vai para a pasta do registro, `AAAA-MM-DD – Tipo` dentro de
+`04. Fotos e vídeos` (o dia é o "Quando aconteceu"; o segundo registro do mesmo tipo no mesmo dia, com fotos, vira
+`… (2)`); as outras fotos (registro sem tipo, anexo de tarefa, aba Arquivos) vão para `Outras fotos`, sem subpasta; e os
+documentos, de onde vierem, para `05. Documentos`. Mudar o tipo ou o dia do registro renomeia a pasta dele; tirar o
+tipo leva as fotos para `Outras fotos` e manda a pasta vazia para a lixeira. Apagar uma foto, um documento ou um
+registro na plataforma manda a cópia (ou a pasta do registro) para a **lixeira do Drive**, de onde dá para recuperar
+por 30 dias. Excluir o projeto ou o programa não apaga nada no Drive. Termos de adesão e autorizações de imagem são
+documentos à parte e nunca vão para o Drive. Funciona num sentido só: o que for feito direto no Drive não volta para a plataforma, e uma pasta
 apagada de vez lá é criada de novo quando a plataforma precisar dela. No projeto (linha do status e do prazo) e no
 programa (linha do nome), o link **Pasta no Drive** abre a pasta em outra aba, para quem tem acesso ao Drive
 compartilhado; quem entra no Drive continua sendo decidido no próprio Drive. Tudo acontece por uma rotina em segundo
@@ -1080,11 +1088,13 @@ fila de tarefas (uma foto não espera um relatório grande), procura a cada 5 s 
 gera a miniatura e a versão do PDF (`Reports/ImagePreviews.cs`), uma por vez. O histórico de alterações (`AuditInterceptor`) lê quem age
 pelo próprio contexto (`EsfDbContext.CurrentUserId`), que na fila é quem pediu.
 
-**Google Drive (mão única)** — mudar um programa ou projeto (novo, renomeado, outro programa) grava, no mesmo
+**Google Drive (mão única)** — mudar um programa ou projeto (novo, renomeado, outro programa), um registro de
+andamento (novo, outro tipo, outro dia, apagado) ou um arquivo (novo, anexado a um registro, apagado) grava, no mesmo
 `SaveChanges` e por qualquer caminho (tela, planilha, demonstração), um aviso em `DriveSyncRequests` (`QueueDriveSync`,
-no `EsfDbContext`). A `DriveSyncService`, rodada sem parar pelo `DriveSyncWorker` (outro `BackgroundService` da API,
+no `EsfDbContext`; o que pertence a um projeto excluído no mesmo `SaveChanges` não gera aviso). A `DriveSyncService`, rodada sem parar pelo `DriveSyncWorker` (outro `BackgroundService` da API,
 independente da fila de tarefas), transforma os avisos dos núcleos com o Drive ligado em itens pendentes de
-`DriveItems` (os de núcleo sem Drive só somem) e acerta um item por vez no Drive: cria a pasta, renomeia, move. Cada
+`DriveItems` (os de núcleo sem Drive só somem) e acerta um item por vez no Drive: cria a pasta, renomeia, move, envia
+a cópia (o conteúdo vem de `StoredFiles`) ou manda para a lixeira. Cada
 item guarda o id no Drive, a pasta-mãe e o nome que tem lá (é assim que a rotina sabe o que mudou) e, no projeto, as
 subpastas que recebem as cópias. Tudo o que a plataforma cria no Drive leva uma etiqueta com o id da plataforma
 (`appProperties`): se a rotina cair entre criar e gravar o id, na próxima vez acha pela etiqueta e não duplica. Falha
@@ -1173,7 +1183,7 @@ ESF_Plataforma_V0/
 | `ProjectFiles` | metadados dos arquivos enviados (o conteúdo fica em `StoredFiles`); pode pertencer direto ao projeto ou a um registro de andamento; `PreviewState` diz se a foto já tem miniatura e versão do PDF |
 | `ProjectUpdates` | registros de andamento do projeto (texto, autor, data, editável) |
 | `Organizations` | núcleos: dados institucionais de cada um (nome, CNPJ, logo, quem assina) e a pasta do Google Drive ligada (vazia: Drive desligado); voluntários, programas, projetos, acessos e histórico apontam para o núcleo (`OrganizationId`) |
-| `DriveItems` | o que a plataforma criou no Google Drive de cada núcleo (pasta de programa e de projeto): id no Drive, pasta-mãe, nome, subpastas do projeto e a situação na rotina (pendente, em dia, apagar, falhou, com tentativas e último erro) |
+| `DriveItems` | o que a plataforma criou no Google Drive de cada núcleo (pasta de programa, de projeto e de registro, cópia de arquivo): id no Drive, pasta-mãe, nome, subpastas do projeto e a situação na rotina (pendente, em dia, apagar, falhou, com tentativas e último erro) |
 | `DriveSyncRequests` | avisos de mudança para a rotina do Drive, gravados no mesmo `SaveChanges` da mudança e consumidos por ela |
 | `StoredFiles` | conteúdo dos arquivos enviados (fotos, documentos, logo), servido em `/uploads/{nome}`; os documentos assinados são privados e não saem por lá |
 | `SignedDocuments` | termos de adesão de voluntários e autorizações de uso de imagem de projetos (arquivo assinado e data) |

@@ -57,6 +57,12 @@ public static partial class DriveNames
     public static string ProgramTag(Guid id) => $"programa:{id:N}";
     public static string ProjectTag(Guid id) => $"projeto:{id:N}";
     public static string SubfolderTag(Guid projectId, Subfolder subfolder) => $"projeto:{projectId:N}:{subfolder.Slot}";
+    public static string RecordTag(Guid id) => $"registro:{id:N}";
+    public static string FileTag(Guid id) => $"arquivo:{id:N}";
+
+    /// <summary>Pasta do registro de andamento com tipo: "2026-06-18 – Obra"; a segunda do dia, "2026-06-18 – Obra (2)".</summary>
+    public static string RecordFolder(DateOnly day, string kind, int position = 1) =>
+        $"{day:yyyy-MM-dd} – {kind}{(position > 1 ? $" ({position})" : "")}";
 
     [GeneratedRegex(@"/folders/(?<id>[A-Za-z0-9_-]{10,})")]
     private static partial Regex FolderInLink();

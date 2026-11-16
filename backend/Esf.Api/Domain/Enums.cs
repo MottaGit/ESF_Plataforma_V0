@@ -130,7 +130,11 @@ public enum DriveItemKind
     /// <summary>Pasta do programa, dentro da pasta da plataforma.</summary>
     Programa = 0,
     /// <summary>Pasta do projeto (com as subpastas fixas), dentro da do programa.</summary>
-    Projeto = 1
+    Projeto = 1,
+    /// <summary>Pasta "AAAA-MM-DD – Tipo" do registro de andamento com tipo e com fotos.</summary>
+    Registro = 2,
+    /// <summary>Copia de uma foto ou documento enviado na plataforma.</summary>
+    Arquivo = 3
 }
 
 public enum DriveItemState

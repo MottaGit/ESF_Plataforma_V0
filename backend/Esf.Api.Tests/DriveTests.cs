@@ -6,6 +6,7 @@ using Esf.Api.Dtos;
 using Esf.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace Esf.Api.Tests;
 
@@ -29,7 +30,8 @@ public class DriveTests
         public async Task SyncAsync()
         {
             await using var db = F.SystemContext();
-            await new DriveSyncService(db, Drive, NullLogger<DriveSyncService>.Instance).RunUntilIdleAsync();
+            await new DriveSyncService(db, Drive, new FileStorageService(db, Options.Create(new StorageOptions())),
+                NullLogger<DriveSyncService>.Instance).RunUntilIdleAsync();
         }
 
         public FakeDriveClient.Item? At(string path) => Drive.At(Root, path);
@@ -179,9 +181,9 @@ public class DriveTests
             Assert.Equal((DriveItemState.Pendente, 1), (item.State, item.Attempts));
             Assert.True(item.NextAttemptAt > DateTime.UtcNow);
 
-            // So o projeto espera (a pasta do programa vem junto com a dele).
+            // Esperam o projeto (a pasta do programa vem junto com a dele) e a copia da foto que ele ja tinha.
             var status = await setup.Settings(db).GetAsync();
-            Assert.Equal(1, status.Pending);
+            Assert.Equal(2, status.Pending);
             Assert.StartsWith("Não foi possível falar com o Google Drive", status.LastError);
         }
 
@@ -210,8 +212,8 @@ public class DriveTests
 
         await using (var db = setup.F.Context(setup.F.A.Admin))
         {
-            Assert.Equal(DriveItemState.Falhou, (await db.DriveItems.SingleAsync()).State);
-            Assert.Equal(1, (await setup.Settings(db).GetAsync()).Failed);
+            Assert.All(await db.DriveItems.ToListAsync(), item => Assert.Equal(DriveItemState.Falhou, item.State));
+            Assert.Equal(2, (await setup.Settings(db).GetAsync()).Failed);
         }
 
         setup.Drive.Down = false;
@@ -265,6 +267,182 @@ public class DriveTests
             Assert.Empty(await db.DriveItems.ToListAsync());
             Assert.Empty(await db.DriveSyncRequests.ToListAsync());
         }
+    }
+
+    // ---------- copias de fotos e documentos ----------
+
+    private const string Photos = $"{ProgramA}/Projeto a/04. Fotos e vídeos";
+    private const string Others = $"{Photos}/Outras fotos";
+    private const string Documents = $"{ProgramA}/Projeto a/05. Documentos";
+
+    private static string Folder(DateOnly day, string kind, int position = 1) => DriveNames.RecordFolder(day, kind, position);
+
+    private static ProjectFile NewFile(Data.EsfDbContext db, Guid projectId, string name, string contentType)
+    {
+        var stored = $"{Guid.NewGuid():N}{Path.GetExtension(name)}";
+        db.StoredFiles.Add(new StoredFile { StoredName = stored, ContentType = contentType, SizeBytes = 3, Content = new byte[] { 1, 2, 3 } });
+        return new ProjectFile { ProjectId = projectId, FileName = name, StoredName = stored, ContentType = contentType, SizeBytes = 3 };
+    }
+
+    /// <summary>Registro de andamento do projeto A com os anexos (nome, tipo de conteudo), publicado pelo admin.</summary>
+    private static async Task<(Guid Id, List<Guid> Files)> AddRecordAsync(TwoNucleos f, ProjectUpdateKind? kind, DateOnly day,
+        params (string Name, string Type)[] files)
+    {
+        await using var db = f.Context(f.A.Admin);
+        var record = new ProjectUpdate
+        {
+            ProjectId = f.A.ProjectId, Text = "<p>Registro</p>", AuthorUserId = f.A.AdminUserId, HappenedOn = day, Kind = kind
+        };
+        foreach (var (name, type) in files) record.Attachments.Add(NewFile(db, f.A.ProjectId, name, type));
+        db.ProjectUpdates.Add(record);
+        await db.SaveChangesAsync();
+        return (record.Id, record.Attachments.Select(a => a.Id).ToList());
+    }
+
+    private static async Task<Guid> AddProjectFileAsync(TwoNucleos f, string name, string type, Guid? activityId = null)
+    {
+        await using var db = f.Context(f.A.Admin);
+        var file = NewFile(db, f.A.ProjectId, name, type);
+        file.ActivityId = activityId;
+        db.ProjectFiles.Add(file);
+        await db.SaveChangesAsync();
+        return file.Id;
+    }
+
+    private static async Task SetKindAsync(TwoNucleos f, Guid recordId, ProjectUpdateKind? kind, DateOnly? day = null)
+    {
+        await using var db = f.Context(f.A.Admin);
+        var record = await db.ProjectUpdates.SingleAsync(u => u.Id == recordId);
+        record.Kind = kind;
+        if (day.HasValue) record.HappenedOn = day;
+        await db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task PhotosAndDocumentsGoToTheRightFolders()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        var day = Mapping.Today.AddDays(-2);
+        await AddRecordAsync(f, ProjectUpdateKind.Obra, day, ("piso.jpg", "image/jpeg"), ("orcamento.pdf", "application/pdf"));
+        await AddRecordAsync(f, null, Mapping.Today.AddDays(-1), ("reuniao.jpg", "image/jpeg"));
+        await AddProjectFileAsync(f, "fachada.jpg", "image/jpeg");
+        await AddProjectFileAsync(f, "planta.dwg", "application/octet-stream");
+        await AddProjectFileAsync(f, "referencia.png", "image/png", f.A.ActivityId);
+
+        await setup.SyncAsync();
+
+        Assert.Equal(new[] { Folder(day, "Obra"), "Outras fotos" }, setup.Drive.ChildNames(setup.At(Photos)!.Id));
+        Assert.Equal(new[] { "piso.jpg" }, setup.Drive.ChildNames(setup.At($"{Photos}/{Folder(day, "Obra")}")!.Id));
+        // Sem tipo, da tarefa e da aba Arquivos: "Outras fotos". Documento de qualquer lugar: "05. Documentos".
+        Assert.Equal(new[] { "fachada.jpg", "referencia.png", "reuniao.jpg" }, setup.Drive.ChildNames(setup.At(Others)!.Id));
+        Assert.Equal(new[] { "orcamento.pdf", "planta.dwg" }, setup.Drive.ChildNames(setup.At(Documents)!.Id));
+        Assert.Equal(new byte[] { 1, 2, 3 }, setup.At($"{Photos}/{Folder(day, "Obra")}/piso.jpg")!.Content);
+
+        // Rodar de novo nao duplica; o nucleo B (sem Drive) continua sem nada.
+        var created = setup.Drive.Created;
+        await setup.SyncAsync();
+        Assert.Equal(created, setup.Drive.Created);
+        await using var db = f.SystemContext();
+        Assert.DoesNotContain(await db.DriveItems.ToListAsync(), i => i.OrganizationId == f.B.OrganizationId);
+    }
+
+    [Fact]
+    public async Task ChangingTheKindRenamesOrEmptiesTheRecordFolder()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        var day = Mapping.Today.AddDays(-3);
+        var record = await AddRecordAsync(f, ProjectUpdateKind.Obra, day, ("piso.jpg", "image/jpeg"));
+        await setup.SyncAsync();
+        var folder = setup.At($"{Photos}/{Folder(day, "Obra")}")!;
+
+        // Outro tipo e outro dia: a mesma pasta, renomeada.
+        await SetKindAsync(f, record.Id, ProjectUpdateKind.VisitaTecnica, day.AddDays(-1));
+        await setup.SyncAsync();
+        Assert.Equal(folder.Id, setup.At($"{Photos}/{Folder(day.AddDays(-1), "Visita técnica")}")!.Id);
+
+        // Sem tipo: a foto vai para "Outras fotos" e a pasta, vazia, para a lixeira.
+        await SetKindAsync(f, record.Id, null);
+        await setup.SyncAsync();
+        Assert.Equal(new[] { "piso.jpg" }, setup.Drive.ChildNames(setup.At(Others)!.Id));
+        Assert.True(setup.Drive.Items[folder.Id].Trashed);
+        Assert.Equal(new[] { "Outras fotos" }, setup.Drive.ChildNames(setup.At(Photos)!.Id));
+
+        // Tipo de novo: pasta nova, com a foto.
+        await SetKindAsync(f, record.Id, ProjectUpdateKind.EntregaFinal);
+        await setup.SyncAsync();
+        Assert.Equal(new[] { "piso.jpg" },
+            setup.Drive.ChildNames(setup.At($"{Photos}/{Folder(day.AddDays(-1), "Entrega final")}")!.Id));
+        Assert.Empty(setup.Drive.Children(setup.At(Others)!.Id));
+    }
+
+    [Fact]
+    public async Task SameKindTwiceOnTheSameDayGetsANumber()
+    {
+        var setup = await ConnectedAsync();
+        var day = Mapping.Today;
+        await AddRecordAsync(setup.F, ProjectUpdateKind.Obra, day, ("manha.jpg", "image/jpeg"));
+        await AddRecordAsync(setup.F, ProjectUpdateKind.Obra, day, ("tarde.jpg", "image/jpeg"));
+        // Registro do mesmo tipo e dia, mas sem foto, nao conta (nao tem pasta).
+        await AddRecordAsync(setup.F, ProjectUpdateKind.Obra, day);
+        await setup.SyncAsync();
+
+        Assert.Equal(new[] { Folder(day, "Obra"), Folder(day, "Obra", 2), "Outras fotos" },
+            setup.Drive.ChildNames(setup.At(Photos)!.Id));
+        Assert.Equal(new[] { "tarde.jpg" }, setup.Drive.ChildNames(setup.At($"{Photos}/{Folder(day, "Obra", 2)}")!.Id));
+    }
+
+    [Fact]
+    public async Task DeletingInThePlatformSendsTheCopyToTheTrashButDeletingTheProjectKeepsAll()
+    {
+        var setup = await ConnectedAsync();
+        var f = setup.F;
+        var day = Mapping.Today;
+        var record = await AddRecordAsync(f, ProjectUpdateKind.Obra, day, ("piso.jpg", "image/jpeg"));
+        var loose = await AddProjectFileAsync(f, "fachada.jpg", "image/jpeg");
+        await AddProjectFileAsync(f, "contrato.pdf", "application/pdf");
+        await setup.SyncAsync();
+        var recordFolder = setup.At($"{Photos}/{Folder(day, "Obra")}")!;
+        var looseCopy = setup.At($"{Others}/fachada.jpg")!;
+
+        await using (var db = f.Context(f.A.Admin))
+        {
+            db.ProjectFiles.Remove(await db.ProjectFiles.SingleAsync(x => x.Id == loose));
+            db.ProjectUpdates.Remove(await db.ProjectUpdates.Include(u => u.Attachments).SingleAsync(u => u.Id == record.Id));
+            await db.SaveChangesAsync();
+        }
+
+        await setup.SyncAsync();
+        Assert.True(setup.Drive.Items[looseCopy.Id].Trashed);
+        Assert.True(setup.Drive.Items[recordFolder.Id].Trashed);
+        Assert.False(setup.At($"{Documents}/contrato.pdf")!.Trashed);
+
+        // Excluir o projeto nao apaga nada no Drive (nem a pasta, nem o que esta nela).
+        await using (var db = f.Context(f.A.Admin))
+            await Projects(db, f.A.Admin).DeleteAsync(f.A.ProjectId);
+        await setup.SyncAsync();
+        Assert.NotNull(setup.At($"{Documents}/contrato.pdf"));
+        Assert.False(setup.At($"{Documents}/contrato.pdf")!.Trashed);
+    }
+
+    [Fact]
+    public async Task ConnectingCopiesWhatOpenProjectsAlreadyHave()
+    {
+        var setup = await ConnectedAsync(sync: false);
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+            await setup.Settings(db).DisconnectAsync();
+
+        var day = Mapping.Today.AddDays(-5);
+        await AddRecordAsync(setup.F, ProjectUpdateKind.VisitaTecnica, day, ("terreno.jpg", "image/jpeg"));
+        await AddProjectFileAsync(setup.F, "levantamento.pdf", "application/pdf");
+
+        await using (var db = setup.F.Context(setup.F.A.Admin))
+            await setup.Settings(db).ConnectAsync(new ConnectDriveRequest { FolderLink = FakeDriveClient.LinkTo(setup.Root) });
+        await setup.SyncAsync();
+
+        Assert.NotNull(setup.At($"{Photos}/{Folder(day, "Visita técnica")}/terreno.jpg"));
+        Assert.NotNull(setup.At($"{Documents}/levantamento.pdf"));
     }
 
     [Theory]

@@ -77,13 +77,47 @@ public class EsfDbContext : DbContext
     }
 
     /// <summary>
-    /// Programa ou projeto novo, renomeado ou que mudou de programa vira um aviso para a rotina do Google Drive
-    /// (DriveSyncService), no mesmo SaveChanges: assim nenhum caminho (tela, planilha, demonstracao) fica de fora. A
-    /// rotina descarta o aviso se o nucleo nao ligou o Drive.
+    /// Programa ou projeto novo, renomeado ou que mudou de programa, registro de andamento novo, que mudou de tipo ou de
+    /// dia ou foi apagado, e arquivo novo, que entrou num registro ou foi apagado viram avisos para a rotina do Google
+    /// Drive (DriveSyncService), no mesmo SaveChanges: assim nenhum caminho (tela, planilha, demonstracao) fica de fora.
+    /// A rotina descarta o aviso se o nucleo nao ligou o Drive. Excluir o projeto nao apaga nada no Drive.
     /// </summary>
     private void QueueDriveSync()
     {
         var requests = new List<DriveSyncRequest>();
+        var projects = ChangeTracker.Entries<Project>().ToList();
+        var deletedProjects = projects.Where(e => e.State == EntityState.Deleted).Select(e => e.Entity.Id).ToHashSet();
+
+        // Registro e arquivo nao guardam o nucleo: vem do projeto (se estiver no mesmo SaveChanges) ou de quem esta logado.
+        Guid? OrganizationOf(Guid projectId)
+        {
+            var organizationId = projects.FirstOrDefault(e => e.Entity.Id == projectId)?.Entity.OrganizationId;
+            return organizationId is { } id && id != Guid.Empty ? id : CurrentOrganizationId;
+        }
+
+        foreach (var entry in ChangeTracker.Entries<ProjectUpdate>())
+        {
+            var relevant = entry.State switch
+            {
+                EntityState.Added or EntityState.Deleted => true,
+                EntityState.Modified => entry.Property(x => x.Kind).IsModified || entry.Property(x => x.HappenedOn).IsModified,
+                _ => false
+            };
+            if (relevant && !deletedProjects.Contains(entry.Entity.ProjectId) && OrganizationOf(entry.Entity.ProjectId) is { } org)
+                requests.Add(Request(org, DriveItemKind.Registro, entry.Entity.Id, delete: entry.State == EntityState.Deleted));
+        }
+
+        foreach (var entry in ChangeTracker.Entries<ProjectFile>())
+        {
+            var relevant = entry.State switch
+            {
+                EntityState.Added or EntityState.Deleted => true,
+                EntityState.Modified => entry.Property(x => x.ProjectUpdateId).IsModified,
+                _ => false
+            };
+            if (relevant && !deletedProjects.Contains(entry.Entity.ProjectId) && OrganizationOf(entry.Entity.ProjectId) is { } org)
+                requests.Add(Request(org, DriveItemKind.Arquivo, entry.Entity.Id, delete: entry.State == EntityState.Deleted));
+        }
 
         foreach (var entry in ChangeTracker.Entries<ProjectProgram>())
         {

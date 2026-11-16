@@ -1,3 +1,4 @@
+using Esf.Api.Common;
 using Esf.Api.Data;
 using Esf.Api.Domain;
 using Esf.Api.Domain.Entities;
@@ -9,7 +10,8 @@ namespace Esf.Api.Services;
 
 /// <summary>
 /// Rotina do Google Drive (mao unica, plataforma → Drive). Cada passo transforma os avisos gravados no SaveChanges
-/// (DriveSyncRequest) em itens pendentes (DriveItem) e acerta um item no Drive: cria a pasta, renomeia, move. Falha
+/// (DriveSyncRequest) em itens pendentes (DriveItem) e acerta um item no Drive: cria a pasta, renomeia, move, copia a
+/// foto ou o documento, manda para a lixeira o que foi apagado na plataforma. Falha
 /// (Google fora do ar, acesso tirado) so adia o item, com intervalo crescente; a plataforma segue normal.
 /// Roda num escopo proprio, vendo todos os nucleos (DriveSyncWorker; nos testes, chamada direto).
 /// </summary>
@@ -22,13 +24,15 @@ public class DriveSyncService
 
     private readonly EsfDbContext _db;
     private readonly IDriveClient _drive;
+    private readonly FileStorageService _storage;
     private readonly ILogger<DriveSyncService> _logger;
 
-    public DriveSyncService(EsfDbContext db, IDriveClient drive, ILogger<DriveSyncService> logger)
+    public DriveSyncService(EsfDbContext db, IDriveClient drive, FileStorageService storage, ILogger<DriveSyncService> logger)
     {
         _db = db;
         _db.AllOrganizations = true;
         _drive = drive;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -206,6 +210,8 @@ public class DriveSyncService
     {
         DriveItemKind.Programa => SyncProgramAsync(root, item, cancellationToken),
         DriveItemKind.Projeto => SyncProjectAsync(root, item, cancellationToken),
+        DriveItemKind.Registro => SyncRecordAsync(root, item, cancellationToken),
+        DriveItemKind.Arquivo => SyncFileAsync(root, item, cancellationToken),
         _ => Task.FromResult(false)
     };
 
@@ -289,6 +295,191 @@ public class DriveSyncService
 
         item.OtherPhotosFolderId = await FindOrCreateFolderAsync(item.PhotosFolderId!, DriveNames.OtherPhotos,
             DriveNames.SubfolderTag(project.Id, DriveNames.OtherPhotosFolder), cancellationToken);
+    }
+
+    /// <summary>
+    /// O item da pasta do projeto, com a pasta e as subpastas prontas, criando se preciso (uma copia ou o relatorio
+    /// final precisa dela, mesmo com o projeto encerrado).
+    /// </summary>
+    private async Task<DriveItem> ProjectItemAsync(string root, Project project, CancellationToken cancellationToken)
+    {
+        var item = await FindItemAsync(DriveItemKind.Projeto, project.Id, cancellationToken);
+        var isNew = item is null;
+        item ??= new DriveItem
+        {
+            OrganizationId = project.OrganizationId, Kind = DriveItemKind.Projeto, EntityId = project.Id, State = DriveItemState.EmDia
+        };
+
+        if (item.DriveId is null || item.PhotosFolderId is null || item.OtherPhotosFolderId is null || item.DocumentsFolderId is null)
+            await EnsureProjectFolderAsync(root, item, project, cancellationToken);
+
+        if (isNew) _db.DriveItems.Add(item);
+        return item;
+    }
+
+    private Task<DriveItem?> FindItemAsync(DriveItemKind kind, Guid entityId, CancellationToken cancellationToken) =>
+        _db.DriveItems.FirstOrDefaultAsync(i => i.Kind == kind && i.EntityId == entityId && i.Key == "", cancellationToken);
+
+    /// <summary>
+    /// Alguma pasta do projeto sumiu do Drive (apagada de vez): esquece as pastas do projeto e dos registros dele, para a
+    /// proxima tentativa recriar.
+    /// </summary>
+    private async Task ForgetProjectFoldersAsync(Guid projectId, CancellationToken cancellationToken)
+    {
+        var project = await FindItemAsync(DriveItemKind.Projeto, projectId, cancellationToken);
+        if (project is not null)
+        {
+            project.DriveId = null;
+            project.PhotosFolderId = null;
+            project.OtherPhotosFolderId = null;
+            project.DocumentsFolderId = null;
+        }
+
+        var records = await _db.ProjectUpdates.AsNoTracking().Where(u => u.ProjectId == projectId).Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+        foreach (var record in await _db.DriveItems
+                     .Where(i => i.Kind == DriveItemKind.Registro && records.Contains(i.EntityId))
+                     .ToListAsync(cancellationToken))
+            record.DriveId = null;
+    }
+
+    // ---------- registros e arquivos ----------
+
+    private static bool IsPhoto(ProjectFile file) => file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Pasta do registro de andamento: so existe enquanto o registro tem tipo e fotos ("AAAA-MM-DD – Tipo", dentro de
+    /// "04. Fotos e vídeos"). Junto, as fotos do registro vao para o lugar certo: para a pasta dele, ou para "Outras
+    /// fotos" quando ele perde o tipo (e a pasta, vazia, vai para a lixeira).
+    /// </summary>
+    private async Task<bool> SyncRecordAsync(string root, DriveItem item, CancellationToken cancellationToken)
+    {
+        var record = await _db.ProjectUpdates.AsNoTracking().Include(u => u.Attachments)
+            .FirstOrDefaultAsync(u => u.Id == item.EntityId, cancellationToken);
+        if (record is null) return await TrashAsync(item, cancellationToken);
+
+        var photos = record.Attachments.Where(IsPhoto).OrderBy(f => f.UploadedAt).ToList();
+        foreach (var photo in photos)
+        {
+            var fileItem = await FindItemAsync(DriveItemKind.Arquivo, photo.Id, cancellationToken);
+            var isNew = fileItem is null;
+            fileItem ??= new DriveItem
+            {
+                OrganizationId = item.OrganizationId, Kind = DriveItemKind.Arquivo, EntityId = photo.Id, State = DriveItemState.EmDia
+            };
+            await CopyFileAsync(root, fileItem, photo, cancellationToken);
+            if (isNew && fileItem.DriveId is not null) _db.DriveItems.Add(fileItem);
+        }
+
+        // Sem tipo ou sem fotos: as fotos ja sairam da pasta, que vai para a lixeira.
+        if (record.Kind is null || photos.Count == 0)
+        {
+            if (item.DriveId is not null) await _drive.TrashAsync(item.DriveId, cancellationToken);
+            return false;
+        }
+
+        // Com fotos, a copia de cada uma ja criou ou acertou a pasta (neste mesmo item, rastreado no contexto).
+        return true;
+    }
+
+    /// <summary>Copia da foto ou do documento, no lugar que a regra manda (ver FileParentAsync). Apagado: some.</summary>
+    private async Task<bool> SyncFileAsync(string root, DriveItem item, CancellationToken cancellationToken)
+    {
+        var file = await _db.ProjectFiles.AsNoTracking().FirstOrDefaultAsync(f => f.Id == item.EntityId, cancellationToken);
+        if (file is null) return await TrashAsync(item, cancellationToken);
+
+        await CopyFileAsync(root, item, file, cancellationToken);
+        return item.DriveId is not null;
+    }
+
+    private async Task CopyFileAsync(string root, DriveItem item, ProjectFile file, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await PlaceFileAsync(root, item, file, cancellationToken);
+        }
+        catch (DriveItemMissingException)
+        {
+            // Uma pasta do projeto foi apagada de vez no Drive: recria as pastas e tenta mais uma vez.
+            await ForgetProjectFoldersAsync(file.ProjectId, cancellationToken);
+            await PlaceFileAsync(root, item, file, cancellationToken);
+        }
+    }
+
+    private async Task PlaceFileAsync(string root, DriveItem item, ProjectFile file, CancellationToken cancellationToken)
+    {
+        var parent = await FileParentAsync(root, file, cancellationToken);
+        if (item.DriveId is not null)
+        {
+            if (item.ParentDriveId == parent) return;
+            try
+            {
+                await _drive.UpdateAsync(item.DriveId, null, item.ParentDriveId, parent, cancellationToken);
+                item.ParentDriveId = parent;
+                return;
+            }
+            catch (DriveItemMissingException)
+            {
+                // A copia foi apagada de vez no Drive: envia de novo.
+                item.DriveId = null;
+            }
+        }
+
+        var name = DriveNames.Clean(file.FileName);
+        var tag = DriveNames.FileTag(file.Id);
+        item.DriveId = await _drive.FindByTagAsync(parent, tag, cancellationToken);
+        if (item.DriveId is null)
+        {
+            // Sem o conteudo (apagado logo depois do envio), nao ha o que copiar.
+            var content = await _storage.TryReadAsync(file.StoredName);
+            if (content is null) return;
+            item.DriveId = await _drive.UploadAsync(parent, name, file.ContentType, content, tag, cancellationToken);
+        }
+
+        item.ParentDriveId = parent;
+        item.Name = name;
+    }
+
+    /// <summary>
+    /// Onde fica a copia: documento em "05. Documentos"; foto de registro com tipo na pasta do registro; as outras
+    /// fotos (registro sem tipo, tarefa, aba Arquivos) em "Outras fotos".
+    /// </summary>
+    private async Task<string> FileParentAsync(string root, ProjectFile file, CancellationToken cancellationToken)
+    {
+        var project = await _db.Projects.AsNoTracking().FirstAsync(p => p.Id == file.ProjectId, cancellationToken);
+        var projectItem = await ProjectItemAsync(root, project, cancellationToken);
+        if (!IsPhoto(file)) return projectItem.DocumentsFolderId!;
+        if (file.ProjectUpdateId is not { } recordId) return projectItem.OtherPhotosFolderId!;
+
+        var record = await _db.ProjectUpdates.AsNoTracking().FirstAsync(u => u.Id == recordId, cancellationToken);
+        if (record.Kind is not { } kind) return projectItem.OtherPhotosFolderId!;
+
+        var recordItem = await FindItemAsync(DriveItemKind.Registro, record.Id, cancellationToken);
+        var isNew = recordItem is null;
+        recordItem ??= new DriveItem
+        {
+            OrganizationId = project.OrganizationId, Kind = DriveItemKind.Registro, EntityId = record.Id, State = DriveItemState.EmDia
+        };
+        await EnsureFolderAsync(recordItem, projectItem.PhotosFolderId!, await RecordFolderNameAsync(record, kind, cancellationToken),
+            DriveNames.RecordTag(record.Id), cancellationToken);
+        if (isNew) _db.DriveItems.Add(recordItem);
+        return recordItem.DriveId!;
+    }
+
+    /// <summary>
+    /// "2026-06-18 – Obra"; o segundo registro do mesmo tipo no mesmo dia (com fotos) ganha " (2)", e assim por diante,
+    /// pela ordem de publicacao.
+    /// </summary>
+    private async Task<string> RecordFolderNameAsync(ProjectUpdate record, ProjectUpdateKind kind, CancellationToken cancellationToken)
+    {
+        var siblings = await _db.ProjectUpdates.AsNoTracking()
+            .Where(u => u.ProjectId == record.ProjectId && u.Kind == kind
+                        && u.Attachments.Any(a => a.ContentType.StartsWith("image/")))
+            .Select(u => new ProjectUpdate { Id = u.Id, HappenedOn = u.HappenedOn, CreatedAt = u.CreatedAt })
+            .ToListAsync(cancellationToken);
+        var position = siblings.Where(u => u.Day == record.Day).OrderBy(u => u.CreatedAt).ThenBy(u => u.Id)
+            .Select(u => u.Id).ToList().IndexOf(record.Id);
+        return DriveNames.RecordFolder(record.Day, UpdateKinds.Label(kind), position + 1);
     }
 
     /// <summary>Id da pasta do programa, criando se preciso (um projeto precisa dela, seja o programa como for).</summary>
