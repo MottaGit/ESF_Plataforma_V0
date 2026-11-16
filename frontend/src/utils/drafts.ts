@@ -4,7 +4,7 @@
  * todos sao apagados quando alguem usa "Sair" (o aparelho pode ser compartilhado). Fotos escolhidas nao entram.
  */
 
-import type { Mention } from '../types/api';
+import type { Mention, ProjectUpdateKind } from '../types/api';
 
 const PREFIX = 'esf.rascunho.';
 /** Rascunho esquecido ha mais tempo que isso e descartado. */
@@ -15,6 +15,8 @@ export interface ProgressDraft {
   hours: string;
   /** Dia em que aconteceu, quando nao e o de hoje (aaaa-mm-dd). */
   day?: string;
+  /** Tipo do registro escolhido. */
+  kind?: ProjectUpdateKind;
   savedAt: number;
 }
 
@@ -42,9 +44,9 @@ export function loadDraft(key: string): ProgressDraft | null {
   }
 }
 
-export function saveDraft(key: string, html: string, hours: string, day?: string) {
+export function saveDraft(key: string, html: string, hours: string, day?: string, kind?: ProjectUpdateKind) {
   try {
-    localStorage.setItem(key, JSON.stringify({ html, hours, day, savedAt: Date.now() } satisfies ProgressDraft));
+    localStorage.setItem(key, JSON.stringify({ html, hours, day, kind, savedAt: Date.now() } satisfies ProgressDraft));
   } catch {
     // Sem espaco ou sem acesso ao armazenamento (navegacao privada): segue sem rascunho.
   }

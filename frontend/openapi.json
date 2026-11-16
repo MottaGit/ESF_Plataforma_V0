@@ -4519,6 +4519,13 @@
                   "HappenedOn": {
                     "type": "string",
                     "format": "date"
+                  },
+                  "Kind": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/ProjectUpdateKind"
+                      }
+                    ]
                   }
                 }
               },
@@ -4533,6 +4540,9 @@
                   "style": "form"
                 },
                 "HappenedOn": {
+                  "style": "form"
+                },
+                "Kind": {
                   "style": "form"
                 }
               }
@@ -8767,9 +8777,26 @@
           "happenedOn": {
             "type": "string",
             "format": "date"
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectUpdateKind"
+              }
+            ],
+            "nullable": true
           }
         },
         "additionalProperties": false
+      },
+      "ProjectUpdateKind": {
+        "enum": [
+          "VisitaTecnica",
+          "Obra",
+          "AcaoComunidade",
+          "EntregaFinal"
+        ],
+        "type": "string"
       },
       "ProjectUpdatePageDto": {
         "type": "object",
@@ -9743,6 +9770,14 @@
           "happenedOn": {
             "type": "string",
             "format": "date",
+            "nullable": true
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectUpdateKind"
+              }
+            ],
             "nullable": true
           }
         },

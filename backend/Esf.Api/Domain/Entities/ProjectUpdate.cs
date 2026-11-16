@@ -22,6 +22,9 @@ public class ProjectUpdate
     /// </summary>
     public DateOnly? HappenedOn { get; set; }
 
+    /// <summary>Momento do projeto que o registro conta (visita tecnica, obra...). Vazio: sem tipo.</summary>
+    public ProjectUpdateKind? Kind { get; set; }
+
     /// <summary>Dia do registro para ordenar, mostrar e filtrar por periodo (relatorio): o que aconteceu, ou o da publicacao.</summary>
     [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public DateOnly Day => HappenedOn ?? Common.TextHelpers.BrasiliaDay(CreatedAt);

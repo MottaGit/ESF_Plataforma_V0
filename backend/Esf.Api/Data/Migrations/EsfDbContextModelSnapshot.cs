@@ -1061,6 +1061,9 @@ namespace Esf.Api.Data.Migrations
                     b.Property<DateOnly?>("HappenedOn")
                         .HasColumnType("date");
 
+                    b.Property<int?>("Kind")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 

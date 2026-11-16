@@ -206,6 +206,9 @@ export type ProjectVolunteer = G.ProjectVolunteerDto;
 
 export type ProjectUpdate = G.ProjectUpdateDto;
 
+/** Tipo do registro (opcional): com fotos, vira a pasta "AAAA-MM-DD – Tipo" no Google Drive. */
+export type ProjectUpdateKind = G.ProjectUpdateKind;
+
 /** Uma pagina dos registros de um projeto (do mais recente para o mais antigo) e quantos ele tem ao todo. */
 export type ProjectUpdatePage = G.ProjectUpdatePageDto;
 

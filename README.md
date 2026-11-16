@@ -544,6 +544,11 @@ período do relatório filtra por ele, e as horas do registro ("Suas horas nesse
 outro, o registro mostra os dois ("07/11 · registrado em 09/11, 14:32"). Os registros de antes do campo
 (`ProjectUpdates.HappenedOn`, migração `AddProjectUpdateHappenedOn`) usam o dia em que foram publicados. O que mede uso
 da plataforma (último registro, projetos parados, registros no painel nacional) continua pela data de publicação.
+**Tipo** (opcional): acima do dia, um toque escolhe o momento do projeto que o registro conta — **Visita técnica** (o
+"antes": conhecer o lugar, medir), **Obra** (o "durante"), **Ação com a comunidade** (oficina, mutirão, capacitação,
+evento) ou **Entrega final** (o "depois"); tocar de novo tira. O tipo aparece como etiqueta ao lado do autor, muda ao
+editar, entra no rascunho e no histórico de alterações (`ProjectUpdates.Kind`, migração `AddProjectUpdateKind`). No
+Google Drive, o registro com tipo e com fotos vira a pasta `AAAA-MM-DD – Tipo` (ver Google Drive do núcleo).
 Editável depois
 de publicado, e cada registro pode ganhar novos anexos com o tempo. O feed fica numa coluna centralizada, com
 largura confortável de leitura. Os anexos aparecem compactos (até 4 miniaturas, depois "+N"; documentos numa linha) e
@@ -551,7 +556,7 @@ as fotos abrem num visualizador em tela cheia (setas ou deslizar no celular). Ed
 "..." de cada registro, e remover um anexo pede confirmação. O texto que está sendo escrito vira **rascunho** guardado
 no aparelho (localStorage, por pessoa e por projeto, a cada letra): trocar de tela, recarregar, fechar o navegador ou
 perder a sessão não apaga, e ao abrir o projeto de novo o texto volta com o aviso "Rascunho guardado neste aparelho" e
-"Descartar rascunho". Publicar apaga o rascunho; as horas do dia entram nele, as fotos escolhidas não. Os rascunhos
+"Descartar rascunho". Publicar apaga o rascunho; as horas do dia e o tipo entram nele, as fotos escolhidas não. Os rascunhos
 somem no "Sair" (o aparelho pode ser compartilhado) e depois de 30 dias esquecidos (`utils/drafts.ts`). Os nomes são
 sempre os mesmos: **Andamento** é a aba,
 **Registrar andamento** é a ação e cada item publicado é um **registro** ("Publicar registro", "Último registro").

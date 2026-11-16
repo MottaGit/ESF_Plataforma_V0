@@ -38,6 +38,7 @@ import type {
   ProjectFilters,
   ProjectListItem,
   ProjectUpdate,
+  ProjectUpdateKind,
   ProjectUpdatePage,
   ProjectVolunteer,
   ReportPayload,
@@ -267,18 +268,27 @@ export const projectUpdatesApi = {
     http.request<ProjectUpdatePage>(`/api/projects/${projectId}/updates`, { query: { skip, take } }),
   /**
    * hours: as horas que quem registra dedicou nesse dia (opcional, vira um lancamento de horas); happenedOn: o dia em
-   * que aconteceu (vazio: hoje).
+   * que aconteceu (vazio: hoje); kind: o tipo do registro (opcional).
    */
-  create: async (projectId: string, text: string, files: File[], hours?: number | null, happenedOn?: string | null) => {
+  create: async (
+    projectId: string,
+    text: string,
+    files: File[],
+    hours?: number | null,
+    happenedOn?: string | null,
+    kind?: ProjectUpdateKind | null
+  ) => {
     const formData = new FormData();
     formData.append('text', text);
     if (hours) formData.append('hours', String(hours));
     if (happenedOn) formData.append('happenedOn', happenedOn);
+    if (kind) formData.append('kind', kind);
     (await Promise.all(files.map(shrinkImage))).forEach((file) => formData.append('files', file));
     return http.request<ProjectUpdate>(`/api/projects/${projectId}/updates`, { method: 'POST', formData });
   },
-  update: (id: string, text: string, happenedOn: string | null = null) =>
-    http.request<ProjectUpdate>(`/api/updates/${id}`, { method: 'PUT', body: { text, happenedOn } }),
+  /** kind null tira o tipo. */
+  update: (id: string, text: string, happenedOn: string | null, kind: ProjectUpdateKind | null) =>
+    http.request<ProjectUpdate>(`/api/updates/${id}`, { method: 'PUT', body: { text, happenedOn, kind } }),
   remove: (id: string) => http.request<void>(`/api/updates/${id}`, { method: 'DELETE' }),
   addAttachment: async (id: string, file: File) => {
     const formData = new FormData();

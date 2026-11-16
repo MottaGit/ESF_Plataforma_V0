@@ -141,7 +141,8 @@ public static class Mapping
             u.EditedAt,
             u.Attachments.OrderBy(f => f.UploadedAt).Select(ToDto).ToList(),
             PhotoUrl(u.AuthorUser?.Volunteer?.PhotoStoredName),
-            u.Day);
+            u.Day,
+            u.Kind);
 
     /// <summary>
     /// Nome exibido de quem fez algo na plataforma: o do voluntario vinculado ao acesso; sem vinculo, o do

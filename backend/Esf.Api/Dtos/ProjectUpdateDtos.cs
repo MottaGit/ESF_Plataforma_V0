@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Esf.Api.Domain;
 using Microsoft.AspNetCore.Http;
 
 namespace Esf.Api.Dtos;
@@ -15,7 +16,9 @@ public record ProjectUpdateDto(
     // Foto do voluntario vinculado ao autor (null sem vinculo ou sem foto).
     string? AuthorPhotoUrl,
     // Dia em que aconteceu (nos registros antigos, o da publicacao).
-    DateOnly HappenedOn);
+    DateOnly HappenedOn,
+    // Tipo do registro (null: sem tipo).
+    ProjectUpdateKind? Kind);
 
 /// <summary>Uma pagina dos registros de um projeto e quantos ele tem ao todo.</summary>
 public record ProjectUpdatePageDto(List<ProjectUpdateDto> Items, int Total);
@@ -27,6 +30,9 @@ public class SaveProjectUpdateRequest
 
     /// <summary>Dia em que aconteceu (vazio: mantem o que esta).</summary>
     public DateOnly? HappenedOn { get; set; }
+
+    /// <summary>Tipo do registro (vazio: sem tipo).</summary>
+    public ProjectUpdateKind? Kind { get; set; }
 }
 
 /// <summary>Texto + arquivos num unico objeto multipart (evita ambiguidade de binding com [FromForm]).</summary>
@@ -42,4 +48,7 @@ public class CreateProjectUpdateRequest
 
     /// <summary>Dia em que aconteceu o que o registro conta (vazio: hoje). Nao pode ser depois de hoje.</summary>
     public DateOnly? HappenedOn { get; set; }
+
+    /// <summary>Tipo do registro (opcional): visita tecnica, obra, acao com a comunidade ou entrega final.</summary>
+    public ProjectUpdateKind? Kind { get; set; }
 }

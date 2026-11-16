@@ -72,7 +72,7 @@ public static class AuditTrail
         },
         [typeof(Indicator)] = new() { ["Name"] = "Nome", ["Value"] = "Valor", ["Unit"] = "Unidade" },
         [typeof(ProjectFile)] = new() { ["Description"] = "Legenda" },
-        [typeof(ProjectUpdate)] = new() { ["Text"] = "Texto" },
+        [typeof(ProjectUpdate)] = new() { ["Text"] = "Texto", ["Kind"] = "Tipo" },
         [typeof(ProjectProgram)] = new()
         {
             ["Name"] = "Nome", ["Status"] = "Situação", ["Icon"] = "Ícone", ["Color"] = "Cor",
@@ -254,6 +254,7 @@ public static class AuditTrail
             decimal number => Math.Round(number, 2).ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ','),
             DateOnly date => date.ToString("dd/MM/yyyy"),
             DateTime moment => TextHelpers.BrasiliaTime(moment).ToString("dd/MM/yyyy HH:mm"),
+            ProjectUpdateKind kind => UpdateKinds.Label(kind),
             ProjectStatus status => status switch
             {
                 ProjectStatus.Planejamento => "Planejamento",

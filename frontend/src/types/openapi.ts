@@ -606,7 +606,10 @@ export interface ProjectUpdateDto {
   attachments: ProjectFileDto[];
   authorPhotoUrl: string | null;
   happenedOn: string;
+  kind: ProjectUpdateKind | null;
 }
+
+export type ProjectUpdateKind = 'VisitaTecnica' | 'Obra' | 'AcaoComunidade' | 'EntregaFinal';
 
 export interface ProjectUpdatePageDto {
   items: ProjectUpdateDto[];
@@ -840,6 +843,7 @@ export interface SaveProjectRequest {
 export interface SaveProjectUpdateRequest {
   text: string;
   happenedOn: string | null;
+  kind: ProjectUpdateKind | null;
 }
 
 export interface SaveStatusPeriodRequest {

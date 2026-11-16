@@ -149,6 +149,22 @@
 .composer-hours .input[type='date'] { width: 170px; }
 .composer-hours .field__hint { margin: 0; }
 
+/* Tipo do registro de andamento: chips de um toque no "Registrar andamento" e etiqueta no registro publicado. */
+.update-kinds { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 12px; font-size: var(--fs-sm); }
+.update-kinds__label { font-weight: 500; margin-right: 4px; }
+.update-kinds .field__hint { margin: 0 0 0 4px; }
+.update-kind {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  vertical-align: 1px;
+}
+
 @media (max-width: 560px) {
   .hours-list__item { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 12px 14px; }
   .hours-list__item .row-actions { grid-column: 2 / -1; justify-self: start; margin-top: 0; }

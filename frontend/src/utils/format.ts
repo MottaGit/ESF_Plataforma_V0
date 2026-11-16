@@ -1,6 +1,7 @@
 import type {
   ActivityStatus,
   ProjectStatus,
+  ProjectUpdateKind,
   Shift,
   TransportMode,
   UserRole,
@@ -30,6 +31,9 @@ export const VOLUNTEER_SECTORS: VolunteerSector[] = [
 ];
 
 export const VOLUNTEER_STATUSES: VolunteerStatus[] = ['Ativo', 'Inativo', 'ExMembro', 'Afastado'];
+
+/** Tipos do registro de andamento, na ordem de um projeto: antes, durante, com a comunidade, depois. */
+export const UPDATE_KINDS: ProjectUpdateKind[] = ['VisitaTecnica', 'Obra', 'AcaoComunidade', 'EntregaFinal'];
 
 const projectStatusLabels: Record<ProjectStatus, string> = {
   Planejamento: 'Planejamento',
@@ -100,6 +104,16 @@ const weekDayLong: Record<WeekDay, string> = {
 };
 
 const shiftLabels: Record<Shift, string> = { Manha: 'Manhã', Tarde: 'Tarde', Noite: 'Noite' };
+
+// Os mesmos nomes do historico e da pasta no Google Drive (UpdateKinds.Label, na API).
+const updateKindLabels: Record<ProjectUpdateKind, string> = {
+  VisitaTecnica: 'Visita técnica',
+  Obra: 'Obra',
+  AcaoComunidade: 'Ação com a comunidade',
+  EntregaFinal: 'Entrega final'
+};
+
+export const updateKindLabel = (kind: ProjectUpdateKind) => updateKindLabels[kind] ?? kind;
 
 const transportLabels: Record<TransportMode, string> = { Carro: 'Carro', TransportePublico: 'Transporte público' };
 

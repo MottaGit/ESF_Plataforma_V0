@@ -3,7 +3,7 @@ import { ApiError } from '../../api/client';
 import { UPDATES_PAGE_SIZE, projectUpdatesApi } from '../../api/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import type { ProjectDetail, ProjectFile, ProjectUpdate, ProjectUpdatePage } from '../../types/api';
+import type { ProjectDetail, ProjectFile, ProjectUpdate, ProjectUpdateKind, ProjectUpdatePage } from '../../types/api';
 import { clearDraft, loadDraft, progressDraftKey, saveDraft } from '../../utils/drafts';
 import {
   SENSITIVE_DATA_HINT,
@@ -11,7 +11,8 @@ import {
   formatDateTime,
   formatHours,
   timeAgoPhrase,
-  todayInputValue
+  todayInputValue,
+  updateKindLabel
 } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
@@ -21,6 +22,7 @@ import { IconEdit, IconTrash, IconUpload } from '../ui/Icons';
 import { Menu } from '../ui/Menu';
 import { RichTextField, RichTextView, htmlToPlainText } from '../ui/RichText';
 import { StagedFiles, UpdateAttachments } from './UpdateAttachments';
+import { UpdateKindPicker } from './UpdateKindPicker';
 
 const ACCEPTED_FILES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.dwg,.zip';
 
@@ -64,6 +66,8 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
   const today = todayInputValue();
   const yesterday = shiftDay(today, -1);
   const [day, setDay] = useState(restoredDraft?.day ?? today);
+  // Tipo do registro (opcional): visita tecnica, obra, acao com a comunidade, entrega final.
+  const [kind, setKind] = useState<ProjectUpdateKind | null>(restoredDraft?.kind ?? null);
   const inTeam = project.volunteers.some((member) => member.volunteerId === user?.volunteerId);
   const [plainText, setPlainText] = useState(() => (restoredDraft ? htmlToPlainText(restoredDraft.html) : ''));
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
@@ -128,14 +132,15 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
   useEffect(() => {
     if (!draftKey) return;
     if (plainText.trim() === '' && hours.trim() === '') clearDraft(draftKey);
-    else saveDraft(draftKey, text, hours, day !== today ? day : undefined);
-  }, [draftKey, text, plainText, hours, day, today]);
+    else saveDraft(draftKey, text, hours, day !== today ? day : undefined, kind ?? undefined);
+  }, [draftKey, text, plainText, hours, day, today, kind]);
 
   function discardDraft() {
     setText('');
     setPlainText('');
     setHours('');
     setDay(today);
+    setKind(null);
     setRestoredDraft(null);
     if (draftKey) clearDraft(draftKey);
   }
@@ -166,12 +171,13 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
 
     setPosting(true);
     try {
-      await projectUpdatesApi.create(project.id, text, stagedFiles, hoursValue, day || today);
+      await projectUpdatesApi.create(project.id, text, stagedFiles, hoursValue, day || today, kind);
       setText('');
       setPlainText('');
       setStagedFiles([]);
       setHours('');
       setDay(today);
+      setKind(null);
       setRestoredDraft(null);
       if (draftKey) clearDraft(draftKey);
       notify(hoursValue ? `Registro publicado, com ${formatHours(hoursValue)} lançadas.` : 'Registro publicado.');
@@ -240,6 +246,8 @@ export function UpdatesSection({ project, onChanged, focusComposer }: UpdatesSec
             <p className="field__hint mt-8">
               {SENSITIVE_DATA_HINT} Fotos de pessoas, só com autorização de uso de imagem.
             </p>
+
+            <UpdateKindPicker value={kind} onChange={setKind} />
 
             <div className="composer-hours">
               <label htmlFor="update-day">Quando aconteceu</label>
@@ -353,6 +361,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(update.text);
   const [draftDay, setDraftDay] = useState(update.happenedOn.slice(0, 10));
+  const [draftKind, setDraftKind] = useState<ProjectUpdateKind | null>(update.kind);
   const [draftPlain, setDraftPlain] = useState(() => htmlToPlainText(update.text));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -371,7 +380,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
     }
     setSaving(true);
     try {
-      await projectUpdatesApi.update(update.id, draft, draftDay || null);
+      await projectUpdatesApi.update(update.id, draft, draftDay || null, draftKind);
       setEditing(false);
       onChanged();
     } catch (err) {
@@ -422,7 +431,10 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
           <div className="person-cell">
             <Avatar name={update.authorName ?? '?'} photoUrl={update.authorPhotoUrl} size={34} />
             <div>
-              <div className="table__primary">{update.authorName ?? 'Usuário removido'}</div>
+              <div className="table__primary">
+                {update.authorName ?? 'Usuário removido'}
+                {update.kind ? <span className="update-kind">{updateKindLabel(update.kind)}</span> : null}
+              </div>
               <div className="table__secondary">
                 {/* O dia em que aconteceu; quando foi registrado em outro dia, as duas datas. */}
                 {sameDay(update.happenedOn, update.createdAt)
@@ -455,6 +467,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
                 setDraftPlain(plain);
               }}
             />
+            <UpdateKindPicker value={draftKind} onChange={setDraftKind} />
             <div className="composer-hours">
               <label htmlFor={`update-day-${update.id}`}>Quando aconteceu</label>
               <TextInput
@@ -474,6 +487,7 @@ function UpdateCard({ update, onChanged, onRemove }: UpdateCardProps) {
                   setDraft(update.text);
                   setDraftPlain(htmlToPlainText(update.text));
                   setDraftDay(update.happenedOn.slice(0, 10));
+                  setDraftKind(update.kind);
                 }}
               >
                 Cancelar

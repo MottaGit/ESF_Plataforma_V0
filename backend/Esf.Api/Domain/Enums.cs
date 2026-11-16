@@ -108,6 +108,22 @@ public enum BackgroundJobStatus
     Failed = 3
 }
 
+/// <summary>
+/// Tipo do registro de andamento (opcional): um momento do projeto. No Google Drive, o registro com tipo e com fotos
+/// vira a pasta "AAAA-MM-DD – Tipo"; sem tipo, as fotos vao para "Outras fotos".
+/// </summary>
+public enum ProjectUpdateKind
+{
+    /// <summary>Conhecer o lugar, medir, fazer o diagnostico (o "antes").</summary>
+    VisitaTecnica = 0,
+    /// <summary>A obra acontecendo (o "durante").</summary>
+    Obra = 1,
+    /// <summary>Oficina, mutirao, capacitacao, plantio, evento feito junto com a comunidade.</summary>
+    AcaoComunidade = 2,
+    /// <summary>Obra ou projeto entregue (o "depois").</summary>
+    EntregaFinal = 3
+}
+
 /// <summary>O que um item do Google Drive representa na plataforma (ver DriveItem).</summary>
 public enum DriveItemKind
 {

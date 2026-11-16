@@ -66,6 +66,10 @@ public class ProjectUpdateService
     private static DateOnly ValidDay(DateOnly day) =>
         day > Mapping.Today ? throw new AppException("A data do registro não pode ser depois de hoje.") : day;
 
+    /// <summary>Tipo que nao existe (numero solto no formulario) e recusado.</summary>
+    private static ProjectUpdateKind? ValidKind(ProjectUpdateKind? kind) =>
+        kind is null || Enum.IsDefined(kind.Value) ? kind : throw new AppException("Escolha um tipo de registro da lista.");
+
     public async Task<ProjectUpdateDto> CreateAsync(Guid projectId, CreateProjectUpdateRequest request, Guid? authorUserId)
     {
         if (!await _db.Projects.AnyAsync(p => p.Id == projectId))
@@ -77,7 +81,8 @@ public class ProjectUpdateService
             Text = CleanText(request.Text),
             AuthorUserId = authorUserId,
             CreatedAt = DateTime.UtcNow,
-            HappenedOn = ValidDay(request.HappenedOn ?? Mapping.Today)
+            HappenedOn = ValidDay(request.HappenedOn ?? Mapping.Today),
+            Kind = ValidKind(request.Kind)
         };
 
         _db.ProjectUpdates.Add(update);
@@ -103,6 +108,7 @@ public class ProjectUpdateService
 
         update.Text = CleanText(request.Text);
         if (request.HappenedOn.HasValue) update.HappenedOn = ValidDay(request.HappenedOn.Value);
+        update.Kind = ValidKind(request.Kind);
         update.EditedAt = DateTime.UtcNow;
 
         await TouchProjectAsync(update.ProjectId);
